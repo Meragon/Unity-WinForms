@@ -1,6 +1,7 @@
-# Unity System.Windows.Forms WIP project.
+# Unity System.Windows.Forms project.
 
 Fast start:
+
 1. Create a GameObject;
 2. Add component 'Application' to it;
 3. Add custom skin, icons and fonts;
