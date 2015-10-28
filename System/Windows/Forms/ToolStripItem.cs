@@ -44,6 +44,7 @@ namespace System.Windows.Forms
             HoverPadding = new Rectangle(2, 2, -4, -4);
             Name = "toolStripItem";
             Padding = new Forms.Padding(8, 0, 8, 0);
+            Size = new Drawing.Size(160, 24);
             TextAlign = new StringFormat() { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Near };
         }
         public ToolStripItem(string text)
@@ -91,27 +92,30 @@ namespace System.Windows.Forms
             g.FillRectangle(new SolidBrush(BackColor), e.ClipRectangle);
             if (Image != null)
                 g.DrawTexture(Image, e.ClipRectangle.X + 6, e.ClipRectangle.Y + 4, 12, 12);
-            if (!Selected)
+            if (Enabled)
             {
-                if (_hovered)
+                if (!Selected)
                 {
-                    g.FillRectangle(new SolidBrush(HoverColor), e.ClipRectangle + HoverPadding);
-                    g.DrawRectangle(new Pen(HoverColor - Color.FromArgb(0, 64, 64, 64)), e.ClipRectangle + HoverPadding);
+                    if (_hovered)
+                    {
+                        g.FillRectangle(new SolidBrush(HoverColor), e.ClipRectangle + HoverPadding);
+                        g.DrawRectangle(new Pen(HoverColor - Color.FromArgb(0, 64, 64, 64)), e.ClipRectangle + HoverPadding);
+                    }
                 }
-            }
-            else
-            {
-                if (Owner.Orientation == Orientation.Horizontal)
-                    g.FillRectangle(new SolidBrush(Color.FromArgb(246, 246, 246)), e.ClipRectangle);
                 else
                 {
-                    g.FillRectangle(new SolidBrush(HoverColor), e.ClipRectangle + HoverPadding);
-                    g.DrawRectangle(new Pen(HoverColor - Color.FromArgb(0, 64, 64, 64)), e.ClipRectangle + HoverPadding);
+                    if (Owner.Orientation == Orientation.Horizontal)
+                        g.FillRectangle(new SolidBrush(Color.FromArgb(246, 246, 246)), e.ClipRectangle);
+                    else
+                    {
+                        g.FillRectangle(new SolidBrush(HoverColor), e.ClipRectangle + HoverPadding);
+                        g.DrawRectangle(new Pen(HoverColor - Color.FromArgb(0, 64, 64, 64)), e.ClipRectangle + HoverPadding);
+                    }
                 }
             }
 
             Color textColor = Enabled ? ForeColor : ForeColor + Color.FromArgb(0, 100, 100, 100);
-            if (Selected) textColor = Color.FromArgb(64, 64, 64);
+            if (Selected && Enabled) textColor = Color.FromArgb(64, 64, 64);
 
             if (Parent.Orientation == Orientation.Horizontal)
                 g.DrawString(Text, Font, new SolidBrush(textColor), e.ClipRectangle, TextAlign);
@@ -175,7 +179,7 @@ namespace System.Windows.Forms
                 }
             }
         }
-        
+
         protected override void Dispose(bool disposing)
         {
 

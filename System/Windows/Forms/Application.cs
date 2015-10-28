@@ -15,11 +15,11 @@ namespace System.Windows.Forms
         }
 
         public static bool Debug { get; set; }
-        public static List<Control> Controls = new List<Control>();
-        public static List<Control> BringToFrontControls = new List<Control>();
-        public static List<Control> ToCloseControls = new List<Control>();
+        internal static List<Control> Controls = new List<Control>();
+        internal static List<Control> BringToFrontControls = new List<Control>();
+        internal static List<Control> ToCloseControls = new List<Control>();
 
-        public static Texture2D DefaultSprite { get; set; }
+        internal static Texture2D DefaultSprite { get; private set; }
 
         // Editor settings.
         public GUISkin Skin;

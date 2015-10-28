@@ -73,7 +73,15 @@ namespace System.Windows.Forms
         public int Count { get { return _items.Count; } }
         public int IndexOf(ToolStripItem value)
         {
-            return _items.IndexOf(value);
+            for (int i = 0, index = 0; i < _items.Count; i++)
+            {
+                if (_items[i] == value)
+                    return index;
+                if (_items[i].JustVisual == false)
+                    index++;
+            }
+
+            return -1;
         }
         public void Insert(int index, ToolStripItem value)
         {

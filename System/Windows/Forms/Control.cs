@@ -477,6 +477,8 @@ namespace System.Windows.Forms
             var editorHeight = Editor.Slider("Height", this.Height, 0, 4096);
             if (editorHeight.Changed) Height = (int)editorHeight.Value;
 
+            Editor.Label("IsDisposed", this.IsDisposed.ToString());
+
             var editorLocation = Editor.IntField("Location", this.Location.X, this.Location.Y);
             if (editorLocation.Changed) Location = new Point(editorLocation.Value[0], editorLocation.Value[1]);
 
