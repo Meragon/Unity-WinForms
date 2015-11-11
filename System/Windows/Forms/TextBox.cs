@@ -8,6 +8,7 @@ namespace System.Windows.Forms
 {
     public class TextBox : Control
     {
+        private bool _shouldFocus;
         private bool _hovered;
         private string _text;
 
@@ -40,6 +41,11 @@ namespace System.Windows.Forms
             Size = new Size(128, 24);
         }
 
+        public override void Focus()
+        {
+            base.Focus();
+            _shouldFocus = true;
+        }
         protected override void OnMouseEnter(EventArgs e)
         {
             base.OnMouseEnter(e);
@@ -59,9 +65,12 @@ namespace System.Windows.Forms
             if (Enabled)
             {
                 g.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
-                //if (Focused)
+
+                if (Focused)
                 {
-                    //var screenPos = PointToScreen(Point.Zero);
+                    if (_shouldFocus)
+                        UnityEngine.GUI.SetNextControlName(Name);
+
                     var _tempText = Text;
                     if (!Multiline)
                         Text = g.DrawTextField(Text, Font, new SolidBrush(ForeColor), Padding.Left, Padding.Top, Width - Padding.Right - Padding.Left, Height - Padding.Bottom - Padding.Top, TextAlign);
@@ -74,8 +83,14 @@ namespace System.Windows.Forms
                             TextChangedCallback.Invoke(TextChangedCallbackInfo);
                     }
                 }
-                //else
-                //g.DrawString(Text, Font, new SolidBrush(TextColor), new RectangleF(4, 0, Width - 8, Height));
+                else
+                    g.DrawString(Text, Font, new SolidBrush(ForeColor), 4, 0, Width - 8, Height);
+
+                if (_shouldFocus)
+                {
+                    UnityEngine.GUI.FocusControl(Name);
+                    _shouldFocus = false;
+                }
             }
             else
                 g.DrawString(Text, Font, new SolidBrush(ForeColor), new RectangleF(4, 0, Width - 8, Height));

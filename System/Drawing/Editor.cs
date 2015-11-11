@@ -108,9 +108,11 @@ namespace System.Drawing
         }
         public static void Label(string name, object value)
         {
+            string valueString = "null";
+            if (value != null) valueString = value.ToString();
             UnityEngine.GUILayout.BeginHorizontal();
             UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            UnityEngine.GUILayout.Label(value.ToString(), UnityEngine.GUILayout.Width(_contentWidth));
+            UnityEngine.GUILayout.Label(valueString, UnityEngine.GUILayout.Width(_contentWidth));
             UnityEngine.GUILayout.EndHorizontal();
         }
         public static EditorValue<int[]> IntField(string name, params int[] value)
