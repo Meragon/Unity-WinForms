@@ -12,6 +12,7 @@ namespace System.Windows.Forms
         private Button _buttonDecrease;
         private decimal _minimum;
         private decimal _maximum;
+        private bool _shouldFocus;
         private decimal _value;
         private string _valueText = "0";
 
@@ -108,6 +109,11 @@ namespace System.Windows.Forms
 
         public event EventHandler ValueChanged = delegate { };
 
+        public override void Focus()
+        {
+            base.Focus();
+            _shouldFocus = true;
+        }
         public void HideButtons()
         {
             _buttonIncrease.Visible = false;
@@ -131,9 +137,21 @@ namespace System.Windows.Forms
             {
                 g.FillRectangle(new SolidBrush(Color.FromArgb(250, 250, 250)), 0, 0, Width, Height);
 
-                UnityEngine.GUI.color = Color.Black.ToUColor();
-                _valueText = g.DrawTextField(_valueText, Font, new SolidBrush(ForeColor), 0, 0, Width + (_buttonIncrease.Visible ? -16 : 0), Height, TextAlign);
-                //UnityEngine.GUI.TextField(new UnityEngine.Rect(screenPos.X, screenPos.Y, Width, Height), Value.ToString());
+                if (Focused)
+                {
+                    if (_shouldFocus)
+                        UnityEngine.GUI.SetNextControlName(Name);
+
+                    _valueText = g.DrawTextField(_valueText, Font, new SolidBrush(ForeColor), 0, 0, Width + (_buttonIncrease.Visible ? -16 : 0), Height, TextAlign);
+
+                    if (_shouldFocus)
+                    {
+                        UnityEngine.GUI.FocusControl(Name);
+                        _shouldFocus = false;
+                    }
+                }
+                else
+                    g.DrawString(_valueText, Font, new SolidBrush(ForeColor), 3, 0, Width + (_buttonIncrease.Visible ? -16 : 0), Height, TextAlign);
 
                 decimal value = Value;
                 if (!decimal.TryParse(_valueText, out value))

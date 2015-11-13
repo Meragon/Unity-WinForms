@@ -41,6 +41,37 @@ namespace System.Drawing
         }
         public void DrawLine(Pen pen, float x1, float y1, float x2, float y2)
         {
+            if (GL_Lines)
+            {
+                GL.Begin(GL.LINES);
+                GL.Color(pen.Color.ToUColor());
+
+                // TODO: switch (pen.DashStyle) { ... }
+
+                if (!_group)
+                {
+                    Point c_position = Point.Empty;
+                    if (Control != null)
+                        c_position = Control.PointToScreen(Point.Zero);
+
+                    GL.Vertex3(c_position.X + x1, c_position.Y + y1, 0);
+                    GL.Vertex3(c_position.X + x2, c_position.Y + y2, 0);
+                }
+                else
+                {
+                    Point c_position = Point.Empty;
+                    if (Control != null)
+                        c_position = Control.PointToScreen(Point.Zero);
+                    var g_position = _groupControlLast.PointToScreen(Point.Zero);
+
+                    GL.Vertex3(c_position.X - g_position.X + x1, c_position.Y - g_position.Y + y1, 0);
+                    GL.Vertex3(c_position.X - g_position.X + x2, c_position.Y - g_position.Y + y2, 0);
+                }
+
+                GL.End();
+                return;
+            }
+
             float x = 0;
             float y = 0;
             float width = 0;
@@ -80,34 +111,82 @@ namespace System.Drawing
                 }
             }
 
-            if (!GL_Lines)
-                DrawRectangle(pen, x, y, width, height);
+            DrawRectangle(pen, x, y, width, height);
+        }
+        public string DrawPasswordField(string s, Font font, SolidBrush brush, float x, float y, float width, float height, HorizontalAlignment alignment)
+        {
+            if (Control == null) return s;
+
+            GUI.skin.textField.alignment = TextAnchor.UpperLeft;
+            switch (alignment)
+            {
+                case HorizontalAlignment.Center:
+                    GUI.skin.textField.alignment = TextAnchor.MiddleCenter;
+                    break;
+                default:
+                    GUI.skin.textField.alignment = TextAnchor.MiddleLeft;
+                    break;
+                case HorizontalAlignment.Right:
+                    GUI.skin.textField.alignment = TextAnchor.MiddleRight;
+                    break;
+            }
+
+            if (font != null)
+            {
+                var _font = System.Windows.Forms.Application.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
+                if (_font != null)
+                    GUI.skin.textField.font = _font;
+                else
+                    GUI.skin.textField.font = null;
+                GUI.skin.textField.fontSize = (int)font.Size;
+                bool styleBold = (font.Style & FontStyle.Bold) == FontStyle.Bold;
+                bool styleItalic = (font.Style & FontStyle.Italic) == FontStyle.Italic;
+                if (styleBold)
+                {
+                    if (styleItalic)
+                        GUI.skin.textField.fontStyle = UnityEngine.FontStyle.BoldAndItalic;
+                    else
+                        GUI.skin.textField.fontStyle = UnityEngine.FontStyle.Bold;
+                }
+                else if (styleItalic)
+                    GUI.skin.textField.fontStyle = UnityEngine.FontStyle.Italic;
+                else GUI.skin.textField.fontStyle = UnityEngine.FontStyle.Normal;
+            }
             else
             {
+                var _font = System.Windows.Forms.Application.Resources.Fonts.Find(f => f.fontNames[0] == "Arial");
+                if (_font != null)
+                    GUI.skin.textField.font = _font;
+                GUI.skin.textField.fontSize = 12;
+            }
+
+            GUI.color = brush.Color.ToUColor();
+
+            if (!_group)
+            {
+                var c_position = Control.PointToScreen(Point.Zero);
+                return GUI.PasswordField(new Rect(c_position.X + x, c_position.Y + y, width, height), s, '*');
+            }
+            else
+            {
+                var c_position = Control.PointToScreen(Point.Zero);
+                var g_position = _groupControlLast.PointToScreen(Point.Zero);
+                var position = c_position - g_position + new PointF(x, y);
+
+                return GUI.PasswordField(new Rect(position.X, position.Y, width, height), s, '*');
+            }
+        }
+        public void DrawPolygon(Pen pen, Point[] points)
+        {
+            for (int i = 0; i < points.Length; i++)
+            {
+                if (i + 1 >= points.Length) break;
+
                 GL.Begin(GL.LINES);
                 GL.Color(pen.Color.ToUColor());
 
-                // TODO: switch (pen.DashStyle) { ... }
-                
-                if (!_group)
-                {
-                    Point c_position = Point.Empty;
-                    if (Control != null)
-                        c_position = Control.PointToScreen(Point.Zero);
-
-                    GL.Vertex3(c_position.X + x1, c_position.Y + y1, 0);
-                    GL.Vertex3(c_position.X + x2, c_position.Y + y2, 0);
-                }
-                else
-                {
-                    Point c_position = Point.Empty;
-                    if (Control != null)
-                        c_position = Control.PointToScreen(Point.Zero);
-                    var g_position = _groupControlLast.PointToScreen(Point.Zero);
-
-                    GL.Vertex3(c_position.X - g_position.X + x1, c_position.Y - g_position.Y + y1, 0);
-                    GL.Vertex3(c_position.X - g_position.X + x2, c_position.Y - g_position.Y + y2, 0);
-                }
+                GL.Vertex3(points[i].X, points[i].Y, 0);
+                GL.Vertex3(points[i + 1].X, points[i + 1].Y, 0);
 
                 GL.End();
             }
@@ -233,69 +312,6 @@ namespace System.Drawing
                         }
                         break;
                 }
-            }
-        }
-        public string DrawPasswordField(string s, Font font, SolidBrush brush, float x, float y, float width, float height, HorizontalAlignment alignment)
-        {
-            if (Control == null) return s;
-
-            GUI.skin.textField.alignment = TextAnchor.UpperLeft;
-            switch (alignment)
-            {
-                case HorizontalAlignment.Center:
-                    GUI.skin.textField.alignment = TextAnchor.MiddleCenter;
-                    break;
-                default:
-                    GUI.skin.textField.alignment = TextAnchor.MiddleLeft;
-                    break;
-                case HorizontalAlignment.Right:
-                    GUI.skin.textField.alignment = TextAnchor.MiddleRight;
-                    break;
-            }
-
-            if (font != null)
-            {
-                var _font = System.Windows.Forms.Application.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
-                if (_font != null)
-                    GUI.skin.textField.font = _font;
-                else
-                    GUI.skin.textField.font = null;
-                GUI.skin.textField.fontSize = (int)font.Size;
-                bool styleBold = (font.Style & FontStyle.Bold) == FontStyle.Bold;
-                bool styleItalic = (font.Style & FontStyle.Italic) == FontStyle.Italic;
-                if (styleBold)
-                {
-                    if (styleItalic)
-                        GUI.skin.textField.fontStyle = UnityEngine.FontStyle.BoldAndItalic;
-                    else
-                        GUI.skin.textField.fontStyle = UnityEngine.FontStyle.Bold;
-                }
-                else if (styleItalic)
-                    GUI.skin.textField.fontStyle = UnityEngine.FontStyle.Italic;
-                else GUI.skin.textField.fontStyle = UnityEngine.FontStyle.Normal;
-            }
-            else
-            {
-                var _font = System.Windows.Forms.Application.Resources.Fonts.Find(f => f.fontNames[0] == "Arial");
-                if (_font != null)
-                    GUI.skin.textField.font = _font;
-                GUI.skin.textField.fontSize = 12;
-            }
-
-            GUI.color = brush.Color.ToUColor();
-
-            if (!_group)
-            {
-                var c_position = Control.PointToScreen(Point.Zero);
-                return GUI.PasswordField(new Rect(c_position.X + x, c_position.Y + y, width, height), s, '*');
-            }
-            else
-            {
-                var c_position = Control.PointToScreen(Point.Zero);
-                var g_position = _groupControlLast.PointToScreen(Point.Zero);
-                var position = c_position - g_position + new PointF(x, y);
-
-                return GUI.PasswordField(new Rect(position.X, position.Y, width, height), s, '*');
             }
         }
         public void DrawString(string s, Font font, SolidBrush brush, PointF point)
@@ -613,6 +629,22 @@ namespace System.Drawing
             }
             else
                 GUI.DrawTexture(new Rect(x, y, width, height), System.Windows.Forms.Application.DefaultSprite);
+        }
+        public void FillPolygonConvex(SolidBrush brush, Point[] points)
+        {
+            if (points.Length < 3) return;
+
+            for (int i = 1; i + 1 < points.Length; i += 1)
+            {
+                GL.Begin(GL.TRIANGLES);
+
+                GL.Color(brush.Color.ToUColor());
+                GL.Vertex3(points[0].X, points[1].Y, 0);
+                GL.Vertex3(points[i].X, points[i].Y, 0);
+                GL.Vertex3(points[i + 1].X, points[i + 1].Y, 0);
+
+                GL.End();
+            }
         }
         public void FillRectangle(SolidBrush brush, Rectangle rect)
         {
