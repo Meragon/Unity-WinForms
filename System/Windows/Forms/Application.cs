@@ -193,6 +193,7 @@ namespace System.Windows.Forms
 
                 bool alwaysTop = true;
                 bool found = false;
+                Control lastPreccessedControl = null;
                 for (int i = Controls.Count - 1; i >= -1; i--)
                 {
                     // Top first.
@@ -212,7 +213,7 @@ namespace System.Windows.Forms
 
                     if (_ProcessControl(mousePosition, Controls[i], false))
                     {
-                        //Debug.Log(Controls[i].Name);
+                        lastPreccessedControl = Controls[i];
                         found = true;
                         break;
                     }
@@ -222,6 +223,11 @@ namespace System.Windows.Forms
                     _dragndrop = false;
                     _dragData = null;
                 }
+
+                if (_mouseEvent == MouseEvents.Down)
+                    DownClick(lastPreccessedControl, new MouseEventArgs(_mouseButton, 1, (int)mousePosition.X, (int)mousePosition.Y, 0));
+                if (_mouseEvent == MouseEvents.Up)
+                    UpClick(lastPreccessedControl, new MouseEventArgs(_mouseButton, 1, (int)mousePosition.X, (int)mousePosition.Y, 0));
             }
 
             _mouseMovePosition = Input.mousePosition;
@@ -512,7 +518,6 @@ namespace System.Windows.Forms
                         MouseEventArgs md_args = new MouseEventArgs(_mouseButton, 1, (int)client_mpos.X, (int)client_mpos.Y, 0);
                         control.RaiseOnMouseDown(md_args);
                         _mouseLastClickControl = control;
-                        DownClick(control, md_args);
                         return true;
                     case MouseEvents.Up:
                         if (_dragndrop)
@@ -530,7 +535,6 @@ namespace System.Windows.Forms
                         control.RaiseOnMouseUp(mu_args);
                         if (_mouseLastClickControl != null && control != _mouseLastClickControl)
                             _mouseLastClickControl.RaiseOnMouseUp(mu_args);
-                        UpClick(control, mu_args);
                         return true;
                     case MouseEvents.DoubleClick:
                         MouseEventArgs mdc_args = new MouseEventArgs(_mouseButton, 2, (int)client_mpos.X, (int)client_mpos.Y, 0);
@@ -549,8 +553,8 @@ namespace System.Windows.Forms
 
         public delegate void UpdateEventDelegate();
 
-        internal static event EventHandler DownClick = delegate { };
-        internal static event EventHandler UpClick = delegate { };
+        internal static event MouseEventHandler DownClick = delegate { };
+        internal static event MouseEventHandler UpClick = delegate { };
         public static event UpdateEventDelegate UpdateEvent = delegate { };
 
         public enum MouseEvents

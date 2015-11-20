@@ -9,6 +9,10 @@ namespace System.Windows.Forms
 {
     public class ComboBox : ListControl
     {
+#if UNITY_EDITOR
+        private bool _toggleItems;
+#endif
+
         private string _filter = String.Empty;
         private ComboBox.ObjectCollection _items;
         private bool _hovered;
@@ -34,7 +38,10 @@ namespace System.Windows.Forms
                     _filter = SelectedItem.ToString();
                 }
                 else
+                {
                     SelectedText = "";
+                    _filter = String.Empty;
+                }
                 SelectedIndexChanged(this, null);
             }
         }
@@ -125,7 +132,7 @@ namespace System.Windows.Forms
         {
             base.OnMouseEnter(e);
             _hovered = true;
-            
+
         }
         protected override void OnMouseLeave(EventArgs e)
         {
@@ -197,6 +204,26 @@ namespace System.Windows.Forms
                 g.DrawRectangle(_hovered || Focused ? new Pen(Color.FromArgb(126, 180, 234)) : Pens.DarkGray, 0, 0, Width, Height);
             else
                 g.DrawRectangle(new Pen(Color.FromArgb(217, 217, 217)), 0, 0, Width, Height);
+        }
+        protected override object OnPaintEditor(float width)
+        {
+            var component = base.OnPaintEditor(width);
+
+#if UNITY_EDITOR
+            Editor.NewLine(2);
+            Editor.Label("ComboBox");
+            Editor.EnumField("AutoCompleteMode", AutoCompleteMode);
+            Editor.EnumField("AutoCompleteSource", AutoCompleteSource);
+            Editor.EnumField("DropDownStyle", DropDownStyle);
+            if ((_toggleItems = Editor.Foldout("Items", _toggleItems)) == true)
+                for (int i = 0; i < Items.Count; i++)
+                    Editor.Label(i.ToString(), Items[i].ToString());
+            Editor.Label("SelectedIndex", SelectedIndex);
+            Editor.Label("SelectedItem", SelectedItem);
+            Editor.Label("SelectedText", SelectedText);
+#endif
+
+            return component;
         }
 
         private void _CreateListBox(string filter)
