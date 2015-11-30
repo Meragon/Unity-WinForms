@@ -86,8 +86,15 @@ namespace System.Windows.Forms
             Resizable = true;
             ShadowBox = true;
             Size = new Size(334, 260);
+
+            Application.UpClick += _Application_UpClick;
         }
 
+        private void _Application_UpClick(object sender, MouseEventArgs e)
+        {
+            _windowMove = false;
+            resizeType = DNDResizeType.None;
+        }
         private void _MakeButtonClose()
         {
             _closeButton = new Button();
@@ -218,16 +225,6 @@ namespace System.Windows.Forms
                         }
                 }
             }
-        }
-        protected override void OnMouseUp(MouseEventArgs e)
-        {
-            base.OnMouseUp(e);
-            _windowMove = false;
-
-            resizeType = DNDResizeType.None;
-            /*Batched = false;
-            foreach (var c in Controls)
-                c.Batched = false;*/
         }
         protected override void OnMouseMove(MouseEventArgs e)
         {

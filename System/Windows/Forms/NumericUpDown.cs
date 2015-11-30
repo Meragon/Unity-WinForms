@@ -142,7 +142,7 @@ namespace System.Windows.Forms
                     if (_shouldFocus)
                         UnityEngine.GUI.SetNextControlName(Name);
 
-                    _valueText = g.DrawTextField(_valueText, Font, new SolidBrush(ForeColor), 0, 0, Width + (_buttonIncrease.Visible ? -16 : 0), Height, TextAlign);
+                    _valueText = g.DrawTextField(_valueText, Font, new SolidBrush(ForeColor), 2, 0, Width + (_buttonIncrease.Visible ? -16 : 0), Height, TextAlign);
 
                     if (_shouldFocus)
                     {
@@ -151,7 +151,7 @@ namespace System.Windows.Forms
                     }
                 }
                 else
-                    g.DrawString(_valueText, Font, new SolidBrush(ForeColor), 3, 0, Width + (_buttonIncrease.Visible ? -16 : 0), Height, TextAlign);
+                    g.DrawString(_valueText, Font, new SolidBrush(ForeColor), 2, 0, Width + (_buttonIncrease.Visible ? -16 : 0), Height, TextAlign);
 
                 decimal value = Value;
                 if (!decimal.TryParse(_valueText, out value))

@@ -205,10 +205,10 @@ namespace System.Windows.Forms
                 if (i + _scrollIndex == SelectedIndex || i == _hoveredItem)
                 {
                     g.FillRectangle(new SolidBrush(disabled ? Color.FromArgb(101, 203, 255) : Color.FromArgb(64, 0, 122, 204)), 0, i * ItemHeight, Width, ItemHeight);
-                    g.DrawString(Items[i + ScrollIndex].ToString(), Font, new SolidBrush(disabled ? Color.Gray : ForeColor), 4, i * ItemHeight, 400, ItemHeight);
+                    g.DrawString(Items[i + ScrollIndex].ToString(), Font, new SolidBrush(disabled ? Color.Gray : ForeColor), 4, i * ItemHeight, Width, ItemHeight);
                 }
                 else
-                    g.DrawString(Items[i + ScrollIndex].ToString(), Font, new SolidBrush(disabled ? Color.Gray : ForeColor), 4, i * ItemHeight, 400, ItemHeight);
+                    g.DrawString(Items[i + ScrollIndex].ToString(), Font, new SolidBrush(disabled ? Color.Gray : ForeColor), 4, i * ItemHeight, Width, ItemHeight);
             }
 
             _scrollVisible = false;

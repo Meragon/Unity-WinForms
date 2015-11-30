@@ -31,7 +31,6 @@ namespace System.Windows.Forms
             }
         }
         public ContentAlignment TextAlign { get; set; }
-        public Padding TextMargin { get; set; }
 
         public Button()
         {
@@ -90,10 +89,10 @@ namespace System.Windows.Forms
                 }
             }
             g.DrawString(Text, Font, textBrush,
-                    TextMargin.Left,
-                    TextMargin.Top,
-                    Width - TextMargin.Left - TextMargin.Right,
-                    Height - TextMargin.Top - TextMargin.Bottom, TextAlign);
+                    Padding.Left,
+                    Padding.Top,
+                    Width - Padding.Left - Padding.Right,
+                    Height - Padding.Top - Padding.Bottom, TextAlign);
         }
         protected override object OnPaintEditor(float width)
         {
@@ -132,7 +131,7 @@ namespace System.Windows.Forms
                 var editorTextAlign = Editor.EnumField("      TextAlign", TextAlign);
                 if (editorTextAlign.Changed) TextAlign = (ContentAlignment)editorTextAlign.Value;
 
-                Editor.Label("      TextMargin", TextMargin);
+                Editor.Label("      TextMargin", Padding);
 
                 Editor.EndGroup();
             }
