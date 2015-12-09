@@ -317,6 +317,7 @@ namespace System.Windows.Forms
         public ToolStripSeparator()
         {
             JustVisual = true;
+            Height = 0;
         }
 
         protected override void OnPaint(PaintEventArgs e)

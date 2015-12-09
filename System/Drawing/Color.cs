@@ -208,9 +208,120 @@
                 return true;
             return false;
         }
+        public float GetBrightness()
+        {
+            float num = (float)this.R / 255f;
+            float num2 = (float)this.G / 255f;
+            float num3 = (float)this.B / 255f;
+            float num4 = num;
+            float num5 = num;
+            if (num2 > num4)
+            {
+                num4 = num2;
+            }
+            if (num3 > num4)
+            {
+                num4 = num3;
+            }
+            if (num2 < num5)
+            {
+                num5 = num2;
+            }
+            if (num3 < num5)
+            {
+                num5 = num3;
+            }
+            return (num4 + num5) / 2f;
+        }
         public override int GetHashCode()
         {
             return base.GetHashCode();
+        }
+        public float GetHue()
+        {
+            if (this.R == this.G && this.G == this.B)
+            {
+                return 0f;
+            }
+            float fR = (float)this.R / 255f;
+            float fG = (float)this.G / 255f;
+            float fB = (float)this.B / 255f;
+            float num4 = 0f;
+            float num5 = fR;
+            float num6 = fR;
+            if (fG > num5)
+            {
+                num5 = fG;
+            }
+            if (fB > num5)
+            {
+                num5 = fB;
+            }
+            if (fG < num6)
+            {
+                num6 = fG;
+            }
+            if (fB < num6)
+            {
+                num6 = fB;
+            }
+            float num7 = num5 - num6;
+            if (fR == num5)
+            {
+                num4 = (fG - fB) / num7;
+            }
+            else if (fG == num5)
+            {
+                num4 = 2f + (fB - fR) / num7;
+            }
+            else if (fB == num5)
+            {
+                num4 = 4f + (fR - fG) / num7;
+            }
+            num4 *= 60f;
+            if (num4 < 0f)
+            {
+                num4 += 360f;
+            }
+            return num4;
+        }
+        public float GetSaturation()
+        {
+            float num = (float)this.R / 255f;
+            float num2 = (float)this.G / 255f;
+            float num3 = (float)this.B / 255f;
+            float result = 0f;
+            float num4 = num;
+            float num5 = num;
+            if (num2 > num4)
+            {
+                num4 = num2;
+            }
+            if (num3 > num4)
+            {
+                num4 = num3;
+            }
+            if (num2 < num5)
+            {
+                num5 = num2;
+            }
+            if (num3 < num5)
+            {
+                num5 = num3;
+            }
+            if (num4 != num5)
+            {
+                float num6 = (num4 + num5) / 2f;
+                if ((double)num6 <= 0.5)
+                {
+                    result = (num4 - num5) / (num4 + num5);
+                }
+                else
+                {
+                    result = (num4 - num5) / (2f - num4 - num5);
+                }
+            }
+            return result;
         }
         public override string ToString()
         {

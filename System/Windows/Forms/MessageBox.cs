@@ -15,6 +15,10 @@ namespace System.Windows.Forms
         }
         public static DialogResult Show(string text, string caption)
         {
+            return Show(text, caption, new Font("Arial", 12));
+        }
+        public static DialogResult Show(string text, string caption, Font textFont)
+        {
             Form form = new Form();
             form.Size = new Size(220, 96 + 32);
             form.Location = new Point(
@@ -34,6 +38,7 @@ namespace System.Windows.Forms
 
             Label formLabel = new Label();
             formLabel.Anchor = AnchorStyles.Left | AnchorStyles.Bottom | AnchorStyles.Right | AnchorStyles.Top;
+            formLabel.Font = textFont;
             formLabel.Size = formGroup.Size;
             formLabel.Text = text;
             formLabel.TextAlign = ContentAlignment.TopLeft;
@@ -46,9 +51,9 @@ namespace System.Windows.Forms
             formButton_Ok.Text = "Ok";
             formButton_Ok.TopMost = true;
             formButton_Ok.Click += (object sender, EventArgs args) =>
-                {
-                    form.Close();
-                };
+            {
+                form.Close();
+            };
 
             form.Controls.Add(formButton_Ok);
 

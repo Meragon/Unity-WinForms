@@ -36,6 +36,8 @@ namespace System.Windows.Forms
             BackColor = Color.White;
             BorderColor = Color.DarkGray;
             ItemHeight = DefaultItemHeight;
+
+            Application.UpClick += Application_UpClick;
         }
 
         public Color BorderColor { get; set; }
@@ -80,6 +82,12 @@ namespace System.Windows.Forms
                         break;
                     }
             }
+        }
+
+        private void Application_UpClick(object sender, MouseEventArgs e)
+        {
+            _scroll = false;
+            _drag = false;
         }
 
         protected override void OnMouseDown(MouseEventArgs e)
