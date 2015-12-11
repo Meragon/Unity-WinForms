@@ -35,6 +35,10 @@ namespace System.Drawing
         public void Clear(System.Drawing.Color color)
         {
         }
+        public void DrawImage(Image image, float x, float y, float width, float height)
+        {
+            DrawTexture(image.uTexture, x, y, width, height, Color.White);
+        }
         public void DrawLine(Pen pen, int x1, int y1, int x2, int y2)
         {
             DrawLine(pen, (float)x1, (float)y1, (float)x2, (float)y2);

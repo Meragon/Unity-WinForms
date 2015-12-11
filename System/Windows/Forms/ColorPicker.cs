@@ -15,7 +15,7 @@ namespace System.Windows.Forms
 
         public ColorPicker()
         {
-            Color = Color.FromArgb(64, 96, 32, 89);
+            Color = Color.White;
             Size = new Size(128, 20);
         }
 
@@ -24,6 +24,7 @@ namespace System.Windows.Forms
             if (_currentForm == null)
             {
                 _currentForm = new ColorPickerForm(this);
+                _currentForm.Color = Color;
                 _currentForm.ColorChanged += (object sender, EventArgs args) =>
                 {
                     Color = _currentForm.Color;
@@ -53,6 +54,8 @@ namespace System.Windows.Forms
     {
         private ColorPicker _owner;
 
+        private Color _color;
+
         private AlphaPicker _alphaPicker;
         private BrightnessSaturationPicker _bsPicker;
         private HuePicker _huePicker;
@@ -77,7 +80,30 @@ namespace System.Windows.Forms
 
         private NumericUpDown _aNumeric;
 
-        public Color Color { get; set; }
+        public Color Color
+        {
+            get { return _color; }
+            set
+            {
+                _color = value;
+
+                _rNumeric.ValueChanged -= _rNumeric_ValueChanged;
+                _rNumeric.Value = _color.R;
+                _rNumeric.ValueChanged += _rNumeric_ValueChanged;
+
+                _gNumeric.ValueChanged -= _gNumeric_ValueChanged;
+                _gNumeric.Value = _color.G;
+                _gNumeric.ValueChanged += _gNumeric_ValueChanged;
+
+                _bNumeric.ValueChanged -= _bNumeric_ValueChanged;
+                _bNumeric.Value = _color.B;
+                _bNumeric.ValueChanged += _bNumeric_ValueChanged;
+
+                _alphaPicker.Alpha = (float)_color.A / 255;
+
+                UpdateControlsFromRGB();
+            }
+        }
 
         public ColorPickerForm(ColorPicker owner)
         {
@@ -222,7 +248,7 @@ namespace System.Windows.Forms
             _bNumeric.Value = rgbColor.B;
             _bNumeric.ValueChanged += _bNumeric_ValueChanged;
 
-            Color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), rgbColor);
+            _color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), rgbColor);
             ColorChanged(this, null);
         }
         void _bsPicker_SaturationChanged(object sender, EventArgs e)
@@ -243,7 +269,7 @@ namespace System.Windows.Forms
             _bNumeric.Value = rgbColor.B;
             _bNumeric.ValueChanged += _bNumeric_ValueChanged;
 
-            Color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), rgbColor); ;
+            _color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), rgbColor); ;
             ColorChanged(this, null);
         }
         void _huePicker_HueChanged(object sender, EventArgs e)
@@ -266,7 +292,7 @@ namespace System.Windows.Forms
             _bNumeric.Value = rgbColor.B;
             _bNumeric.ValueChanged += _bNumeric_ValueChanged;
 
-            Color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), rgbColor); ; ;
+            _color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), rgbColor); ; ;
             ColorChanged(this, null);
         }
 
@@ -302,16 +328,16 @@ namespace System.Windows.Forms
             _aNumeric.Value = (int)(_alphaPicker.Alpha * 255);
             _aNumeric.ValueChanged += _aNumeric_ValueChanged;
 
-            Color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), Color);
+            _color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), Color);
             ColorChanged(this, null);
         }
         private void _aNumeric_ValueChanged(object sender, EventArgs e)
         {
             _alphaPicker.AlphaChanged -= _alphaPicker_AlphaChanged;
-            _alphaPicker.Alpha =  (float)Convert.ToDouble(_aNumeric.Value / 255);
+            _alphaPicker.Alpha = (float)Convert.ToDouble(_aNumeric.Value / 255);
             _alphaPicker.AlphaChanged += _alphaPicker_AlphaChanged;
 
-            Color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), Color);
+            _color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), Color);
             ColorChanged(this, null);
         }
 
@@ -352,7 +378,7 @@ namespace System.Windows.Forms
             _bNumeric.Value = rgbColor.B;
             _bNumeric.ValueChanged += _bNumeric_ValueChanged;
 
-            Color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), rgbColor); ; ;
+            _color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), rgbColor);
             ColorChanged(this, null);
         }
         private void UpdateBSTexture()
