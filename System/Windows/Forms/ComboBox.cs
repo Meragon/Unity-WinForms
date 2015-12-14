@@ -33,7 +33,7 @@ namespace System.Windows.Forms
                 _selectedIndex = value;
                 if (_selectedIndex > -1)
                 {
-                    SelectedItem = _items[_selectedIndex];
+                    //SelectedItem = _items[_selectedIndex];
                     SelectedText = SelectedItem.ToString();
                     _filter = SelectedItem.ToString();
                 }
