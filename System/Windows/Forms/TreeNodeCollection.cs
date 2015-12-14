@@ -14,6 +14,7 @@ namespace System.Windows.Forms
         internal TreeNodeCollection(TreeNode owner)
         {
             this.owner = owner;
+            this.owner.Nodes = this;
         }
 
         public virtual TreeNode this[int index]
@@ -149,6 +150,18 @@ namespace System.Windows.Forms
             node.Name = key;
             this.Add(node);
             return node;
+        }
+        public virtual void AddRange(TreeNode[] nodes)
+        {
+            if (nodes == null)
+                throw new ArgumentNullException("nodes");
+
+            if (nodes.Length == 0) return;
+
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                AddInternal(nodes[i], i);
+            }
         }
         public virtual void Clear()
         {

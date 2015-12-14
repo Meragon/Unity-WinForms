@@ -237,6 +237,10 @@
         {
             return base.GetHashCode();
         }
+        public string ToHexString()
+        {
+            return _r.ToString("X2") + _g.ToString("X2") + _b.ToString("X2") + _a.ToString("X2");
+        }
         public float GetHue()
         {
             if (this.R == this.G && this.G == this.B)

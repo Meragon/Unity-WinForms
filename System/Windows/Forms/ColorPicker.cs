@@ -28,6 +28,7 @@ namespace System.Windows.Forms
                 _currentForm.ColorChanged += (object sender, EventArgs args) =>
                 {
                     Color = _currentForm.Color;
+                    ColorChanged(this, null);
                 };
                 _currentForm.OnDisposing += (object sender, EventArgs args) =>
                 {
@@ -48,6 +49,8 @@ namespace System.Windows.Forms
             if (Hovered) borderColor = HoverBorderColor;
             e.Graphics.DrawRectangle(new Pen(borderColor), 0, 0, Width, Height);
         }
+
+        public event EventHandler ColorChanged = delegate { };
     }
 
     public class ColorPickerForm : Form
