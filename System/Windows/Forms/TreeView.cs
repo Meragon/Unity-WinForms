@@ -154,7 +154,7 @@ namespace System.Windows.Forms
                 }
             }
 
-            string stringToDraw = e.Node.Text + "; " + e.Node.Index.ToString();
+            string stringToDraw = e.Node.Text;
             if (stringToDraw == null && e.Node.Tag != null) stringToDraw = e.Node.Tag.ToString();
             e.Graphics.DrawString(stringToDraw, Font, new SolidBrush(e.Node.TextColor), e.Node.Bounds.X + (hasImage ? imageWidth + 2 : 0), e.Node.Bounds.Y - (int)_scrollIndex, Width, e.Bounds.Height);
             // End of drawing.
