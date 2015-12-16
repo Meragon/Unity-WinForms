@@ -159,7 +159,6 @@ namespace System.Windows.Forms
         public override void Refresh()
         {
             _recalc = true;
-            UnityEngine.Debug.Log("tree updated");
         }
 
         public void CollapseAll()

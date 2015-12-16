@@ -606,20 +606,40 @@ namespace System.Drawing
         }
         public void DrawTexture(Texture texture, float x, float y, float width, float height, Color color)
         {
+            DrawTexture(texture, x, y, width, height, color, 0);
+        }
+        public void DrawTexture(Texture texture, float x, float y, float width, float height, Color color, float angle)
+        {
             if (Control == null) return;
 
             GUI.color = color.ToUColor();
             if (!_group)
             {
                 var c_position = Control.PointToScreen(Point.Zero);
-                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), texture);
+                if (angle != 0)
+                {
+                    Matrix4x4 matrixBackup = GUI.matrix;
+                    GUIUtility.RotateAroundPivot(angle, new Vector2(c_position.X + x + width / 2, c_position.Y + y + height / 2));
+                    GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), texture);
+                    GUI.matrix = matrixBackup;
+                }
+                else
+                    GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), texture);
             }
             else
             {
                 var c_position = Control.PointToScreen(Point.Zero);
                 var g_position = _groupControlLast.PointToScreen(Point.Zero);
 
-                GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), texture);
+                if (angle != 0)
+                {
+                    Matrix4x4 matrixBackup = GUI.matrix;
+                    GUIUtility.RotateAroundPivot(angle, new Vector2(c_position.X - g_position.X + x + width / 2, c_position.Y - g_position.Y + y + height / 2));
+                    GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), texture);
+                    GUI.matrix = matrixBackup;
+                }
+                else
+                    GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), texture);
             }
         }
         public void FillEllipse(SolidBrush brush, float x, float y, float width, float height)
