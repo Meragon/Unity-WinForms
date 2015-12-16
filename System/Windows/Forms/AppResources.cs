@@ -30,11 +30,6 @@ namespace System.Windows.Forms
             public Texture2D NumericUp;
             public Texture2D NumericDown;
             public Texture2D Roundrect;
-            public Texture2D Tree;
-            public Texture2D TreeHome;
-            public Texture2D TreeFolderClosed;
-            public Texture2D TreeFolderOpened;
-            public Texture2D TreeFile;
         }
     }
 }

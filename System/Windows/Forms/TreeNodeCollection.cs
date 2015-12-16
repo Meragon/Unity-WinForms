@@ -119,7 +119,6 @@ namespace System.Windows.Forms
             if (owner.TreeView != null)
             {
                 node.treeView = owner.TreeView;
-                owner.TreeView.Refresh();
             }
 
             return node.index;

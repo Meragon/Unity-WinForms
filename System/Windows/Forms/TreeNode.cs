@@ -14,16 +14,47 @@ namespace System.Windows.Forms
         internal TreeNode parent;
         internal TreeView treeView;
 
+        private Color color = Color.FromArgb(64, 64, 64);
         private bool expanded;
+        private int imageIndex = -1;
         private bool selected;
         private bool visible = true;
 
         public Rectangle Bounds { get; internal set; }
+        public TreeNode FirstNode
+        {
+            get
+            {
+                if (this.Nodes.Count == 0) return null;
+
+                return Nodes[0];
+            }
+        }
+        public int ImageIndex { get { return imageIndex; } set { imageIndex = value; } }
         public int Index { get { return index; } }
         public bool IsExpanded { get { return expanded; } internal set { expanded = value; } }
-        public bool IsSelected { get { return selected; } internal set { selected = value; } }
+        public bool IsSelected { get { return treeView.SelectedNode == this; } }
         public bool IsVisible { get { return visible; } }
+        public TreeNode LastNode
+        {
+            get
+            {
+                if (this.Nodes.Count == 0) return null;
+
+                return Nodes[Nodes.Count - 1];
+            }
+        }
         public string Name { get; set; }
+        public TreeNode NextNode
+        {
+            get
+            {
+                if (this.index + 1 < this.parent.Nodes.Count)
+                    return this.parent.Nodes[this.index + 1];
+
+                return null;
+            }
+        }
         public TreeNodeCollection Nodes
         {
             get
@@ -33,8 +64,19 @@ namespace System.Windows.Forms
             }
             internal set { nodes = value; }
         }
+        public TreeNode PrevNode
+        {
+            get
+            {
+                if (this.index + 1 >= 0)
+                    return this.parent.Nodes[this.index - 1];
+
+                return null;
+            }
+        }
         public object Tag { get; set; }
         public string Text { get; set; }
+        public Color TextColor { get { return color; } set { color = value; } }
         public TreeView TreeView
         {
             get
@@ -74,13 +116,7 @@ namespace System.Windows.Forms
         {
             if (currentNode.parent == null) return currentX;
 
-            if (currentNode == TreeView.root) return currentX--;
-
-            if (currentNode.parent != TreeView.root && currentNode.parent.IsVisible) currentX++;
-
-            currentX = _GetXIndex(currentNode.parent, currentX);
-
-            return currentX;
+            return _GetXIndex(currentNode.parent, currentX) + 1;
         }
         private int _GetYIndex(TreeNode currentNode, int currentY)
         {
@@ -154,6 +190,11 @@ namespace System.Windows.Forms
         {
             if (expanded == true) Collapse();
             else Expand();
+        }
+
+        public override string ToString()
+        {
+            return "TreeNode: " + ((this.Text == null) ? "" : this.Text);
         }
     }
 }

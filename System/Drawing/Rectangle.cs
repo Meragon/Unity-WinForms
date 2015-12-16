@@ -66,6 +66,16 @@ namespace System.Drawing
             Height = height;
         }
 
+        public Rectangle AddjustX(int x)
+        {
+            _x += x;
+            return this;
+        }
+        public Rectangle AddjustY(int y)
+        {
+            _y += y;
+            return this;
+        }
         public bool Contains(int x, int y)
         {
             return this.X <= x && x < this.X + this.Width && this.Y <= y && y < this.Y + this.Height;

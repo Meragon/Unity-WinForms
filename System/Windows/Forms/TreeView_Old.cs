@@ -16,6 +16,10 @@ namespace System.Windows.Forms
         public StringFormat NodeAlign { get; set; }
         public int NodeHeight { get; set; }
 
+        public UnityEngine.Texture2D ImageFile { get; set; }
+        public UnityEngine.Texture2D ImageFolderClosed { get; set; }
+        public UnityEngine.Texture2D ImageFolderOpened { get; set; }
+
         private List<_nodeControl> _list = new List<_nodeControl>();
         private List<_nodeControl> _renderList = new List<_nodeControl>();
 
@@ -240,12 +244,12 @@ namespace System.Windows.Forms
                 g.DrawString(_renderList[i].Node.Text, Font, new SolidBrush(_nodeColor), new RectangleF(nodeOffset + 6, i * NodeHeight - 2, Width - _scrollWidth - nodeOffset, NodeHeight + 4), NodeAlign);
                 if (_renderList[i].Node.Nodes.Count > 0)
                 {
-                    var nodeTexture = _renderList[i].Node.Collapsed ? Application.Resources.Reserved.TreeFolderClosed : Application.Resources.Reserved.TreeFolderOpened;
+                    var nodeTexture = _renderList[i].Node.Collapsed ? ImageFolderClosed : ImageFolderOpened;
                     g.DrawTexture(nodeTexture, nodeOffset - 12, i * NodeHeight, 16, 16);
                 }
                 else
                 {
-                    var image = Application.Resources.Reserved.TreeFile;
+                    var image = ImageFile;
                     if (_renderList[i].Node.Image != null)
                         image = _renderList[i].Node.Image;
                     g.DrawTexture(image, nodeOffset - 12, i * NodeHeight, image.width, image.height);
