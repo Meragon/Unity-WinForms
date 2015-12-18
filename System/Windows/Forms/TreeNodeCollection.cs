@@ -111,6 +111,8 @@ namespace System.Windows.Forms
             if (node == null)
                 throw new ArgumentNullException("node");
 
+            if (node.parent != null) node.Remove();
+
             node.parent = this.owner;
             node.index = items.Count;
 

@@ -64,6 +64,7 @@ namespace System.Windows.Forms
             }
             internal set { nodes = value; }
         }
+        public TreeNode Parent { get { return parent; } }
         public TreeNode PrevNode
         {
             get
@@ -172,15 +173,9 @@ namespace System.Windows.Forms
             for (int i = 0; i < Nodes.Count; i++)
                 this.Nodes[i].Remove(false);
 
-            if (notify && this.parent != null)
+            if (this.parent != null)
             {
-                this.parent.Nodes.Remove(this);
-
-                for (int i = this.index; i < this.parent.Nodes.Count - 1; i++)
-                {
-                    (this.parent.Nodes[i] = this.parent.Nodes[i + 1]).index = i;
-                }
-
+                this.parent.Nodes.RemoveAt(index);
                 this.parent = null;
             }
 

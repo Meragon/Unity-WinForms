@@ -15,7 +15,6 @@ namespace System.Windows.Forms
         private ImageList _imageList;
         private TreeNodeCollection _nodes;
         private List<TreeNode> _nodeList;
-        private bool _recalc = true;
 
         private bool _scrollVisible = false; // smooth scrolling.
         private bool _scroll;
@@ -122,8 +121,6 @@ namespace System.Windows.Forms
         }
         private Rectangle _GetNodeBounds(TreeNode node)
         {
-            if (_recalc == false) return node.Bounds;
-
             _nodeList.Add(node);
 
             int x = Padding.Left + 2;
@@ -164,6 +161,7 @@ namespace System.Windows.Forms
         private TreeNode _SelectAtPosition(MouseEventArgs e)
         {
             SelectedNode = _GetNodeAtPosition(root, e.Location);
+            SelectedNodeChanged(this, new TreeViewEventArgs(SelectedNode));
 
             return SelectedNode;
         }
@@ -212,6 +210,7 @@ namespace System.Windows.Forms
                         {
                             SelectedNode = _nodeList[nextNode + 1];
                             _AddjustScrollIndexToSelectedNode();
+                            SelectedNodeChanged(this, new TreeViewEventArgs(SelectedNode));
                         }
                         break;
                     case UnityEngine.KeyCode.LeftArrow:
@@ -232,6 +231,7 @@ namespace System.Windows.Forms
                         {
                             SelectedNode = _nodeList[prevNode - 1];
                             _AddjustScrollIndexToSelectedNode();
+                            SelectedNodeChanged(this, new TreeViewEventArgs(SelectedNode));
                         }
                         break;
                 }
@@ -305,12 +305,6 @@ namespace System.Windows.Forms
         {
             e.Graphics.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
 
-            if (_recalc)
-            {
-                ProccesNode(root);
-                _UpdateScrollList();
-            }
-
             for (int i = 0; i < _scrollNodeList.Count; i++)
             {
                 OnDrawNode(new DrawTreeNodeEventArgs(e.Graphics, _scrollNodeList[i], _scrollNodeList[i].Bounds, TreeNodeStates.Default));
@@ -335,8 +329,6 @@ namespace System.Windows.Forms
             }
             #endregion
 
-            if (_recalc) _recalc = false;
-
             e.Graphics.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
         }
         protected virtual void ProccesNode(TreeNode node)
@@ -351,9 +343,11 @@ namespace System.Windows.Forms
         }
         public override void Refresh()
         {
-            _recalc = true;
             _nodeList = new List<TreeNode>();
             _scrollNodeList = new List<TreeNode>();
+
+            ProccesNode(root);
+            _UpdateScrollList();
         }
 
         public void CollapseAll()
@@ -366,10 +360,15 @@ namespace System.Windows.Forms
             for (int i = 0; i < Nodes.Count; i++)
                 Nodes[i].ExpandAll();
         }
+        public TreeNode Find(Predicate<TreeNode> match)
+        {
+            return _nodeList.Find(match);
+        }
 
         public event DrawTreeNodeEventHandler DrawNode = delegate { };
         public event ItemDragEventHandler ItemDrag = delegate { };
         public event TreeNodeMouseClickEventHandler NodeMouseClick = delegate { };
         public event TreeNodeMouseClickEventHandler NodeMouseDoubleClick = delegate { };
+        public event TreeViewEventHandler SelectedNodeChanged = delegate { };
     }
 }
