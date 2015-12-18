@@ -33,7 +33,7 @@ namespace System.Windows.Forms
         public int ImageIndex { get { return imageIndex; } set { imageIndex = value; } }
         public int Index { get { return index; } }
         public bool IsExpanded { get { return expanded; } internal set { expanded = value; } }
-        public bool IsSelected { get { return treeView.SelectedNode == this; } }
+        public bool IsSelected { get { return TreeView.SelectedNode == this; } }
         public bool IsVisible { get { return visible; } }
         public TreeNode LastNode
         {
@@ -138,6 +138,10 @@ namespace System.Windows.Forms
             expanded = false;
             TreeView.Refresh();
         }
+        internal void CollapseInternal()
+        {
+            expanded = false;
+        }
         public void Expand()
         {
             expanded = true;
@@ -145,16 +149,20 @@ namespace System.Windows.Forms
         }
         public void ExpandAll()
         {
+            ExpandAllInternal();
+            TreeView.Refresh();
+        }
+        internal void ExpandAllInternal()
+        {
             expanded = true;
             for (int i = 0; i < Nodes.Count; i++)
             {
                 if (Nodes[i].IsExpanded == false)
                 {
                     Nodes[i].expanded = true;
-                    Nodes[i].ExpandAll();
+                    Nodes[i].ExpandAllInternal();
                 }
             }
-            TreeView.Refresh();
         }
         internal int GetXIndex()
         {

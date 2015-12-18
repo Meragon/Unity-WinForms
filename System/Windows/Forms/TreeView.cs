@@ -153,7 +153,7 @@ namespace System.Windows.Forms
 
             string stringToDraw = e.Node.Text;
             if (stringToDraw == null && e.Node.Tag != null) stringToDraw = e.Node.Tag.ToString();
-            e.Graphics.DrawString(stringToDraw, Font, new SolidBrush(e.Node.TextColor), e.Node.Bounds.X + (hasImage ? imageWidth + 2 : 0), e.Node.Bounds.Y - (int)_scrollIndex, Width, e.Bounds.Height);
+            e.Graphics.DrawString(stringToDraw, Font, new SolidBrush(e.Node.TextColor), e.Node.Bounds.X + (hasImage ? imageWidth + 2 : 0), e.Node.Bounds.Y - (int)_scrollIndex - 2, Width, e.Bounds.Height + 4, ContentAlignment.MiddleLeft);
             // End of drawing.
 
             DrawNode(this, e);
@@ -353,12 +353,14 @@ namespace System.Windows.Forms
         public void CollapseAll()
         {
             for (int i = 0; i < Nodes.Count; i++)
-                Nodes[i].Collapse();
+                Nodes[i].CollapseInternal();
+            Refresh();
         }
         public void ExpandAll()
         {
             for (int i = 0; i < Nodes.Count; i++)
-                Nodes[i].ExpandAll();
+                Nodes[i].ExpandAllInternal();
+            Refresh();
         }
         public TreeNode Find(Predicate<TreeNode> match)
         {
