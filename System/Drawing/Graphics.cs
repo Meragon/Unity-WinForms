@@ -32,8 +32,40 @@ namespace System.Drawing
             _groupControls.RemoveAt(_groupControls.Count - 1);
         }
 
+        private PointF[] GetBezierApproximation(PointF[] controlPoints, int outputSegmentCount)
+        {
+            PointF[] points = new PointF[outputSegmentCount + 1];
+            for (int i = 0; i <= outputSegmentCount; i++)
+            {
+                float t = (float)i / outputSegmentCount;
+                points[i] = GetBezierPoint(t, controlPoints, 0, controlPoints.Length);
+            }
+            return points;
+        }
+        private PointF GetBezierPoint(float t, PointF[] controlPoints, int index, int count)
+        {
+            if (count == 1)
+                return controlPoints[index];
+            var P0 = GetBezierPoint(t, controlPoints, index, count - 1);
+            var P1 = GetBezierPoint(t, controlPoints, index + 1, count - 1);
+            return new PointF((1 - t) * P0.X + t * P1.X, (1 - t) * P0.Y + t * P1.Y);
+        }
+
         public void Clear(System.Drawing.Color color)
         {
+        }
+        public void DrawCurve(Pen pen, PointF[] points) // very slow.
+        {
+            if (points == null || points.Length <= 1) return;
+            if (points.Length == 2)
+            {
+                DrawLine(pen, points[0].X, points[0].Y, points[1].X, points[1].Y);
+                return;
+            }
+
+            var bPoints = GetBezierApproximation(points, 32); // decrease segments for better fps.
+            for (int i = 0; i + 1 < bPoints.Length; i++)
+                DrawLine(pen, bPoints[i].X, bPoints[i].Y, bPoints[i + 1].X, bPoints[i + 1].Y);
         }
         public void DrawImage(Image image, float x, float y, float width, float height)
         {
@@ -52,25 +84,8 @@ namespace System.Drawing
 
                 // TODO: switch (pen.DashStyle) { ... }
 
-                if (!_group)
-                {
-                    Point c_position = Point.Empty;
-                    if (Control != null)
-                        c_position = Control.PointToScreen(Point.Zero);
-
-                    GL.Vertex3(c_position.X + x1, c_position.Y + y1, 0);
-                    GL.Vertex3(c_position.X + x2, c_position.Y + y2, 0);
-                }
-                else
-                {
-                    Point c_position = Point.Empty;
-                    if (Control != null)
-                        c_position = Control.PointToScreen(Point.Zero);
-                    var g_position = _groupControlLast.PointToScreen(Point.Zero);
-
-                    GL.Vertex3(c_position.X - g_position.X + x1, c_position.Y - g_position.Y + y1, 0);
-                    GL.Vertex3(c_position.X - g_position.X + x2, c_position.Y - g_position.Y + y2, 0);
-                }
+                GL.Vertex3(x1, y1, 0);
+                GL.Vertex3(x2, y2, 0);
 
                 GL.End();
                 return;
@@ -83,6 +98,16 @@ namespace System.Drawing
 
             if (x1 == x2 && y1 == y2)
                 return;
+
+            if (x1 != x2 && y1 != y2)
+            {
+                float xDiff = x2 - x1;
+                float yDiff = y2 - y1;
+                var angle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
+
+                DrawTexture(System.Windows.Forms.Application.DefaultSpriteSmoothLine, x1, y1, (float)Math.Sqrt(xDiff * xDiff + yDiff * yDiff), pen.Width, pen.Color, (float)angle, new PointF());
+                return;
+            }
 
             if (x1 == x2)
             {
@@ -610,6 +635,10 @@ namespace System.Drawing
         }
         public void DrawTexture(Texture texture, float x, float y, float width, float height, Color color, float angle)
         {
+            DrawTexture(texture, x, y, width, height, color, angle, new PointF(width / 2, height / 2));
+        }
+        public void DrawTexture(Texture texture, float x, float y, float width, float height, Color color, float angle, PointF pivot)
+        {
             if (Control == null) return;
 
             GUI.color = color.ToUColor();
@@ -619,7 +648,7 @@ namespace System.Drawing
                 if (angle != 0)
                 {
                     Matrix4x4 matrixBackup = GUI.matrix;
-                    GUIUtility.RotateAroundPivot(angle, new Vector2(c_position.X + x + width / 2, c_position.Y + y + height / 2));
+                    GUIUtility.RotateAroundPivot(angle, new Vector2(c_position.X + x + pivot.X, c_position.Y + y + pivot.Y));
                     GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), texture);
                     GUI.matrix = matrixBackup;
                 }
@@ -634,7 +663,7 @@ namespace System.Drawing
                 if (angle != 0)
                 {
                     Matrix4x4 matrixBackup = GUI.matrix;
-                    GUIUtility.RotateAroundPivot(angle, new Vector2(c_position.X - g_position.X + x + width / 2, c_position.Y - g_position.Y + y + height / 2));
+                    GUIUtility.RotateAroundPivot(angle, new Vector2(c_position.X - g_position.X + x + pivot.X, c_position.Y - g_position.Y + y + pivot.Y));
                     GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), texture);
                     GUI.matrix = matrixBackup;
                 }
@@ -642,19 +671,43 @@ namespace System.Drawing
                     GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), texture);
             }
         }
-        public void FillEllipse(SolidBrush brush, float x, float y, float width, float height)
+        public void DrawTexture(Texture texture, float x, float y, float width, float height, Material mat)
         {
-            GUI.color = brush.Color.ToUColor();
+            if (Control == null) return;
 
-            if (Control != null && !_group)
+            GUI.color = Color.White.ToUColor();
+            if (!_group)
             {
                 var c_position = Control.PointToScreen(Point.Zero);
-                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), System.Windows.Forms.Application.DefaultSprite);
+                UnityEngine.Graphics.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), texture, mat);
             }
             else
-                GUI.DrawTexture(new Rect(x, y, width, height), System.Windows.Forms.Application.DefaultSprite);
+            {
+                var c_position = Control.PointToScreen(Point.Zero);
+                var g_position = _groupControlLast.PointToScreen(Point.Zero);
+
+                UnityEngine.Graphics.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), texture, mat);
+            }
         }
-        public void FillPolygonConvex(SolidBrush brush, Point[] points)
+        public void FillEllipse(SolidBrush brush, float x, float y, float width, float height)
+        {
+            if (Control == null) return;
+
+            GUI.color = brush.Color.ToUColor();
+
+            if (!_group)
+            {
+                var c_position = Control.PointToScreen(Point.Zero);
+                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), System.Windows.Forms.Application.Resources.Reserved.Circle);
+            }
+            else
+            {
+                var c_position = Control.PointToScreen(Point.Zero);
+                var g_position = _groupControlLast.PointToScreen(Point.Zero);
+                GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), System.Windows.Forms.Application.Resources.Reserved.Circle);
+            }
+        }
+        public void FillPolygonConvex(SolidBrush brush, PointF[] points)
         {
             if (points.Length < 3) return;
 

@@ -20,6 +20,7 @@ namespace System.Windows.Forms
         internal static List<Control> ToCloseControls = new List<Control>();
 
         internal static Texture2D DefaultSprite { get; private set; }
+        internal static Texture2D DefaultSpriteSmoothLine { get; private set; }
 
         // Editor settings.
         public GUISkin Skin;
@@ -29,6 +30,7 @@ namespace System.Windows.Forms
         public static bool IsDraging { get { return _dragndrop; } }
         public static AppResources Resources { get; set; }
         public static Action<Control> ShowCallback { get; set; }
+        public static bool UseSimpleCulling { get; set; }
 
         private static KeyCode _currentKeyDown = KeyCode.None;
         private static List<_HotKey> _hotKeys = new List<_HotKey>();
@@ -67,6 +69,18 @@ namespace System.Windows.Forms
                 for (int k = 0; k < DefaultSprite.width; k++)
                     DefaultSprite.SetPixel(k, i, Color.white);
             DefaultSprite.Apply();
+
+            DefaultSpriteSmoothLine = new Texture2D(32, 32);
+            for (int i = 0; i < DefaultSpriteSmoothLine.height; i++)
+                for (int k = 0; k < DefaultSpriteSmoothLine.width; k++)
+                {
+                    var dist = DefaultSpriteSmoothLine.width / 2 - MathCustom.DistanceF(
+                        new Drawing.PointF(DefaultSpriteSmoothLine.width / 2, DefaultSpriteSmoothLine.height / 2),
+                        new Drawing.PointF(DefaultSpriteSmoothLine.width / 2, i));
+                    Color color = new Color(1, 1, 1, dist / 10);
+                    DefaultSpriteSmoothLine.SetPixel(k, i, color);
+                }
+            DefaultSpriteSmoothLine.Apply();
 
             Resources = _Resources;
 
@@ -356,35 +370,41 @@ namespace System.Windows.Forms
                 if (!_ControlVisible(Controls[i])) continue;
                 if (Controls[i].Parent != null || Controls[i].TopMost || !Controls[i].Visible)
                     continue;
-                bool simpleCulling = false;
 
-                var currentAbspos = Controls[i].PointToScreen(System.Drawing.Point.Zero);
-                // Offscreen culling.
-                /*if (currentAbspos.X + Controls[i].Width < 0 || currentAbspos.X > UnityEngine.Screen.width ||
-                    currentAbspos.Y + Controls[i].Height < 0 || currentAbspos.Y > UnityEngine.Screen.height)
-                    continue;*/
-
-                System.Drawing.Rectangle currentRect = new System.Drawing.Rectangle();
-                currentRect.X = currentAbspos.X;
-                currentRect.Y = currentAbspos.Y;
-                currentRect.Width = Controls[i].Width;
-                currentRect.Height = Controls[i].Height;
-                for (int k = Controls.Count - 1; k > i; k--)
+                if (UseSimpleCulling)
                 {
-                    if (Controls[k].BackColor.A < 255) continue;
-                    var prevAbsPos = Controls[k].PointToScreen(System.Drawing.Point.Zero);
-                    System.Drawing.Rectangle prevRect = new System.Drawing.Rectangle();
-                    prevRect.X = prevAbsPos.X;
-                    prevRect.Y = prevAbsPos.Y;
-                    prevRect.Width = Controls[k].Width;
-                    prevRect.Height = Controls[k].Height;
-                    if (prevRect.Contains(currentRect))
+                    bool simpleCulling = false;
+
+                    var currentAbspos = Controls[i].PointToScreen(System.Drawing.Point.Zero);
+                    // Offscreen culling.
+                    /*if (currentAbspos.X + Controls[i].Width < 0 || currentAbspos.X > UnityEngine.Screen.width ||
+                        currentAbspos.Y + Controls[i].Height < 0 || currentAbspos.Y > UnityEngine.Screen.height)
+                        continue;*/
+
+                    System.Drawing.Rectangle currentRect = new System.Drawing.Rectangle();
+                    currentRect.X = currentAbspos.X;
+                    currentRect.Y = currentAbspos.Y;
+                    currentRect.Width = Controls[i].Width;
+                    currentRect.Height = Controls[i].Height;
+                    for (int k = Controls.Count - 1; k > i; k--)
                     {
-                        simpleCulling = true;
-                        break;
+                        if (Controls[k].BackColor.A < 255) continue;
+                        var prevAbsPos = Controls[k].PointToScreen(System.Drawing.Point.Zero);
+                        System.Drawing.Rectangle prevRect = new System.Drawing.Rectangle();
+                        prevRect.X = prevAbsPos.X;
+                        prevRect.Y = prevAbsPos.Y;
+                        prevRect.Width = Controls[k].Width;
+                        prevRect.Height = Controls[k].Height;
+                        if (prevRect.Contains(currentRect))
+                        {
+                            simpleCulling = true;
+                            break;
+                        }
                     }
+                    if (!simpleCulling)
+                        Controls[i].RaiseOnPaint(args);
                 }
-                if (!simpleCulling)
+                else
                     Controls[i].RaiseOnPaint(args);
             }
             // Top.
