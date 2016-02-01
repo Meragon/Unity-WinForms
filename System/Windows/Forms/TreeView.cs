@@ -39,6 +39,7 @@ namespace System.Windows.Forms
         public TreeNode SelectedNode { get; set; }
         public bool SmoothScrolling { get; set; }
         public bool UseNodeBoundsForSelection { get; set; }
+        public bool WrapText { get; set; }
 
         public TreeView()
         {
@@ -153,7 +154,7 @@ namespace System.Windows.Forms
 
             string stringToDraw = e.Node.Text;
             if (stringToDraw == null && e.Node.Tag != null) stringToDraw = e.Node.Tag.ToString();
-            e.Graphics.DrawString(stringToDraw, Font, new SolidBrush(e.Node.TextColor), e.Node.Bounds.X + (hasImage ? imageWidth + 2 : 0), e.Node.Bounds.Y - (int)_scrollIndex - 2, Width, e.Bounds.Height + 4, ContentAlignment.MiddleLeft);
+            e.Graphics.DrawString(stringToDraw, Font, new SolidBrush(e.Node.TextColor), e.Node.Bounds.X + (hasImage ? imageWidth + 2 : 0), e.Node.Bounds.Y - (int)_scrollIndex - 2, (WrapText ? Width : Width * 16), e.Bounds.Height + 4, ContentAlignment.MiddleLeft);
             // End of drawing.
 
             DrawNode(this, e);

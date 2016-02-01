@@ -22,8 +22,12 @@ namespace System.Windows.Forms
 
         public AutoCompleteMode AutoCompleteMode { get; set; }
         public AutoCompleteSource AutoCompleteSource { get; set; }
+        public Color BorderColor { get; set; }
+        public Color BorderColorDisabled { get; set; }
+        public Color BorderColorHovered { get; set; }
         public ComboBoxStyle DropDownStyle { get; set; }
         public ComboBox.ObjectCollection Items { get { return _items; } }
+        public Color HoverColor { get; set; }
         public override int SelectedIndex
         {
             get { return _selectedIndex; }
@@ -79,6 +83,13 @@ namespace System.Windows.Forms
             AutoCompleteSource = Forms.AutoCompleteSource.None;
             BackColor = Color.FromArgb(234, 234, 234);
             DropDownStyle = ComboBoxStyle.DropDownList;
+
+            BorderColor = Color.DarkGray;
+            BorderColorDisabled = Color.FromArgb(217, 217, 217);
+            BorderColorHovered = Color.FromArgb(126, 180, 234);
+            HoverColor = Color.FromArgb(221, 237, 252);
+
+            Padding = new Forms.Padding(4, 0, 4, 0);
             Size = new Size(121, 22);
         }
 
@@ -162,7 +173,7 @@ namespace System.Windows.Forms
 
             if (Enabled)
             {
-                g.DrawLine(new Pen(Color.FromArgb(240, 240, 240)), 1, 1, Width - 2, 1);
+                //g.DrawLine(new Pen(Color.FromArgb(240, 240, 240)), 1, 1, Width - 2, 1);
                 if (DropDownStyle == ComboBoxStyle.DropDownList)
                     g.FillRectangle(new SolidBrush(_hovered || Focused ? Color.FromArgb(226, 239, 252) : BackColor), 0, 0, Width, Height);
                 else
@@ -170,17 +181,17 @@ namespace System.Windows.Forms
                     g.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
 
                     var mloc = PointToClient(MousePosition);
-                    if (DropDownStyle == ComboBoxStyle.DropDownList || mloc.X >= Width - 16)
+                    if (DropDownStyle == ComboBoxStyle.DropDownList || new Rectangle(Width - 16, 0, 16, Height).Contains(mloc))
                     {
-                        g.FillRectangle(new SolidBrush(Color.FromArgb(221, 237, 252)), Width - 16, 0, 16, Height);
-                        g.DrawLine(new Pen(Color.FromArgb(126, 180, 234)), Width - 17, 1, Width - 17, Height - 1);
+                        g.FillRectangle(new SolidBrush(HoverColor), Width - 16, 0, 16, Height);
+                        g.DrawLine(new Pen(BorderColorHovered), Width - 17, 1, Width - 17, Height - 1);
                     }
                 }
             }
             else
                 g.FillRectangle(new SolidBrush(Color.FromArgb(239, 239, 239)), 0, 0, Width, Height);
             if (DropDownStyle == ComboBoxStyle.DropDownList || !Enabled)
-                g.DrawString(SelectedText, Font, new SolidBrush(Enabled ? ForeColor : Color.Gray), 4, 0, Width - 8 - 16, Height); // 16 - arrow width.
+                g.DrawString(SelectedText, Font, new SolidBrush(Enabled ? ForeColor : Color.Gray), Padding.Left, Padding.Top, Width - Padding.Left - Padding.Right - 16, Height - Padding.Bottom - Padding.Top); // 16 - arrow width.
             else
             {
                 var _filterBuffer = g.DrawTextField(_filter, Font, new SolidBrush(ForeColor), 4, 0, Width - 8 - 16, Height, HorizontalAlignment.Left);
@@ -201,9 +212,9 @@ namespace System.Windows.Forms
             //else
             //    g.DrawTexture(Application.Resources.ComboBoxArrow, Width - 16, Height / 2 - 8, 16, 16, Color.White);
             if (Enabled)
-                g.DrawRectangle(_hovered || Focused ? new Pen(Color.FromArgb(126, 180, 234)) : Pens.DarkGray, 0, 0, Width, Height);
+                g.DrawRectangle(_hovered || Focused ? new Pen(BorderColorHovered) : new Pen(BorderColor), 0, 0, Width, Height);
             else
-                g.DrawRectangle(new Pen(Color.FromArgb(217, 217, 217)), 0, 0, Width, Height);
+                g.DrawRectangle(new Pen(BorderColorDisabled), 0, 0, Width, Height);
         }
         protected override object OnPaintEditor(float width)
         {
@@ -239,6 +250,7 @@ namespace System.Windows.Forms
                 //listBox.scrollDirection = 1;
                 //listBox.ItemWidth = Width;
                 //listBox.ItemHeight = 20;
+                _listBox.Font = Font;
                 _listBox.BringToFront();
                 _listBox.Context = true;
                 _listBox.Width = Width;

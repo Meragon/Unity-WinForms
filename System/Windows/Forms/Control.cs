@@ -202,6 +202,8 @@ namespace System.Windows.Forms
         }
         public override void Dispose()
         {
+            if (_isDisposed) return;
+
             _disposing = true;
             OnDisposing(this, new EventArgs());
 
@@ -708,6 +710,19 @@ namespace System.Windows.Forms
             public int Count { get { return _items.Count; } }
             public Control Owner { get { return _owner; } }
 
+            object IEnumerator.Current
+            {
+                get { return _items.GetEnumerator().Current; }
+            }
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return _items.GetEnumerator();
+            }
+            bool IEnumerator.MoveNext()
+            {
+                return _items.GetEnumerator().MoveNext();
+            }
+
             public virtual void Add(Control value)
             {
                 _items.Add(value);
@@ -727,11 +742,11 @@ namespace System.Windows.Forms
             {
                 _items.Clear();
             }
-            public Control Current
+            public bool Contains(Control control)
             {
-                get { return _items.GetEnumerator().Current; }
+                return _items.Contains(control);
             }
-            object IEnumerator.Current
+            public Control Current
             {
                 get { return _items.GetEnumerator().Current; }
             }
@@ -746,14 +761,6 @@ namespace System.Windows.Forms
             public IEnumerator<Control> GetEnumerator()
             {
                 return _items.GetEnumerator();
-            }
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return _items.GetEnumerator();
-            }
-            public bool MoveNext()
-            {
-                return _items.GetEnumerator().MoveNext();
             }
             public void RemoveAt(int index)
             {

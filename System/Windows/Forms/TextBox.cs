@@ -62,10 +62,10 @@ namespace System.Windows.Forms
 
             Graphics g = e.Graphics;
 
+            g.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
+
             if (Enabled)
             {
-                g.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
-
                 if (Focused)
                 {
                     if (_shouldFocus)

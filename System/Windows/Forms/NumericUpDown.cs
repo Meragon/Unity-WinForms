@@ -8,14 +8,16 @@ namespace System.Windows.Forms
 {
     public class NumericUpDown : Control
     {
-        private Button _buttonIncrease;
-        private Button _buttonDecrease;
         private decimal _minimum;
         private decimal _maximum;
         private bool _shouldFocus;
         private decimal _value;
         private string _valueText = "0";
 
+        public Button ButtonIncrease { get; private set; }
+        public Button ButtonDecrease { get; private set; }
+
+        public Color BorderColor { get; set; }
         public decimal Increment { get; set; }
         public decimal Maximum
         {
@@ -63,48 +65,51 @@ namespace System.Windows.Forms
 
         public NumericUpDown()
         {
+            this.BackColor = Color.FromArgb(250, 250, 250);
+            this.BorderColor = Color.FromArgb(175, 175, 175);
             this.Increment = 1;
             this.Maximum = 100;
             this.Minimum = 0;
+            this.Padding = new Padding(4, 0, 4, 0);
             this.Size = new Drawing.Size(120, 20);
             this.TextAlign = HorizontalAlignment.Left;
 
-            _buttonIncrease = new Button();
-            _buttonIncrease.Anchor = AnchorStyles.Right;
-            _buttonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
-            _buttonIncrease.Size = new Size(14, 8);
-            _buttonIncrease.Name = "_numericButtonIncrease";
-            _buttonIncrease.NormalColor = Color.FromArgb(236, 236, 236);
-            _buttonIncrease.NormalBorderColor = Color.FromArgb(172, 172, 172);
-            _buttonIncrease.HoverColor = Color.FromArgb(228, 241, 252);
-            _buttonIncrease.HoverBorderColor = Color.FromArgb(126, 180, 234);
-            _buttonIncrease.Image = Application.Resources.Reserved.NumericUp;
-            _buttonIncrease.Click += delegate { if (Enabled) Value += Increment; };
+            ButtonIncrease = new Button();
+            ButtonIncrease.Anchor = AnchorStyles.Right;
+            ButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
+            ButtonIncrease.Size = new Size(14, 8);
+            ButtonIncrease.Name = "_numericButtonIncrease";
+            ButtonIncrease.NormalColor = Color.FromArgb(236, 236, 236);
+            ButtonIncrease.NormalBorderColor = Color.FromArgb(172, 172, 172);
+            ButtonIncrease.HoverColor = Color.FromArgb(228, 241, 252);
+            ButtonIncrease.HoverBorderColor = Color.FromArgb(126, 180, 234);
+            ButtonIncrease.Image = Application.Resources.Reserved.NumericUp;
+            ButtonIncrease.Click += delegate { if (Enabled) Value += Increment; };
 
-            _buttonDecrease = new Button();
-            _buttonDecrease.Anchor = AnchorStyles.Right;
-            _buttonDecrease.Location = new Point(Width - 16, Height / 2);
-            _buttonDecrease.Size = new Drawing.Size(14, 8);
-            _buttonDecrease.Name = "_numericButtonDecrease";
-            _buttonDecrease.NormalColor = Color.FromArgb(236, 236, 236);
-            _buttonDecrease.NormalBorderColor = Color.FromArgb(172, 172, 172);
-            _buttonDecrease.HoverColor = Color.FromArgb(228, 241, 252);
-            _buttonDecrease.HoverBorderColor = Color.FromArgb(126, 180, 234);
-            _buttonDecrease.Image = Application.Resources.Reserved.NumericDown;
-            _buttonDecrease.Click += delegate { if (Enabled) Value -= Increment; };
+            ButtonDecrease = new Button();
+            ButtonDecrease.Anchor = AnchorStyles.Right;
+            ButtonDecrease.Location = new Point(Width - 16, Height / 2);
+            ButtonDecrease.Size = new Drawing.Size(14, 8);
+            ButtonDecrease.Name = "_numericButtonDecrease";
+            ButtonDecrease.NormalColor = Color.FromArgb(236, 236, 236);
+            ButtonDecrease.NormalBorderColor = Color.FromArgb(172, 172, 172);
+            ButtonDecrease.HoverColor = Color.FromArgb(228, 241, 252);
+            ButtonDecrease.HoverBorderColor = Color.FromArgb(126, 180, 234);
+            ButtonDecrease.Image = Application.Resources.Reserved.NumericDown;
+            ButtonDecrease.Click += delegate { if (Enabled) Value -= Increment; };
 
-            Controls.Add(_buttonIncrease);
-            Controls.Add(_buttonDecrease);
+            Controls.Add(ButtonIncrease);
+            Controls.Add(ButtonDecrease);
 
             Resize += _UpdateButtonsLocation;
         }
 
         private void _UpdateButtonsLocation(object sender, EventArgs e)
         {
-            if (_buttonIncrease != null)
-                _buttonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
-            if (_buttonDecrease != null)
-                _buttonDecrease.Location = new Point(Width - 16, Height / 2);
+            if (ButtonIncrease != null)
+                ButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
+            if (ButtonDecrease != null)
+                ButtonDecrease.Location = new Point(Width - 16, Height / 2);
         }
 
         public event EventHandler ValueChanged = delegate { };
@@ -116,8 +121,8 @@ namespace System.Windows.Forms
         }
         public void HideButtons()
         {
-            _buttonIncrease.Visible = false;
-            _buttonDecrease.Visible = false;
+            ButtonIncrease.Visible = false;
+            ButtonDecrease.Visible = false;
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
@@ -135,14 +140,14 @@ namespace System.Windows.Forms
 
             if (Enabled)
             {
-                g.FillRectangle(new SolidBrush(Color.FromArgb(250, 250, 250)), 0, 0, Width, Height);
+                g.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
 
                 if (Focused)
                 {
                     if (_shouldFocus)
                         UnityEngine.GUI.SetNextControlName(Name);
 
-                    _valueText = g.DrawTextField(_valueText, Font, new SolidBrush(ForeColor), 2, 0, Width + (_buttonIncrease.Visible ? -16 : 0), Height, TextAlign);
+                    _valueText = g.DrawTextField(_valueText, Font, new SolidBrush(ForeColor), Padding.Left, 0, Width + (ButtonIncrease.Visible ? -16 : 0), Height, TextAlign);
 
                     if (_shouldFocus)
                     {
@@ -151,7 +156,7 @@ namespace System.Windows.Forms
                     }
                 }
                 else
-                    g.DrawString(_valueText, Font, new SolidBrush(ForeColor), 2, 0, Width + (_buttonIncrease.Visible ? -16 : 0), Height, TextAlign);
+                    g.DrawString(_valueText, Font, new SolidBrush(ForeColor), Padding.Left, 0, Width + (ButtonIncrease.Visible ? -16 : 0), Height, TextAlign);
 
                 decimal value = Value;
                 if (!decimal.TryParse(_valueText, out value))
@@ -165,14 +170,14 @@ namespace System.Windows.Forms
                 }
             }
             else
-                g.DrawString(Value.ToString(), Font, Brushes.Black, 4, 0, Width + (_buttonIncrease.Visible ? -24 : 0), Height, TextAlign);
+                g.DrawString(Value.ToString(), Font, Brushes.Black, Padding.Left, 0, Width + (ButtonIncrease.Visible ? -24 : 0), Height, TextAlign);
 
-            g.DrawRectangle(new Pen(Color.FromArgb(175, 175, 175)), 0, 0, Width, Height);
+            g.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
         }
         public void ShowButtons()
         {
-            _buttonIncrease.Visible = true;
-            _buttonDecrease.Visible = true;
+            ButtonIncrease.Visible = true;
+            ButtonDecrease.Visible = true;
         }
 
         public delegate void CallbackDelegate(object data);

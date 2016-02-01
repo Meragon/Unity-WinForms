@@ -69,7 +69,7 @@ namespace System.Drawing
         }
         public void DrawImage(Image image, float x, float y, float width, float height)
         {
-            DrawTexture(image.uTexture, x, y, width, height, Color.White);
+            DrawTexture(image.uTexture, x, y, width, height, image.Color);
         }
         public void DrawLine(Pen pen, int x1, int y1, int x2, int y2)
         {
@@ -96,9 +96,6 @@ namespace System.Drawing
             float width = 0;
             float height = 0;
 
-            if (x1 == x2 && y1 == y2)
-                return;
-
             if (x1 != x2 && y1 != y2)
             {
                 float xDiff = x2 - x1;
@@ -111,6 +108,8 @@ namespace System.Drawing
 
             if (x1 == x2)
             {
+                if (y1 > y2) y1 += pen.Width;
+                else y2 += pen.Width;
                 x = x1;
                 width = pen.Width;
                 if (y1 < y2)
@@ -140,7 +139,58 @@ namespace System.Drawing
                 }
             }
 
-            DrawRectangle(pen, x, y, width, height);
+            GUI.color = pen.Color.ToUColor();
+            if (!_group)
+            {
+                Point c_position = Point.Empty;
+                if (Control != null)
+                    c_position = Control.PointToScreen(Point.Zero);
+
+                GUI.DrawTexture(new Rect(x, y, width, height), System.Windows.Forms.Application.DefaultSprite);
+            }
+            else
+            {
+                Point c_position = Point.Empty;
+                if (Control != null)
+                    c_position = Control.PointToScreen(Point.Zero);
+                var g_position = _groupControlLast.PointToScreen(Point.Zero);
+                var position = c_position - g_position + new PointF(x, y);
+
+                switch (pen.DashStyle)
+                {
+                    case Drawing2D.DashStyle.Solid:
+                        GUI.DrawTexture(new Rect(position.X, position.Y, width, height), System.Windows.Forms.Application.DefaultSprite);
+                        break;
+                    case Drawing2D.DashStyle.Dash:
+                        float dash_step = pen.Width * 6;
+                        if (y1 == y2)
+                            for (float i = 0; i < width; i += dash_step)
+                            {
+                                float dash_width = dash_step - 2;
+                                if (i + dash_width > width)
+                                    dash_width = width - i;
+                                GUI.DrawTexture(new Rect(position.X + i, position.Y, dash_width, pen.Width), System.Windows.Forms.Application.DefaultSprite);
+                            }
+
+                        if (x1 == x2)
+                            for (float i = 0; i < height; i += dash_step)
+                            {
+                                float dash_height = dash_step - 2;
+                                if (i + dash_height > height)
+                                    dash_height = height - i;
+                                GUI.DrawTexture(new Rect(position.X + width - pen.Width, position.Y + i, pen.Width, dash_height), System.Windows.Forms.Application.DefaultSprite);
+                            }
+                        break;
+                }
+            }
+
+        }
+        public void DrawMesh(Mesh mesh, Point position, Quaternion rotation, Material mat)
+        {
+            var uposition = UnityEngine.Camera.main.ScreenToWorldPoint(position.AsVector2);
+
+            mat.SetPass(0);
+            UnityEngine.Graphics.DrawMeshNow(mesh, new Vector3(0, 0, 0), rotation);
         }
         public string DrawPasswordField(string s, Font font, SolidBrush brush, float x, float y, float width, float height, HorizontalAlignment alignment)
         {
@@ -204,6 +254,22 @@ namespace System.Drawing
 
                 return GUI.PasswordField(new Rect(position.X, position.Y, width, height), s, '*');
             }
+        }
+        public void DrawPoint(Color color, Point point)
+        {
+            DrawPoint(color, point.X, point.Y);
+        }
+        public void DrawPoint(Color color, PointF point)
+        {
+            DrawPoint(color, point.X, point.Y);
+        }
+        public void DrawPoint(Color color, int x, int y)
+        {
+            DrawPoint(color, x, y);
+        }
+        public void DrawPoint(Color color, float x, float y)
+        {
+            DrawTexture(System.Windows.Forms.Application.DefaultSprite, x, y, 1, 1);
         }
         public void DrawPolygon(Pen pen, Point[] points)
         {

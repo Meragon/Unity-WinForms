@@ -54,6 +54,15 @@ namespace System.Windows.Forms
                 }
             }
         }
+        protected override void OnMouseWheel(MouseEventArgs e)
+        {
+            currentScrollIndex += e.Delta;
+            
+            if (currentScrollIndex > Items.Count - maxItems + 1)
+                currentScrollIndex = Items.Count - maxItems + 1;
+            if (currentScrollIndex < 0)
+                currentScrollIndex = 0;
+        }
 
         public void UpdateScroll()
         {
@@ -70,7 +79,7 @@ namespace System.Windows.Forms
                     break;
                 case 3:
                 case 4:
-                    maxItems = (int)(Width / ItemWidth);
+                    maxItems = (int)(Width / ItemWidth) + 1;
                     //Scroll.size = (float)maxItems / listBox.Items.Count;
                     break;
             }

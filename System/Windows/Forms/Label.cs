@@ -16,6 +16,7 @@ namespace System.Windows.Forms
 
         public Label()
         {
+            Padding = new Forms.Padding(4, 0, 8, 0);
             Size = new Drawing.Size(128, 20);
             TextAlign = ContentAlignment.TopLeft;
         }
@@ -27,7 +28,7 @@ namespace System.Windows.Forms
             Graphics g = e.Graphics;
 
             g.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
-            g.DrawString(Text, Font, new SolidBrush(ForeColor), 4, 0, Width - 8, Height, TextAlign);
+            g.DrawString(Text, Font, new SolidBrush(ForeColor), Padding.Left, Padding.Top, Width - Padding.Right - Padding.Left, Height - Padding.Bottom - Padding.Top, TextAlign);
         }
         protected override object OnPaintEditor(float width)
         {

@@ -9,6 +9,7 @@ namespace System.Drawing
     {
         internal UnityEngine.Texture2D uTexture { get; set; }
 
+        public Color Color { get; set; }
         public int Height { get { return uTexture.height; } }
         public Size Size { get { return new Size(Width, Height); } }
         public int Width { get { return uTexture.width; } }

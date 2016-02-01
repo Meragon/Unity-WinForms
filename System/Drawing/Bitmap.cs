@@ -9,6 +9,12 @@ namespace System.Drawing
     {
         public Bitmap(UnityEngine.Texture2D original)
         {
+            Color = Color.White;
+            uTexture = original;
+        }
+        public Bitmap(UnityEngine.Texture2D original, Color color)
+        {
+            Color = color;
             uTexture = original;
         }
 

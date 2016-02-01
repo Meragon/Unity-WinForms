@@ -17,5 +17,10 @@ namespace System.Drawing
             Color = color;
             Width = 1;
         }
+        public Pen(Color color, float width)
+        {
+            Color = color;
+            Width = width;
+        }
     }
 }

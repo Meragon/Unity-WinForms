@@ -9,10 +9,14 @@ namespace System.Windows.Forms
 {
     public class TabControl : Control
     {
+        public const int DefaultHeaderHeight = 24;
+
+        public int HeaderHeight { get; set; }
         public TabPageCollection TabPages { get; set; }
 
         public TabControl()
         {
+            HeaderHeight = DefaultHeaderHeight;
             TabPages = new TabPageCollection();
         }
 
@@ -21,7 +25,7 @@ namespace System.Windows.Forms
             base.OnPaint(e);
             Graphics g = e.Graphics;
 
-            g.FillRectangle(new SolidBrush(BackColor), 0, 24, Width, Height - 24);
+            g.FillRectangle(new SolidBrush(BackColor), 0, HeaderHeight, Width, Height - HeaderHeight);
 
         }
         public void UpdateTabs()
@@ -29,23 +33,44 @@ namespace System.Windows.Forms
             for (int i = 0; i < TabPages.Count; i++)
             {
                 // Create header if not exists.
-                if (TabPages[i].HeaderObject == null)
+                if (TabPages[i].HeaderButton == null)
                 {
-                    TabPages[i].HeaderObject = CreateHeaderFromPage(TabPages[i]);
-                    Controls.Add(TabPages[i].HeaderObject);
+                    TabPages[i].HeaderButton = CreateHeaderFromPage(TabPages[i]);
+                    Controls.Add(TabPages[i].HeaderButton);
                 }
                 // Hide tabs.
                 if (i != TabPages.CurrentIndex)
                 {
                     HideTabPage(TabPages[i]);
-                    SetHeaderActivity(TabPages[i].HeaderObject, false);
+                    SetHeaderActivity(TabPages[i].HeaderButton, false);
                 }
             }
             if (TabPages.CurrentIndex != -1)
             {
                 ShowTabPage(TabPages[TabPages.CurrentIndex]);
-                SetHeaderActivity(TabPages[TabPages.CurrentIndex].HeaderObject, true);
+                SetHeaderActivity(TabPages[TabPages.CurrentIndex].HeaderButton, true);
             }
+        }
+        public void UpdateHeadersLocation()
+        {
+            int? offset = null;
+
+            // Move left.
+            if (TabPages.CurrentIndex - 1 >= 0 && TabPages[TabPages.CurrentIndex - 1].HeaderButton.Location.X < 0)
+                offset = -TabPages[TabPages.CurrentIndex - 1].Offset;
+
+            // Move right.
+            if (TabPages.CurrentIndex + 1 < TabPages.Count && TabPages[TabPages.CurrentIndex + 1].Offset + TabPages[TabPages.CurrentIndex + 1].Width > Width)
+                offset = Width - (TabPages[TabPages.CurrentIndex + 1].Offset + TabPages[TabPages.CurrentIndex + 1].Width);
+
+            if (offset != null)
+                for (int i = 0; i < TabPages.Count; i++)
+                {
+                    if (TabPages[i].HeaderButton != null)
+                    {
+                        TabPages[i].HeaderButton.Location = new Point(TabPages[i].Offset + offset.Value, TabPages[i].HeaderButton.Location.Y);
+                    }
+                }
         }
 
         private void HideTabPage(TabControl.TabPageCollection.TabPage page)
@@ -65,17 +90,18 @@ namespace System.Windows.Forms
             Button btn = new Button();
             btn.Name = "pageButton" + page.Index.ToString();
             btn.Text = page.Text;
-            btn.Size = new Size(page.Width, 24);
+            btn.Size = new Size(page.Width, HeaderHeight);
             btn.Location = new Point(page.Offset, 0);
             btn.NormalColor = Color.FromArgb(204, 206, 219);
             btn.TopMost = TopMost;
             btn.NormalBorderColor = Color.Transparent;
             btn.HoverBorderColor = Color.Transparent;
-            
+
             btn.Click += (object sender, EventArgs e) =>
             {
                 TabPages[page.Index].Focus();
                 UpdateTabs();
+                UpdateHeadersLocation();
                 page.RaiseClick();
             };
 
@@ -150,7 +176,7 @@ namespace System.Windows.Forms
                 public int Id { get { return _id; } }
                 private TabPageCollection _owner;
 
-                public Button HeaderObject { get; set; }
+                public Button HeaderButton { get; set; }
                 public int Index { get { return _owner.FindIndex(x => x.Id == Id); } }
                 public Control[] Objects { get; set; }
                 public int Offset

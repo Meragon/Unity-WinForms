@@ -12,16 +12,18 @@ namespace System.Windows.Forms
         public const int DefaultItemHeight = 23;
         public const int DefaultItemSpace = 4;
 
+        public Color BorderColor { get; set; }
         public int ItemHeight { get; set; }
         public int ItemSpace { get; set; }
 
         public Accordion()
         {
+            BorderColor = Color.Transparent;
             ItemHeight = DefaultItemHeight;
             ItemSpace = DefaultItemSpace;
         }
 
-        public void Add(string itemText, Control container)
+        public AccordionButton Add(string itemText, Control container)
         {
             int visibleItems = 0;
             for (int i = 0; i < Controls.Count; i++)
@@ -40,8 +42,15 @@ namespace System.Windows.Forms
             Controls.Add(container);
 
             Refresh();
+            return itemButton;
         }
 
+        protected override void OnLatePaint(PaintEventArgs e)
+        {
+            base.OnLatePaint(e);
+
+            e.Graphics.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
+        }
         public override void Refresh()
         {
             base.Refresh();
