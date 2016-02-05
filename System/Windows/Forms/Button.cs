@@ -6,6 +6,7 @@ using System.Drawing;
 
 namespace System.Windows.Forms
 {
+    [Serializable]
     public class Button : Control
     {
         internal ColorF currentBackColor;
@@ -17,8 +18,8 @@ namespace System.Windows.Forms
 
         public virtual Color HoverBorderColor { get; set; }
         public virtual Color HoverColor { get; set; }
-        public UnityEngine.Texture2D Image { get; set; }
-        public UnityEngine.Texture2D ImageHover { get; set; }
+        public Bitmap Image { get; set; }
+        public Bitmap ImageHover { get; set; }
         public Color ImageColor { get; set; }
         public virtual Color NormalBorderColor { get; set; }
         public virtual Color NormalColor
@@ -75,10 +76,10 @@ namespace System.Windows.Forms
                 {
                     default:
                     case ImageLayout.None:
-                        g.DrawTexture(Hovered && ImageHover != null ? ImageHover : Image, 0, 0, Image.width, Image.height, ImageColor);
+                        g.DrawTexture(Hovered && ImageHover != null ? ImageHover : Image, 0, 0, Image.Width, Image.Height, ImageColor);
                         break;
                     case ImageLayout.Center:
-                        g.DrawTexture(Hovered && ImageHover != null ? ImageHover : Image, Width / 2 - Image.width / 2, Height / 2 - Image.height / 2, Image.width, Image.height, ImageColor);
+                        g.DrawTexture(Hovered && ImageHover != null ? ImageHover : Image, Width / 2 - Image.Width / 2, Height / 2 - Image.Height / 2, Image.Width, Image.Height, ImageColor);
                         break;
                     case ImageLayout.Stretch:
                         g.DrawTexture(Hovered && ImageHover != null ? ImageHover : Image, 0, 0, Width, Height, ImageColor);
@@ -114,10 +115,10 @@ namespace System.Windows.Forms
                 if (editorHoverColor.Changed) HoverColor = editorHoverColor;
 
                 var editorImage = Editor.ObjectField("      Image", Image, typeof(UnityEngine.Texture2D));
-                if (editorImage.Changed) Image = (UnityEngine.Texture2D)editorImage.Value;
+                if (editorImage.Changed) Image = new Bitmap((UnityEngine.Texture2D)editorImage.Value);
 
                 var editorImageHover = Editor.ObjectField("      ImageHover", ImageHover, typeof(UnityEngine.Texture2D));
-                if (editorImageHover.Changed) ImageHover = (UnityEngine.Texture2D)editorImageHover.Value;
+                if (editorImageHover.Changed) ImageHover = new Bitmap((UnityEngine.Texture2D)editorImageHover.Value);
 
                 var editorImageColor = Editor.ColorField("      ImageColor", ImageColor);
                 if (editorImageColor.Changed) ImageColor = editorImageColor;

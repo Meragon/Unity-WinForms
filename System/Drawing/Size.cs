@@ -5,6 +5,7 @@ using System.Text;
 
 namespace System.Drawing
 {
+    [Serializable]
     public struct Size
     {
         private int _width;
@@ -51,7 +52,7 @@ namespace System.Drawing
 
         public override bool Equals(object obj)
         {
-            if (obj is Size) return false;
+            if (obj is Size == false) return false;
             return (((Size)obj).Width == Width && ((Size)obj).Height == Height);
         }
         public override int GetHashCode()

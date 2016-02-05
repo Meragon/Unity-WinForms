@@ -6,6 +6,7 @@ using System.Text;
 
 namespace System.Drawing
 {
+    [Serializable]
     public struct Point
     {
         private int _x;

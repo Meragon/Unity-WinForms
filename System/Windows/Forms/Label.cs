@@ -6,6 +6,7 @@ using System.Drawing;
 
 namespace System.Windows.Forms
 {
+    [Serializable]
     public class Label : Control
     {
 #if UNITY_EDITOR

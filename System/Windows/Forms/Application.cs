@@ -477,6 +477,15 @@ namespace System.Windows.Forms
                 return _ControlVisible(control.Parent);
             return false;
         }
+        private Control _GetRootControl(Control control)
+        {
+            if (control == null) return null;
+
+            if (control.Parent != null)
+                return _GetRootControl(control.Parent);
+
+            return control;
+        }
         private bool _IsPointInPolygon(List<System.Drawing.Point> polygon, System.Drawing.Point testPoint)
         {
             bool result = false;
@@ -494,20 +503,40 @@ namespace System.Windows.Forms
             }
             return result;
         }
+        private Control _ParentContains(Control control, System.Drawing.PointF mousePosition, Control currentControl, ref bool ok)
+        {
+            //UnityEngine.Debug.Log(control.Name);
+            if (control == null || control.Parent == null) return currentControl;
+
+            var parentLocation = control.Parent.PointToScreen(System.Drawing.Point.Zero);
+            var parentRect = new System.Drawing.RectangleF(parentLocation.X, parentLocation.Y, control.Parent.Width, control.Parent.Height);
+            if (parentRect.Contains(mousePosition) == true)
+                currentControl = control.Parent;
+            else
+                ok = false; // Control is not visible due to groups;
+
+            return _ParentContains(control.Parent, mousePosition, currentControl, ref ok);
+        }
         private bool _ProcessControl(System.Drawing.PointF mousePosition, Control control, bool ignore_rect)
         {
             // ignore_rect will call mouse_up & mouse_move in any case.
             var c_location = control.PointToScreen(System.Drawing.Point.Zero);
-            var client_mpos = control.PointToClient(mousePosition);
-
             var clientRect = new System.Drawing.RectangleF(c_location.X, c_location.Y, control.Width, control.Height);
             var contains = clientRect.Contains(mousePosition);
-            /*if (control is ToolStrip && !contains && mouseEvent != MouseEvents.None)
+
+            if (contains && (_mouseEvent == MouseEvents.Down) || _mouseEvent == MouseEvents.Up)
             {
-                if (control.Parent == null)
-                    control.Dispose();
-                return false;
-            }*/
+                if (control.Parent != null)
+                {
+                    bool ok = true;
+                    var clickedControl = _ParentContains(control, mousePosition, control, ref ok);
+                    if (clickedControl != null && ok == false)
+                        control = clickedControl;
+                }
+            }
+
+            var client_mpos = control.PointToClient(mousePosition);
+
             if (ignore_rect || contains)
             {
                 if (contains)

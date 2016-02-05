@@ -5,6 +5,7 @@ using System.Text;
 
 namespace System.Windows.Forms
 {
+    [Serializable]
     public class MenuStrip : ToolStrip
     {
         public MenuStrip()

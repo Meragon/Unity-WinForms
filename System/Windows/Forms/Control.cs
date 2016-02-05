@@ -10,6 +10,8 @@ namespace System.Windows.Forms
     {
         public static Point MousePosition { get { return new Point((int)UnityEngine.Input.mousePosition.x, (int)(UnityEngine.Screen.height - UnityEngine.Input.mousePosition.y)); } }
 
+        [NonSerialized]
+        private Control.ControlCollection _controls;
         private bool _disposing;
         protected bool _focused = false;
         protected static List<Control> _lastFocused = new List<Control>();
@@ -17,6 +19,8 @@ namespace System.Windows.Forms
         private int _height;
         private bool _isDisposed;
         private bool _hovered;
+        [NonSerialized]
+        private Control _parent;
         private bool _topMost;
         private bool _visible;
         private int _width;
@@ -34,10 +38,10 @@ namespace System.Windows.Forms
         public Color BackColor { get; set; }
         public virtual ImageLayout BackgroundImageLayout { get; set; }
         internal bool Batched { get; set; } // For testing.
-        internal UnityEngine.Texture2D BatchedTexture { get; set; }
+        //internal UnityEngine.Texture2D BatchedTexture { get; set; }
         public Rectangle ClientRectangle { get { return new Rectangle(0, 0, Width, Height); } }
         internal virtual bool Context { get; set; } // Close on click control. TODO: make it obsolete, find other way.
-        public Control.ControlCollection Controls { get; set; }
+        public Control.ControlCollection Controls { get { return _controls; } set { _controls = value; } }
         public virtual Rectangle DisplayRectangle { get { return ClientRectangle; } }
         public bool Disposing { get { return _disposing; } }
         public bool Enabled { get; set; }
@@ -69,7 +73,7 @@ namespace System.Windows.Forms
         public string Name { get; set; }
         internal Point Offset { get; set; }
         public Padding Padding { get; set; }
-        public Control Parent { get; set; }
+        public Control Parent { get { return _parent; } set { _parent = value; } }
         public Size Size
         {
             get
@@ -153,8 +157,8 @@ namespace System.Windows.Forms
                         delta = new Point(delta.X, delta.Y);
                     }
                     _height = Size.Height;
-                    if (an_right)
-                        OnResize(delta);
+                    //if (an_right)
+                        //OnResize(delta);
                 }
                 if (an_top)
                 {
@@ -162,11 +166,15 @@ namespace System.Windows.Forms
                     {
                         Location = new Point(Location.X, Location.Y + delta.Y);
                         _height = Size.Height - delta.Y;
+                        delta = new Point(delta.X, delta.Y);
                     }
                     _width = Size.Width;
-                    if (an_bottom)
-                        OnResize(delta);
+                    //if (an_bottom)
+                        //OnResize(delta);
                 }
+
+                if ((an_left && an_right) || (an_top && an_bottom))
+                    OnResize(delta);
             }
         }
 

@@ -6,6 +6,7 @@ using System.Drawing;
 
 namespace System.Windows.Forms
 {
+    [Serializable]
     public class PictureBox : Control
     {
         public UnityEngine.Texture2D Image { get; set; }

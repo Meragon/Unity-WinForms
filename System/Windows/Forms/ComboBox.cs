@@ -19,6 +19,7 @@ namespace System.Windows.Forms
         private ListBox _listBox;
         private bool _listBoxOpened;
         private int _selectedIndex = -1;
+        private bool _shouldFocus;
 
         public AutoCompleteMode AutoCompleteMode { get; set; }
         public AutoCompleteSource AutoCompleteSource { get; set; }
@@ -95,6 +96,11 @@ namespace System.Windows.Forms
 
         public event EventHandler SelectedIndexChanged = delegate { };
 
+        public override void Focus()
+        {
+            base.Focus();
+            _shouldFocus = true;
+        }
         protected override void OnKeyPress(KeyEventArgs e)
         {
             base.OnKeyDown(e);
@@ -194,18 +200,32 @@ namespace System.Windows.Forms
                 g.DrawString(SelectedText, Font, new SolidBrush(Enabled ? ForeColor : Color.Gray), Padding.Left, Padding.Top, Width - Padding.Left - Padding.Right - 16, Height - Padding.Bottom - Padding.Top); // 16 - arrow width.
             else
             {
-                var _filterBuffer = g.DrawTextField(_filter, Font, new SolidBrush(ForeColor), 4, 0, Width - 8 - 16, Height, HorizontalAlignment.Left);
-                if (_filterBuffer != _filter)
+                if (Focused)
                 {
-                    if (_listBox != null && !_listBox.IsDisposed && !_listBox.Disposing)
+                    if (_shouldFocus)
+                        UnityEngine.GUI.SetNextControlName(Name);
+
+                    var _filterBuffer = g.DrawTextField(_filter, Font, new SolidBrush(ForeColor), 4, 0, Width - 8 - 16, Height, HorizontalAlignment.Left);
+                    if (_filterBuffer != _filter)
                     {
-                        _listBox.Dispose();
-                        _listBox = null;
-                        _listBoxOpened = false;
+                        if (_listBox != null && !_listBox.IsDisposed && !_listBox.Disposing)
+                        {
+                            _listBox.Dispose();
+                            _listBox = null;
+                            _listBoxOpened = false;
+                        }
+                        _CreateListBox(_filter);
                     }
-                    _CreateListBox(_filter);
+                    _filter = _filterBuffer;
                 }
-                _filter = _filterBuffer;
+                else
+                    g.DrawString(_filter, Font, new SolidBrush(ForeColor), 4, 0, Width - 8 - 16, Height, HorizontalAlignment.Left);
+
+                if (_shouldFocus)
+                {
+                    UnityEngine.GUI.FocusControl(Name);
+                    _shouldFocus = false;
+                }
             }
             if (Enabled)
                 g.DrawTexture(Application.Resources.Reserved.ComboBoxArrow, Width - 16, Height / 2 - 8, 16, 16);

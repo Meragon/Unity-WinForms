@@ -7,9 +7,12 @@ using System.Drawing;
 
 namespace System.Windows.Forms
 {
+    [Serializable]
     public class Form : ContainerControl
     {
+        [NonSerialized]
         private Button _closeButton;
+        private MenuStrip _mainMenuStrip;
         private bool _windowMove = false;
         private Point _windowMoveDelta;
 
@@ -62,7 +65,7 @@ namespace System.Windows.Forms
         public Color HeaderTextColor { get; set; }
         public ContentAlignment HeaderTextAlign { get; set; }
         public bool HighlightResizeBorders { get; set; }
-        public MenuStrip MainMenuStrip { get; set; }
+        public MenuStrip MainMenuStrip { get { return _mainMenuStrip; } set { _mainMenuStrip = value; } }
         public bool Movable { get; set; }
         public bool Resizable { get; set; }
         public override string Text { get; set; }

@@ -5,6 +5,7 @@ using System.Text;
 
 namespace System.Windows.Forms
 {
+    [Serializable]
     public class VScrollProperties : ScrollProperties
     {
         public VScrollProperties(ScrollableControl container) : base(container)

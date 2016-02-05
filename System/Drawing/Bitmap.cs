@@ -5,8 +5,22 @@ using System.Text;
 
 namespace System.Drawing
 {
+    [Serializable]
     public class Bitmap : Image
     {
+        public static implicit operator UnityEngine.Texture2D(Bitmap image)
+        {
+            return image.uTexture;
+        }
+        public static implicit operator Bitmap(UnityEngine.Texture2D text)
+        {
+            return new Bitmap(text);
+        }
+
+        internal Bitmap()
+        {
+
+        }
         public Bitmap(UnityEngine.Texture2D original)
         {
             Color = Color.White;

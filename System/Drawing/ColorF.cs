@@ -5,6 +5,7 @@ using System.Text;
 
 namespace System.Drawing
 {
+    [Serializable]
     public struct ColorF 
     {
         private float _a, _r, _g, _b;

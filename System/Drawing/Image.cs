@@ -5,6 +5,7 @@ using System.Text;
 
 namespace System.Drawing
 {
+    [Serializable]
     public abstract class Image
     {
         internal UnityEngine.Texture2D uTexture { get; set; }

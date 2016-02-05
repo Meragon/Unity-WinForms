@@ -5,6 +5,7 @@ using System.Text;
 
 namespace System.Drawing
 {
+    [Serializable]
     public sealed class Font
     {
         private string _name = "";
@@ -14,6 +15,10 @@ namespace System.Drawing
         public float Size { get; set; }
         public FontStyle Style { get { return _style; } }
 
+        internal Font()
+        {
+
+        }
         public Font(string familyName, float emSize)
         {
             _name = familyName;

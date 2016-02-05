@@ -6,6 +6,7 @@ using System.Drawing;
 
 namespace System.Windows.Forms
 {
+    [Serializable]
     public class ScrollableControl : Control
     {
         protected const int ScrollStateAutoScrolling = 1;

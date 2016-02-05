@@ -6,6 +6,7 @@ using System.Drawing;
 
 namespace System.Windows.Forms
 {
+    [Serializable]
     public class ToolStrip : ScrollableControl
     {
         private ToolStripItemCollection _items;

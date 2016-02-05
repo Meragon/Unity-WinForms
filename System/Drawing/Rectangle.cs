@@ -5,6 +5,7 @@ using System.Text;
 
 namespace System.Drawing
 {
+    [Serializable]
     public struct Rectangle
     {
         private int _x;

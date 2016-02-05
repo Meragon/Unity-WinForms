@@ -234,6 +234,7 @@ namespace System.Windows.Forms
         }
     }
 
+    [Serializable]
     public struct Padding
     {
         private int _left;

@@ -1,5 +1,6 @@
 ﻿namespace System.Drawing
 {
+    [Serializable]
     public struct Color
     {
         private byte _a, _r, _g, _b;
@@ -204,8 +205,9 @@
 
         public override bool Equals(object obj)
         {
-            if (this == (Color)obj)
-                return true;
+            if (obj is Color)
+                if (this == (Color)obj)
+                    return true;
             return false;
         }
         public float GetBrightness()

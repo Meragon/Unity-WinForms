@@ -5,6 +5,7 @@ using System.Text;
 
 namespace System.Windows.Forms
 {
+    [Serializable]
     public abstract class ScrollProperties
     {
         private ScrollableControl _parentControl;
