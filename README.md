@@ -30,7 +30,7 @@ This is WinForms wrapper (including System.Drawing). Here you can create base co
 4. Use keyword 'new' to create new Controls (don't need to use Application.Run); 
 
 ### Screenshots
-![GitHub Logo](http://i.imgur.com/g89R4d7.png)
+![scr1](http://i.imgur.com/LCQsFgv.png)
 
 Form code from above
 ```sh
