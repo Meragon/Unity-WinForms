@@ -13,6 +13,7 @@ namespace System.Drawing
         private Control _groupControlLast { get { return _groupControls[_groupControls.Count - 1]; } }
         private List<Control> _groupControls = new List<Control>();
 
+        public static UnityEngine.Material DefaultMaterial { get; set; }
         public static bool GL_Lines { get; set; }
         public static bool NoFill { get; set; }
         public static bool NoRects { get; set; }
@@ -146,7 +147,7 @@ namespace System.Drawing
                 if (Control != null)
                     c_position = Control.PointToScreen(Point.Zero);
 
-                GUI.DrawTexture(new Rect(x, y, width, height), System.Windows.Forms.Application.DefaultSprite);
+                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), System.Windows.Forms.Application.DefaultSprite);
             }
             else
             {
@@ -187,8 +188,6 @@ namespace System.Drawing
         }
         public void DrawMesh(Mesh mesh, Point position, Quaternion rotation, Material mat)
         {
-            var uposition = UnityEngine.Camera.main.ScreenToWorldPoint(position.AsVector2);
-
             mat.SetPass(0);
             UnityEngine.Graphics.DrawMeshNow(mesh, new Vector3(0, 0, 0), rotation);
         }
@@ -821,7 +820,9 @@ namespace System.Drawing
                 if (Control != null)
                     c_position = Control.PointToScreen(Point.Zero);
                 var g_position = _groupControlLast.PointToScreen(Point.Zero);
+
                 GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), System.Windows.Forms.Application.DefaultSprite);
+                //UnityEngine.Graphics.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), System.Windows.Forms.Application.DefaultSprite, new Rect(), 0, 0, 0, 0, brush.Color.ToUColor(), DefaultMaterial);
             }
         }
         public SizeF MeasureString(string text, Font font)

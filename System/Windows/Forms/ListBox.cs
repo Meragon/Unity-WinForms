@@ -15,7 +15,7 @@ namespace System.Windows.Forms
         private Point _dragPosition;
         private ListBox.ObjectCollection _items;
         private int _hoveredItem = -1;
-        internal int _maxVisibleItems = 12;
+        private int _visibleItems = 0;
         private int _selectedIndex = -1;
         private bool _scroll;
         private bool _scrollVisible = false;
@@ -41,6 +41,7 @@ namespace System.Windows.Forms
         }
 
         public Color BorderColor { get; set; }
+        public bool FixedHeight { get; set; }
         public virtual int ItemHeight { get; set; }
         public ListBox.ObjectCollection Items { get { return _items; } }
         internal int ScrollIndex
@@ -48,10 +49,10 @@ namespace System.Windows.Forms
             get { return _scrollIndex; }
             set
             {
-                if (value + _maxVisibleItems < Items.Count)
+                if (value + _visibleItems < Items.Count)
                     _scrollIndex = value;
                 else
-                    _scrollIndex = Items.Count - _maxVisibleItems;
+                    _scrollIndex = Items.Count - _visibleItems;
                 if (_scrollIndex < 0)
                     _scrollIndex = 0;
             }
@@ -157,7 +158,7 @@ namespace System.Windows.Forms
             {
                 _scrollIndex = (mclient.Y - _scrollStartY) * Items.Count / Height;
                 _scrollIndex = _scrollIndex < 0 ? 0 : _scrollIndex;
-                _scrollIndex = _scrollIndex > Items.Count - _maxVisibleItems ? Items.Count - _maxVisibleItems : _scrollIndex;
+                _scrollIndex = _scrollIndex > Items.Count - _visibleItems ? Items.Count - _visibleItems : _scrollIndex;
 
                 _scrollY = _scrollIndex * Height / Items.Count;
                 Refresh();
@@ -174,7 +175,7 @@ namespace System.Windows.Forms
             base.OnMouseWheel(e);
             ScrollIndex -= (int)e.Delta;
 
-            if (ScrollIndex + _maxVisibleItems > Items.Count) ScrollIndex = Items.Count - _maxVisibleItems;
+            if (ScrollIndex + _visibleItems > Items.Count) ScrollIndex = Items.Count - _visibleItems;
             if (ScrollIndex < 0) ScrollIndex = 0;
         }
         protected override void OnMouseUp(MouseEventArgs e)
@@ -207,7 +208,7 @@ namespace System.Windows.Forms
             var g = e.Graphics;
 
             g.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
-            for (int i = 0; i < _maxVisibleItems && i + ScrollIndex < Items.Count; i++)
+            for (int i = 0; i < _visibleItems && i + ScrollIndex < Items.Count; i++)
             {
                 bool disabled = Items.IsDisabled(i + ScrollIndex);
                 if (i + _scrollIndex == SelectedIndex || i == _hoveredItem)
@@ -220,20 +221,26 @@ namespace System.Windows.Forms
             }
 
             _scrollVisible = false;
-            if (Items.Count > _maxVisibleItems)
+            if (Items.Count > _visibleItems)
                 _scrollVisible = true;
 
             if (_scrollVisible)
             {
                 _scrollX = Width - _scrollWidth;
                 _scrollY = ScrollIndex * Height / Items.Count;
-                _scrollHeight = (int)((float)(_maxVisibleItems * Height) / Items.Count);
+                _scrollHeight = (int)((float)(_visibleItems * Height) / Items.Count);
                 if (_scrollHeight < 4)
                     _scrollHeight = 4;
                 Color _scrollColor = Color.FromArgb(222, 222, 230);
                 if (_scrollHover || _scroll) _scrollColor = Color.FromArgb(136, 136, 136);
                 g.FillRectangle(new SolidBrush(_scrollColor), _scrollX, _scrollY, _scrollWidth, _scrollHeight);
             }
+        }
+        protected override void OnResize(Point delta)
+        {
+            base.OnResize(delta);
+
+            _visibleItems = Height / ItemHeight + 1;
         }
         protected override void OnLatePaint(PaintEventArgs e)
         {
@@ -288,7 +295,9 @@ namespace System.Windows.Forms
 
             private void _UpdateOwnerHeight()
             {
-                int cnt = _owner._maxVisibleItems;
+                _owner._visibleItems = _owner.Height / _owner.ItemHeight + 1;
+                if (_owner.FixedHeight) return;
+                int cnt = _owner._visibleItems;
                 if (_items.Count < cnt)
                     cnt = _items.Count;
                 if (_owner.Context)

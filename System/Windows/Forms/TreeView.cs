@@ -36,6 +36,7 @@ namespace System.Windows.Forms
         public int ItemHeight { get; set; }
         public TreeNodeCollection Nodes { get { return _nodes; } private set { _nodes = value; } }
         public float ScrollIndex { get { return _scrollIndex; } }
+        public float ScrollSpeed { get; set; }
         public TreeNode SelectedNode { get; set; }
         public bool SmoothScrolling { get; set; }
         public bool UseNodeBoundsForSelection { get; set; }
@@ -51,6 +52,7 @@ namespace System.Windows.Forms
             this.root = new TreeNode(this);
             this.root.Expand();
             this.Resize += TreeView_Resize;
+            this.ScrollSpeed = 16;
             this.SmoothScrolling = true;
 
             _nodes = new TreeNodeCollection(root);
@@ -105,7 +107,8 @@ namespace System.Windows.Forms
         {
             if (rootNode != root && rootNode.IsVisible)
             {
-                var rootNodeRect = rootNode.Bounds.AddjustY((int)-_scrollIndex);
+                int nodeWidth = Width;
+                var rootNodeRect = new Rectangle(rootNode.Bounds.X, rootNode.Bounds.Y - (int)_scrollIndex, nodeWidth, rootNode.Bounds.Height);
                 if (UseNodeBoundsForSelection == false) rootNodeRect.X = 0;
                 if (rootNodeRect.Contains(position))
                     return rootNode;
@@ -297,7 +300,7 @@ namespace System.Windows.Forms
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            _scrollIndex -= e.Delta * 4;
+            _scrollIndex -= e.Delta * ScrollSpeed;
 
             _FixScrollIndex();
             _UpdateScrollList();

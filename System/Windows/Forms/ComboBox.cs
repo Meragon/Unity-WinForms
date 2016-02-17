@@ -113,8 +113,8 @@ namespace System.Windows.Forms
                         if (_selectedIndex + 1 < _items.Count)
                             SelectedIndex++;
                         _listBox.SelectedIndex = SelectedIndex;
-                        if (_listBox.ScrollIndex + _listBox._maxVisibleItems - 1 < SelectedIndex)
-                            _listBox.ScrollIndex = SelectedIndex - _listBox._maxVisibleItems + 1;
+                        if (_listBox.ScrollIndex - 1 < SelectedIndex)
+                            _listBox.ScrollIndex = SelectedIndex - 1;
 
                     }
                     break;
@@ -270,11 +270,12 @@ namespace System.Windows.Forms
                 //listBox.scrollDirection = 1;
                 //listBox.ItemWidth = Width;
                 //listBox.ItemHeight = 20;
+                _listBox.FixedHeight = true;
                 _listBox.Font = Font;
                 _listBox.BringToFront();
                 _listBox.Context = true;
                 _listBox.Width = Width;
-                //_listBox.Height = 20 * (/*Items.Count > 5 ? 5 : */Items.Count);
+                _listBox.Height = _listBox.ItemHeight * (Items.Count > 8 ? 8 : Items.Count);
                 if (_listBox.Height < _listBox.ItemHeight) _listBox.Height = _listBox.ItemHeight;
                 foreach (var item in Items)
                 {

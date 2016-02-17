@@ -12,5 +12,6 @@ namespace System.Windows.Forms
         Center = 2,
         Stretch = 3,
         Zoom = 4,
+        CenterZoom = 5,
     }
 }

@@ -10,6 +10,7 @@ namespace System.Drawing
     {
         public static implicit operator UnityEngine.Texture2D(Bitmap image)
         {
+            if (image == null) return null;
             return image.uTexture;
         }
         public static implicit operator Bitmap(UnityEngine.Texture2D text)
@@ -17,10 +18,6 @@ namespace System.Drawing
             return new Bitmap(text);
         }
 
-        internal Bitmap()
-        {
-
-        }
         public Bitmap(UnityEngine.Texture2D original)
         {
             Color = Color.White;
@@ -30,6 +27,11 @@ namespace System.Drawing
         {
             Color = color;
             uTexture = original;
+        }
+        public Bitmap(int width, int height)
+        {
+            Color = Color.White;
+            uTexture = new UnityEngine.Texture2D(width, height);
         }
 
         public void Apply()
@@ -42,7 +44,7 @@ namespace System.Drawing
         }
         public void SetPixel(int x, int y, Color color)
         {
-            uTexture.SetPixel(x, y, color.ToUColor());
+            uTexture.SetPixel(x, uTexture.height - y, color.ToUColor());
         }
     }
 }

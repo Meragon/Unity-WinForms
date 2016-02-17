@@ -14,13 +14,23 @@ namespace System.Windows.Forms
             Alignment = StringAlignment.Center,
             LineAlignment = StringAlignment.Center
         };
-
-        private Control _control;
-        private Point _location;
-        private string _text;
         private static float _alphaF;
         private static float _alphaWait;
         private static float _waitToShow;
+
+        private Control _control;
+        private int _initialDelay = 1000;
+        private Point _location;
+        private string _text;
+
+        public int InitialDelay
+        {
+            get { return _initialDelay; }
+            set
+            {
+                _initialDelay = UnityEngine.Mathf.Clamp(value, 0, 32767);
+            }
+        }
 
         public void SetToolTip(Control control, string caption)
         {
@@ -58,7 +68,7 @@ namespace System.Windows.Forms
             _instance = this;
             _alphaF = 255;
             _alphaWait = 1024;
-            _waitToShow = 128;
+            _waitToShow = _initialDelay;
         }
 
         internal static void OnPaint(PaintEventArgs e)
@@ -67,7 +77,7 @@ namespace System.Windows.Forms
             {
                 if (_waitToShow > 0)
                 {
-                    _waitToShow -= 1;
+                    _waitToShow -= (1000 * UnityEngine.Time.deltaTime);
                     return;
                 }
                 //e.Graphics.Control = null;

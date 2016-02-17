@@ -247,59 +247,66 @@ namespace System.Windows.Forms
 
             Graphics g = e.Graphics;
 
+            int estimatedWidth = 0;
+            int estimatedHeight = 0;
+
             #region Resize
             if (resizeType != DNDResizeType.None && Resizable)
             {
                 switch (resizeType)
                 {
                     case DNDResizeType.Right:
-                        Size = new Size(_resizeOriginal.Width + (MousePosition.X - _resizeDelta.X), _resizeOriginal.Height);
+                        estimatedWidth = _resizeOriginal.Width + (MousePosition.X - _resizeDelta.X);
+                        estimatedHeight = _resizeOriginal.Height;
                         break;
                     case DNDResizeType.Down:
-                        Size = new Size(_resizeOriginal.Width, _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y));
+                        estimatedWidth = _resizeOriginal.Width;
+                        estimatedHeight = _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y);
                         break;
                     case DNDResizeType.RightDown:
-                        Size = new Size(
-                            _resizeOriginal.Width + (MousePosition.X - _resizeDelta.X),
-                            _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y));
+                        estimatedWidth = _resizeOriginal.Width + (MousePosition.X - _resizeDelta.X);
+                        estimatedHeight = _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y);
                         break;
                     case DNDResizeType.Left:
                         Location = new Point(_resizePosition.X + (MousePosition.X - _resizeDelta.X), _resizePosition.Y);
-                        Size = new Size(_resizeOriginal.Width + _resizePosition.X - Location.X, _resizeOriginal.Height);
+                        estimatedWidth = _resizeOriginal.Width + _resizePosition.X - Location.X;
+                        estimatedHeight = _resizeOriginal.Height;
                         break;
                     case DNDResizeType.Up:
                         Location = new Point(_resizePosition.X, _resizePosition.Y + (MousePosition.Y - _resizeDelta.Y));
-                        Size = new Size(_resizeOriginal.Width, _resizeOriginal.Height + _resizePosition.Y - Location.Y);
+                        estimatedWidth = _resizeOriginal.Width;
+                        estimatedHeight = _resizeOriginal.Height + _resizePosition.Y - Location.Y;
                         break;
                     case DNDResizeType.LeftUp:
                         Location = new Point(
                             _resizePosition.X + (MousePosition.X - _resizeDelta.X),
                             _resizePosition.Y + (MousePosition.Y - _resizeDelta.Y));
-                        Size = new Size(
-                            _resizeOriginal.Width + _resizePosition.X - Location.X,
-                            _resizeOriginal.Height + _resizePosition.Y - Location.Y);
+                        estimatedWidth = _resizeOriginal.Width + _resizePosition.X - Location.X;
+                        estimatedHeight = _resizeOriginal.Height + _resizePosition.Y - Location.Y;
                         break;
                     case DNDResizeType.RightUp:
                         Location = new Point(_resizePosition.X, _resizePosition.Y + (MousePosition.Y - _resizeDelta.Y));
-                        Size = new Size(
-                            _resizeOriginal.Width + (MousePosition.X - _resizeDelta.X),
-                            _resizeOriginal.Height + _resizePosition.Y - Location.Y);
+                        estimatedWidth = _resizeOriginal.Width + (MousePosition.X - _resizeDelta.X);
+                        estimatedHeight = _resizeOriginal.Height + _resizePosition.Y - Location.Y;
                         break;
                     case DNDResizeType.LeftDown:
                         Location = new Point(_resizePosition.X + (MousePosition.X - _resizeDelta.X), _resizePosition.Y);
-                        Size = new Size(
-                            _resizeOriginal.Width + _resizePosition.X - Location.X,
-                            _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y));
+                        estimatedWidth = _resizeOriginal.Width + _resizePosition.X - Location.X;
+                        estimatedHeight = _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y);
                         break;
                 }
-                if (Size.Width < MinimumSize.Width)
-                    Size = new Size(MinimumSize.Width, Size.Height);
-                if (Size.Height < MinimumSize.Height)
-                    Size = new Size(Size.Width, MinimumSize.Height);
-                if (MaximumSize.Width != 0 && Size.Width > MaximumSize.Width)
-                    Size = new Size(MaximumSize.Width, Size.Height);
-                if (MaximumSize.Height != 0 && Size.Height > MaximumSize.Height)
-                    Size = new Size(Size.Width, MaximumSize.Height);
+
+                if (estimatedWidth < MinimumSize.Width)
+                    estimatedWidth = MinimumSize.Width;
+                if (estimatedHeight < MinimumSize.Height)
+                    estimatedHeight = MinimumSize.Height;
+
+                if (MaximumSize.Width > 0 && estimatedWidth > MaximumSize.Width)
+                    estimatedWidth = MaximumSize.Width;
+                if (MaximumSize.Height > 0 && estimatedHeight > MaximumSize.Height)
+                    estimatedHeight = MaximumSize.Height;
+
+                Size = new Size(estimatedWidth, estimatedHeight);
                 //OnResize(new Point(_sizeBefore.Width - Size.Width, _sizeBefore.Height - Size.Height));
 
 
