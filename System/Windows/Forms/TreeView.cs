@@ -35,7 +35,7 @@ namespace System.Windows.Forms
         public ImageList ImageList { get { return _imageList; } set { _imageList = value; } }
         public int ItemHeight { get; set; }
         public TreeNodeCollection Nodes { get { return _nodes; } private set { _nodes = value; } }
-        public float ScrollIndex { get { return _scrollIndex; } }
+        public float ScrollIndex { get { return _scrollIndex; } internal set { _scrollIndex = value; } }
         public float ScrollSpeed { get; set; }
         public TreeNode SelectedNode { get; set; }
         public bool SmoothScrolling { get; set; }

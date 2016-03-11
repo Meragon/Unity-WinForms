@@ -81,7 +81,7 @@ namespace System.Windows.Forms
                     return;
                 }
                 //e.Graphics.Control = null;
-                var size = e.Graphics.MeasureString(_instance._text, new Font("Arial", 12)) + new SizeF(8, 8);
+                var size = e.Graphics.MeasureString(_instance._text, new Font("Arial", 12)) + new SizeF(16, 8);
 
                 if (_instance._location.X + size.Width + 2 > Screen.PrimaryScreen.WorkingArea.Width)
                     _instance._location = new Point(Screen.PrimaryScreen.WorkingArea.Width - (int)size.Width - 2, _instance._location.Y);

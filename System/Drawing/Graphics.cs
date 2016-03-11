@@ -51,6 +51,43 @@ namespace System.Drawing
             var P1 = GetBezierPoint(t, controlPoints, index + 1, count - 1);
             return new PointF((1 - t) * P0.X + t * P1.X, (1 - t) * P0.Y + t * P1.Y);
         }
+        private static int GUI_SetFont(Font font)
+        {
+            int guiSkinFontSizeBuffer = GUI.skin.label.fontSize;
+            if (font != null)
+            {
+                var _font = System.Windows.Forms.Application.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
+                if (_font != null)
+                    GUI.skin.label.font = _font;
+                else
+                {
+                    GUI.skin.label.font = null;
+                    UnityEngine.Debug.LogWarning(font.Name);
+                }
+                GUI.skin.label.fontSize = (int)(font.Size);
+                bool styleBold = (font.Style & FontStyle.Bold) == FontStyle.Bold;
+                bool styleItalic = (font.Style & FontStyle.Italic) == FontStyle.Italic;
+                if (styleBold)
+                {
+                    if (styleItalic)
+                        GUI.skin.label.fontStyle = UnityEngine.FontStyle.BoldAndItalic;
+                    else
+                        GUI.skin.label.fontStyle = UnityEngine.FontStyle.Bold;
+                }
+                else if (styleItalic)
+                    GUI.skin.label.fontStyle = UnityEngine.FontStyle.Italic;
+                else GUI.skin.label.fontStyle = UnityEngine.FontStyle.Normal;
+            }
+            else
+            {
+                var _font = System.Windows.Forms.Application.Resources.Fonts.Find(f => f.fontNames[0] == "Arial");
+                if (_font != null)
+                    GUI.skin.label.font = _font;
+                GUI.skin.label.fontSize = (int)(12);
+                GUI.skin.label.fontStyle = UnityEngine.FontStyle.Normal;
+            }
+            return guiSkinFontSizeBuffer;
+        }
 
         public void Clear(System.Drawing.Color color)
         {
@@ -414,17 +451,29 @@ namespace System.Drawing
         }
         public void DrawString(string s, Font font, SolidBrush brush, float x, float y)
         {
-            DrawString(s, font, brush, new RectangleF(x, y, 256, 64));
+            DrawString(s, font, brush, x, y, 512, 64);
+        }
+        public void DrawString(string s, Font font, Color color, float x, float y)
+        {
+            DrawString(s, font, color, x, y, 512, 64);
         }
         public void DrawString(string s, Font font, SolidBrush brush, float x, float y, StringFormat format)
         {
-            DrawString(s, font, brush, new RectangleF(x, y, 256, 64), format);
+            DrawString(s, font, brush, x, y, 512, 64, format);
         }
         public void DrawString(string s, Font font, SolidBrush brush, float x, float y, float width, float height)
         {
             DrawString(s, font, brush, x, y, width, height, new StringFormat());
         }
+        public void DrawString(string s, Font font, Color color, float x, float y, float width, float height)
+        {
+            DrawString(s, font, color, x, y, width, height, ContentAlignment.BottomLeft);
+        }
         public void DrawString(string s, Font font, SolidBrush brush, float x, float y, float width, float height, ContentAlignment alignment)
+        {
+            DrawString(s, font, brush.Color, x, y, width, height, alignment);
+        }
+        public void DrawString(string s, Font font, Color color, float x, float y, float width, float height, ContentAlignment alignment)
         {
             if (NoStrings) return;
             GUI.skin.label.alignment = TextAnchor.UpperLeft;
@@ -459,40 +508,8 @@ namespace System.Drawing
                     break;
             }
 
-            int guiSkinFontSizeBuffer = GUI.skin.label.fontSize;
-            if (font != null)
-            {
-                var _font = System.Windows.Forms.Application.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
-                if (_font != null)
-                    GUI.skin.label.font = _font;
-                else
-                {
-                    GUI.skin.label.font = null;
-                    UnityEngine.Debug.LogWarning(font.Name);
-                }
-                GUI.skin.label.fontSize = (int)(font.Size);
-                bool styleBold = (font.Style & FontStyle.Bold) == FontStyle.Bold;
-                bool styleItalic = (font.Style & FontStyle.Italic) == FontStyle.Italic;
-                if (styleBold)
-                {
-                    if (styleItalic)
-                        GUI.skin.label.fontStyle = UnityEngine.FontStyle.BoldAndItalic;
-                    else
-                        GUI.skin.label.fontStyle = UnityEngine.FontStyle.Bold;
-                }
-                else if (styleItalic)
-                    GUI.skin.label.fontStyle = UnityEngine.FontStyle.Italic;
-                else GUI.skin.label.fontStyle = UnityEngine.FontStyle.Normal;
-            }
-            else
-            {
-                var _font = System.Windows.Forms.Application.Resources.Fonts.Find(f => f.fontNames[0] == "Arial");
-                if (_font != null)
-                    GUI.skin.label.font = _font;
-                GUI.skin.label.fontSize = (int)(12);
-                GUI.skin.label.fontStyle = UnityEngine.FontStyle.Normal;
-            }
-            GUI.color = brush.Color.ToUColor();
+            int guiSkinFontSizeBuffer = GUI_SetFont(font);
+            GUI.color = color.ToUColor();
 
             if (!_group)
             {
@@ -794,18 +811,22 @@ namespace System.Drawing
         }
         public void FillRectangle(SolidBrush brush, int x, int y, int width, int height)
         {
-            FillRectangle(brush, (float)x, (float)y, (float)width, (float)height);
+            FillRectangle(brush.Color, (float)x, (float)y, (float)width, (float)height);
         }
         public void FillRectangle(SolidBrush brush, float x, float y, float width, float height)
         {
+            FillRectangle(brush.Color, x, y, width, height);
+        }
+        public void FillRectangle(Color color, float x, float y, float width, float height)
+        {
             if (NoFill) return;
             //if (Control == null) return;
-            if (brush.Color == Color.Transparent) return;
+            if (color == Color.Transparent) return;
 
             //x += Control.Offset.X;
             //y += Control.Offset.Y;
 
-            GUI.color = brush.Color.ToUColor();
+            GUI.color = color.ToUColor();
             if (!_group)
             {
                 Point c_position = Point.Empty;
@@ -825,10 +846,26 @@ namespace System.Drawing
                 //UnityEngine.Graphics.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), System.Windows.Forms.Application.DefaultSprite, new Rect(), 0, 0, 0, 0, brush.Color.ToUColor(), DefaultMaterial);
             }
         }
+        /// <summary>
+        /// OnPaint call only.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="font"></param>
+        /// <returns></returns>
         public SizeF MeasureString(string text, Font font)
         {
-            return new SizeF() { Width = text.Length * 8, Height = font.Size };
-        } // TODO: use GUI.label...
+            int guiSkinFontSizeBuffer = GUI_SetFont(font);
+
+            var size = GUI.skin.label.CalcSize(new GUIContent(text));
+
+            GUI.skin.label.fontSize = guiSkinFontSizeBuffer;
+
+            return new SizeF(size.x, size.y);
+        }
+        public SizeF MeasureStringSimple(string text, Font font)
+        {
+            return new SizeF() { Width = text.Length * 8, Height = font.Size }; // fast but not accurate.
+        }
         public SizeF MeasureString(string text, Font font, int width, StringFormat format)
         {
             return new SizeF() { Width = text.Length * 6, Height = font.Size };

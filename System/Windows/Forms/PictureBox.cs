@@ -25,7 +25,6 @@ namespace System.Windows.Forms
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
-            var g = e.Graphics;
             if (Image != null)
             {
                 Rectangle rect = new Rectangle();

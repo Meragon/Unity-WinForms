@@ -166,7 +166,7 @@ namespace System.Windows.Forms
             }
         }
 
-        public DialogResult ShowDialog()
+        public override DialogResult ShowDialog()
         {
             var fs = Filter.Split('|');
             for (int i = 0; i < fs.Length; i += 2)

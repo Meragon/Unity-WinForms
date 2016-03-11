@@ -19,6 +19,7 @@ This is WinForms wrapper (including System.Drawing). Here you can create base co
 - GroupBox (still no Panel);
 - ColorPicker;
 - \* Accordion;
+- ToolTip;
 
 \* - not really good.
 

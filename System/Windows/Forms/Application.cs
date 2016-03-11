@@ -23,7 +23,6 @@ namespace System.Windows.Forms
         internal static Texture2D DefaultSpriteSmoothLine { get; private set; }
 
         // Editor settings.
-        public Material Material;
         public GUISkin Skin;
         public AppResources _Resources;
         public bool ShowControlProperties;
@@ -88,8 +87,6 @@ namespace System.Windows.Forms
             _mouseMovePosition = Input.mousePosition;
             _lastWidth = UnityEngine.Screen.width;
             _lastHeight = UnityEngine.Screen.height;
-
-            System.Drawing.Graphics.DefaultMaterial = Material;
         }
         private void Update()
         {

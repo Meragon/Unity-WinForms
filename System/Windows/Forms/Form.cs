@@ -183,7 +183,7 @@ namespace System.Windows.Forms
                         Application.Controls.Add(Controls[i]);
             }
         }
-        public DialogResult ShowDialog()
+        public virtual DialogResult ShowDialog()
         {
             return Forms.DialogResult.Cancel;
         }
