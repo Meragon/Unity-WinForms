@@ -40,7 +40,7 @@ namespace System.Drawing
         }
         public Color GetPixel(int x, int y)
         {
-            return Color.FromUColor(uTexture.GetPixel(x, y));
+            return Color.FromUColor(uTexture.GetPixel(x, uTexture.height - y));
         }
         public void SetPixel(int x, int y, Color color)
         {
