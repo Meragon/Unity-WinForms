@@ -23,6 +23,11 @@ namespace System.Drawing
             Color = color;
         }
 
+        public override object Clone()
+        {
+            SolidBrush brush = new SolidBrush(this.Color);
+            return brush;
+        }
         public override bool Equals(object obj)
         {
             return base.Equals(obj);

@@ -6,7 +6,7 @@ using System.Drawing.Drawing2D;
 
 namespace System.Drawing
 {
-    public sealed class Pen
+    public sealed class Pen : IDisposable, ICloneable
     {
         public Color Color { get; set; }
         public DashStyle DashStyle { get; set; }
@@ -21,6 +21,18 @@ namespace System.Drawing
         {
             Color = color;
             Width = width;
+        }
+
+        public object Clone()
+        {
+            Pen pen = new Pen(this.Color);
+            pen.DashStyle = this.DashStyle;
+            pen.Width = this.Width;
+            return pen;
+        }
+        public void Dispose()
+        {
+            
         }
     }
 }

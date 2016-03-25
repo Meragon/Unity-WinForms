@@ -3,6 +3,7 @@
     [Serializable]
     public struct Color
     {
+        private bool _isEmpty;
         private byte _a, _r, _g, _b;
 
         public byte A { get { return _a; } }
@@ -42,6 +43,11 @@
         {
             return ColorF.FromArgb(self.A, self.R, self.G, self.B);
         }
+
+        // TODO: as null.
+        public static readonly Color Empty = new Color() { _a = 0, _r = 0, _g = 0, _b = 0, _isEmpty = true  };
+
+        public bool IsEmpty { get { return _isEmpty; } }
 
         public static Color AliceBlue { get { return Color.FromArgb(0xF0, 0xF8, 0xFF); } }
         public static Color AntiqueWhie { get { return Color.FromArgb(0xFA, 0xEB, 0xD7); } }
@@ -191,12 +197,12 @@
         }
         public static Color FromArgb(int r, int g, int b)
         {
-            return new Color() { _a = 255, _r = (byte)r, _g = (byte)g, _b = (byte)b };
+            return FromArgb(255, r, g, b);
         }
         public static Color FromArgb(int a, int r, int g, int b)
         {
             if (a < 0) a = 0;
-            return new Color() { _a = (byte)a, _r = (byte)r, _g = (byte)g, _b = (byte)b };
+            return new Color() { _a = (byte)a, _r = (byte)r, _g = (byte)g, _b = (byte)b, _isEmpty = false };
         }
         public static Color FromUColor(UnityEngine.Color color)
         {

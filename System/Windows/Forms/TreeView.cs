@@ -147,7 +147,7 @@ namespace System.Windows.Forms
             if (e.Node.ImageIndex > -1)
             {
                 var image = ImageList.Images[e.Node.ImageIndex];
-                if (image != null)
+                if (image != null && image.uTexture != null)
                 {
                     e.Graphics.DrawImage(image, e.Node.Bounds.X, e.Node.Bounds.Y + e.Node.Bounds.Height / 2 - image.Height / 2 - (int)_scrollIndex, image.Width, image.Height);
                     hasImage = true;

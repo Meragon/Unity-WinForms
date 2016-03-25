@@ -5,10 +5,9 @@ using System.Text;
 
 namespace System.Windows.Forms
 {
-    public enum BorderStyle
+    [Obsolete]
+    public class RadioButton : Button
     {
-        None = 0,
-        FixedSingle = 1,
-        Fixed3D = 2,
+        public bool Checked { get; set; }
     }
 }

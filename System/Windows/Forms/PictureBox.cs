@@ -25,7 +25,7 @@ namespace System.Windows.Forms
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
-            if (Image != null)
+            if (Image != null && Image.uTexture != null)
             {
                 Rectangle rect = new Rectangle();
                 var iLayout = ImageLayout;

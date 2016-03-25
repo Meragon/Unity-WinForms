@@ -240,7 +240,7 @@ namespace System.Windows.Forms
         {
             base.OnResize(delta);
 
-            _visibleItems = Height / ItemHeight + 1;
+            _visibleItems = Height / ItemHeight;
         }
         protected override void OnLatePaint(PaintEventArgs e)
         {
@@ -295,7 +295,7 @@ namespace System.Windows.Forms
 
             private void _UpdateOwnerHeight()
             {
-                _owner._visibleItems = _owner.Height / _owner.ItemHeight + 1;
+                _owner._visibleItems = _owner.Height / _owner.ItemHeight;
                 if (_owner.FixedHeight) return;
                 int cnt = _owner._visibleItems;
                 if (_items.Count < cnt)

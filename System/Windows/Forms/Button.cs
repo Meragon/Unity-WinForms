@@ -70,7 +70,7 @@ namespace System.Windows.Forms
 
             SolidBrush textBrush = new SolidBrush(ForeColor);
             if (!Enabled) textBrush.Color = ForeColor + Color.FromArgb(0, 128, 128, 128);
-            if (Image != null)
+            if (Image != null && Image.uTexture != null)
             {
                 switch (BackgroundImageLayout)
                 {

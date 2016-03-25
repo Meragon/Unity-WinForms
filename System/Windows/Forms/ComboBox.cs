@@ -18,6 +18,7 @@ namespace System.Windows.Forms
         private bool _hovered;
         private ListBox _listBox;
         private bool _listBoxOpened;
+        private int _maxDropDownItems = 8;
         private int _selectedIndex = -1;
         private bool _shouldFocus;
 
@@ -29,6 +30,11 @@ namespace System.Windows.Forms
         public ComboBoxStyle DropDownStyle { get; set; }
         public ComboBox.ObjectCollection Items { get { return _items; } }
         public Color HoverColor { get; set; }
+        public int MaxDropDownItems
+        {
+            get { return _maxDropDownItems; }
+            set { if (value > 1 && value <= 100) _maxDropDownItems = value; }
+        }
         public override int SelectedIndex
         {
             get { return _selectedIndex; }
@@ -275,7 +281,7 @@ namespace System.Windows.Forms
                 _listBox.BringToFront();
                 _listBox.Context = true;
                 _listBox.Width = Width;
-                _listBox.Height = _listBox.ItemHeight * (Items.Count > 8 ? 8 : Items.Count);
+                _listBox.Height = _listBox.ItemHeight * (Items.Count > MaxDropDownItems ? MaxDropDownItems : Items.Count);
                 if (_listBox.Height < _listBox.ItemHeight) _listBox.Height = _listBox.ItemHeight;
                 foreach (var item in Items)
                 {

@@ -15,6 +15,7 @@ namespace System.Windows.Forms
         public Color BorderColor { get; set; }
         public Color BorderHoverColor { get; set; }
         public bool Multiline { get; set; }
+        public bool ReadOnly { get; set; }
         public override string Text
         {
             get { return _text; }
@@ -64,7 +65,7 @@ namespace System.Windows.Forms
 
             g.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
 
-            if (Enabled)
+            if (Enabled && ReadOnly == false)
             {
                 if (Focused)
                 {

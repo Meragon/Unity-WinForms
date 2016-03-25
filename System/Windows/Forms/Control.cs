@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 
 namespace System.Windows.Forms
@@ -38,7 +39,6 @@ namespace System.Windows.Forms
         public Color BackColor { get; set; }
         public virtual ImageLayout BackgroundImageLayout { get; set; }
         internal bool Batched { get; set; } // For testing.
-        //internal UnityEngine.Texture2D BatchedTexture { get; set; }
         public Rectangle ClientRectangle { get { return new Rectangle(0, 0, Width, Height); } }
         internal virtual bool Context { get; set; } // Close on click control. TODO: make it obsolete, find other way.
         public Control.ControlCollection Controls { get { return _controls; } set { _controls = value; } }
@@ -59,6 +59,11 @@ namespace System.Windows.Forms
         }
         public bool Hovered { get { return _hovered; } }
         public bool IsDisposed { get { return _isDisposed; } }
+        public int Left
+        {
+            get { return this.Location.X; }
+            set { Location = new Point(value, Location.Y); }
+        }
         public Point Location
         {
             get { return _location; }
@@ -95,6 +100,11 @@ namespace System.Windows.Forms
         internal DrawHandler ShadowHandler { get; set; }
         public int TabIndex { get; set; }
         public virtual string Text { get; set; }
+        public int Top
+        {
+            get { return this.Location.Y; }
+            set { Location = new Point(Location.X, value); }
+        }
         public bool TopMost
         {
             get { return _topMost; }
@@ -158,7 +168,7 @@ namespace System.Windows.Forms
                     }
                     _height = Size.Height;
                     //if (an_right)
-                        //OnResize(delta);
+                    //OnResize(delta);
                 }
                 if (an_top)
                 {
@@ -170,7 +180,7 @@ namespace System.Windows.Forms
                     }
                     _width = Size.Width;
                     //if (an_bottom)
-                        //OnResize(delta);
+                    //OnResize(delta);
                 }
 
                 if ((an_left && an_right) || (an_top && an_bottom))
@@ -193,6 +203,8 @@ namespace System.Windows.Forms
             var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
             Source = stackTrace;
 #endif
+
+            OnHandleCreated(null);
         }
 
         public void BringToFront()
@@ -208,7 +220,8 @@ namespace System.Windows.Forms
             else
                 Application.BringToFrontControls.Add(this);
         }
-        public override void Dispose()
+        protected virtual Padding DefaultPadding { get { return Padding.Empty; } }
+        public virtual new void Dispose()
         {
             if (_isDisposed) return;
 
@@ -216,7 +229,7 @@ namespace System.Windows.Forms
             OnDisposing(this, new EventArgs());
 
             if (Controls != null)
-                for (; Controls.Count > 0; )
+                for (; Controls.Count > 0;)
                 {
                     Controls[0].Dispose();
                 }
@@ -261,6 +274,10 @@ namespace System.Windows.Forms
             _lastFocused = new List<Control>();
             BringToFront();
         }
+        public void Invalidate()
+        {
+
+        }
         public void Invalidate(Rectangle rc)
         {
             // Dunno.
@@ -299,6 +316,14 @@ namespace System.Windows.Forms
             // dunno.
         }
 
+        protected virtual void OnClick(EventArgs e)
+        {
+
+        }
+        protected virtual void OnDoubleClick(EventArgs e)
+        {
+
+        }
         protected virtual void OnDragDrop(DragEventArgs drgevent)
         {
 
@@ -308,6 +333,10 @@ namespace System.Windows.Forms
 
         }
         protected virtual void OnDragLeave(EventArgs e)
+        {
+
+        }
+        protected virtual void OnHandleCreated(EventArgs e)
         {
 
         }
@@ -376,6 +405,10 @@ namespace System.Windows.Forms
 
         }
         protected virtual void OnPaint(PaintEventArgs e)
+        {
+
+        }
+        protected virtual void OnPaintBackground(PaintEventArgs pevent)
         {
 
         }
@@ -579,10 +612,12 @@ namespace System.Windows.Forms
         internal void RaiseOnMouseClick(MouseEventArgs e)
         {
             OnMouseClick(e);
+            OnClick(e);
         }
         internal void RaiseOnMouseDoubleClick(MouseEventArgs e)
         {
             OnMouseDoubleClick(e);
+            OnDoubleClick(e);
         }
         internal void RaiseOnMouseDown(MouseEventArgs e)
         {
@@ -650,6 +685,7 @@ namespace System.Windows.Forms
                 e.Graphics.Group = new Drawing.Rectangle(0, 0, Width, Height);
                 e.Graphics.GroupBegin(this);
             }
+            OnPaintBackground(e);
             OnPaint(e);
             if (Controls != null)
                 for (int i = 0; i < Controls.Count; i++)

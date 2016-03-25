@@ -247,6 +247,8 @@ namespace System.Windows.Forms
         public int Right { get { return _right; } set { _right = value; } }
         public int Top { get { return _top; } set { _top = value; } }
 
+        public static readonly Padding Empty = new Padding(0);
+
         public Padding(int all)
         {
             _left = _bottom = _right = _top = 0;

@@ -5,7 +5,12 @@ using System.Text;
 
 namespace System.Drawing
 {
-    public abstract class Brush
+    public abstract class Brush : ICloneable, IDisposable
     {
+        public abstract object Clone();
+        public void Dispose()
+        {
+            
+        }
     }
 }

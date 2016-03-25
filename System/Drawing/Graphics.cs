@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace System.Drawing
 {
-    public sealed class Graphics
+    public sealed class Graphics : IDeviceContext, IDisposable
     {
         private bool _group { get { return _groupControls.Count > 0; } }
         private Control _groupControlLast { get { return _groupControls[_groupControls.Count - 1]; } }
@@ -87,6 +87,11 @@ namespace System.Drawing
                 GUI.skin.label.fontStyle = UnityEngine.FontStyle.Normal;
             }
             return guiSkinFontSizeBuffer;
+        }
+
+        public void Dispose()
+        {
+
         }
 
         public void Clear(System.Drawing.Color color)
@@ -309,6 +314,9 @@ namespace System.Drawing
         }
         public void DrawPolygon(Pen pen, Point[] points)
         {
+            if (DefaultMaterial != null)
+                DefaultMaterial.SetPass(0);
+
             for (int i = 0; i < points.Length; i++)
             {
                 if (i + 1 >= points.Length) break;
@@ -721,7 +729,7 @@ namespace System.Drawing
         }
         public void DrawTexture(Texture texture, float x, float y, float width, float height, Color color, float angle, PointF pivot)
         {
-            if (Control == null) return;
+            if (Control == null || texture == null) return;
 
             GUI.color = color.ToUColor();
             if (!_group)
@@ -793,9 +801,13 @@ namespace System.Drawing
         {
             if (points.Length < 3) return;
 
+            if (DefaultMaterial != null)
+                DefaultMaterial.SetPass(0);
+
             for (int i = 1; i + 1 < points.Length; i += 1)
             {
                 GL.Begin(GL.TRIANGLES);
+                
 
                 GL.Color(brush.Color.ToUColor());
                 GL.Vertex3(points[0].X, points[1].Y, 0);

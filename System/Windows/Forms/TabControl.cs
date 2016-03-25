@@ -12,12 +12,13 @@ namespace System.Windows.Forms
         public const int DefaultHeaderHeight = 24;
 
         public int HeaderHeight { get; set; }
+        public int SelectedIndex { get { return TabPages.CurrentIndex; } }
         public TabPageCollection TabPages { get; set; }
 
         public TabControl()
         {
             HeaderHeight = DefaultHeaderHeight;
-            TabPages = new TabPageCollection();
+            TabPages = new TabPageCollection(this);
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -73,19 +74,19 @@ namespace System.Windows.Forms
                 }
         }
 
-        private void HideTabPage(TabControl.TabPageCollection.TabPage page)
+        private void HideTabPage(TabPage page)
         {
             if (page.Objects != null)
                 foreach (var go in page.Objects)
                     go.Visible = false;
         }
-        private void ShowTabPage(TabControl.TabPageCollection.TabPage page)
+        private void ShowTabPage(TabPage page)
         {
             if (page.Objects != null)
                 foreach (var go in page.Objects)
                     go.Visible = true;
         }
-        private Button CreateHeaderFromPage(TabControl.TabPageCollection.TabPage page)
+        private Button CreateHeaderFromPage(TabPage page)
         {
             Button btn = new Button();
             btn.Name = "pageButton" + page.Index.ToString();
@@ -123,17 +124,19 @@ namespace System.Windows.Forms
             }
         }
 
-        public class TabPageCollection : IEnumerator<TabPageCollection.TabPage>, IEnumerable
+        public class TabPageCollection : IEnumerator<TabPage>, IEnumerable
         {
             private List<TabPage> _tabs;
+            private TabControl _owner;
 
             private int _currentIndex = -1;
             public int CurrentIndex { get { return _currentIndex; } }
             public int HeaderLeftOffset { get; set; }
 
-            public TabPageCollection()
+            public TabPageCollection(TabControl owner)
             {
                 _tabs = new List<TabPage>();
+                _owner = owner;
             }
 
             public TabPage this[int index]
@@ -167,74 +170,7 @@ namespace System.Windows.Forms
                     return;
                 _currentIndex = index;
             }
-
-            [Serializable]
-            public class TabPage
-            {
-                private static int _IdPool = 0;
-                private int _id;
-                public int Id { get { return _id; } }
-                private TabPageCollection _owner;
-
-                public Button HeaderButton { get; set; }
-                public int Index { get { return _owner.FindIndex(x => x.Id == Id); } }
-                public Control[] Objects { get; set; }
-                public int Offset
-                {
-                    get
-                    {
-                        int offset = _owner.HeaderLeftOffset;
-                        foreach (TabPage page in _owner)
-                        {
-                            if (page.Id != Id)
-                                offset += page.Width;
-                            else
-                                break;
-                        }
-                        return offset;
-                    }
-                }
-                public string Text { get; set; }
-                public int Width { get; set; }
-
-                public TabPage(TabPageCollection owner, string text)
-                {
-                    _IdPool++;
-                    _id = _IdPool;
-                    _owner = owner;
-                    Text = text;
-                    Width = _CalcWidth();
-                }
-                public TabPage(TabPageCollection owner, string text, Control[] objects)
-                {
-                    _IdPool++;
-                    _id = _IdPool;
-                    _owner = owner;
-                    Text = text;
-                    Objects = objects;
-                    Width = _CalcWidth();
-                }
-
-                private int _CalcWidth()
-                {
-                    int offset = 8;
-                    return Text.Length * 8 + offset * 2;
-                }
-
-                public void Focus()
-                {
-                    _owner.Focus(_owner.FindIndex(x => x.Id == Id));
-                }
-                internal void RaiseClick()
-                {
-                    OnClick();
-                }
-
-                public delegate void OnClickDelegate();
-                public event OnClickDelegate OnClick = delegate { };
-            }
-
-            public TabPageCollection.TabPage Current
+            public TabPage Current
             {
                 get { return _tabs.GetEnumerator().Current; }
             }
@@ -258,6 +194,71 @@ namespace System.Windows.Forms
             {
                 return _tabs.GetEnumerator();
             }
+        }
+
+        public class TabPage
+        {
+            private static int _IdPool = 0;
+            private int _id;
+            public int Id { get { return _id; } }
+            private TabControl.TabPageCollection _owner;
+
+            public Button HeaderButton { get; set; }
+            public int Index { get { return _owner.FindIndex(x => x.Id == Id); } }
+            public Control[] Objects { get; set; }
+            public int Offset
+            {
+                get
+                {
+                    int offset = _owner.HeaderLeftOffset;
+                    foreach (TabPage page in _owner)
+                    {
+                        if (page.Id != Id)
+                            offset += page.Width;
+                        else
+                            break;
+                    }
+                    return offset;
+                }
+            }
+            public string Text { get; set; }
+            public int Width { get; set; }
+
+            public TabPage(TabControl.TabPageCollection owner, string text)
+            {
+                _IdPool++;
+                _id = _IdPool;
+                _owner = owner;
+                Text = text;
+                Width = _CalcWidth();
+            }
+            public TabPage(TabControl.TabPageCollection owner, string text, Control[] objects)
+            {
+                _IdPool++;
+                _id = _IdPool;
+                _owner = owner;
+                Text = text;
+                Objects = objects;
+                Width = _CalcWidth();
+            }
+
+            private int _CalcWidth()
+            {
+                int offset = 8;
+                return Text.Length * 8 + offset * 2;
+            }
+
+            public void Focus()
+            {
+                _owner.Focus(_owner.FindIndex(x => x.Id == Id));
+            }
+            internal void RaiseClick()
+            {
+                OnClick();
+            }
+
+            public delegate void OnClickDelegate();
+            public event OnClickDelegate OnClick = delegate { };
         }
     }
 }
