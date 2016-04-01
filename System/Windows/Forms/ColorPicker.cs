@@ -432,7 +432,7 @@ namespace System.Windows.Forms
                 _image = new UnityEngine.Texture2D(w, h);
                 _UpdateImage();
 
-                Application.UpClick += Application_UpClick;
+                Owner.UpClick += Application_UpClick;
             }
 
             void Application_UpClick(object sender, MouseEventArgs e)
@@ -470,7 +470,7 @@ namespace System.Windows.Forms
 
             public override void Dispose()
             {
-                Application.UpClick -= Application_UpClick;
+                Owner.UpClick -= Application_UpClick;
                 base.Dispose();
             }
             protected override void OnMouseDown(MouseEventArgs e)
@@ -540,7 +540,7 @@ namespace System.Windows.Forms
                 _image = new UnityEngine.Texture2D(w, h);
                 _UpdateImage();
 
-                Application.UpClick += Application_UpClick;
+                Owner.UpClick += Application_UpClick;
             }
 
             void Application_UpClick(object sender, MouseEventArgs e)
@@ -570,7 +570,7 @@ namespace System.Windows.Forms
 
             public override void Dispose()
             {
-                Application.UpClick -= Application_UpClick;
+                Owner.UpClick -= Application_UpClick;
                 base.Dispose();
             }
             protected override void OnMouseDown(MouseEventArgs e)
@@ -644,7 +644,7 @@ namespace System.Windows.Forms
                 }
                 _image.Apply();
 
-                Application.UpClick += Application_UpClick;
+                Owner.UpClick += Application_UpClick;
             }
 
             void Application_UpClick(object sender, MouseEventArgs e)
@@ -654,7 +654,7 @@ namespace System.Windows.Forms
 
             public override void Dispose()
             {
-                Application.UpClick -= Application_UpClick;
+                Owner.UpClick -= Application_UpClick;
                 base.Dispose();
             }
             protected override void OnMouseDown(MouseEventArgs e)

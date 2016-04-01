@@ -25,7 +25,7 @@ This is WinForms wrapper (including System.Drawing). Here you can create base co
 
 ### Usage
 
-1. Attach Application script to GameObject;
+1. Attach ApplicationBehaviour script to GameObject;
 2. Add Arial font to resources;
 3. Add other fonts and icons; 
 4. Use keyword 'new' to create new Controls (don't need to use Application.Run); 

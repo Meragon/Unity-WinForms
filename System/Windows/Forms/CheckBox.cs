@@ -44,7 +44,7 @@ namespace System.Windows.Forms
             g.FillRectangle(new SolidBrush(_hovered ? Color.FromArgb(243, 249, 255) : Color.White), Padding.Left, Padding.Top + Height / 2 - 6, 12, 12);
             g.DrawRectangle(new Pen(_hovered ? Color.FromArgb(51, 153, 255) : Color.FromArgb(172, 172, 172)), Padding.Left, Padding.Top + Height / 2 - 6, 12, 12);
             if (Checked)
-                g.DrawTexture(Application.Resources.Reserved.Checked, Padding.Left, Padding.Top + Height / 2 - 6, 12, 12);
+                g.DrawTexture(ApplicationBehaviour.Resources.Reserved.Checked, Padding.Left, Padding.Top + Height / 2 - 6, 12, 12);
 
             g.DrawString(Text, Font, new SolidBrush(ForeColor), Padding.Left + 18, Padding.Top + 0, Width - 20, Height, TextAlign);
         }

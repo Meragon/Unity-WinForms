@@ -14,7 +14,7 @@ namespace System.Windows.Forms
         [NonSerialized]
         private Control.ControlCollection _controls;
         private bool _disposing;
-        protected bool _focused = false;
+        private bool _focused = false;
         protected static List<Control> _lastFocused = new List<Control>();
         private Point _location = new Point();
         private int _height;
@@ -77,6 +77,7 @@ namespace System.Windows.Forms
         public virtual Size MinimumSize { get; set; }
         public string Name { get; set; }
         internal Point Offset { get; set; }
+        public Application Owner { get; internal set; }
         public Padding Padding { get; set; }
         public Control Parent { get { return _parent; } set { _parent = value; } }
         public Size Size
@@ -187,10 +188,13 @@ namespace System.Windows.Forms
                     OnResize(delta);
             }
         }
-
+        
         public Control()
         {
-            Application.Controls.Add(this);
+            if (Parent != null && Parent.Owner != null)
+                Parent.Owner.Run(this);
+            else if (DefaultController != null)
+                DefaultController.Run(this);
 
             Controls = new ControlCollection(this);
             Enabled = true;
@@ -203,8 +207,6 @@ namespace System.Windows.Forms
             var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
             Source = stackTrace;
 #endif
-
-            OnHandleCreated(null);
         }
 
         public void BringToFront()
@@ -218,8 +220,9 @@ namespace System.Windows.Forms
                 Parent.BringToFront();
             }
             else
-                Application.BringToFrontControls.Add(this);
+                Owner.BringToFrontControls.Add(this);
         }
+        public static Application DefaultController { get; set; }
         protected virtual Padding DefaultPadding { get { return Padding.Empty; } }
         public virtual new void Dispose()
         {
@@ -242,8 +245,8 @@ namespace System.Windows.Forms
                     Parent.Controls.RemoveAt(self);
             }
 
-            if (!Application.ToCloseControls.Contains(this))
-                Application.ToCloseControls.Add(this);
+            if (!Owner.ToCloseControls.Contains(this))
+                Owner.ToCloseControls.Add(this);
             Disposed(this, null);
             _isDisposed = true;
         }
@@ -336,10 +339,6 @@ namespace System.Windows.Forms
         {
 
         }
-        protected virtual void OnHandleCreated(EventArgs e)
-        {
-
-        }
         protected virtual void OnLatePaint(PaintEventArgs e)
         {
 
@@ -395,10 +394,14 @@ namespace System.Windows.Forms
         protected virtual void OnMouseUp(MouseEventArgs e)
         {
             if (Enabled && this.ClientRectangle.Contains(e.Location))
+            {
+                RaiseOnMouseClick(e);
                 Click(this, new EventArgs());
+            }
             MouseUp(this, e);
-            if (Application.Instance.ShowControlProperties && Application.ShowCallback != null)
-                Application.ShowCallback.Invoke(this);
+            // TODO: 30.03.16
+            /*if (Owner != null && Application.ShowControlProperties && Application.ShowCallback != null)
+                Application.ShowCallback.Invoke(this);*/
         }
         protected virtual void OnMouseWheel(MouseEventArgs e)
         {
@@ -484,16 +487,16 @@ namespace System.Windows.Forms
                 if (this.Font != null)
                     style = this.Font.Style;
                 List<string> fonts = new List<string>();
-                for (int i = 0; i < System.Windows.Forms.Application.Resources.Fonts.Count; i++)
+                for (int i = 0; i < System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Count; i++)
                 {
-                    fonts.Add(System.Windows.Forms.Application.Resources.Fonts[i].fontNames[0]);
-                    if (this.Font != null && this.Font.Name.ToLower() == System.Windows.Forms.Application.Resources.Fonts[i].fontNames[0].ToLower())
+                    fonts.Add(System.Windows.Forms.ApplicationBehaviour.Resources.Fonts[i].fontNames[0]);
+                    if (this.Font != null && this.Font.Name.ToLower() == System.Windows.Forms.ApplicationBehaviour.Resources.Fonts[i].fontNames[0].ToLower())
                         selectedFont = i;
                 }
 
                 var editorFont = Editor.Popup("      Font", selectedFont, fonts.ToArray());
                 if (editorFont.Changed)
-                    this.Font = new System.Drawing.Font(System.Windows.Forms.Application.Resources.Fonts[editorFont].fontNames[0], size);
+                    this.Font = new System.Drawing.Font(System.Windows.Forms.ApplicationBehaviour.Resources.Fonts[editorFont].fontNames[0], size);
 
                 var editorFontSize = Editor.Slider("      Size", size, 8, 128);
                 if (editorFontSize.Changed)
@@ -723,7 +726,7 @@ namespace System.Windows.Forms
         }
 
         public event EventHandler Click = delegate { };
-        public event EventHandler Disposed = delegate { };
+        public new event EventHandler Disposed = delegate { };
         public event KeyEventHandler KeyDown = delegate { };
         public event KeyEventHandler KeyUp = delegate { };
         public event MouseEventHandler MouseDown = delegate { };
@@ -739,7 +742,7 @@ namespace System.Windows.Forms
         public delegate void DrawHandler(PaintEventArgs e);
         public delegate void ResizeHandler(Point delta);
 
-        public class ControlCollection : IEnumerator<Control>, IEnumerable<Control>
+        public class ControlCollection : IEnumerator<Control>, IEnumerable<Control>, IList
         {
             private List<Control> _items = new List<Control>();
             private Control _owner;
@@ -766,7 +769,6 @@ namespace System.Windows.Forms
             {
                 return _items.GetEnumerator().MoveNext();
             }
-
             public virtual void Add(Control value)
             {
                 _items.Add(value);
@@ -813,6 +815,84 @@ namespace System.Windows.Forms
             public void Reset()
             {
 
+            }
+
+            bool IList.IsFixedSize
+            {
+                get
+                {
+                    return false;
+                }
+            }
+            bool IList.IsReadOnly
+            {
+                get
+                {
+                    return false;
+                }
+            }
+            public bool IsSynchronized
+            {
+                get
+                {
+                    return false;
+                }
+            }
+            public object SyncRoot
+            {
+                get
+                {
+                    return null;
+                }
+            }
+            object IList.this[int index]
+            {
+                get
+                {
+                    return _items[index];
+                }
+                set
+                {
+                    if (value is Control)
+                        _items[index] = (Control)value;
+                }
+            }
+
+            int IList.Add(object value)
+            {
+                if (value is Control)
+                {
+                    Add(value as Control);
+                    return _items.Count - 1;
+                }
+                return -1;
+            }
+            bool IList.Contains(object value)
+            {
+                if (value is Control)
+                    return _items.Contains(value as Control);
+                return false;
+            }
+            int IList.IndexOf(object value)
+            {
+                if (value is Control)
+                    return _items.IndexOf(value as Control);
+                return -1;
+            }
+            void IList.Insert(int index, object value)
+            {
+                if (value is Control)
+                    _items.Insert(index, value as Control);
+            }
+            void IList.Remove(object value)
+            {
+                if (value is Control)
+                    _items.Remove(value as Control);
+            }
+            public void CopyTo(Array array, int index)
+            {
+                if (array is Control[])
+                    _items.CopyTo(array as Control[], index);
             }
         }
     }

@@ -51,19 +51,24 @@ namespace System.Drawing
             var P1 = GetBezierPoint(t, controlPoints, index + 1, count - 1);
             return new PointF((1 - t) * P0.X + t * P1.X, (1 - t) * P0.Y + t * P1.Y);
         }
-        private static int GUI_SetFont(Font font)
+        private static int GUI_SetLabelFont(Font font)
         {
             int guiSkinFontSizeBuffer = GUI.skin.label.fontSize;
             if (font != null)
             {
-                var _font = System.Windows.Forms.Application.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
-                if (_font != null)
-                    GUI.skin.label.font = _font;
-                else
+                if (System.Windows.Forms.ApplicationBehaviour.Resources != null)
                 {
-                    GUI.skin.label.font = null;
-                    UnityEngine.Debug.LogWarning(font.Name);
+                    var _font = System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
+                    if (_font != null)
+                        GUI.skin.label.font = _font;
+                    else
+                    {
+                        GUI.skin.label.font = null;
+                        UnityEngine.Debug.LogWarning(font.Name);
+                    }
                 }
+                else
+                    GUI.skin.label.font = null;
                 GUI.skin.label.fontSize = (int)(font.Size);
                 bool styleBold = (font.Style & FontStyle.Bold) == FontStyle.Bold;
                 bool styleItalic = (font.Style & FontStyle.Italic) == FontStyle.Italic;
@@ -80,7 +85,7 @@ namespace System.Drawing
             }
             else
             {
-                var _font = System.Windows.Forms.Application.Resources.Fonts.Find(f => f.fontNames[0] == "Arial");
+                var _font = System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Find(f => f.fontNames[0] == "Arial");
                 if (_font != null)
                     GUI.skin.label.font = _font;
                 GUI.skin.label.fontSize = (int)(12);
@@ -145,7 +150,7 @@ namespace System.Drawing
                 float yDiff = y2 - y1;
                 var angle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
 
-                DrawTexture(System.Windows.Forms.Application.DefaultSpriteSmoothLine, x1, y1, (float)Math.Sqrt(xDiff * xDiff + yDiff * yDiff), pen.Width, pen.Color, (float)angle, new PointF());
+                DrawTexture(System.Windows.Forms.ApplicationBehaviour.DefaultSpriteSmoothLine, x1, y1, (float)Math.Sqrt(xDiff * xDiff + yDiff * yDiff), pen.Width, pen.Color, (float)angle, new PointF());
                 return;
             }
 
@@ -189,7 +194,7 @@ namespace System.Drawing
                 if (Control != null)
                     c_position = Control.PointToScreen(Point.Zero);
 
-                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), System.Windows.Forms.Application.DefaultSprite);
+                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
             }
             else
             {
@@ -202,7 +207,7 @@ namespace System.Drawing
                 switch (pen.DashStyle)
                 {
                     case Drawing2D.DashStyle.Solid:
-                        GUI.DrawTexture(new Rect(position.X, position.Y, width, height), System.Windows.Forms.Application.DefaultSprite);
+                        GUI.DrawTexture(new Rect(position.X, position.Y, width, height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                         break;
                     case Drawing2D.DashStyle.Dash:
                         float dash_step = pen.Width * 6;
@@ -212,7 +217,7 @@ namespace System.Drawing
                                 float dash_width = dash_step - 2;
                                 if (i + dash_width > width)
                                     dash_width = width - i;
-                                GUI.DrawTexture(new Rect(position.X + i, position.Y, dash_width, pen.Width), System.Windows.Forms.Application.DefaultSprite);
+                                GUI.DrawTexture(new Rect(position.X + i, position.Y, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                             }
 
                         if (x1 == x2)
@@ -221,7 +226,7 @@ namespace System.Drawing
                                 float dash_height = dash_step - 2;
                                 if (i + dash_height > height)
                                     dash_height = height - i;
-                                GUI.DrawTexture(new Rect(position.X + width - pen.Width, position.Y + i, pen.Width, dash_height), System.Windows.Forms.Application.DefaultSprite);
+                                GUI.DrawTexture(new Rect(position.X + width - pen.Width, position.Y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                             }
                         break;
                 }
@@ -236,6 +241,7 @@ namespace System.Drawing
         public string DrawPasswordField(string s, Font font, SolidBrush brush, float x, float y, float width, float height, HorizontalAlignment alignment)
         {
             if (Control == null) return s;
+            if (s == null) s = "";
 
             GUI.skin.textField.alignment = TextAnchor.UpperLeft;
             switch (alignment)
@@ -253,11 +259,14 @@ namespace System.Drawing
 
             if (font != null)
             {
-                var _font = System.Windows.Forms.Application.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
-                if (_font != null)
-                    GUI.skin.textField.font = _font;
-                else
-                    GUI.skin.textField.font = null;
+                if (System.Windows.Forms.ApplicationBehaviour.Resources != null)
+                {
+                    var _font = System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
+                    if (_font != null)
+                        GUI.skin.textField.font = _font;
+                    else
+                        GUI.skin.textField.font = null;
+                }
                 GUI.skin.textField.fontSize = (int)font.Size;
                 bool styleBold = (font.Style & FontStyle.Bold) == FontStyle.Bold;
                 bool styleItalic = (font.Style & FontStyle.Italic) == FontStyle.Italic;
@@ -274,7 +283,7 @@ namespace System.Drawing
             }
             else
             {
-                var _font = System.Windows.Forms.Application.Resources.Fonts.Find(f => f.fontNames[0] == "Arial");
+                var _font = System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Find(f => f.fontNames[0] == "Arial");
                 if (_font != null)
                     GUI.skin.textField.font = _font;
                 GUI.skin.textField.fontSize = 12;
@@ -310,7 +319,7 @@ namespace System.Drawing
         }
         public void DrawPoint(Color color, float x, float y)
         {
-            DrawTexture(System.Windows.Forms.Application.DefaultSprite, x, y, 1, 1);
+            DrawTexture(System.Windows.Forms.ApplicationBehaviour.DefaultSprite, x, y, 1, 1);
         }
         public void DrawPolygon(Pen pen, Point[] points)
         {
@@ -357,15 +366,15 @@ namespace System.Drawing
                 if (Control != null)
                     c_position = Control.PointToScreen(Point.Zero);
                 // Top.
-                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, pen.Width), System.Windows.Forms.Application.DefaultSprite);
+                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                 // Right.
-                GUI.DrawTexture(new Rect(c_position.X + x + width - pen.Width, c_position.Y + y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.Application.DefaultSprite);
+                GUI.DrawTexture(new Rect(c_position.X + x + width - pen.Width, c_position.Y + y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                 // Bottom.
                 if (height > 1)
-                    GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y + height - pen.Width, width, pen.Width), System.Windows.Forms.Application.DefaultSprite);
+                    GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y + height - pen.Width, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                 // Left.
                 if (width > 1)
-                    GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.Application.DefaultSprite);
+                    GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
             }
             else
             {
@@ -423,12 +432,12 @@ namespace System.Drawing
                         tex.Apply();
                         Control.BatchedTexture = tex;*/
 
-                        GUI.DrawTexture(new Rect(position.X, position.Y, width, pen.Width), System.Windows.Forms.Application.DefaultSprite);
-                        GUI.DrawTexture(new Rect(position.X + width - pen.Width, position.Y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.Application.DefaultSprite);
+                        GUI.DrawTexture(new Rect(position.X, position.Y, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                        GUI.DrawTexture(new Rect(position.X + width - pen.Width, position.Y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                         if (height > 1)
-                            GUI.DrawTexture(new Rect(position.X, position.Y + height - pen.Width, width, pen.Width), System.Windows.Forms.Application.DefaultSprite);
+                            GUI.DrawTexture(new Rect(position.X, position.Y + height - pen.Width, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                         if (width > 1)
-                            GUI.DrawTexture(new Rect(position.X, position.Y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.Application.DefaultSprite);
+                            GUI.DrawTexture(new Rect(position.X, position.Y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
 
                         break;
                     case Drawing2D.DashStyle.Dash:
@@ -438,16 +447,16 @@ namespace System.Drawing
                             float dash_width = dash_step - 2;
                             if (i + dash_width > width)
                                 dash_width = width - i;
-                            GUI.DrawTexture(new Rect(position.X + i, position.Y, dash_width, pen.Width), System.Windows.Forms.Application.DefaultSprite); // Top.
-                            GUI.DrawTexture(new Rect(position.X + i, position.Y + height - pen.Width, dash_width, pen.Width), System.Windows.Forms.Application.DefaultSprite); // Bottom.
+                            GUI.DrawTexture(new Rect(position.X + i, position.Y, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Top.
+                            GUI.DrawTexture(new Rect(position.X + i, position.Y + height - pen.Width, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Bottom.
                         }
                         for (float i = 0; i < height; i += dash_step)
                         {
                             float dash_height = dash_step - 2;
                             if (i + dash_height > height)
                                 dash_height = height - i;
-                            GUI.DrawTexture(new Rect(position.X + width - pen.Width, position.Y + i, pen.Width, dash_height), System.Windows.Forms.Application.DefaultSprite); // Right.
-                            GUI.DrawTexture(new Rect(position.X, position.Y + i, pen.Width, dash_height), System.Windows.Forms.Application.DefaultSprite); // Left.
+                            GUI.DrawTexture(new Rect(position.X + width - pen.Width, position.Y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Right.
+                            GUI.DrawTexture(new Rect(position.X, position.Y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Left.
                         }
                         break;
                 }
@@ -516,7 +525,7 @@ namespace System.Drawing
                     break;
             }
 
-            int guiSkinFontSizeBuffer = GUI_SetFont(font);
+            int guiSkinFontSizeBuffer = GUI_SetLabelFont(font);
             GUI.color = color.ToUColor();
 
             if (!_group)
@@ -596,6 +605,7 @@ namespace System.Drawing
         public string DrawTextArea(string s, Font font, SolidBrush brush, float x, float y, float width, float height)
         {
             if (Control == null) return s;
+            if (s == null) s = "";
 
             GUI.skin.textArea.alignment = TextAnchor.UpperLeft;
 
@@ -603,7 +613,7 @@ namespace System.Drawing
             //GUI.skin.textArea.hover.textColor = brush.Color.ToUColor();
             if (font != null)
             {
-                var _font = System.Windows.Forms.Application.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
+                var _font = System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
                 if (_font != null)
                     GUI.skin.textArea.font = _font;
                 else
@@ -624,7 +634,7 @@ namespace System.Drawing
             }
             else
             {
-                var _font = System.Windows.Forms.Application.Resources.Fonts.Find(f => f.fontNames[0] == "Arial");
+                var _font = System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Find(f => f.fontNames[0] == "Arial");
                 if (_font != null)
                     GUI.skin.textArea.font = _font;
                 GUI.skin.textArea.fontSize = 12;
@@ -651,6 +661,7 @@ namespace System.Drawing
         public string DrawTextField(string s, Font font, SolidBrush brush, float x, float y, float width, float height, HorizontalAlignment alignment)
         {
             if (Control == null) return s;
+            if (s == null) s = "";
 
             GUI.skin.textField.alignment = TextAnchor.UpperLeft;
             switch (alignment)
@@ -668,7 +679,7 @@ namespace System.Drawing
 
             if (font != null)
             {
-                var _font = System.Windows.Forms.Application.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
+                var _font = System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
                 if (_font != null)
                     GUI.skin.textField.font = _font;
                 else
@@ -689,7 +700,7 @@ namespace System.Drawing
             }
             else
             {
-                var _font = System.Windows.Forms.Application.Resources.Fonts.Find(f => f.fontNames[0] == "Arial");
+                var _font = System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Find(f => f.fontNames[0] == "Arial");
                 if (_font != null)
                     GUI.skin.textField.font = _font;
                 GUI.skin.textField.fontSize = 12;
@@ -788,13 +799,13 @@ namespace System.Drawing
             if (!_group)
             {
                 var c_position = Control.PointToScreen(Point.Zero);
-                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), System.Windows.Forms.Application.Resources.Reserved.Circle);
+                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), System.Windows.Forms.ApplicationBehaviour.Resources.Reserved.Circle);
             }
             else
             {
                 var c_position = Control.PointToScreen(Point.Zero);
                 var g_position = _groupControlLast.PointToScreen(Point.Zero);
-                GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), System.Windows.Forms.Application.Resources.Reserved.Circle);
+                GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), System.Windows.Forms.ApplicationBehaviour.Resources.Reserved.Circle);
             }
         }
         public void FillPolygonConvex(SolidBrush brush, PointF[] points)
@@ -845,7 +856,7 @@ namespace System.Drawing
                 if (Control != null)
                     c_position = Control.PointToScreen(Point.Zero);
 
-                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), System.Windows.Forms.Application.DefaultSprite);
+                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
             }
             else
             {
@@ -854,7 +865,7 @@ namespace System.Drawing
                     c_position = Control.PointToScreen(Point.Zero);
                 var g_position = _groupControlLast.PointToScreen(Point.Zero);
 
-                GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), System.Windows.Forms.Application.DefaultSprite);
+                GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                 //UnityEngine.Graphics.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), System.Windows.Forms.Application.DefaultSprite, new Rect(), 0, 0, 0, 0, brush.Color.ToUColor(), DefaultMaterial);
             }
         }
@@ -866,7 +877,11 @@ namespace System.Drawing
         /// <returns></returns>
         public SizeF MeasureString(string text, Font font)
         {
-            int guiSkinFontSizeBuffer = GUI_SetFont(font);
+            return MeasureStringStatic(text, font);
+        }
+        public static SizeF MeasureStringStatic(string text, Font font)
+        {
+            int guiSkinFontSizeBuffer = GUI_SetLabelFont(font);
 
             var size = GUI.skin.label.CalcSize(new GUIContent(text));
 

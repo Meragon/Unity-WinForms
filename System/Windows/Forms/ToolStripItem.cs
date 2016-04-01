@@ -202,7 +202,7 @@ namespace System.Windows.Forms
         {
             _dropDownItems = new ToolStripItemCollection(Parent, null);
 
-            ArrowImage = Application.Resources.Reserved.DropDownRightArrow_Black;
+            ArrowImage = ApplicationBehaviour.Resources.Reserved.DropDownRightArrow_Black;
         }
 
         public UnityEngine.Texture2D ArrowImage { get; set; }
@@ -357,7 +357,7 @@ namespace System.Windows.Forms
 
                 e.Graphics.FillRectangle(new SolidBrush(HoverColor), e.ClipRectangle.X + 4, e.ClipRectangle.Y + 4, rectWH, rectWH);
                 e.Graphics.DrawRectangle(new Pen(HoverColor - Color.FromArgb(0, 64, 64, 64)), e.ClipRectangle.X + 4, e.ClipRectangle.Y + 4, rectWH, rectWH);
-                e.Graphics.DrawTexture(Application.Resources.Reserved.Checked, e.ClipRectangle.X + 6, e.ClipRectangle.Y + 6, checkedWH, checkedWH);
+                e.Graphics.DrawTexture(ApplicationBehaviour.Resources.Reserved.Checked, e.ClipRectangle.X + 6, e.ClipRectangle.Y + 6, checkedWH, checkedWH);
             }
 
             if (!String.IsNullOrEmpty(ShortcutKeys))

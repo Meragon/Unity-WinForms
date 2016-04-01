@@ -1,0 +1,83 @@
+﻿using UnityEngine;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Windows.Forms;
+
+namespace System.Windows.Forms
+{
+    public sealed class ApplicationBehaviour : MonoBehaviour
+    {
+        private static Texture2D _defaultSprite;
+
+        public static Texture2D DefaultSprite
+        {
+            get
+            {
+                if (_defaultSprite == null)
+                {
+                    _defaultSprite = new Texture2D(32, 32);
+                    for (int i = 0; i < _defaultSprite.height; i++)
+                        for (int k = 0; k < _defaultSprite.width; k++)
+                            _defaultSprite.SetPixel(k, i, Color.white);
+                    _defaultSprite.Apply();
+                }
+                return _defaultSprite;
+            }
+        }
+        internal static Texture2D DefaultSpriteSmoothLine { get; private set; }
+        public static AppResources Resources { get; private set; }
+
+        public GUISkin Skin;
+        public AppResources _Resources;
+        public bool ShowControlProperties;
+
+        private Application _controller;
+        private float _lastWidth;
+        private float _lastHeight;
+        private bool _paused;
+
+        private void Awake()
+        {
+            Resources = _Resources;
+
+            _lastWidth = UnityEngine.Screen.width;
+            _lastHeight = UnityEngine.Screen.height;
+
+            _controller = new Application();
+            Control.DefaultController = _controller;
+        }
+        private void Update()
+        {
+            if (_lastWidth != UnityEngine.Screen.width || _lastHeight != UnityEngine.Screen.height)
+            {
+                System.Drawing.Size deltaSize = new System.Drawing.Size(
+                    (int)(_lastWidth - UnityEngine.Screen.width),
+                    (int)(_lastHeight - UnityEngine.Screen.height));
+                for (int i = 0; i < _controller.Controls.Count; i++)
+                    if (_controller.Controls[i].Parent == null)
+                        _controller.Controls[i].AddjustSizeToScreen(deltaSize);
+            }
+            _lastWidth = UnityEngine.Screen.width;
+            _lastHeight = UnityEngine.Screen.height;
+            
+            _controller.Update();
+        }
+        private void OnApplicationFocus(bool focusStatus)
+        {
+            _paused = !focusStatus;
+        }
+        private void OnGUI()
+        {
+            if (_paused == false)
+            {
+                var mousePosition = new System.Drawing.PointF(Input.mousePosition.x, UnityEngine.Screen.height - Input.mousePosition.y);
+                _controller.ProccessMouse(mousePosition);
+                _controller.ProccessKeys();
+            }
+
+            GUI.skin = Skin;
+            _controller.Draw();
+        }
+    }
+}

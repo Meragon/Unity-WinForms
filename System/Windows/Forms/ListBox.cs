@@ -37,7 +37,7 @@ namespace System.Windows.Forms
             BorderColor = Color.DarkGray;
             ItemHeight = DefaultItemHeight;
 
-            Application.UpClick += Application_UpClick;
+            Owner.UpClick += Application_UpClick;
         }
 
         public Color BorderColor { get; set; }

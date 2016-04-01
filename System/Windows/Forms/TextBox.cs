@@ -76,7 +76,7 @@ namespace System.Windows.Forms
                     if (!Multiline)
                         Text = g.DrawTextField(Text, Font, new SolidBrush(ForeColor), Padding.Left, Padding.Top, Width - Padding.Right - Padding.Left, Height - Padding.Bottom - Padding.Top, TextAlign);
                     else
-                        Text = g.DrawTextArea(Text, Font, new SolidBrush(ForeColor), 1, 0, Width - 2, Height);
+                        Text = g.DrawTextArea(Text, Font, new SolidBrush(ForeColor), Padding.Left, Padding.Top, Width - Padding.Right - Padding.Left, Height - Padding.Bottom - Padding.Top);
                     if (_text != _tempText)
                     {
                         OnTextChanged(new EventArgs());
@@ -85,7 +85,7 @@ namespace System.Windows.Forms
                     }
                 }
                 else
-                    g.DrawString(Text, Font, new SolidBrush(ForeColor), 4, 0, Width - 8, Height);
+                    g.DrawString(Text, Font, new SolidBrush(ForeColor), Padding.Left + 2, Padding.Top, Width - Padding.Right - Padding.Left, Height - Padding.Bottom - Padding.Top);
 
                 if (_shouldFocus)
                 {

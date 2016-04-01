@@ -61,7 +61,7 @@ namespace System.Windows.Forms
 
             onDrawNode = _OnDrawNode;
 
-            Application.UpClick += _Application_UpClick;
+            Owner.UpClick += _Application_UpClick;
         }
 
         private void _AddjustScrollIndexToSelectedNode()
@@ -193,7 +193,7 @@ namespace System.Windows.Forms
 
         public override void Dispose()
         {
-            Application.UpClick -= _Application_UpClick;
+            Owner.UpClick -= _Application_UpClick;
 
             base.Dispose();
         }

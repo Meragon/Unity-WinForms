@@ -18,6 +18,17 @@ namespace System.Drawing
             return new Point((int)p.X, (int)p.Y);
         }
 
+        public static bool operator ==(PointF left, PointF right)
+        {
+            if (left.X == right.X && left.Y == right.Y)
+                return true;
+            return false;
+        }
+        public static bool operator !=(PointF left, PointF right)
+        {
+            return !(left == right);
+        }
+
         public static PointF Zero { get { return new PointF(0, 0); } }
 
         public UnityEngine.Vector2 AsVector2 { get { return new UnityEngine.Vector2(_x, _y); } }

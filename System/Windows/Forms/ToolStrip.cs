@@ -19,7 +19,7 @@ namespace System.Windows.Forms
             BorderColor = Color.FromArgb(204, 206, 219);
             Orientation = Forms.Orientation.Vertical;
 
-            Application.UpClick += Application_UpClick;
+            Owner.UpClick += Application_UpClick;
         }
         public ToolStrip(ToolStripItem[] items)
         {
@@ -30,7 +30,7 @@ namespace System.Windows.Forms
             BorderColor = Color.FromArgb(204, 206, 219);
             Orientation = Forms.Orientation.Vertical;
 
-            Application.UpClick += Application_UpClick;
+            Owner.UpClick += Application_UpClick;
         }
 
         public Color BorderColor { get; set; }
@@ -70,7 +70,7 @@ namespace System.Windows.Forms
 
         public override void Dispose()
         {
-            Application.DownClick -= Application_UpClick;
+            Owner.DownClick -= Application_UpClick;
             base.Dispose();
         }
         protected override void OnMouseEnter(EventArgs e)
