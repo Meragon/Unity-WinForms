@@ -52,7 +52,7 @@ namespace System.Windows.Forms
             this.root = new TreeNode(this);
             this.root.Expand();
             this.Resize += TreeView_Resize;
-            this.ScrollSpeed = 16;
+            this.ScrollSpeed = 2;
             this.SmoothScrolling = true;
 
             _nodes = new TreeNodeCollection(root);
@@ -332,7 +332,7 @@ namespace System.Windows.Forms
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            _scrollIndex -= e.Delta * ScrollSpeed;
+            _scrollIndex += e.Delta * ScrollSpeed;
 
             _FixScrollIndex();
             _UpdateScrollList();

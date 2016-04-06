@@ -30,7 +30,7 @@ namespace System.Windows.Forms
 
         public GUISkin Skin;
         public AppResources _Resources;
-        public bool ShowControlProperties;
+        public static bool ShowControlProperties { get; set; }
 
         private Application _controller;
         private float _lastWidth;

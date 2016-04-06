@@ -639,10 +639,9 @@ namespace System.Windows.Forms
         {
             OnMouseUp(e);
             MouseUp(this, e);
-
-            // TODO: 30.03.16
-            /*if (Owner != null && Application.ShowControlProperties && Application.ShowCallback != null)
-                Application.ShowCallback.Invoke(this);*/
+            
+            if (Owner != null && ApplicationBehaviour.ShowControlProperties && Application.ShowCallback != null)
+                Application.ShowCallback.Invoke(this);
         }
         internal void RaiseOnMouseWheel(MouseEventArgs e)
         {

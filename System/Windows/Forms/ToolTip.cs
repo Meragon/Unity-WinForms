@@ -84,20 +84,22 @@ namespace System.Windows.Forms
                 //e.Graphics.Control = null;
                 var size = e.Graphics.MeasureString(_instance._text, new Font("Arial", 12)) + new SizeF(16, 8);
 
-                if (_instance._location.X + size.Width + 2 > Screen.PrimaryScreen.WorkingArea.Width)
-                    _instance._location = new Point(Screen.PrimaryScreen.WorkingArea.Width - (int)size.Width - 2, _instance._location.Y);
-                if (_instance._location.Y + size.Height + 2 > Screen.PrimaryScreen.WorkingArea.Height)
-                    _instance._location = new Point(_instance._location.X, Screen.PrimaryScreen.WorkingArea.Height - (int)size.Height - 2);
+                Point loc = _instance._location;
 
-                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12 - 255 + (int)_alphaF, 64, 64, 64)), _instance._location.X + 6 + 6, _instance._location.Y + 6 + 6, size.Width - 12, size.Height - 12);
-                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12 - 255 + (int)_alphaF, 64, 64, 64)), _instance._location.X + 6 + 5, _instance._location.Y + 6 + 5, size.Width - 10, size.Height - 10);
-                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12 - 255 + (int)_alphaF, 64, 64, 64)), _instance._location.X + 6 + 4, _instance._location.Y + 6 + 4, size.Width - 8, size.Height - 8);
-                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12 - 255 + (int)_alphaF, 64, 64, 64)), _instance._location.X + 6 + 3, _instance._location.Y + 6 + 3, size.Width - 6, size.Height - 6);
-                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12 - 255 + (int)_alphaF, 64, 64, 64)), _instance._location.X + 6 + 2, _instance._location.Y + 6 + 2, size.Width - 4, size.Height - 4);
+                if (loc.X + size.Width + 2 > Screen.PrimaryScreen.WorkingArea.Width)
+                    _instance._location = new Point(Screen.PrimaryScreen.WorkingArea.Width - (int)size.Width - 2, loc.Y);
+                if (loc.Y + size.Height + 2 > Screen.PrimaryScreen.WorkingArea.Height)
+                    _instance._location = new Point(loc.X, Screen.PrimaryScreen.WorkingArea.Height - (int)size.Height - 2);
 
-                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb((int)_alphaF, 255, 255, 255)), _instance._location.X, _instance._location.Y, size.Width, 20);
-                e.Graphics.DrawRectangle(new Pen(Color.FromArgb((int)_alphaF, 118, 118, 118)), _instance._location.X, _instance._location.Y, size.Width, 20);
-                e.Graphics.DrawString(_instance._text, new Font("Arial", 12), new SolidBrush(Color.FromArgb((int)_alphaF, 118, 118, 118)), _instance._location.X, _instance._location.Y, size.Width, 20, _formatCenter);
+                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12 - 255 + (int)_alphaF, 64, 64, 64)), loc.X + 6 + 6, loc.Y + 6 + 6, size.Width - 12, size.Height - 12);
+                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12 - 255 + (int)_alphaF, 64, 64, 64)), loc.X + 6 + 5, loc.Y + 6 + 5, size.Width - 10, size.Height - 10);
+                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12 - 255 + (int)_alphaF, 64, 64, 64)), loc.X + 6 + 4, loc.Y + 6 + 4, size.Width - 8, size.Height - 8);
+                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12 - 255 + (int)_alphaF, 64, 64, 64)), loc.X + 6 + 3, loc.Y + 6 + 3, size.Width - 6, size.Height - 6);
+                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12 - 255 + (int)_alphaF, 64, 64, 64)), loc.X + 6 + 2, loc.Y + 6 + 2, size.Width - 4, size.Height - 4);
+
+                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb((int)_alphaF, 255, 255, 255)), loc.X, loc.Y, size.Width, 20);
+                e.Graphics.DrawRectangle(new Pen(Color.FromArgb((int)_alphaF, 118, 118, 118)), loc.X, loc.Y, size.Width, 20);
+                e.Graphics.DrawString(_instance._text, new Font("Arial", 12), new SolidBrush(Color.FromArgb((int)_alphaF, 118, 118, 118)), loc.X, loc.Y, size.Width, 20, _formatCenter);
 
                 if (_alphaWait > 0)
                     _alphaWait -= 1;
