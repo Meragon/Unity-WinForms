@@ -27,6 +27,7 @@ namespace System.Windows.Forms
             public Texture2D ComboBoxArrow;
             public Texture2D DropDownRightArrow_Black;
             public Texture2D DropDownRightArrow_White;
+            public Texture2D FormResize;
             public Texture2D NumericUp;
             public Texture2D NumericDown;
             public Texture2D Roundrect;

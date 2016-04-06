@@ -33,7 +33,17 @@ namespace System.Windows.Forms
 
         public static bool Debug { get; set; }
         public static bool IsDraging { get { return _dragndrop; } }
-        public static AppResources Resources { get; set; }
+        public static bool IsStandalone
+        {
+            get
+            {
+#if UNITY_STANDALONE
+                return true;
+#else
+                return false;
+#endif
+            }
+        }
         public static Action<Control> ShowCallback { get; set; }
         public static bool UseSimpleCulling { get; set; }
 
@@ -151,6 +161,8 @@ namespace System.Windows.Forms
                         }
                         MouseEventArgs mu_args = new MouseEventArgs(_mouseButton, 1, (int)client_mpos.X, (int)client_mpos.Y, 0);
                         control.RaiseOnMouseUp(mu_args);
+                        if (_mouseLastClickControl == control)
+                            control.RaiseOnMouseClick(mu_args);
                         if (_mouseLastClickControl != null && control != _mouseLastClickControl)
                             _mouseLastClickControl.RaiseOnMouseUp(mu_args);
                         return true;

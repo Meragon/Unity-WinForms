@@ -13,14 +13,14 @@ namespace System.Windows.Forms
         internal int index;
         internal TreeNode parent;
         internal TreeView treeView;
-
-        private Color color = Color.FromArgb(64, 64, 64);
+        
         private bool expanded;
         private int imageIndex = -1;
-        private bool selected;
         private bool visible = true;
 
+        public Color BackColor { get; set; }
         public Rectangle Bounds { get; internal set; }
+        public bool Enabled { get; set; }
         public TreeNode FirstNode
         {
             get
@@ -30,6 +30,7 @@ namespace System.Windows.Forms
                 return Nodes[0];
             }
         }
+        public Color ForeColor { get; set; }
         public int ImageIndex { get { return imageIndex; } set { imageIndex = value; } }
         public int Index { get { return index; } }
         public bool IsExpanded { get { return expanded; } internal set { expanded = value; } }
@@ -77,7 +78,6 @@ namespace System.Windows.Forms
         }
         public object Tag { get; set; }
         public string Text { get; set; }
-        public Color TextColor { get { return color; } set { color = value; } }
         public TreeView TreeView
         {
             get
@@ -88,18 +88,22 @@ namespace System.Windows.Forms
             }
         }
 
-        internal TreeNode(TreeView treeView)
+        internal TreeNode(TreeView treeView) : this("")
         {
             this.treeView = treeView;
         }
-        public TreeNode(string text)
+        public TreeNode(string text) : this(text, null)
         {
             this.Text = text;
         }
         public TreeNode(string text, TreeNode[] children)
         {
+            this.BackColor = Color.Transparent;
+            this.Enabled = true;
+            this.ForeColor = Color.FromArgb(42, 42, 42);
             this.Text = text;
-            this.Nodes.AddRange(children);
+            if (children != null)
+                this.Nodes.AddRange(children);
         }
 
         private static int _GetVisibleNodesAmount(TreeNode node, int currentAmount)

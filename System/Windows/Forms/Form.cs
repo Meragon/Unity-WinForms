@@ -69,6 +69,7 @@ namespace System.Windows.Forms
         public MenuStrip MainMenuStrip { get { return _mainMenuStrip; } set { _mainMenuStrip = value; } }
         public bool Movable { get; set; }
         public bool Resizable { get; set; }
+        public bool ResizeIcon { get; set; }
         public override string Text { get; set; }
 
         public Form()
@@ -130,31 +131,43 @@ namespace System.Windows.Forms
             DNDResizeType r_type = DNDResizeType.None;
             if (Resizable)
             {
-                // Resize.
-                r_type = DNDResizeType.None;
+                if (ResizeIcon == false)
+                {
+                    // Resize.
+                    r_type = DNDResizeType.None;
 
-                // Left side.
-                if (e.X < _resizeOffset)
-                {
-                    r_type = DNDResizeType.Left;
-                    if (e.Y < _resizeOffset)
-                        r_type = DNDResizeType.LeftUp;
+                    // Left side.
+                    if (e.X < _resizeOffset)
+                    {
+                        r_type = DNDResizeType.Left;
+                        if (e.Y < _resizeOffset)
+                            r_type = DNDResizeType.LeftUp;
+                        else if (e.Y > Height - _resizeOffset)
+                            r_type = DNDResizeType.LeftDown;
+                    }
+                    else if (e.X > Width - _resizeOffset)
+                    {
+                        // Right side.
+                        r_type = DNDResizeType.Right;
+                        if (e.Y < _resizeOffset)
+                            r_type = DNDResizeType.RightUp;
+                        else if (e.Y > Height - _resizeOffset)
+                            r_type = DNDResizeType.RightDown;
+                    }
+                    else if (e.Y < _resizeOffset)
+                        r_type = DNDResizeType.Up;
                     else if (e.Y > Height - _resizeOffset)
-                        r_type = DNDResizeType.LeftDown;
+                        r_type = DNDResizeType.Down;
                 }
-                else if (e.X > Width - _resizeOffset)
+                else
                 {
-                    // Right side.
-                    r_type = DNDResizeType.Right;
-                    if (e.Y < _resizeOffset)
-                        r_type = DNDResizeType.RightUp;
-                    else if (e.Y > Height - _resizeOffset)
-                        r_type = DNDResizeType.RightDown;
+                    var resizeIcon = ApplicationBehaviour.Resources.Reserved.FormResize;
+                    if (resizeIcon != null)
+                    {
+                        if (new Rectangle(Width - resizeIcon.width - 4, Height - resizeIcon.height - 4, resizeIcon.width + 4, resizeIcon.height + 4).Contains(e.Location))
+                            r_type = DNDResizeType.RightDown;
+                    }
                 }
-                else if (e.Y < _resizeOffset)
-                    r_type = DNDResizeType.Up;
-                else if (e.Y > Height - _resizeOffset)
-                    r_type = DNDResizeType.Down;
             }
             return r_type;
         }
@@ -330,8 +343,13 @@ namespace System.Windows.Forms
             g.DrawString(Text, HeaderFont, new SolidBrush(HeaderTextColor), HeaderPadding.Left, HeaderPadding.Top, Width - HeaderPadding.Right - HeaderPadding.Left, HeaderHeight - HeaderPadding.Bottom - HeaderPadding.Top, HeaderTextAlign);
             g.FillRectangle(new SolidBrush(BackColor), 0, HeaderHeight, Width, Height - HeaderHeight);
 
-
             base.OnPaint(e);
+
+            if (Resizable && ResizeIcon && ApplicationBehaviour.Resources.Reserved.FormResize != null)
+            {
+                var resizeIcon = ApplicationBehaviour.Resources.Reserved.FormResize;
+                g.DrawTexture(ApplicationBehaviour.Resources.Reserved.FormResize, Width - resizeIcon.width - 4, Height - resizeIcon.height - 4, resizeIcon.width, resizeIcon.height);
+            }
         }
         protected override object OnPaintEditor(float width)
         {

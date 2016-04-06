@@ -10,7 +10,7 @@ namespace System.Windows.Forms
     public class Control : Component, IDisposable
     {
         public static Point MousePosition { get { return new Point((int)UnityEngine.Input.mousePosition.x, (int)(UnityEngine.Screen.height - UnityEngine.Input.mousePosition.y)); } }
-
+        
         [NonSerialized]
         private Control.ControlCollection _controls;
         private bool _disposing;
@@ -393,15 +393,7 @@ namespace System.Windows.Forms
         }
         protected virtual void OnMouseUp(MouseEventArgs e)
         {
-            if (Enabled && this.ClientRectangle.Contains(e.Location))
-            {
-                RaiseOnMouseClick(e);
-                Click(this, new EventArgs());
-            }
-            MouseUp(this, e);
-            // TODO: 30.03.16
-            /*if (Owner != null && Application.ShowControlProperties && Application.ShowCallback != null)
-                Application.ShowCallback.Invoke(this);*/
+            
         }
         protected virtual void OnMouseWheel(MouseEventArgs e)
         {
@@ -616,6 +608,7 @@ namespace System.Windows.Forms
         {
             OnMouseClick(e);
             OnClick(e);
+            Click(this, e);
         }
         internal void RaiseOnMouseDoubleClick(MouseEventArgs e)
         {
@@ -645,7 +638,11 @@ namespace System.Windows.Forms
         internal void RaiseOnMouseUp(MouseEventArgs e)
         {
             OnMouseUp(e);
-            OnMouseClick(e); // TODO: should call from Application (check mouse down first).
+            MouseUp(this, e);
+
+            // TODO: 30.03.16
+            /*if (Owner != null && Application.ShowControlProperties && Application.ShowCallback != null)
+                Application.ShowCallback.Invoke(this);*/
         }
         internal void RaiseOnMouseWheel(MouseEventArgs e)
         {

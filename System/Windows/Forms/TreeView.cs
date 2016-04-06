@@ -140,6 +140,7 @@ namespace System.Windows.Forms
         private void _OnDrawNode(object sender, DrawTreeNodeEventArgs e)
         {
             // Node drawing.
+            e.Graphics.FillRectangle(new SolidBrush(e.Node.BackColor), e.Node.Bounds);
             if (e.Node.IsSelected) e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(187, 222, 251)), UseNodeBoundsForSelection ? e.Node.Bounds.X : 0, e.Node.Bounds.Y - (int)_scrollIndex, Width, ItemHeight);
 
             bool hasImage = false;
@@ -157,17 +158,64 @@ namespace System.Windows.Forms
 
             string stringToDraw = e.Node.Text;
             if (stringToDraw == null && e.Node.Tag != null) stringToDraw = e.Node.Tag.ToString();
-            e.Graphics.DrawString(stringToDraw, Font, new SolidBrush(e.Node.TextColor), e.Node.Bounds.X + (hasImage ? imageWidth + 2 : 0), e.Node.Bounds.Y - (int)_scrollIndex - 2, (WrapText ? Width : Width * 16), e.Bounds.Height + 4, ContentAlignment.MiddleLeft);
+            e.Graphics.DrawString(stringToDraw, Font, new SolidBrush(e.Node.ForeColor), e.Node.Bounds.X + (hasImage ? imageWidth + 2 : 0), e.Node.Bounds.Y - (int)_scrollIndex - 2, (WrapText ? Width : Width * 16), e.Bounds.Height + 4, ContentAlignment.MiddleLeft);
             // End of drawing.
 
             DrawNode(this, e);
         }
         private TreeNode _SelectAtPosition(MouseEventArgs e)
         {
-            SelectedNode = _GetNodeAtPosition(root, e.Location);
+            var node = _GetNodeAtPosition(root, e.Location);
+            if (node == null || node.Enabled == false) return null;
+
+            SelectedNode = node;
             SelectedNodeChanged(this, new TreeViewEventArgs(SelectedNode));
 
             return SelectedNode;
+        }
+        private void _SelectNext()
+        {
+            var nextNode = _nodeList.FindIndex(x => x == SelectedNode); // TODO: this is slow implementation. Should remember current selectedIndex.
+            while (_SelectNext(nextNode) == false)
+            {
+                nextNode++;
+            }
+        }
+        private bool _SelectNext(int fromIndex)
+        {
+            if (fromIndex + 1 < _nodeList.Count)
+            {
+                if (_nodeList[fromIndex + 1].Enabled == false) return false;
+
+                SelectedNode = _nodeList[fromIndex + 1];
+                _AddjustScrollIndexToSelectedNode();
+                SelectedNodeChanged(this, new TreeViewEventArgs(SelectedNode));
+                return true;
+            }
+
+            return true;
+        }
+        private void _SelectPrevious()
+        {
+            var prevNode = _nodeList.FindIndex(x => x == SelectedNode);
+            while (_SelectPrevious(prevNode) == false)
+            {
+                prevNode--;
+            }
+        }
+        private bool _SelectPrevious(int fromIndex)
+        {
+            if (fromIndex - 1 >= 0)
+            {
+                if (_nodeList[fromIndex - 1].Enabled == false) return false;
+
+                SelectedNode = _nodeList[fromIndex - 1];
+                _AddjustScrollIndexToSelectedNode();
+                SelectedNodeChanged(this, new TreeViewEventArgs(SelectedNode));
+                return true;
+            }
+
+            return true;
         }
         private void TreeView_Resize(object sender, EventArgs e)
         {
@@ -209,34 +257,18 @@ namespace System.Windows.Forms
                 switch (e.KeyCode)
                 {
                     case UnityEngine.KeyCode.DownArrow:
-                        var nextNode = _nodeList.FindIndex(x => x == SelectedNode); // TODO: this is slow implementation. Should remember current selectedIndex.
-                        if (nextNode + 1 < _nodeList.Count)
-                        {
-                            SelectedNode = _nodeList[nextNode + 1];
-                            _AddjustScrollIndexToSelectedNode();
-                            SelectedNodeChanged(this, new TreeViewEventArgs(SelectedNode));
-                        }
+                        _SelectNext();
                         break;
                     case UnityEngine.KeyCode.LeftArrow:
                         if (SelectedNode != null)
-                        {
                             SelectedNode.Collapse();
-                        }
                         break;
                     case UnityEngine.KeyCode.RightArrow:
                         if (SelectedNode != null)
-                        {
                             SelectedNode.Expand();
-                        }
                         break;
                     case UnityEngine.KeyCode.UpArrow:
-                        var prevNode = _nodeList.FindIndex(x => x == SelectedNode);
-                        if (prevNode - 1 >= 0)
-                        {
-                            SelectedNode = _nodeList[prevNode - 1];
-                            _AddjustScrollIndexToSelectedNode();
-                            SelectedNodeChanged(this, new TreeViewEventArgs(SelectedNode));
-                        }
+                        _SelectPrevious();
                         break;
                 }
             }
