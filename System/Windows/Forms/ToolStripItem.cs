@@ -19,9 +19,11 @@ namespace System.Windows.Forms
         public virtual Font Font { get; set; }
         public virtual Color ForeColor { get; set; }
         public int Height { get; set; }
+        public bool Hovered { get { return _hovered; } }
         public Color HoverColor { get; set; }
         public Rectangle HoverPadding { get; set; }
-        public virtual UnityEngine.Texture2D Image { get; set; }
+        public virtual Bitmap Image { get; set; }
+        public Color ImageColor { get; set; }
         public string Name { get; set; }
         public ToolStrip Owner { get; set; }
         public ToolStripItem OwnerItem { get; internal set; }
@@ -43,6 +45,7 @@ namespace System.Windows.Forms
             ForeColor = Color.FromArgb(64, 64, 64);
             HoverColor = Color.FromArgb(64, 200, 200, 200);
             HoverPadding = new Rectangle(2, 2, -4, -4);
+            ImageColor = Color.White;
             Name = "toolStripItem";
             Padding = new Forms.Padding(8, 0, 8, 0);
             Size = new Drawing.Size(160, 24);
@@ -92,7 +95,7 @@ namespace System.Windows.Forms
             Graphics g = e.Graphics;
             g.FillRectangle(new SolidBrush(BackColor), e.ClipRectangle);
             if (Image != null)
-                g.DrawTexture(Image, e.ClipRectangle.X + 6, e.ClipRectangle.Y + 4, 12, 12);
+                g.DrawTexture(Image, e.ClipRectangle.X + 6, e.ClipRectangle.Y + 4, 12, 12, ImageColor);
             if (Enabled)
             {
                 if (!Selected)
@@ -196,6 +199,7 @@ namespace System.Windows.Forms
         private ToolStripItemCollection _dropDownItems;
         private ToolStrip _dropDownToolStrip;
         private bool _pressed;
+        private float _wait;
 
         protected ToolStripDropDownItem()
             : base()
@@ -302,6 +306,20 @@ namespace System.Windows.Forms
         }
         protected override void OnPaint(PaintEventArgs e)
         {
+            /*if (Enabled && DropDownItems.Count > 0 && Hovered && _pressed == false && _wait < 1f)
+            {
+                _wait += UnityEngine.Time.deltaTime;
+                if (_wait >= 1f)
+                {
+                    _wait = 0;
+                    if (OwnerItem is ToolStripDropDownItem)
+                    {
+                        
+                    }
+                    this.RaiseOnMouseUp(new MouseEventArgs(MouseButtons.Left, 1, 0, 0, 0));
+                }
+            }*/
+
             base.OnPaint(e);
             if (_dropDownItems.Count > 0 && Parent.Orientation == Orientation.Vertical)
             {

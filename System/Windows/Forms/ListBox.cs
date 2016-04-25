@@ -36,6 +36,7 @@ namespace System.Windows.Forms
             BackColor = Color.White;
             BorderColor = Color.DarkGray;
             ItemHeight = DefaultItemHeight;
+            WrapText = true;
 
             Owner.UpClick += Application_UpClick;
         }
@@ -84,6 +85,7 @@ namespace System.Windows.Forms
                     }
             }
         }
+        public bool WrapText { get; set; }
 
         private void Application_UpClick(object sender, MouseEventArgs e)
         {
@@ -188,7 +190,7 @@ namespace System.Windows.Forms
             Rectangle _scrollRect = new Rectangle(Width - _scrollWidth, _scrollY, _scrollWidth, _scrollHeight);
             if (_scrollRect.Contains(mclient))
                 return;
-            
+
             for (int i = 0; i < Items.Count; i++)
             {
                 var item_rect = new Rectangle(0, i * ItemHeight, Width, ItemHeight);
@@ -212,12 +214,9 @@ namespace System.Windows.Forms
             {
                 bool disabled = Items.IsDisabled(i + ScrollIndex);
                 if (i + _scrollIndex == SelectedIndex || i == _hoveredItem)
-                {
                     g.FillRectangle(new SolidBrush(disabled ? Color.FromArgb(101, 203, 255) : Color.FromArgb(64, 0, 122, 204)), 0, i * ItemHeight, Width, ItemHeight);
-                    g.DrawString(Items[i + ScrollIndex].ToString(), Font, new SolidBrush(disabled ? Color.Gray : ForeColor), 4, i * ItemHeight, Width, ItemHeight);
-                }
-                else
-                    g.DrawString(Items[i + ScrollIndex].ToString(), Font, new SolidBrush(disabled ? Color.Gray : ForeColor), 4, i * ItemHeight, Width, ItemHeight);
+
+                g.DrawString(Items[i + ScrollIndex].ToString(), Font, new SolidBrush(disabled ? Color.Gray : ForeColor), 4, i * ItemHeight, WrapText ? Width : Width * 5, ItemHeight);
             }
 
             _scrollVisible = false;

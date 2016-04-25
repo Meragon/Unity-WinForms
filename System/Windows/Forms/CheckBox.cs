@@ -27,6 +27,10 @@ namespace System.Windows.Forms
             CheckedChanged(this, new EventArgs());
         }
 
+        protected override void OnKeyUp(KeyEventArgs e)
+        {
+            base.OnKeyUp(e);
+        }
         protected override void OnMouseEnter(EventArgs e)
         {
             base.OnMouseHover(e);
@@ -41,8 +45,8 @@ namespace System.Windows.Forms
         {
             Graphics g = e.Graphics;
 
-            g.FillRectangle(new SolidBrush(_hovered ? Color.FromArgb(243, 249, 255) : Color.White), Padding.Left, Padding.Top + Height / 2 - 6, 12, 12);
-            g.DrawRectangle(new Pen(_hovered ? Color.FromArgb(51, 153, 255) : Color.FromArgb(172, 172, 172)), Padding.Left, Padding.Top + Height / 2 - 6, 12, 12);
+            g.FillRectangle(new SolidBrush(_hovered || Focused ? Color.FromArgb(243, 249, 255) : Color.White), Padding.Left, Padding.Top + Height / 2 - 6, 12, 12);
+            g.DrawRectangle(new Pen(_hovered || Focused ? Color.FromArgb(51, 153, 255) : Color.FromArgb(172, 172, 172)), Padding.Left, Padding.Top + Height / 2 - 6, 12, 12);
             if (Checked)
                 g.DrawTexture(ApplicationBehaviour.Resources.Reserved.Checked, Padding.Left, Padding.Top + Height / 2 - 6, 12, 12);
 

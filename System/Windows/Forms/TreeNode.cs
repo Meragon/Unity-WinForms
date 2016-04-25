@@ -31,6 +31,7 @@ namespace System.Windows.Forms
             }
         }
         public Color ForeColor { get; set; }
+        public Color ImageColor { get; set; }
         public int ImageIndex { get { return imageIndex; } set { imageIndex = value; } }
         public int Index { get { return index; } }
         public bool IsExpanded { get { return expanded; } internal set { expanded = value; } }
@@ -101,6 +102,7 @@ namespace System.Windows.Forms
             this.BackColor = Color.Transparent;
             this.Enabled = true;
             this.ForeColor = Color.FromArgb(42, 42, 42);
+            this.ImageColor = Color.White;
             this.Text = text;
             if (children != null)
                 this.Nodes.AddRange(children);

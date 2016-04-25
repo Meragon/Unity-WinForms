@@ -8,6 +8,9 @@ namespace System.Windows.Forms
 {
     public abstract class FileDialog : Form
     {
+        public static Bitmap FolderNavBack { get; set; }
+        public static Bitmap FolderNavUp { get; set; }
+
         internal FileRender fileRender;
 
         protected Button buttonOk;
@@ -47,11 +50,15 @@ namespace System.Windows.Forms
             Text = "File Dialog";
 
             buttonBack = new Button();
+            buttonBack.BackgroundImageLayout = ImageLayout.Center;
             buttonBack.Enabled = false;
             buttonBack.Font = new Drawing.Font("Arial", 16, FontStyle.Bold);
+            buttonBack.Image = FolderNavBack;
             buttonBack.Location = new Point(8, HeaderHeight);
+            buttonBack.NormalColor = Color.Transparent;
+            buttonBack.NormalBorderColor = Color.Transparent;
             buttonBack.Size = new Size(22, 22);
-            buttonBack.Text = "◀";
+            if (buttonBack.Image == null) buttonBack.Text = "◀";
             buttonBack.Click += (sender, args) =>
             {
                 buttonBack.Enabled = fileRender.Back() && fileRender.prevPathes.Count > 0;
@@ -60,10 +67,14 @@ namespace System.Windows.Forms
             Controls.Add(buttonBack);
 
             buttonUp = new Button();
+            buttonUp.BackgroundImageLayout = ImageLayout.Center;
             buttonUp.Font = new Drawing.Font("Arial", 16, FontStyle.Bold);
+            buttonUp.Image = FolderNavUp;
             buttonUp.Location = new Point(buttonBack.Location.X + buttonBack.Width + 8, buttonBack.Location.Y);
+            buttonUp.NormalColor = Color.Transparent;
+            buttonUp.NormalBorderColor = Color.Transparent;
             buttonUp.Size = new Drawing.Size(22, 22);
-            buttonUp.Text = "▲";
+            if (buttonUp.Image == null) buttonUp.Text = "▲";
             buttonUp.Click += (sender, args) =>
             {
                 fileRender.Up();
@@ -166,8 +177,18 @@ namespace System.Windows.Forms
             }
         }
 
+        protected override void OnKeyPress(KeyEventArgs e)
+        {
+            base.OnKeyPress(e);
+            if (e.KeyCode == UnityEngine.KeyCode.Escape)
+            {
+                DialogResult = DialogResult.Cancel;
+                Close();
+            }
+        }
         public override DialogResult ShowDialog()
         {
+            Focus();
             var fs = Filter.Split('|');
             for (int i = 0; i < fs.Length; i += 2)
                 comboFilter.Items.Add(fs[i]);

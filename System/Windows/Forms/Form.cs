@@ -66,6 +66,7 @@ namespace System.Windows.Forms
         public Color HeaderTextColor { get; set; }
         public ContentAlignment HeaderTextAlign { get; set; }
         public bool HighlightResizeBorders { get; set; }
+        public bool KeyPreview { get; set; }
         public MenuStrip MainMenuStrip { get { return _mainMenuStrip; } set { _mainMenuStrip = value; } }
         public bool Movable { get; set; }
         public bool Resizable { get; set; }
@@ -92,7 +93,7 @@ namespace System.Windows.Forms
             Resizable = true;
             ShadowBox = true;
             Size = new Size(334, 260);
-
+            
             Owner.UpClick += _Application_UpClick;
         }
 
@@ -200,6 +201,7 @@ namespace System.Windows.Forms
                     for (int i = 0; i < Controls.Count; i++)
                         Owner.Controls.Add(Controls[i]);
             }
+            Focus();
         }
         public virtual DialogResult ShowDialog()
         {

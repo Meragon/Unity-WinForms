@@ -81,6 +81,7 @@ namespace System.Windows.Forms
             }
         }
         public string SelectedText { get; set; }
+        public bool WrapText { get; set; }
 
         public ComboBox()
         {
@@ -118,9 +119,12 @@ namespace System.Windows.Forms
                             break;
                         if (_selectedIndex + 1 < _items.Count)
                             SelectedIndex++;
-                        _listBox.SelectedIndex = SelectedIndex;
-                        if (_listBox.ScrollIndex - 1 < SelectedIndex)
-                            _listBox.ScrollIndex = SelectedIndex - 1;
+                        if (_listBox != null)
+                        {
+                            _listBox.SelectedIndex = SelectedIndex;
+                            if (_listBox.ScrollIndex - 1 < SelectedIndex)
+                                _listBox.ScrollIndex = SelectedIndex - 1;
+                        }
 
                     }
                     break;
@@ -130,9 +134,12 @@ namespace System.Windows.Forms
                             break;
                         if (_selectedIndex > 0)
                             SelectedIndex--;
-                        _listBox.SelectedIndex = SelectedIndex;
-                        if (_listBox.ScrollIndex > SelectedIndex)
-                            _listBox.ScrollIndex = SelectedIndex;
+                        if (_listBox != null)
+                        {
+                            _listBox.SelectedIndex = SelectedIndex;
+                            if (_listBox.ScrollIndex > SelectedIndex)
+                                _listBox.ScrollIndex = SelectedIndex;
+                        }
                     }
                     break;
                 case UnityEngine.KeyCode.Return:
@@ -143,6 +150,12 @@ namespace System.Windows.Forms
             if (_listBox != null)
                 if (_listBox.ScrollIndex < 0)
                     _listBox.ScrollIndex = 0;
+        }
+        protected override void OnKeyUp(KeyEventArgs e)
+        {
+            base.OnKeyUp(e);
+            if (e.KeyCode == UnityEngine.KeyCode.Space)
+                RaiseOnMouseDown(new MouseEventArgs(MouseButtons.Left, Width - 1, 1, 0, 0));
         }
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -203,7 +216,7 @@ namespace System.Windows.Forms
             else
                 g.FillRectangle(new SolidBrush(Color.FromArgb(239, 239, 239)), 0, 0, Width, Height);
             if (DropDownStyle == ComboBoxStyle.DropDownList || !Enabled)
-                g.DrawString(SelectedText, Font, new SolidBrush(Enabled ? ForeColor : Color.Gray), Padding.Left, Padding.Top, Width - Padding.Left - Padding.Right - 16, Height - Padding.Bottom - Padding.Top); // 16 - arrow width.
+                g.DrawString(SelectedText, Font, new SolidBrush(Enabled ? ForeColor : Color.Gray), Padding.Left, Padding.Top, (WrapText ? Width : Width * 5) - Padding.Left - Padding.Right - 16, Height - Padding.Bottom - Padding.Top); // 16 - arrow width.
             else
             {
                 if (Focused)
@@ -225,7 +238,7 @@ namespace System.Windows.Forms
                     _filter = _filterBuffer;
                 }
                 else
-                    g.DrawString(_filter, Font, new SolidBrush(ForeColor), 4, 0, Width - 8 - 16, Height, HorizontalAlignment.Left);
+                    g.DrawString(_filter, Font, new SolidBrush(ForeColor), 4, 0, (WrapText ? Width : Width * 5) - 8 - 16, Height, HorizontalAlignment.Left);
 
                 if (_shouldFocus)
                 {

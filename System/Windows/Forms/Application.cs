@@ -22,11 +22,7 @@ namespace System.Windows.Forms
         private static float _mouseWheelDelta;
         private static System.Drawing.PointF _mouseMovePosition;
         private static bool _mouseFoundHoveredControl;
-        private static bool _waitForDoubleClick = false;
-        private static float _waitForDoubleClickTimer = .2f;
-        private static float _waitForDoubleClickTimerCurrent = 0;
 
-        
         internal List<Control> Controls = new List<Control>();
         internal List<Control> BringToFrontControls = new List<Control>();
         internal List<Control> ToCloseControls = new List<Control>();
@@ -45,6 +41,7 @@ namespace System.Windows.Forms
             }
         }
         public static Action<Control> ShowCallback { get; set; }
+        public bool TabSwitching { get; set; }
         public static bool UseSimpleCulling { get; set; }
 
         private static bool _ControlVisible(Control control)
@@ -56,7 +53,15 @@ namespace System.Windows.Forms
                 return _ControlVisible(control.Parent);
             return false;
         }
-        private Control _GetRootControl(Control control)
+        private static void _FillListWithControls(Control control, List<Control> list)
+        {
+            for (int i = 0; i < control.Controls.Count; i++)
+            {
+                list.Add(control.Controls[i]);
+                _FillListWithControls(control.Controls[i], list);
+            }
+        }
+        private static Control _GetRootControl(Control control)
         {
             if (control == null) return null;
 
@@ -171,7 +176,7 @@ namespace System.Windows.Forms
                         control.RaiseOnMouseDoubleClick(mdc_args);
                         return true;
                     case MouseEvents.Wheel:
-                        MouseEventArgs mw_args = new MouseEventArgs(MouseButtons.Middle, 0, (int)client_mpos.X, (int)client_mpos.Y, (int)(_mouseWheelDelta * 10));
+                        MouseEventArgs mw_args = new MouseEventArgs(MouseButtons.Middle, 0, (int)client_mpos.X, (int)client_mpos.Y, (int)(-_mouseWheelDelta * 4));
                         control.RaiseOnMouseWheel(mw_args);
                         return true;
                 }
@@ -181,45 +186,11 @@ namespace System.Windows.Forms
             return false;
         }
 
-        public void Update()
+        public Application()
         {
-            if (BringToFrontControls.Count > 0)
-            {
-                for (; BringToFrontControls.Count > 0;)
-                {
-                    int c_index = Controls.FindIndex(x => x == BringToFrontControls[0]);
-                    if (c_index > -1)
-                    {
-                        Controls.RemoveAt(c_index);
-                        Controls.Add(BringToFrontControls[0]);
-
-                        if (BringToFrontControls[0].Controls != null)
-                            for (int i = 0; i < BringToFrontControls[0].Controls.Count; i++)
-                                BringToFrontControls.Add(BringToFrontControls[0].Controls[i]);
-                    }
-                    BringToFrontControls.RemoveAt(0);
-                }
-            }
-            if (ToCloseControls.Count > 0)
-            {
-                for (; ToCloseControls.Count > 0;)
-                {
-                    int c_index = Controls.FindIndex(x => x == ToCloseControls[0]);
-                    if (c_index > -1)
-                        Controls.RemoveAt(c_index);
-                    else
-                    {
-#if UNITY_EDITOR
-                        UnityEngine.Debug.LogError("Not found. Da hell. " + ToCloseControls[0].GetType().ToString());
-#endif
-                    }
-
-                    ToCloseControls.RemoveAt(0);
-                }
-            }
-
-            UpdateEvent();
+            TabSwitching = true;
         }
+
         public void Draw()
         {
             GUI.color = Color.white;
@@ -295,22 +266,6 @@ namespace System.Windows.Forms
             // ToolTip.
             ToolTip.OnPaint(args);
         }
-        public void Run(Control control)
-        {
-            control.Owner = this;
-            this.Controls.Add(control);
-        }
-        internal static void DoDragDrop(object data, DragDropEffects effect)
-        {
-            _dragData = data;
-            _dragControlEffects = effect;
-        }
-        internal static void DoDragDrop(object data, DragDropEffects effect, DragDropRenderHandler render)
-        {
-            _dragData = data;
-            _dragControlEffects = effect;
-            _dragRender = render;
-        }
         public void ProccessKeys()
         {
             if (Event.current.keyCode != KeyCode.None)
@@ -338,26 +293,41 @@ namespace System.Windows.Forms
                     }
                 }
 
-                foreach (var c in new List<Control>(Controls))
-                    if (c.Visible && (c.Focused))
+                if (Control.lastFocused != null && Control.lastFocused.IsDisposed == false)
+                {
+                    var keyControl = Control.lastFocused;
+                    var parentForm = _GetRootControl(Control.lastFocused) as Form;
+                    if (parentForm != null && parentForm.KeyPreview)
+                        keyControl = parentForm;
+
+                    switch (Event.current.type)
                     {
-                        switch (Event.current.type)
-                        {
-                            case EventType.KeyDown:
-                                if (_currentKeyDown == KeyCode.None || _currentKeyDown != args.KeyCode)
-                                    c.RaiseOnKeyDown(args);
+                        case EventType.KeyDown:
 
-                                c.RaiseOnKeyPress(args);
+                            // Tab swithing through controls.
+                            if (TabSwitching && Event.current.keyCode == KeyCode.Tab)
+                            {
+                                if (Event.current.modifiers == EventModifiers.None)
+                                    NextTabControl(Control.lastFocused);
+                                else if (Event.current.modifiers == EventModifiers.Shift)
+                                    PrevTabControl(Control.lastFocused);
                                 break;
-                            case EventType.KeyUp:
-                                _currentKeyDown = KeyCode.None;
-                                c.RaiseOnKeyUp(args);
-                                break;
-                            case EventType.Layout:
+                            }
 
-                                break;
-                        }
+                            if (_currentKeyDown == KeyCode.None || _currentKeyDown != args.KeyCode)
+                                keyControl.RaiseOnKeyDown(args);
+
+                            keyControl.RaiseOnKeyPress(args);
+
+                            break;
+                        case EventType.KeyUp:
+                            _currentKeyDown = KeyCode.None;
+                            keyControl.RaiseOnKeyUp(args);
+                            break;
+                        case EventType.Layout:
+                            break;
                     }
+                }
 
                 if (Event.current.type == EventType.keyDown)
                     _currentKeyDown = args.KeyCode;
@@ -493,6 +463,108 @@ namespace System.Windows.Forms
             }
 
             _mouseMovePosition = mousePosition;
+        }
+        public void Run(Control control)
+        {
+            control.Owner = this;
+            this.Controls.Add(control);
+        }
+        public void Update()
+        {
+            if (BringToFrontControls.Count > 0)
+            {
+                for (; BringToFrontControls.Count > 0;)
+                {
+                    int c_index = Controls.FindIndex(x => x == BringToFrontControls[0]);
+                    if (c_index > -1)
+                    {
+                        Controls.RemoveAt(c_index);
+                        Controls.Add(BringToFrontControls[0]);
+
+                        if (BringToFrontControls[0].Controls != null)
+                            for (int i = 0; i < BringToFrontControls[0].Controls.Count; i++)
+                                BringToFrontControls.Add(BringToFrontControls[0].Controls[i]);
+                    }
+                    BringToFrontControls.RemoveAt(0);
+                }
+            }
+            if (ToCloseControls.Count > 0)
+            {
+                for (; ToCloseControls.Count > 0;)
+                {
+                    int c_index = Controls.FindIndex(x => x == ToCloseControls[0]);
+                    if (c_index > -1)
+                        Controls.RemoveAt(c_index);
+                    else
+                    {
+#if UNITY_EDITOR
+                        UnityEngine.Debug.LogError("Not found. Da hell. " + ToCloseControls[0].GetType().ToString());
+#endif
+                    }
+
+                    ToCloseControls.RemoveAt(0);
+                }
+            }
+
+            UpdateEvent();
+        }
+
+        internal static void DoDragDrop(object data, DragDropEffects effect)
+        {
+            _dragData = data;
+            _dragControlEffects = effect;
+        }
+        internal static void DoDragDrop(object data, DragDropEffects effect, DragDropRenderHandler render)
+        {
+            _dragData = data;
+            _dragControlEffects = effect;
+            _dragRender = render;
+        }
+        public static void NextTabControl(Control control)
+        {
+            var controlForm = _GetRootControl(control) as Form;
+            if (controlForm != null && controlForm.Controls.Count > 0)
+            {
+                List<Control> formControls = new List<Control>();
+                _FillListWithControls(controlForm, formControls);
+
+                List<Control> possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.TabIndex >= 0);
+                if (possibleControls.Find(x => x.TabIndex > 0) != null)
+                {
+                    possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
+                    possibleControls.Reverse();
+                }
+
+                int controlIndex = possibleControls.FindIndex(x => x == control);
+
+                var nextControlIndex = controlIndex + 1;
+                if (nextControlIndex >= possibleControls.Count)
+                    nextControlIndex = 0;
+                possibleControls[nextControlIndex].Focus();
+            }
+        }
+        public static void PrevTabControl(Control control)
+        {
+            var controlForm = _GetRootControl(control) as Form;
+            if (controlForm != null && controlForm.Controls.Count > 0)
+            {
+                List<Control> formControls = new List<Control>();
+                _FillListWithControls(controlForm, formControls);
+
+                List<Control> possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.TabIndex >= 0);
+                if (possibleControls.Find(x => x.TabIndex > 0) != null)
+                {
+                    possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
+                    possibleControls.Reverse();
+                }
+
+                int controlIndex = possibleControls.FindIndex(x => x == control);
+
+                var nextControlIndex = controlIndex - 1;
+                if (nextControlIndex < 0)
+                    nextControlIndex = possibleControls.Count - 1;
+                possibleControls[nextControlIndex].Focus();
+            }
         }
         public static bool RegisterHotKey(Control hWnd, int id, UnityEngine.EventModifiers modifier, UnityEngine.KeyCode key)
         {

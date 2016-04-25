@@ -10,12 +10,12 @@ namespace System.Windows.Forms
     public class Control : Component, IDisposable
     {
         public static Point MousePosition { get { return new Point((int)UnityEngine.Input.mousePosition.x, (int)(UnityEngine.Screen.height - UnityEngine.Input.mousePosition.y)); } }
-        
+
         [NonSerialized]
         private Control.ControlCollection _controls;
         private bool _disposing;
         private bool _focused = false;
-        protected static List<Control> _lastFocused = new List<Control>();
+        internal static Control lastFocused;
         private Point _location = new Point();
         private int _height;
         private bool _isDisposed;
@@ -188,7 +188,7 @@ namespace System.Windows.Forms
                     OnResize(delta);
             }
         }
-        
+
         public Control()
         {
             if (Parent != null && Parent.Owner != null)
@@ -212,13 +212,9 @@ namespace System.Windows.Forms
         public void BringToFront()
         {
             if (AlwaysFocused) return;
-            _focused = true;
-            _lastFocused.Add(this);
 
             if (Parent != null)
-            {
                 Parent.BringToFront();
-            }
             else
                 Owner.BringToFrontControls.Add(this);
         }
@@ -271,10 +267,10 @@ namespace System.Windows.Forms
         public virtual void Focus()
         {
             if (AlwaysFocused) return;
-            _FocusParent(this);
-            foreach (var uc in _lastFocused)
-                uc._focused = false;
-            _lastFocused = new List<Control>();
+            if (lastFocused != null)
+                lastFocused._focused = false;
+            lastFocused = this;
+            _focused = true;
             BringToFront();
         }
         public void Invalidate()
@@ -393,7 +389,7 @@ namespace System.Windows.Forms
         }
         protected virtual void OnMouseUp(MouseEventArgs e)
         {
-            
+
         }
         protected virtual void OnMouseWheel(MouseEventArgs e)
         {
@@ -639,7 +635,7 @@ namespace System.Windows.Forms
         {
             OnMouseUp(e);
             MouseUp(this, e);
-            
+
             if (Owner != null && ApplicationBehaviour.ShowControlProperties && Application.ShowCallback != null)
                 Application.ShowCallback.Invoke(this);
         }

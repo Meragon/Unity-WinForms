@@ -38,6 +38,7 @@ namespace System.Windows.Forms
         public float ScrollIndex { get { return _scrollIndex; } internal set { _scrollIndex = value; } }
         public float ScrollSpeed { get; set; }
         public TreeNode SelectedNode { get; set; }
+        public Color SelectionColor { get; set; }
         public bool SmoothScrolling { get; set; }
         public bool UseNodeBoundsForSelection { get; set; }
         public bool WrapText { get; set; }
@@ -53,6 +54,7 @@ namespace System.Windows.Forms
             this.root.Expand();
             this.Resize += TreeView_Resize;
             this.ScrollSpeed = 2;
+            this.SelectionColor = Color.FromArgb(187, 222, 251);
             this.SmoothScrolling = true;
 
             _nodes = new TreeNodeCollection(root);
@@ -141,7 +143,7 @@ namespace System.Windows.Forms
         {
             // Node drawing.
             e.Graphics.FillRectangle(new SolidBrush(e.Node.BackColor), e.Node.Bounds);
-            if (e.Node.IsSelected) e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(187, 222, 251)), UseNodeBoundsForSelection ? e.Node.Bounds.X : 0, e.Node.Bounds.Y - (int)_scrollIndex, Width, ItemHeight);
+            if (e.Node.IsSelected) e.Graphics.FillRectangle(new SolidBrush(SelectionColor), UseNodeBoundsForSelection ? e.Node.Bounds.X : 0, e.Node.Bounds.Y - (int)_scrollIndex, Width, ItemHeight);
 
             bool hasImage = false;
             int imageWidth = 0;
@@ -150,7 +152,7 @@ namespace System.Windows.Forms
                 var image = ImageList.Images[e.Node.ImageIndex];
                 if (image != null && image.uTexture != null)
                 {
-                    e.Graphics.DrawImage(image, e.Node.Bounds.X, e.Node.Bounds.Y + e.Node.Bounds.Height / 2 - image.Height / 2 - (int)_scrollIndex, image.Width, image.Height);
+                    e.Graphics.DrawTexture(image.uTexture, e.Node.Bounds.X, e.Node.Bounds.Y + e.Node.Bounds.Height / 2 - image.Height / 2 - (int)_scrollIndex, image.Width, image.Height, e.Node.ImageColor);
                     hasImage = true;
                     imageWidth = image.Width;
                 }
@@ -332,7 +334,7 @@ namespace System.Windows.Forms
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            _scrollIndex += e.Delta * ScrollSpeed;
+            _scrollIndex -= e.Delta * ScrollSpeed;
 
             _FixScrollIndex();
             _UpdateScrollList();

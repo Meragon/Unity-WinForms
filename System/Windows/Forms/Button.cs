@@ -49,11 +49,17 @@ namespace System.Windows.Forms
             currentBackColor = NormalColor;
         }
 
+        protected override void OnKeyUp(KeyEventArgs e)
+        {
+            base.OnKeyUp(e);
+            if (e.KeyCode == UnityEngine.KeyCode.Space)
+                RaiseOnMouseClick(new MouseEventArgs(MouseButtons.Left, 1, Width / 2, Height / 2, 0));
+        }
         protected override void OnPaint(PaintEventArgs e)
         {
             Graphics g = e.Graphics;
 
-            if (!Hovered || !Enabled)
+            if ((!Hovered && !Focused) || !Enabled)
             {
                 currentBackColor = MathCustom.ColorLerp(currentBackColor, NormalColor, 5);
 
