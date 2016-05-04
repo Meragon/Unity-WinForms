@@ -7,9 +7,14 @@ using System.Windows.Forms;
 
 namespace System.Windows.Forms
 {
-    [Obsolete]
     public class Panel : ScrollableControl
     {
+        public Color BorderColor { get; set; }
 
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            e.Graphics.FillRectangle(BackColor, 0, 0, Width, Height);
+            e.Graphics.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
+        }
     }
 }

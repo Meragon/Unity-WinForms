@@ -46,7 +46,7 @@ namespace System.Windows.Forms
 
         private static bool _ControlVisible(Control control)
         {
-            if (control.Visible == false) return false;
+            if (control.Visible == false || control.VisibleInternal == false) return false;
             if (control.Parent == null)
                 return control.Visible;
             if (control.Parent.Visible)

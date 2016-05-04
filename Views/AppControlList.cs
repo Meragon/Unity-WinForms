@@ -39,11 +39,10 @@ namespace Views
             _scrollPosition = GUILayout.BeginScrollView(_scrollPosition);
             GUILayout.BeginVertical();
             _filter = GUILayout.TextField(_filter);
-            #region blocks
-            for (int i = 0; i < System.Windows.Forms.Application.Controls.Count; i++)
+            for (int i = 0; i < System.Windows.Forms.Control.DefaultController.Controls.Count; i++)
             {
-                string c_type = System.Windows.Forms.Application.Controls[i].GetType().ToString().Replace("System.Windows.Forms", "SWF");
-                string c_name = System.Windows.Forms.Application.Controls[i].Name;
+                string c_type = System.Windows.Forms.Control.DefaultController.Controls[i].GetType().ToString().Replace("System.Windows.Forms", "SWF");
+                string c_name = System.Windows.Forms.Control.DefaultController.Controls[i].Name;
                 if (c_name == null) c_name = "";
                 if (!String.IsNullOrEmpty(_filter))
                 {
@@ -55,13 +54,12 @@ namespace Views
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
                     var w = AppControl.ShowWindow();
-                    (w as AppControl).Control = System.Windows.Forms.Application.Controls[i];
+                    (w as AppControl).Control = System.Windows.Forms.Control.DefaultController.Controls[i];
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));
                 GUILayout.EndHorizontal();
             }
-            #endregion
             GUILayout.EndVertical();
             GUILayout.EndScrollView();
         }

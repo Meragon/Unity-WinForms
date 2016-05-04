@@ -14,7 +14,7 @@ namespace System.Windows.Forms
         [NonSerialized]
         private Control.ControlCollection _controls;
         private bool _disposing;
-        private bool _focused = false;
+        internal bool focused = false;
         internal static Control lastFocused;
         private Point _location = new Point();
         private int _height;
@@ -25,12 +25,10 @@ namespace System.Windows.Forms
         private bool _topMost;
         private bool _visible;
         private int _width;
-
-#if UNITY_EDITOR
+        
         private bool _toggleFont;
         private bool _toggleControls;
         private bool _toggleSource;
-#endif
 
         public bool AllowDrop { get; set; }
         public bool AlwaysFocused { get; set; }
@@ -40,12 +38,12 @@ namespace System.Windows.Forms
         public virtual ImageLayout BackgroundImageLayout { get; set; }
         internal bool Batched { get; set; } // For testing.
         public Rectangle ClientRectangle { get { return new Rectangle(0, 0, Width, Height); } }
-        internal virtual bool Context { get; set; } // Close on click control. TODO: make it obsolete, find other way.
+        public virtual bool Context { get; set; } // Close on click control. TODO: make it obsolete, find other way.
         public Control.ControlCollection Controls { get { return _controls; } set { _controls = value; } }
         public virtual Rectangle DisplayRectangle { get { return ClientRectangle; } }
         public bool Disposing { get { return _disposing; } }
         public bool Enabled { get; set; }
-        public bool Focused { get { return _focused; } }
+        public bool Focused { get { return focused; } }
         public virtual Font Font { get; set; }
         public Color ForeColor { get; set; }
         public int Height
@@ -97,8 +95,8 @@ namespace System.Windows.Forms
                 OnResize(new Point(widthBuffer - value.Width, heightBuffer - value.Height));
             }
         }
-        internal bool ShadowBox { get; set; }
-        internal DrawHandler ShadowHandler { get; set; }
+        public bool ShadowBox { get; set; }
+        public DrawHandler ShadowHandler { get; set; }
         public int TabIndex { get; set; }
         public virtual string Text { get; set; }
         public int Top
@@ -106,6 +104,7 @@ namespace System.Windows.Forms
             get { return this.Location.Y; }
             set { Location = new Point(Location.X, value); }
         }
+        [Obsolete("too many bugs here")]
         public bool TopMost
         {
             get { return _topMost; }
@@ -116,7 +115,7 @@ namespace System.Windows.Forms
                 _topMost = value;
             }
         }
-        internal bool UserGroup { get; set; }
+        public bool UserGroup { get; set; }
         public bool Visible
         {
             get { return _visible; }
@@ -126,6 +125,7 @@ namespace System.Windows.Forms
                 VisibleChanged(this, new EventArgs());
             }
         }
+        public bool VisibleInternal { get; set; }
         public int Width
         {
             get { return _width; }
@@ -135,10 +135,8 @@ namespace System.Windows.Forms
                 _width = value;
             }
         }
-
-#if UNITY_EDITOR
+        
         internal string Source { get; set; }
-#endif
 
         private void _parent_Resize(Point delta)
         {
@@ -202,6 +200,7 @@ namespace System.Windows.Forms
             ForeColor = Color.Black;
             UserGroup = true;
             _visible = true;
+            VisibleInternal = true;
 
 #if UNITY_EDITOR
             var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
@@ -260,7 +259,7 @@ namespace System.Windows.Forms
         {
             if (self.Parent != null)
             {
-                self.Parent._focused = true;
+                self.Parent.focused = true;
                 _FocusParent(self.Parent);
             }
         }
@@ -268,9 +267,9 @@ namespace System.Windows.Forms
         {
             if (AlwaysFocused) return;
             if (lastFocused != null)
-                lastFocused._focused = false;
+                lastFocused.focused = false;
             lastFocused = this;
-            _focused = true;
+            focused = true;
             BringToFront();
         }
         public void Invalidate()
@@ -406,8 +405,7 @@ namespace System.Windows.Forms
         protected virtual object OnPaintEditor(float width)
         {
             System.Windows.Forms.Control controlToSet = null;
-
-#if UNITY_EDITOR
+            
             Editor.BeginGroup(width - 24);
 
             string title = Name;
@@ -430,7 +428,7 @@ namespace System.Windows.Forms
             var editorAutoSize = Editor.BooleanField("AutoSize", this.AutoSize);
             if (editorAutoSize.Changed) this.AutoSize = editorAutoSize;
 
-            var editorBackColor = Editor.ColorField("BackColor", this.BackColor);
+            var editorBackColor = Editor.ColorField("BackColor", this.BackColor, (c) => { this.BackColor = c; });
             if (editorBackColor.Changed) this.BackColor = editorBackColor;
 
             var editorBackgroundImageLayout = Editor.EnumField("BackgroundImageLayout", this.BackgroundImageLayout);
@@ -505,11 +503,13 @@ namespace System.Windows.Forms
                 }
             }
 
-            var editorForeColor = Editor.ColorField("ForeColor", this.ForeColor);
+            var editorForeColor = Editor.ColorField("ForeColor", this.ForeColor, (c) => { this.ForeColor = c; });
             if (editorForeColor.Changed) this.ForeColor = editorForeColor;
 
             var editorHeight = Editor.Slider("Height", this.Height, 0, 4096);
             if (editorHeight.Changed) Height = (int)editorHeight.Value;
+
+            Editor.Label("Hovered", this.Hovered);
 
             Editor.Label("IsDisposed", this.IsDisposed.ToString());
 
@@ -567,7 +567,6 @@ namespace System.Windows.Forms
             if (editorWidth.Changed) this.Width = (int)editorWidth.Value;
 
             Editor.EndGroup();
-#endif
 
             return controlToSet;
         }

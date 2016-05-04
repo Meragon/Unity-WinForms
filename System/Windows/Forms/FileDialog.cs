@@ -170,7 +170,7 @@ namespace System.Windows.Forms
                 contextMenu.Items.Add(itemSep);
 
                 ToolStripMenuItem itemProperties = new ToolStripMenuItem("Properties");
-                itemProperties.Click += (sender2, args) => { new FormFileInfo(fileRender.currentPath + "/" + textBoxFile.Text); };
+                itemProperties.Click += (sender2, args) => { new FormFileInfo(fileRender.currentPath + "/" + textBoxFile.Text).Show(); };
                 contextMenu.Items.Add(itemProperties);
 
                 contextMenu.Show(null, MousePosition);
@@ -203,6 +203,7 @@ namespace System.Windows.Forms
             }
 
             fileRender.SetDirectory(fileRender.currentPath);
+            Show();
             return Forms.DialogResult.None;
         }
 

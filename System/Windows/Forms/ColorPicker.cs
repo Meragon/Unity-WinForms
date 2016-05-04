@@ -34,6 +34,7 @@ namespace System.Windows.Forms
                 {
                     _currentForm = null;
                 };
+                _currentForm.Show();
             }
             _currentForm.BringToFront();
         }

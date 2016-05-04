@@ -23,10 +23,8 @@ namespace System.Windows.Forms
         private int _resizeOffset = 8;
         private DNDResizeType _resizeShow;
         private float _resizeAlpha;
-
-#if UNITY_EDITOR
+        
         private bool _toggleEditor = true;
-#endif
 
         public Color BorderColor { get; set; }
         public Button CloseButton { get { return _closeButton; } }
@@ -93,6 +91,7 @@ namespace System.Windows.Forms
             Resizable = true;
             ShadowBox = true;
             Size = new Size(334, 260);
+            VisibleInternal = false;
             
             Owner.UpClick += _Application_UpClick;
         }
@@ -127,7 +126,25 @@ namespace System.Windows.Forms
 
             Controls.Add(CloseButton);
         }
-        private DNDResizeType _ResizeMouseAt(MouseEventArgs e)
+        
+        public void Close()
+        {
+            var fc_args = new FormClosingEventArgs(CloseReason.UserClosing, false);
+            var oc_args = new CancelEventArgs(false);
+            OnClosing(oc_args);
+            if (oc_args.Cancel) return;
+            FormClosing(this, fc_args);
+            if (!fc_args.Cancel)
+            {
+                OnClosed(null);
+                Dispose();
+            }
+        }
+        public void Hide()
+        {
+            VisibleInternal = false;
+        }
+        public DNDResizeType ResizeMouseAt(MouseEventArgs e)
         {
             DNDResizeType r_type = DNDResizeType.None;
             if (Resizable)
@@ -172,27 +189,16 @@ namespace System.Windows.Forms
             }
             return r_type;
         }
-
-        public void Close()
+        public void SetResize(DNDResizeType resize)
         {
-            var fc_args = new FormClosingEventArgs(CloseReason.UserClosing, false);
-            var oc_args = new CancelEventArgs(false);
-            OnClosing(oc_args);
-            if (oc_args.Cancel) return;
-            FormClosing(this, fc_args);
-            if (!fc_args.Cancel)
-            {
-                OnClosed(null);
-                Dispose();
-            }
-        }
-        public void Hide()
-        {
-            Visible = false;
+            resizeType = resize;
+            _resizeDelta = MousePosition;
+            _resizeOriginal = Size;
+            _resizePosition = PointToScreen(Point.Zero);
         }
         public void Show()
         {
-            Visible = true;
+            VisibleInternal = true;
             int self = Owner.Controls.FindIndex(x => x == this);
             if (self == -1)
             {
@@ -225,11 +231,10 @@ namespace System.Windows.Forms
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
-            Focus();
 
             if (e.Button == MouseButtons.Left)
             {
-                resizeType = _ResizeMouseAt(e);
+                resizeType = ResizeMouseAt(e);
 
                 if (resizeType != DNDResizeType.None)
                 {
@@ -258,7 +263,7 @@ namespace System.Windows.Forms
             }
             else
             {
-                _resizeShow = _ResizeMouseAt(e);
+                _resizeShow = ResizeMouseAt(e);
             }
 
         }
@@ -356,8 +361,7 @@ namespace System.Windows.Forms
         protected override object OnPaintEditor(float width)
         {
             var control = base.OnPaintEditor(width);
-
-#if UNITY_EDITOR
+            
             Editor.BeginVertical();
             Editor.NewLine(1);
 
@@ -372,13 +376,13 @@ namespace System.Windows.Forms
                 var editorControlBox = Editor.BooleanField("      ControlBox", ControlBox);
                 if (editorControlBox.Changed) ControlBox = editorControlBox;
 
-                var editorHeaderColor = Editor.ColorField("      HeaderColor", HeaderColor);
+                var editorHeaderColor = Editor.ColorField("      HeaderColor", HeaderColor, (c) => { HeaderColor = c; });
                 if (editorHeaderColor.Changed) HeaderColor = editorHeaderColor;
 
                 var editorHeaderHeight = Editor.IntField("      HeaderHeight", HeaderHeight);
                 if (editorHeaderHeight.Changed) HeaderHeight = editorHeaderHeight.Value[0];
 
-                var editorHeaderTextColor = Editor.ColorField("      HeaderTextColor", HeaderTextColor);
+                var editorHeaderTextColor = Editor.ColorField("      HeaderTextColor", HeaderTextColor, (c) => { HeaderTextColor = c; });
                 if (editorHeaderTextColor.Changed) HeaderTextColor = editorHeaderTextColor;
 
                 var editorHeaderTextFormat = Editor.EnumField("      HeaderTextFormat", HeaderTextAlign);
@@ -396,7 +400,6 @@ namespace System.Windows.Forms
                 Editor.EndGroup();
             }
             Editor.EndVertical();
-#endif
 
             return control;
         }
@@ -411,7 +414,7 @@ namespace System.Windows.Forms
             var g = e.Graphics;
 
             // Show resize.
-            if (HighlightResizeBorders)
+            if (HighlightResizeBorders && !ResizeIcon)
             {
                 if (ClientRectangle.Contains(PointToClient(MousePosition)))
                 {

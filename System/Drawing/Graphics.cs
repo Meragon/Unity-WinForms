@@ -640,6 +640,8 @@ namespace System.Drawing
                 GUI.skin.textArea.fontSize = 12;
             }
 
+            GUI.skin.textArea.hover.background = null;
+
             if (!_group)
             {
                 var c_position = Control.PointToScreen(Point.Zero);
@@ -707,6 +709,7 @@ namespace System.Drawing
             }
 
             GUI.color = brush.Color.ToUColor();
+            GUI.skin.textField.hover.background = null;
 
             if (!_group)
             {

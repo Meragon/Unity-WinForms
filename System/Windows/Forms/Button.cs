@@ -11,10 +11,8 @@ namespace System.Windows.Forms
     {
         internal ColorF currentBackColor;
         private Color _normalColor;
-
-#if UNITY_EDITOR
+        
         private bool _toggleEditor = true;
-#endif
 
         public virtual Color HoverBorderColor { get; set; }
         public virtual Color HoverColor { get; set; }
@@ -48,7 +46,7 @@ namespace System.Windows.Forms
 
             currentBackColor = NormalColor;
         }
-
+        
         protected override void OnKeyUp(KeyEventArgs e)
         {
             base.OnKeyUp(e);
@@ -59,7 +57,7 @@ namespace System.Windows.Forms
         {
             Graphics g = e.Graphics;
 
-            if ((!Hovered && !Focused) || !Enabled)
+            if ((!Hovered) || !Enabled)
             {
                 currentBackColor = MathCustom.ColorLerp(currentBackColor, NormalColor, 5);
 
@@ -104,8 +102,7 @@ namespace System.Windows.Forms
         protected override object OnPaintEditor(float width)
         {
             var control = base.OnPaintEditor(width);
-
-#if UNITY_EDITOR
+            
             Editor.BeginVertical();
             Editor.NewLine(1);
 
@@ -143,7 +140,6 @@ namespace System.Windows.Forms
                 Editor.EndGroup();
             }
             Editor.EndVertical();
-#endif
 
             return control;
         }

@@ -60,7 +60,7 @@ namespace System.Windows.Forms
             }
             _lastWidth = UnityEngine.Screen.width;
             _lastHeight = UnityEngine.Screen.height;
-            
+
             _controller.Update();
         }
         private void OnApplicationFocus(bool focusStatus)
@@ -76,7 +76,8 @@ namespace System.Windows.Forms
                 _controller.ProccessKeys();
             }
 
-            GUI.skin = Skin;
+            if (Skin != null)
+                GUI.skin = Skin;
             _controller.Draw();
         }
     }

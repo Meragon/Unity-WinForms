@@ -6,12 +6,13 @@ using System.Windows.Forms;
 
 namespace System.Drawing
 {
-#if UNITY_EDITOR
     public class Editor
     {
         private static float _width { get; set; }
         private static float _nameWidth { get; set; }
         private static float _contentWidth { get; set; }
+
+        public static bool WinFormsCompatible { get; set; }
 
         public static void BeginGroup(float width)
         {
@@ -49,7 +50,7 @@ namespace System.Drawing
         {
             UnityEngine.GUILayout.BeginHorizontal();
             UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            var boolBuffer = UnityEngine.GUILayout.Toolbar(value ? 0 : 1, new string[] { "On", "Off" }, UnityEngine.GUILayout.Width(_contentWidth)) == 0 ? true : false;
+            var boolBuffer = UnityEngine.GUILayout.Toolbar(value ? 0 : 1, new string[] { "On", "Off" }, UnityEngine.GUILayout.Width(_contentWidth - 48)) == 0 ? true : false;
             UnityEngine.GUILayout.EndHorizontal();
 
             return new EditorValue<bool>(boolBuffer, boolBuffer != value);
@@ -71,11 +72,30 @@ namespace System.Drawing
         {
             return UnityEngine.GUILayout.Button(text, UnityEngine.GUILayout.Width(width));
         }
-        public static EditorValue<Color> ColorField(string name, Color value)
+        public static EditorValue<Color> ColorField(string name, Color value, Action<Color> setColor = null)
         {
             UnityEngine.GUILayout.BeginHorizontal();
             UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            var colorBuffer = System.Drawing.Color.FromUColor(UnityEditor.EditorGUILayout.ColorField(value.ToUColor(), UnityEngine.GUILayout.Width(_contentWidth)));
+            Color colorBuffer = value;
+            if (WinFormsCompatible)
+            {
+                if (Button(value.ToString()))
+                {
+                    ColorPicker colorPicker = new ColorPicker();
+                    ColorPickerForm colorForm = new ColorPickerForm(colorPicker);
+                    colorForm.Color = value;
+                    colorForm.Show();
+                    colorForm.ColorChanged += (s, a) =>
+                    {
+                        if (setColor != null)
+                            setColor.Invoke(colorForm.Color);
+                    };
+                }
+            }
+#if UNITY_EDITOR
+            else
+                colorBuffer = System.Drawing.Color.FromUColor(UnityEditor.EditorGUILayout.ColorField(value.ToUColor(), UnityEngine.GUILayout.Width(_contentWidth)));
+#endif
             UnityEngine.GUILayout.EndHorizontal();
 
             return new EditorValue<Color>(colorBuffer, colorBuffer != value);
@@ -84,14 +104,30 @@ namespace System.Drawing
         {
             UnityEngine.GUILayout.BeginHorizontal();
             UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            var enumBuffer = UnityEditor.EditorGUILayout.EnumPopup(value, UnityEngine.GUILayout.Width(_contentWidth));
+            var enumBuffer = value;
+            if (WinFormsCompatible)
+            {
+
+            }
+#if UNITY_EDITOR
+            else
+                enumBuffer = UnityEditor.EditorGUILayout.EnumPopup(value, UnityEngine.GUILayout.Width(_contentWidth));
+#endif
             UnityEngine.GUILayout.EndHorizontal();
 
             return new EditorValue<Enum>(enumBuffer, enumBuffer != value);
         }
         public static bool Foldout(string name, bool value)
         {
-            return UnityEditor.EditorGUILayout.Foldout(value, name);
+            if (WinFormsCompatible)
+            {
+                return Toggle(name, value);
+            }
+#if UNITY_EDITOR
+            else
+                return UnityEditor.EditorGUILayout.Foldout(value, name);
+#endif
+            return false;
         }
         public static void Header(string text)
         {
@@ -121,10 +157,18 @@ namespace System.Drawing
             UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
 
             bool changed = false;
-            int[] intBuffer = new int[value.Length];
+            int[] intBuffer = value;
             for (int i = 0; i < value.Length; i++)
             {
-                intBuffer[i] = UnityEditor.EditorGUILayout.IntField(value[i], UnityEngine.GUILayout.Width(_contentWidth / value.Length));
+                if (WinFormsCompatible)
+                {
+                    var valueBuffer = UnityEngine.GUILayout.TextField(value[i].ToString(), UnityEngine.GUILayout.Width(_contentWidth / value.Length));
+                    int.TryParse(valueBuffer, out intBuffer[i]);
+                }
+#if UNITY_EDITOR
+                else
+                    intBuffer[i] = UnityEditor.EditorGUILayout.IntField(value[i], UnityEngine.GUILayout.Width(_contentWidth / value.Length));
+#endif
                 if (intBuffer[i] != value[i])
                     changed = true;
             }
@@ -141,7 +185,15 @@ namespace System.Drawing
         {
             UnityEngine.GUILayout.BeginHorizontal();
             UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            var objectBuffer = UnityEditor.EditorGUILayout.ObjectField(value, type, UnityEngine.GUILayout.Width(_contentWidth));
+            UnityEngine.Object objectBuffer = value;
+            if (WinFormsCompatible)
+            {
+
+            }
+#if UNITY_EDITOR
+            else
+                objectBuffer = UnityEditor.EditorGUILayout.ObjectField(value, type, UnityEngine.GUILayout.Width(_contentWidth));
+#endif
             UnityEngine.GUILayout.EndHorizontal();
 
             return new EditorValue<UnityEngine.Object>(objectBuffer, objectBuffer != value);
@@ -150,7 +202,15 @@ namespace System.Drawing
         {
             UnityEngine.GUILayout.BeginHorizontal();
             UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            var intBuffer = UnityEditor.EditorGUILayout.Popup(index, values, UnityEngine.GUILayout.Width(_contentWidth - 8));
+            int intBuffer = 0;
+            if (WinFormsCompatible)
+            {
+
+            }
+#if UNITY_EDITOR
+            else
+                intBuffer = UnityEditor.EditorGUILayout.Popup(index, values, UnityEngine.GUILayout.Width(_contentWidth - 8));
+#endif
             UnityEngine.GUILayout.EndHorizontal();
 
             return new EditorValue<int>(intBuffer, intBuffer != index);
@@ -159,7 +219,16 @@ namespace System.Drawing
         {
             UnityEngine.GUILayout.BeginHorizontal();
             UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            var floatBuffer = UnityEditor.EditorGUILayout.Slider(value, min, max, UnityEngine.GUILayout.Width(_contentWidth - 8));
+            float floatBuffer = value;
+            if (WinFormsCompatible)
+            {
+                floatBuffer = UnityEngine.GUILayout.HorizontalSlider(value, min, max, UnityEngine.GUILayout.Width(_contentWidth - 96));
+                UnityEngine.GUILayout.TextField(floatBuffer.ToString(), UnityEngine.GUILayout.Width(32));
+            }
+#if UNITY_EDITOR
+            else
+                floatBuffer = UnityEditor.EditorGUILayout.Slider(value, min, max, UnityEngine.GUILayout.Width(_contentWidth - 8));
+#endif
             UnityEngine.GUILayout.EndHorizontal();
 
             return new EditorValue<float>(floatBuffer, floatBuffer != value);
@@ -178,7 +247,6 @@ namespace System.Drawing
             return UnityEngine.GUILayout.Toggle(value, name, UnityEngine.GUILayout.Width(_width));
         }
     }
-#endif
 
     public struct EditorValue<T>
     {
