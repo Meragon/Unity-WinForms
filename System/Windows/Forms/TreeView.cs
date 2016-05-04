@@ -19,10 +19,10 @@ namespace System.Windows.Forms
         private bool _scrollVisible = false; // smooth scrolling.
         private bool _scroll;
         private bool _scrollHovered;
-        private float _scrollIndex;
-        private float _scrollY;
-        private float _scrollHeight;
-        private float _scrollWidth = 10;
+        protected float scrollIndex;
+        private float _scrollbarY;
+        private float _scrollbarHeight;
+        private float _scrollbarWidth = 10;
         private float _scrollStartY;
         private float _scroll_ItemsEstimatedHeigh;
         private List<TreeNode> _scrollNodeList;
@@ -35,7 +35,7 @@ namespace System.Windows.Forms
         public ImageList ImageList { get { return _imageList; } set { _imageList = value; } }
         public int ItemHeight { get; set; }
         public TreeNodeCollection Nodes { get { return _nodes; } private set { _nodes = value; } }
-        public float ScrollIndex { get { return _scrollIndex; } internal set { _scrollIndex = value; } }
+        public float ScrollIndex { get { return scrollIndex; } internal set { scrollIndex = value; } }
         public float ScrollSpeed { get; set; }
         public TreeNode SelectedNode { get; set; }
         public Color SelectionColor { get; set; }
@@ -70,15 +70,15 @@ namespace System.Windows.Forms
         {
             if (SelectedNode != null)
             {
-                if (_scrollIndex > SelectedNode.Bounds.Y)
+                if (scrollIndex > SelectedNode.Bounds.Y)
                 {
                     
-                    _scrollIndex = SelectedNode.Bounds.Y;
+                    scrollIndex = SelectedNode.Bounds.Y;
                     _UpdateScrollList();
                 }
-                if (_scrollIndex + Height < SelectedNode.Bounds.Y + ItemHeight)
+                if (scrollIndex + Height < SelectedNode.Bounds.Y + ItemHeight)
                 {
-                    _scrollIndex = SelectedNode.Bounds.Y + ItemHeight - Height;
+                    scrollIndex = SelectedNode.Bounds.Y + ItemHeight - Height;
                     _UpdateScrollList();
                 }
             }
@@ -95,22 +95,22 @@ namespace System.Windows.Forms
         {
             if (_nodeList == null || _nodeList.Count == 0)
             {
-                _scrollIndex = 0;
+                scrollIndex = 0;
                 return;
             }
 
             if (SmoothScrolling == false)
-                _scrollIndex = (float)Math.Ceiling(_scrollIndex / ItemHeight) * ItemHeight;
+                scrollIndex = (float)Math.Ceiling(scrollIndex / ItemHeight) * ItemHeight;
 
-            if (_scrollIndex > _nodeList.Last().Bounds.Y + ItemHeight - Height) _scrollIndex = _nodeList.Last().Bounds.Y + ItemHeight - Height;
-            if (_scrollIndex < 0) _scrollIndex = 0;
+            if (scrollIndex > _nodeList.Last().Bounds.Y + ItemHeight - Height) scrollIndex = _nodeList.Last().Bounds.Y + ItemHeight - Height;
+            if (scrollIndex < 0) scrollIndex = 0;
         }
         private TreeNode _GetNodeAtPosition(TreeNode rootNode, Point position)
         {
             if (rootNode != root && rootNode.IsVisible)
             {
                 int nodeWidth = Width;
-                var rootNodeRect = new Rectangle(rootNode.Bounds.X, rootNode.Bounds.Y - (int)_scrollIndex, nodeWidth, rootNode.Bounds.Height);
+                var rootNodeRect = new Rectangle(rootNode.Bounds.X, rootNode.Bounds.Y - (int)scrollIndex, nodeWidth, rootNode.Bounds.Height);
                 if (UseNodeBoundsForSelection == false) rootNodeRect.X = 0;
                 if (rootNodeRect.Contains(position))
                     return rootNode;
@@ -143,7 +143,7 @@ namespace System.Windows.Forms
         {
             // Node drawing.
             e.Graphics.FillRectangle(new SolidBrush(e.Node.BackColor), e.Node.Bounds);
-            if (e.Node.IsSelected) e.Graphics.FillRectangle(new SolidBrush(SelectionColor), UseNodeBoundsForSelection ? e.Node.Bounds.X : 0, e.Node.Bounds.Y - (int)_scrollIndex, Width, ItemHeight);
+            if (e.Node.IsSelected) e.Graphics.FillRectangle(new SolidBrush(SelectionColor), UseNodeBoundsForSelection ? e.Node.Bounds.X : 0, e.Node.Bounds.Y - (int)scrollIndex, Width, ItemHeight);
 
             bool hasImage = false;
             int imageWidth = 0;
@@ -152,7 +152,7 @@ namespace System.Windows.Forms
                 var image = ImageList.Images[e.Node.ImageIndex];
                 if (image != null && image.uTexture != null)
                 {
-                    e.Graphics.DrawTexture(image.uTexture, e.Node.Bounds.X, e.Node.Bounds.Y + e.Node.Bounds.Height / 2 - image.Height / 2 - (int)_scrollIndex, image.Width, image.Height, e.Node.ImageColor);
+                    e.Graphics.DrawTexture(image.uTexture, e.Node.Bounds.X, e.Node.Bounds.Y + e.Node.Bounds.Height / 2 - image.Height / 2 - (int)scrollIndex, image.Width, image.Height, e.Node.ImageColor);
                     hasImage = true;
                     imageWidth = image.Width;
                 }
@@ -160,7 +160,7 @@ namespace System.Windows.Forms
 
             string stringToDraw = e.Node.Text;
             if (stringToDraw == null && e.Node.Tag != null) stringToDraw = e.Node.Tag.ToString();
-            e.Graphics.DrawString(stringToDraw, Font, new SolidBrush(e.Node.ForeColor), e.Node.Bounds.X + (hasImage ? imageWidth + 2 : 0), e.Node.Bounds.Y - (int)_scrollIndex - 2, (WrapText ? Width : Width * 16), e.Bounds.Height + 4, ContentAlignment.MiddleLeft);
+            e.Graphics.DrawString(stringToDraw, Font, new SolidBrush(e.Node.ForeColor), e.Node.Bounds.X + (hasImage ? imageWidth + 2 : 0), e.Node.Bounds.Y - (int)scrollIndex - 2, (WrapText ? Width : Width * 16), e.Bounds.Height + 4, ContentAlignment.MiddleLeft);
             // End of drawing.
 
             DrawNode(this, e);
@@ -228,13 +228,13 @@ namespace System.Windows.Forms
         {
             _scrollNodeList = new List<TreeNode>();
 
-            int startNode = (int)(_scrollIndex / ItemHeight) - 1;
+            int startNode = (int)(scrollIndex / ItemHeight) - 1;
             if (startNode < 0) startNode = 0;
             int nodesOnScreen = Height / ItemHeight + 3; // Magic number.
 
             for (int i = startNode; i < startNode + nodesOnScreen && i < _nodeList.Count; i++)
             {
-                if (_nodeList[i].Bounds.Y + _nodeList[i].Bounds.Height > 0 && _nodeList[i].Bounds.Y - (int)_scrollIndex < Height)
+                if (_nodeList[i].Bounds.Y + _nodeList[i].Bounds.Height > 0 && _nodeList[i].Bounds.Y - (int)scrollIndex < Height)
                 {
                     _scrollNodeList.Add(_nodeList[i]);
                 }
@@ -292,7 +292,7 @@ namespace System.Windows.Forms
                 var mclient = PointToClient(MousePosition);
 
                 _scroll = true;
-                _scrollStartY = mclient.Y - _scrollY;
+                _scrollStartY = mclient.Y - _scrollbarY;
                 return;
             }
 
@@ -305,7 +305,7 @@ namespace System.Windows.Forms
         protected override void OnMouseHover(EventArgs e)
         {
             var mclient = PointToClient(MousePosition);
-            RectangleF _scrollRect = new RectangleF(Width - _scrollWidth, _scrollY, _scrollWidth, _scrollHeight);
+            RectangleF _scrollRect = new RectangleF(Width - _scrollbarWidth, _scrollbarY, _scrollbarWidth, _scrollbarHeight);
             if (_scrollRect.Contains(mclient))
                 _scrollHovered = true;
             else
@@ -317,7 +317,7 @@ namespace System.Windows.Forms
             {
                 var mclient = PointToClient(MousePosition);
 
-                _scrollIndex = (mclient.Y - _scrollStartY) * (_scroll_ItemsEstimatedHeigh / Height);
+                scrollIndex = (mclient.Y - _scrollStartY) * (_scroll_ItemsEstimatedHeigh / Height);
 
                 _FixScrollIndex();
                 _UpdateScrollList();
@@ -334,7 +334,7 @@ namespace System.Windows.Forms
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            _scrollIndex -= e.Delta * ScrollSpeed;
+            scrollIndex -= e.Delta * ScrollSpeed;
 
             _FixScrollIndex();
             _UpdateScrollList();
@@ -359,11 +359,11 @@ namespace System.Windows.Forms
                 if (_scrollHovered || _scroll) _scrollColor = Color.FromArgb(136, 136, 136);
 
                 float _scrollYCoeff = Height / _scroll_ItemsEstimatedHeigh;
-                _scrollHeight = Height * _scrollYCoeff;
-                if (_scrollHeight < 8) _scrollHeight = 8;
-                _scrollY = _scrollIndex * _scrollYCoeff;
+                _scrollbarHeight = Height * _scrollYCoeff;
+                if (_scrollbarHeight < 8) _scrollbarHeight = 8;
+                _scrollbarY = scrollIndex * _scrollYCoeff;
 
-                e.Graphics.FillRectangle(new SolidBrush(_scrollColor), Width - _scrollWidth + 2, _scrollY, _scrollWidth - 2, _scrollHeight);
+                e.Graphics.FillRectangle(new SolidBrush(_scrollColor), Width - _scrollbarWidth + 2, _scrollbarY, _scrollbarWidth - 2, _scrollbarHeight);
             }
             #endregion
 

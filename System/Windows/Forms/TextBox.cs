@@ -94,7 +94,7 @@ namespace System.Windows.Forms
                 }
             }
             else
-                g.DrawString(Text, Font, new SolidBrush(ForeColor), new RectangleF(4, 0, Width - 8, Height));
+                g.DrawString(Text, Font, new SolidBrush(ForeColor), new RectangleF(Padding.Left, Padding.Top, Width - Padding.Left - Padding.Right, Height - Padding.Bottom - Padding.Top));
 
             g.DrawRectangle(new Pen(_hovered ? BorderHoverColor : BorderColor), 0, 0, Width, Height);
         }

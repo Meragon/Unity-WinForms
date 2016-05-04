@@ -157,7 +157,7 @@ namespace System.Drawing
             UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
 
             bool changed = false;
-            int[] intBuffer = value;
+            int[] intBuffer = new int[value.Length];
             for (int i = 0; i < value.Length; i++)
             {
                 if (WinFormsCompatible)

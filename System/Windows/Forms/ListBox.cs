@@ -223,7 +223,7 @@ namespace System.Windows.Forms
             if (Items.Count > _visibleItems)
                 _scrollVisible = true;
 
-            if (_scrollVisible)
+            if (_scrollVisible && Items.Count > 0)
             {
                 _scrollX = Width - _scrollWidth;
                 _scrollY = ScrollIndex * Height / Items.Count;
