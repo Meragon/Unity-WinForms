@@ -9,7 +9,7 @@ namespace System.Drawing
 {
     public sealed class Graphics : IDeviceContext, IDisposable
     {
-        private bool _group { get { return _groupControls.Count > 0; } }
+        internal bool _group { get { return _groupControls.Count > 0; } }
         private Control _groupControlLast { get { return _groupControls[_groupControls.Count - 1]; } }
         private List<Control> _groupControls = new List<Control>();
 
@@ -117,6 +117,7 @@ namespace System.Drawing
         }
         public void DrawImage(Image image, float x, float y, float width, float height)
         {
+            if (image == null) return;
             DrawTexture(image.uTexture, x, y, width, height, image.Color);
         }
         public void DrawLine(Pen pen, int x1, int y1, int x2, int y2)
@@ -125,6 +126,8 @@ namespace System.Drawing
         }
         public void DrawLine(Pen pen, float x1, float y1, float x2, float y2)
         {
+            if (pen.Color.A <= 0) return;
+
             if (GL_Lines)
             {
                 GL.Begin(GL.LINES);
@@ -146,6 +149,8 @@ namespace System.Drawing
 
             if (x1 != x2 && y1 != y2)
             {
+                Control.Batches++;
+
                 float xDiff = x2 - x1;
                 float yDiff = y2 - y1;
                 var angle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
@@ -190,6 +195,8 @@ namespace System.Drawing
             GUI.color = pen.Color.ToUColor();
             if (!_group)
             {
+                Control.Batches++;
+
                 Point c_position = Point.Empty;
                 if (Control != null)
                     c_position = Control.PointToScreen(Point.Zero);
@@ -207,6 +214,7 @@ namespace System.Drawing
                 switch (pen.DashStyle)
                 {
                     case Drawing2D.DashStyle.Solid:
+                        Control.Batches++;
                         GUI.DrawTexture(new Rect(position.X, position.Y, width, height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                         break;
                     case Drawing2D.DashStyle.Dash:
@@ -217,6 +225,7 @@ namespace System.Drawing
                                 float dash_width = dash_step - 2;
                                 if (i + dash_width > width)
                                     dash_width = width - i;
+                                Control.Batches++;
                                 GUI.DrawTexture(new Rect(position.X + i, position.Y, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                             }
 
@@ -226,6 +235,7 @@ namespace System.Drawing
                                 float dash_height = dash_step - 2;
                                 if (i + dash_height > height)
                                     dash_height = height - i;
+                                Control.Batches++;
                                 GUI.DrawTexture(new Rect(position.X + width - pen.Width, position.Y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                             }
                         break;
@@ -350,7 +360,7 @@ namespace System.Drawing
         public void DrawRectangle(Pen pen, float x, float y, float width, float height)
         {
             if (NoRects) return;
-            if (pen.Color == Color.Transparent) return;
+            if (pen.Color.A <= 0) return;
             GUI.color = pen.Color.ToUColor();
 
             /*if (Control.Batched)
@@ -364,17 +374,28 @@ namespace System.Drawing
             {
                 Point c_position = Point.Empty;
                 if (Control != null)
+                {
                     c_position = Control.PointToScreen(Point.Zero);
+                    Control.Batches += 2;
+                }
                 // Top.
                 GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                 // Right.
                 GUI.DrawTexture(new Rect(c_position.X + x + width - pen.Width, c_position.Y + y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                 // Bottom.
                 if (height > 1)
+                {
+                    if (Control != null)
+                        Control.Batches++;
                     GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y + height - pen.Width, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                }
                 // Left.
                 if (width > 1)
+                {
+                    if (Control != null)
+                        Control.Batches++;
                     GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                }
             }
             else
             {
@@ -432,12 +453,23 @@ namespace System.Drawing
                         tex.Apply();
                         Control.BatchedTexture = tex;*/
 
+                        if (Control != null)
+                            Control.Batches += 2;
+
                         GUI.DrawTexture(new Rect(position.X, position.Y, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                         GUI.DrawTexture(new Rect(position.X + width - pen.Width, position.Y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                         if (height > 1)
+                        {
+                            if (Control != null)
+                                Control.Batches++;
                             GUI.DrawTexture(new Rect(position.X, position.Y + height - pen.Width, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                        }
                         if (width > 1)
+                        {
+                            if (Control != null)
+                                Control.Batches++;
                             GUI.DrawTexture(new Rect(position.X, position.Y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                        }
 
                         break;
                     case Drawing2D.DashStyle.Dash:
@@ -447,6 +479,8 @@ namespace System.Drawing
                             float dash_width = dash_step - 2;
                             if (i + dash_width > width)
                                 dash_width = width - i;
+                            if (Control != null)
+                                Control.Batches += 2;
                             GUI.DrawTexture(new Rect(position.X + i, position.Y, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Top.
                             GUI.DrawTexture(new Rect(position.X + i, position.Y + height - pen.Width, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Bottom.
                         }
@@ -455,6 +489,8 @@ namespace System.Drawing
                             float dash_height = dash_step - 2;
                             if (i + dash_height > height)
                                 dash_height = height - i;
+                            if (Control != null)
+                                Control.Batches += 2;
                             GUI.DrawTexture(new Rect(position.X + width - pen.Width, position.Y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Right.
                             GUI.DrawTexture(new Rect(position.X, position.Y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Left.
                         }
@@ -493,6 +529,12 @@ namespace System.Drawing
         public void DrawString(string s, Font font, Color color, float x, float y, float width, float height, ContentAlignment alignment)
         {
             if (NoStrings) return;
+            if (color.A <= 0) return;
+            if (string.IsNullOrEmpty(s)) return;
+
+            if (Control != null)
+                Control.Batches += 1;
+
             GUI.skin.label.alignment = TextAnchor.UpperLeft;
             switch (alignment)
             {
@@ -607,6 +649,8 @@ namespace System.Drawing
             if (Control == null) return s;
             if (s == null) s = "";
 
+            Control.Batches++;
+
             GUI.skin.textArea.alignment = TextAnchor.UpperLeft;
 
             GUI.color = brush.Color.ToUColor();
@@ -641,6 +685,9 @@ namespace System.Drawing
             }
 
             GUI.skin.textArea.hover.background = null;
+            GUI.skin.textArea.active.background = null;
+            GUI.skin.textArea.focused.background = null;
+            GUI.skin.textArea.normal.background = null;
 
             if (!_group)
             {
@@ -664,6 +711,8 @@ namespace System.Drawing
         {
             if (Control == null) return s;
             if (s == null) s = "";
+
+            Control.Batches++;
 
             GUI.skin.textField.alignment = TextAnchor.UpperLeft;
             switch (alignment)
@@ -710,6 +759,9 @@ namespace System.Drawing
 
             GUI.color = brush.Color.ToUColor();
             GUI.skin.textField.hover.background = null;
+            GUI.skin.textField.active.background = null;
+            GUI.skin.textField.focused.background = null;
+            GUI.skin.textField.normal.background = null;
 
             if (!_group)
             {
@@ -745,6 +797,8 @@ namespace System.Drawing
         {
             if (Control == null || texture == null) return;
 
+            Control.Batches++;
+
             GUI.color = color.ToUColor();
             if (!_group)
             {
@@ -778,6 +832,8 @@ namespace System.Drawing
         public void DrawTexture(Texture texture, float x, float y, float width, float height, Material mat)
         {
             if (Control == null) return;
+
+            Control.Batches++;
 
             GUI.color = Color.White.ToUColor();
             if (!_group)
@@ -821,7 +877,7 @@ namespace System.Drawing
             for (int i = 1; i + 1 < points.Length; i += 1)
             {
                 GL.Begin(GL.TRIANGLES);
-                
+
 
                 GL.Color(brush.Color.ToUColor());
                 GL.Vertex3(points[0].X, points[1].Y, 0);
@@ -846,9 +902,9 @@ namespace System.Drawing
         public void FillRectangle(Color color, float x, float y, float width, float height)
         {
             if (NoFill) return;
-            //if (Control == null) return;
-            if (color == Color.Transparent) return;
+            if (color.A <= 0) return;
 
+            if (Control != null) Control.Batches += 1;
             //x += Control.Offset.X;
             //y += Control.Offset.Y;
 

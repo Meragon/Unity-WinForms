@@ -17,6 +17,7 @@ namespace System.Windows.Forms
 
         public Label()
         {
+            BackColor = Color.Transparent;
             Padding = new Forms.Padding(4, 0, 8, 0);
             Size = new Drawing.Size(128, 20);
             TabIndex = -1;

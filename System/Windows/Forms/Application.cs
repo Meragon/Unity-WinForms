@@ -22,6 +22,7 @@ namespace System.Windows.Forms
         private static float _mouseWheelDelta;
         private static System.Drawing.PointF _mouseMovePosition;
         private static bool _mouseFoundHoveredControl;
+        private PaintEventArgs _paintEventArgs;
 
         internal List<Control> Controls = new List<Control>();
         internal List<Control> BringToFrontControls = new List<Control>();
@@ -185,19 +186,46 @@ namespace System.Windows.Forms
                 control.RaiseOnMouseLeave(null);
             return false;
         }
+        private static Keys _UKeyToKey(UnityEngine.KeyCode ukey)
+        {
+            Keys key = Keys.None;
+            Keys mod = Keys.None; // TODO: return KeyEventArgs with this mod
+
+            switch (ukey)
+            {
+                case KeyCode.Backspace: key = Keys.Back; break;
+                case KeyCode.Tab: key = Keys.Tab; break;
+                case KeyCode.Clear: key = Keys.Clear; break;
+                case KeyCode.Return: key = Keys.Return; break;
+                case KeyCode.Pause: key = Keys.Pause; break;
+                case KeyCode.Escape: key = Keys.Escape; break;
+                case KeyCode.Space: key = Keys.Space; break;
+
+                case KeyCode.Exclaim: key = Keys.D1; mod = Keys.Shift; break;
+                case KeyCode.DoubleQuote: key = Keys.D2; mod = Keys.Shift; break;
+                case KeyCode.Hash: key = Keys.D3; mod = Keys.Shift; break;
+                case KeyCode.Dollar: key = Keys.D4; mod = Keys.Shift; break;
+                case KeyCode.Ampersand: key = Keys.D5; mod = Keys.Shift; break;
+                case KeyCode.Quote: key = Keys.OemQuotes; break;
+            }
+
+            UnityEngine.Debug.Log(key.ToString() + " mod: " + mod.ToString());
+
+            return key;
+        }
 
         public Application()
         {
             TabSwitching = true;
+
+            _paintEventArgs = new PaintEventArgs();
+            _paintEventArgs.Graphics = new Drawing.Graphics();
         }
 
         public void Draw()
         {
             GUI.color = Color.white;
-
-            PaintEventArgs args = new PaintEventArgs();
-            args.Graphics = new System.Drawing.Graphics();
-
+            
             for (int i = 0; i < Controls.Count; i++)
             {
                 if (!_ControlVisible(Controls[i])) continue;
@@ -235,10 +263,10 @@ namespace System.Windows.Forms
                         }
                     }
                     if (!simpleCulling)
-                        Controls[i].RaiseOnPaint(args);
+                        Controls[i].RaiseOnPaint(_paintEventArgs);
                 }
                 else
-                    Controls[i].RaiseOnPaint(args);
+                    Controls[i].RaiseOnPaint(_paintEventArgs);
             }
             // Top.
             for (int i = 0; i < Controls.Count; i++)
@@ -250,7 +278,7 @@ namespace System.Windows.Forms
                     if (currentAbspos.X + Controls[i].Width < 0 || currentAbspos.X > UnityEngine.Screen.width ||
                     currentAbspos.Y + Controls[i].Height < 0 || currentAbspos.Y > UnityEngine.Screen.height)
                         continue;*/
-                    Controls[i].RaiseOnPaint(args);
+                    Controls[i].RaiseOnPaint(_paintEventArgs);
                 }
             }
 
@@ -264,7 +292,7 @@ namespace System.Windows.Forms
             }
 
             // ToolTip.
-            ToolTip.OnPaint(args);
+            ToolTip.OnPaint(_paintEventArgs);
         }
         public void ProccessKeys()
         {
@@ -275,6 +303,8 @@ namespace System.Windows.Forms
                 args.Modifiers = Event.current.modifiers;
                 if ((args.Modifiers & EventModifiers.FunctionKey) != 0)
                     args.Modifiers &= ~EventModifiers.FunctionKey;
+
+                //_UKeyToKey(args.KeyCode); // testing...
 
                 // HotKey for control.
                 var _hotKey = _hotKeys.Find(x => x.hWnd != null && x.Key == args.KeyCode && x.Modifier == args.Modifiers);

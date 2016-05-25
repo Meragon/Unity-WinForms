@@ -111,11 +111,8 @@ namespace System.Windows.Forms
             {
                 Editor.BeginGroup(width - 24);
 
-                var editorHoverBorderColor = Editor.ColorField("      HoverBorderColor", HoverBorderColor);
-                if (editorHoverBorderColor.Changed) HoverBorderColor = editorHoverBorderColor;
-
-                var editorHoverColor = Editor.ColorField("      HoverColor", HoverColor);
-                if (editorHoverColor.Changed) HoverColor = editorHoverColor;
+                Editor.ColorField("      HoverBorderColor", HoverBorderColor, (c) => { HoverBorderColor = c; });
+                Editor.ColorField("      HoverColor", HoverColor, (c) => { HoverColor = c; });
 
                 var editorImage = Editor.ObjectField("      Image", Image, typeof(UnityEngine.Texture2D));
                 if (editorImage.Changed) Image = new Bitmap((UnityEngine.Texture2D)editorImage.Value);
@@ -123,14 +120,9 @@ namespace System.Windows.Forms
                 var editorImageHover = Editor.ObjectField("      ImageHover", ImageHover, typeof(UnityEngine.Texture2D));
                 if (editorImageHover.Changed) ImageHover = new Bitmap((UnityEngine.Texture2D)editorImageHover.Value);
 
-                var editorImageColor = Editor.ColorField("      ImageColor", ImageColor);
-                if (editorImageColor.Changed) ImageColor = editorImageColor;
-
-                var editorNormalBorderColor = Editor.ColorField("      NormalBorderColor", NormalBorderColor);
-                if (editorNormalBorderColor.Changed) NormalBorderColor = editorNormalBorderColor;
-
-                var editorNormalColor = Editor.ColorField("      NormalColor", NormalColor);
-                if (editorNormalColor.Changed) NormalColor = editorNormalColor;
+                Editor.ColorField("      ImageColor", ImageColor, (c) => { ImageColor = c; });
+                Editor.ColorField("      NormalBorderColor", NormalBorderColor, (c) => { NormalBorderColor = c; });
+                Editor.ColorField("      NormalColor", NormalColor, (c) => { NormalColor = c; });
 
                 var editorTextAlign = Editor.EnumField("      TextAlign", TextAlign);
                 if (editorTextAlign.Changed) TextAlign = (ContentAlignment)editorTextAlign.Value;

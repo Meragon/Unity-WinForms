@@ -9,6 +9,7 @@ namespace System.Windows.Forms
     public abstract class FileDialog : Form
     {
         public static Bitmap FolderNavBack { get; set; }
+        public static Bitmap FolderNavRefresh { get; set; }
         public static Bitmap FolderNavUp { get; set; }
 
         internal FileRender fileRender;
@@ -17,10 +18,11 @@ namespace System.Windows.Forms
         protected Button buttonCancel;
         protected Button buttonBack;
         protected Button buttonUp;
+        protected Button buttonRefresh;
 
         protected TextBox textBoxPath;
         protected Label labelFilename;
-        protected TextBox textBoxFile;
+        protected TextBox textBoxFilename;
         protected ComboBox comboFilter;
 
         public string FileName { get; set; }
@@ -28,7 +30,7 @@ namespace System.Windows.Forms
         public Bitmap ImageFile { get; set; }
         public Bitmap ImageFolder { get; set; }
 
-        private string currentFilter
+        protected string currentFilter
         {
             get
             {
@@ -44,17 +46,21 @@ namespace System.Windows.Forms
 #if !UNITY_STANDALONE
             throw new NotSupportedException();
 #endif
+            BackColor = Color.White;
             Filter = "All files|*.*";
             MinimumSize = new Drawing.Size(240, 240);
+            Padding = new Padding(12, 12, 12, 12);
+            ResizeIcon = true;
             Size = new Drawing.Size(540, 320);
             Text = "File Dialog";
 
+            #region Button Back.
             buttonBack = new Button();
             buttonBack.BackgroundImageLayout = ImageLayout.Center;
             buttonBack.Enabled = false;
             buttonBack.Font = new Drawing.Font("Arial", 16, FontStyle.Bold);
             buttonBack.Image = FolderNavBack;
-            buttonBack.Location = new Point(8, HeaderHeight);
+            buttonBack.Location = new Point(Padding.Left, HeaderHeight + Padding.Top);
             buttonBack.NormalColor = Color.Transparent;
             buttonBack.NormalBorderColor = Color.Transparent;
             buttonBack.Size = new Size(22, 22);
@@ -66,6 +72,11 @@ namespace System.Windows.Forms
             };
             Controls.Add(buttonBack);
 
+            ToolTip buttonBackTooltip = new ToolTip();
+            buttonBackTooltip.SetToolTip(buttonBack, "Back");
+            #endregion;
+
+            #region Button Up.
             buttonUp = new Button();
             buttonUp.BackgroundImageLayout = ImageLayout.Center;
             buttonUp.Font = new Drawing.Font("Arial", 16, FontStyle.Bold);
@@ -81,16 +92,42 @@ namespace System.Windows.Forms
             };
             Controls.Add(buttonUp);
 
+            ToolTip buttonUpTooltip = new ToolTip();
+            buttonUpTooltip.SetToolTip(buttonUp, "Up");
+            #endregion
+
+            #region Button Refresh.
+            buttonRefresh = new Button();
+            buttonRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            buttonRefresh.Image = FolderNavRefresh;
+            buttonRefresh.NormalColor = Color.Transparent;
+            buttonRefresh.NormalBorderColor = Color.Transparent;
+            buttonRefresh.Size = new Size(22, 22);
+            buttonRefresh.Location = new Point(Width - Padding.Right - buttonRefresh.Width, buttonUp.Location.Y);
+            buttonRefresh.Click += (sender, args) =>
+            {
+                fileRender.SetDirectory(fileRender.currentPath);
+            };
+            if (buttonRefresh.Image == null) buttonRefresh.Text = "R";
+            Controls.Add(buttonRefresh);
+
+            ToolTip buttonRefreshTooltip = new ToolTip();
+            buttonRefreshTooltip.SetToolTip(buttonRefresh, "Refresh");
+            #endregion
+
+            #region Textbox Path.
             textBoxPath = new TextBox();
             textBoxPath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             textBoxPath.Font = new Drawing.Font("Arial", 14);
             textBoxPath.Location = new Point(buttonUp.Location.X + buttonUp.Width + 8, buttonUp.Location.Y);
-            textBoxPath.Size = new Drawing.Size(Width - 8 - textBoxPath.Location.X, buttonBack.Height);
+            textBoxPath.Size = new Drawing.Size(Width - textBoxPath.Location.X - Padding.Right - buttonRefresh.Width - 8, buttonBack.Height);
             Controls.Add(textBoxPath);
+            #endregion
 
+            #region Button Cancel.
             buttonCancel = new Button();
             buttonCancel.Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
-            buttonCancel.Location = new Point(Width - 8 - buttonCancel.Width, Height - 8 - buttonCancel.Height);
+            buttonCancel.Location = new Point(Width - Padding.Right - buttonCancel.Width, Height - Padding.Bottom - buttonCancel.Height);
             buttonCancel.Text = "Cancel";
             buttonCancel.Click += (sender, args) =>
             {
@@ -98,14 +135,18 @@ namespace System.Windows.Forms
                 Close();
             };
             Controls.Add(buttonCancel);
+            #endregion
 
+            #region Button Ok.
             buttonOk = new Button();
             buttonOk.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             buttonOk.Location = new Point(buttonCancel.Location.X - buttonOk.Width - 8, buttonCancel.Location.Y);
             buttonOk.Text = "Ok";
             buttonOk.Click += (sender, args) => { OpenFile(); };
             Controls.Add(buttonOk);
+            #endregion
 
+            #region Label Filename.
             labelFilename = new Label();
             labelFilename.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             labelFilename.Location = new Point(8, buttonOk.Location.Y - 30);
@@ -113,24 +154,30 @@ namespace System.Windows.Forms
             labelFilename.Text = "File: ";
             labelFilename.TextAlign = ContentAlignment.MiddleRight;
             Controls.Add(labelFilename);
+            #endregion
 
-            textBoxFile = new TextBox();
-            textBoxFile.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            textBoxFile.Location = new Point(labelFilename.Location.X + labelFilename.Width, labelFilename.Location.Y);
-            textBoxFile.Size = new Drawing.Size(Width - 24 - (buttonOk.Width + 8 + buttonCancel.Width) - labelFilename.Width, 22);
-            Controls.Add(textBoxFile);
+            #region Textbox Filename.
+            textBoxFilename = new TextBox();
+            textBoxFilename.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            textBoxFilename.Location = new Point(labelFilename.Location.X + labelFilename.Width, labelFilename.Location.Y);
+            textBoxFilename.Size = new Drawing.Size(Width - 32 - (buttonOk.Width + 8 + buttonCancel.Width) - labelFilename.Width, 22);
+            Controls.Add(textBoxFilename);
+            #endregion
 
+            #region Combobox Filter.
             comboFilter = new ComboBox();
             comboFilter.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             comboFilter.Size = new Drawing.Size(buttonOk.Width + 8 + buttonCancel.Width, 22);
-            comboFilter.Location = new Point(Width - 8 - comboFilter.Width, textBoxFile.Location.Y);
+            comboFilter.Location = new Point(Width - Padding.Right - comboFilter.Width, textBoxFilename.Location.Y);
             Controls.Add(comboFilter);
+            #endregion
 
+            #region File Render.
             fileRender = new FileRender(this);
             fileRender.Anchor = AnchorStyles.All;
-            fileRender.Location = new Point(8, buttonBack.Location.Y + buttonBack.Height + 8);
+            fileRender.Location = new Point(Padding.Left, buttonBack.Location.Y + buttonBack.Height + 8);
             fileRender.Name = "fileRender";
-            fileRender.Size = new Drawing.Size(Width - 16, textBoxFile.Location.Y - buttonBack.Location.Y - buttonBack.Height - 16);
+            fileRender.Size = new Drawing.Size(Width - Padding.Left - Padding.Right, textBoxFilename.Location.Y - buttonBack.Location.Y - buttonBack.Height - 16);
             fileRender.OnDirectoryChanged += () =>
             {
                 if (fileRender.prevPathes.Count > 0)
@@ -139,13 +186,14 @@ namespace System.Windows.Forms
             };
             fileRender.OnSelectedFileChanged += (file) =>
             {
-                textBoxFile.Text = file.ToString();
+                textBoxFilename.Text = file.ToString();
             };
             fileRender.OnFileOpen += (file) =>
             {
                 OpenFile();
             };
             Controls.Add(fileRender);
+            #endregion
 
             textBoxPath.Text = fileRender.currentPath;
             textBoxPath.TextChanged += (sender, args) =>
@@ -170,7 +218,7 @@ namespace System.Windows.Forms
                 contextMenu.Items.Add(itemSep);
 
                 ToolStripMenuItem itemProperties = new ToolStripMenuItem("Properties");
-                itemProperties.Click += (sender2, args) => { new FormFileInfo(fileRender.currentPath + "/" + textBoxFile.Text).Show(); };
+                itemProperties.Click += (sender2, args) => { new FormFileInfo(fileRender.currentPath + "/" + textBoxFilename.Text).Show(); };
                 contextMenu.Items.Add(itemProperties);
 
                 contextMenu.Show(null, MousePosition);
@@ -185,6 +233,11 @@ namespace System.Windows.Forms
                 DialogResult = DialogResult.Cancel;
                 Close();
             }
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            e.Graphics.DrawLine(new Pen(BorderColor), 1, HeaderHeight, Width - 1, HeaderHeight);
         }
         public override DialogResult ShowDialog()
         {
@@ -209,7 +262,7 @@ namespace System.Windows.Forms
 
         protected void OpenFile()
         {
-            FileName = fileRender.currentPath + "/" + textBoxFile.Text;
+            FileName = fileRender.currentPath + "/" + textBoxFilename.Text;
             DialogResult = Forms.DialogResult.OK;
             Close();
         }

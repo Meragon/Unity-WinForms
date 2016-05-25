@@ -72,7 +72,7 @@ namespace System.Drawing
         {
             return UnityEngine.GUILayout.Button(text, UnityEngine.GUILayout.Width(width));
         }
-        public static EditorValue<Color> ColorField(string name, Color value, Action<Color> setColor = null)
+        public static void ColorField(string name, Color value, Action<Color> setColor)
         {
             UnityEngine.GUILayout.BeginHorizontal();
             UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
@@ -94,11 +94,13 @@ namespace System.Drawing
             }
 #if UNITY_EDITOR
             else
+            {
                 colorBuffer = System.Drawing.Color.FromUColor(UnityEditor.EditorGUILayout.ColorField(value.ToUColor(), UnityEngine.GUILayout.Width(_contentWidth)));
+                if (colorBuffer != value && setColor != null)
+                    setColor.Invoke(colorBuffer);
+            }
 #endif
             UnityEngine.GUILayout.EndHorizontal();
-
-            return new EditorValue<Color>(colorBuffer, colorBuffer != value);
         }
         public static EditorValue<Enum> EnumField(string name, Enum value)
         {

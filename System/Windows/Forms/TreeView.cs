@@ -16,7 +16,7 @@ namespace System.Windows.Forms
         private TreeNodeCollection _nodes;
         private List<TreeNode> _nodeList;
 
-        private bool _scrollVisible = false; // smooth scrolling.
+        private bool _scrollVisible = false;
         private bool _scroll;
         private bool _scrollHovered;
         protected float scrollIndex;
@@ -368,6 +368,42 @@ namespace System.Windows.Forms
             #endregion
 
             e.Graphics.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
+        }
+        protected override object OnPaintEditor(float width)
+        {
+            var control = base.OnPaintEditor(width);
+
+            Editor.NewLine(1);
+            Editor.Label("   TreeView");
+
+            Editor.ColorField("BorderColor", BorderColor, (c) => { BorderColor = c; });
+
+            var itemHeightBuffer = Editor.IntField("ItemHeight", ItemHeight);
+            if (itemHeightBuffer.Changed)
+                ItemHeight = itemHeightBuffer.Value[0];
+
+            var scrollSpeedBuffer = Editor.Slider("ScrollSpeed", ScrollSpeed, 0, 255);
+            if (scrollSpeedBuffer.Changed)
+                ScrollSpeed = scrollSpeedBuffer.Value;
+
+            Editor.ColorField("SelectionColor", SelectionColor, (c) => { SelectionColor = c; });
+
+            var smoothScrollingBuffer = Editor.BooleanField("SmoothScrolling", SmoothScrolling);
+            if (smoothScrollingBuffer.Changed)
+                SmoothScrolling = smoothScrollingBuffer.Value;
+
+            var useNodeBoundsForSelectionBuffer = Editor.BooleanField("UseNodeBoundsForSelection", UseNodeBoundsForSelection);
+            if (useNodeBoundsForSelectionBuffer.Changed)
+                UseNodeBoundsForSelection = useNodeBoundsForSelectionBuffer.Value;
+
+            var wrapTextBuffer = Editor.BooleanField("WrapText", WrapText);
+            if (wrapTextBuffer.Changed)
+                WrapText = wrapTextBuffer.Value;
+
+            if (Editor.Button("Refresh"))
+                Refresh();
+
+            return control;
         }
         protected virtual void ProccesNode(TreeNode node)
         {

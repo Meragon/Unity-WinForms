@@ -183,25 +183,30 @@ namespace System.Windows.Forms
         protected override void OnMouseUp(MouseEventArgs e)
         {
             base.OnMouseUp(e);
-            _scroll = false;
             _drag = false;
 
             var mclient = PointToClient(MousePosition);
             Rectangle _scrollRect = new Rectangle(Width - _scrollWidth, _scrollY, _scrollWidth, _scrollHeight);
             if (_scrollRect.Contains(mclient))
-                return;
-
-            for (int i = 0; i < Items.Count; i++)
             {
-                var item_rect = new Rectangle(0, i * ItemHeight, Width, ItemHeight);
-                if (item_rect.Contains(mclient))
-                {
-                    if (Items.IsDisabled(i + ScrollIndex)) break;
-                    SelectedIndex = i + ScrollIndex;
-                    OnSelectedValueChanged(null);
-                    break;
-                }
+                _scroll = false;
+                return;
             }
+
+            if (_scroll == false)
+                for (int i = 0; i < Items.Count; i++)
+                {
+                    var item_rect = new Rectangle(0, i * ItemHeight, Width, ItemHeight);
+                    if (item_rect.Contains(mclient))
+                    {
+                        if (Items.IsDisabled(i + ScrollIndex)) break;
+                        SelectedIndex = i + ScrollIndex;
+                        OnSelectedValueChanged(null);
+                        break;
+                    }
+                }
+
+            _scroll = false;
         }
         protected override void OnPaint(PaintEventArgs e)
         {

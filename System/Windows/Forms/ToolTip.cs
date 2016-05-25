@@ -24,6 +24,10 @@ namespace System.Windows.Forms
         private Point _location;
         private string _text;
 
+        public Color BackColor { get; set; }
+        public Color BorderColor { get; set; }
+        public Font Font { get; set; }
+        public Color ForeColor { get; set; }
         public int InitialDelay
         {
             get { return _initialDelay; }
@@ -31,6 +35,14 @@ namespace System.Windows.Forms
             {
                 _initialDelay = UnityEngine.Mathf.Clamp(value, 0, 32767);
             }
+        }
+
+        public ToolTip()
+        {
+            BackColor = Color.White;
+            BorderColor = Color.FromArgb(118, 118, 118);
+            Font = new Font("Arial", 12);
+            ForeColor = Color.FromArgb(118, 118, 118);
         }
 
         public void SetToolTip(Control control, string caption)
@@ -62,9 +74,15 @@ namespace System.Windows.Forms
                 _instance = null;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="point">Useless right now (will use Control.MousePosition)</param>
         public void Show(string text, Point point)
         {
-            _location = point;
+            _location = Control.MousePosition;
+            _location = new Point(_location.X, _location.Y + 24); // Cursor offset.
             _text = text;
             _instance = this;
             _alphaF = 255;
@@ -81,25 +99,33 @@ namespace System.Windows.Forms
                     _waitToShow -= (1000 * UnityEngine.Time.deltaTime);
                     return;
                 }
-                //e.Graphics.Control = null;
-                var size = e.Graphics.MeasureString(_instance._text, new Font("Arial", 12)) + new SizeF(16, 8);
+                
+                var size = e.Graphics.MeasureString(_instance._text, _instance.Font) + new SizeF(16, 4);
 
                 Point loc = _instance._location;
 
                 if (loc.X + size.Width + 2 > Screen.PrimaryScreen.WorkingArea.Width)
-                    _instance._location = new Point(Screen.PrimaryScreen.WorkingArea.Width - (int)size.Width - 2, loc.Y);
+                    loc = new Point(Screen.PrimaryScreen.WorkingArea.Width - (int)size.Width - 2, loc.Y);
                 if (loc.Y + size.Height + 2 > Screen.PrimaryScreen.WorkingArea.Height)
-                    _instance._location = new Point(loc.X, Screen.PrimaryScreen.WorkingArea.Height - (int)size.Height - 2);
+                    loc = new Point(loc.X, Screen.PrimaryScreen.WorkingArea.Height - (int)size.Height - 2);
 
-                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12 - 255 + (int)_alphaF, 64, 64, 64)), loc.X + 6 + 6, loc.Y + 6 + 6, size.Width - 12, size.Height - 12);
-                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12 - 255 + (int)_alphaF, 64, 64, 64)), loc.X + 6 + 5, loc.Y + 6 + 5, size.Width - 10, size.Height - 10);
-                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12 - 255 + (int)_alphaF, 64, 64, 64)), loc.X + 6 + 4, loc.Y + 6 + 4, size.Width - 8, size.Height - 8);
-                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12 - 255 + (int)_alphaF, 64, 64, 64)), loc.X + 6 + 3, loc.Y + 6 + 3, size.Width - 6, size.Height - 6);
-                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12 - 255 + (int)_alphaF, 64, 64, 64)), loc.X + 6 + 2, loc.Y + 6 + 2, size.Width - 4, size.Height - 4);
+                int shadowAlpha = 12 - 255 + (int)_alphaF;
+                var shadowBrush = new SolidBrush(Color.FromArgb(shadowAlpha, 64, 64, 64));
 
-                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb((int)_alphaF, 255, 255, 255)), loc.X, loc.Y, size.Width, 20);
-                e.Graphics.DrawRectangle(new Pen(Color.FromArgb((int)_alphaF, 118, 118, 118)), loc.X, loc.Y, size.Width, 20);
-                e.Graphics.DrawString(_instance._text, new Font("Arial", 12), new SolidBrush(Color.FromArgb((int)_alphaF, 118, 118, 118)), loc.X, loc.Y, size.Width, 20, _formatCenter);
+                int stringHeight = (int)size.Height;
+
+                e.Graphics.FillRectangle(shadowBrush, loc.X + 1, loc.Y + 1, size.Width + 3, stringHeight + 3);
+                e.Graphics.FillRectangle(shadowBrush, loc.X + 2, loc.Y + 2, size.Width + 1, stringHeight + 1);
+                e.Graphics.FillRectangle(shadowBrush, loc.X + 3, loc.Y + 3, size.Width - 1, stringHeight - 1);
+
+                var fillBrush = new SolidBrush(Color.FromArgb((int)_alphaF, _instance.BackColor));
+                var borderColor = Color.FromArgb((int)_alphaF, _instance.BorderColor);
+                var textColor = Color.FromArgb((int)_alphaF, _instance.ForeColor);
+                var textFont = _instance.Font;
+
+                e.Graphics.FillRectangle(fillBrush, loc.X, loc.Y, size.Width, stringHeight);
+                e.Graphics.DrawRectangle(new Pen(borderColor), loc.X, loc.Y, size.Width, stringHeight);
+                e.Graphics.DrawString(_instance._text, textFont, new SolidBrush(textColor), loc.X, loc.Y, size.Width, stringHeight, _formatCenter);
 
                 if (_alphaWait > 0)
                     _alphaWait -= 1;

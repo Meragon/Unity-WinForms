@@ -37,6 +37,7 @@ namespace System.Windows.Forms
         public Color BackColor { get; set; }
         public virtual ImageLayout BackgroundImageLayout { get; set; }
         internal bool Batched { get; set; } // For testing.
+        public int Batches { get; internal set; }
         public Rectangle ClientRectangle { get { return new Rectangle(0, 0, Width, Height); } }
         public virtual bool Context { get; set; } // Close on click control. TODO: make it obsolete, find other way.
         public Control.ControlCollection Controls { get { return _controls; } set { _controls = value; } }
@@ -428,11 +429,12 @@ namespace System.Windows.Forms
             var editorAutoSize = Editor.BooleanField("AutoSize", this.AutoSize);
             if (editorAutoSize.Changed) this.AutoSize = editorAutoSize;
 
-            var editorBackColor = Editor.ColorField("BackColor", this.BackColor, (c) => { this.BackColor = c; });
-            if (editorBackColor.Changed) this.BackColor = editorBackColor;
+            Editor.ColorField("BackColor", this.BackColor, (c) => { this.BackColor = c; });
 
             var editorBackgroundImageLayout = Editor.EnumField("BackgroundImageLayout", this.BackgroundImageLayout);
             if (editorBackgroundImageLayout.Changed) this.BackgroundImageLayout = (ImageLayout)editorBackgroundImageLayout.Value;
+
+            Editor.Label("Batches", Batches);
 
             Editor.Label("ClientRectangle", this.ClientRectangle);
             Editor.Label("Context", this.Context);
@@ -503,8 +505,7 @@ namespace System.Windows.Forms
                 }
             }
 
-            var editorForeColor = Editor.ColorField("ForeColor", this.ForeColor, (c) => { this.ForeColor = c; });
-            if (editorForeColor.Changed) this.ForeColor = editorForeColor;
+            Editor.ColorField("ForeColor", this.ForeColor, (c) => { this.ForeColor = c; });
 
             var editorHeight = Editor.Slider("Height", this.Height, 0, 4096);
             if (editorHeight.Changed) Height = (int)editorHeight.Value;
@@ -659,6 +660,7 @@ namespace System.Windows.Forms
         internal void RaiseOnPaint(PaintEventArgs e)
         {
             e.Graphics.Control = this;
+            Batches = 0;
 
             if (ShadowBox)
             {

@@ -17,9 +17,17 @@ namespace System.Windows.Forms
             var a = FloatLerp(from.A, to.A, speed);
             return ColorF.FromArgb(a, r, g, b);
         }
+        public static double DistanceD(float x1, float y1, float x2, float y2)
+        {
+            return Math.Sqrt(Math.Pow(x2 - x1, 2) + Math.Pow(y2 - y1, 2));
+        }
         public static double DistanceD(PointF p1, PointF p2)
         {
-            return Math.Sqrt(Math.Pow(p2.X - p1.X, 2) + Math.Pow(p2.Y - p1.Y, 2));
+            return DistanceD(p1.X, p1.Y, p2.X, p2.Y);
+        }
+        public static float DistanceF(float x1, float y1, float x2, float y2)
+        {
+            return (float)DistanceD(x1, y1, x2, y2);
         }
         public static float DistanceF(PointF p1, PointF p2)
         {

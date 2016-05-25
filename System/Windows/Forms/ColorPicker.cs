@@ -240,7 +240,7 @@ namespace System.Windows.Forms
             _lNumeric.Value = (int)(_bsPicker.Brightness * 255);
             _lNumeric.ValueChanged += _lNumeric_ValueChanged;
 
-            Color rgbColor = _GetColorFromHSL(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
+            Color rgbColor = GetColorFromHSL(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
 
             _rNumeric.ValueChanged -= _rNumeric_ValueChanged;
             _rNumeric.Value = rgbColor.R;
@@ -261,7 +261,7 @@ namespace System.Windows.Forms
             _sNumeric.Value = (int)(_bsPicker.Saturation * 255);
             _sNumeric.ValueChanged += _sNumeric_ValueChanged;
 
-            Color rgbColor = _GetColorFromHSL(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
+            Color rgbColor = GetColorFromHSL(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
 
             _rNumeric.ValueChanged -= _rNumeric_ValueChanged;
             _rNumeric.Value = rgbColor.R;
@@ -284,7 +284,7 @@ namespace System.Windows.Forms
             _hNumeric.Value = (int)(_huePicker.Hue * 255);
             _hNumeric.ValueChanged += _hNumeric_ValueChanged;
 
-            Color rgbColor = _GetColorFromHSL(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
+            Color rgbColor = GetColorFromHSL(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
 
             _rNumeric.ValueChanged -= _rNumeric_ValueChanged;
             _rNumeric.Value = rgbColor.R;
@@ -456,7 +456,7 @@ namespace System.Windows.Forms
                         luminosity = (float)k / _image.height;
 
                         // HSL to RGB convertion.
-                        Color pixelColor = _GetColorFromHSL(hue, saturation, luminosity);
+                        Color pixelColor = GetColorFromHSL(hue, saturation, luminosity);
                         _image.SetPixel(i, k, pixelColor.ToUColor());
                     }
                     _image.Apply();
@@ -562,7 +562,7 @@ namespace System.Windows.Forms
                         hue = (float)(_image.height - k - 1) / _image.height;
 
                         // HSL to RGB convertion.
-                        Color pixelColor = _GetColorFromHSL(hue, saturation, luminosity);
+                        Color pixelColor = GetColorFromHSL(hue, saturation, luminosity);
                         _image.SetPixel(i, k, pixelColor.ToUColor());
                     }
                     _image.Apply();
@@ -694,7 +694,7 @@ namespace System.Windows.Forms
             public event EventHandler AlphaChanged = delegate { };
         }
 
-        private static Color _GetColorFromHSL(double hue, double saturation, double luminosity)
+        public static Color GetColorFromHSL(double hue, double saturation, double luminosity)
         {
             double r = 0, g = 0, b = 0;
             if (luminosity != 0)

@@ -91,15 +91,84 @@ namespace System.Windows.Forms
             Resizable = true;
             ShadowBox = true;
             Size = new Size(334, 260);
-            VisibleInternal = false;
-            
+            Visible = false;
+
             Owner.UpClick += _Application_UpClick;
+            Owner.UpdateEvent += Owner_UpdateEvent;
         }
 
         private void _Application_UpClick(object sender, MouseEventArgs e)
         {
             _windowMove = false;
             resizeType = DNDResizeType.None;
+        }
+        private void Owner_UpdateEvent()
+        {
+            #region Resize
+            int estimatedWidth = 0;
+            int estimatedHeight = 0;
+
+            if (resizeType != DNDResizeType.None && Resizable)
+            {
+                switch (resizeType)
+                {
+                    case DNDResizeType.Right:
+                        estimatedWidth = _resizeOriginal.Width + (MousePosition.X - _resizeDelta.X);
+                        estimatedHeight = _resizeOriginal.Height;
+                        break;
+                    case DNDResizeType.Down:
+                        estimatedWidth = _resizeOriginal.Width;
+                        estimatedHeight = _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y);
+                        break;
+                    case DNDResizeType.RightDown:
+                        estimatedWidth = _resizeOriginal.Width + (MousePosition.X - _resizeDelta.X);
+                        estimatedHeight = _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y);
+                        break;
+                    case DNDResizeType.Left:
+                        Location = new Point(_resizePosition.X + (MousePosition.X - _resizeDelta.X), _resizePosition.Y);
+                        estimatedWidth = _resizeOriginal.Width + _resizePosition.X - Location.X;
+                        estimatedHeight = _resizeOriginal.Height;
+                        break;
+                    case DNDResizeType.Up:
+                        Location = new Point(_resizePosition.X, _resizePosition.Y + (MousePosition.Y - _resizeDelta.Y));
+                        estimatedWidth = _resizeOriginal.Width;
+                        estimatedHeight = _resizeOriginal.Height + _resizePosition.Y - Location.Y;
+                        break;
+                    case DNDResizeType.LeftUp:
+                        Location = new Point(
+                            _resizePosition.X + (MousePosition.X - _resizeDelta.X),
+                            _resizePosition.Y + (MousePosition.Y - _resizeDelta.Y));
+                        estimatedWidth = _resizeOriginal.Width + _resizePosition.X - Location.X;
+                        estimatedHeight = _resizeOriginal.Height + _resizePosition.Y - Location.Y;
+                        break;
+                    case DNDResizeType.RightUp:
+                        Location = new Point(_resizePosition.X, _resizePosition.Y + (MousePosition.Y - _resizeDelta.Y));
+                        estimatedWidth = _resizeOriginal.Width + (MousePosition.X - _resizeDelta.X);
+                        estimatedHeight = _resizeOriginal.Height + _resizePosition.Y - Location.Y;
+                        break;
+                    case DNDResizeType.LeftDown:
+                        Location = new Point(_resizePosition.X + (MousePosition.X - _resizeDelta.X), _resizePosition.Y);
+                        estimatedWidth = _resizeOriginal.Width + _resizePosition.X - Location.X;
+                        estimatedHeight = _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y);
+                        break;
+                }
+
+                if (estimatedWidth < MinimumSize.Width)
+                    estimatedWidth = MinimumSize.Width;
+                if (estimatedHeight < MinimumSize.Height)
+                    estimatedHeight = MinimumSize.Height;
+
+                if (MaximumSize.Width > 0 && estimatedWidth > MaximumSize.Width)
+                    estimatedWidth = MaximumSize.Width;
+                if (MaximumSize.Height > 0 && estimatedHeight > MaximumSize.Height)
+                    estimatedHeight = MaximumSize.Height;
+
+                Size = new Size(estimatedWidth, estimatedHeight);
+                //OnResize(new Point(_sizeBefore.Width - Size.Width, _sizeBefore.Height - Size.Height));
+
+
+            }
+            #endregion
         }
         private void _MakeButtonClose()
         {
@@ -142,7 +211,7 @@ namespace System.Windows.Forms
         }
         public void Hide()
         {
-            VisibleInternal = false;
+            Visible = false;
         }
         public DNDResizeType ResizeMouseAt(MouseEventArgs e)
         {
@@ -198,7 +267,7 @@ namespace System.Windows.Forms
         }
         public void Show()
         {
-            VisibleInternal = true;
+            Visible = true;
             int self = Owner.Controls.FindIndex(x => x == this);
             if (self == -1)
             {
@@ -269,88 +338,11 @@ namespace System.Windows.Forms
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-
             Graphics g = e.Graphics;
-
-            int estimatedWidth = 0;
-            int estimatedHeight = 0;
-
-            #region Resize
-            if (resizeType != DNDResizeType.None && Resizable)
-            {
-                switch (resizeType)
-                {
-                    case DNDResizeType.Right:
-                        estimatedWidth = _resizeOriginal.Width + (MousePosition.X - _resizeDelta.X);
-                        estimatedHeight = _resizeOriginal.Height;
-                        break;
-                    case DNDResizeType.Down:
-                        estimatedWidth = _resizeOriginal.Width;
-                        estimatedHeight = _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y);
-                        break;
-                    case DNDResizeType.RightDown:
-                        estimatedWidth = _resizeOriginal.Width + (MousePosition.X - _resizeDelta.X);
-                        estimatedHeight = _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y);
-                        break;
-                    case DNDResizeType.Left:
-                        Location = new Point(_resizePosition.X + (MousePosition.X - _resizeDelta.X), _resizePosition.Y);
-                        estimatedWidth = _resizeOriginal.Width + _resizePosition.X - Location.X;
-                        estimatedHeight = _resizeOriginal.Height;
-                        break;
-                    case DNDResizeType.Up:
-                        Location = new Point(_resizePosition.X, _resizePosition.Y + (MousePosition.Y - _resizeDelta.Y));
-                        estimatedWidth = _resizeOriginal.Width;
-                        estimatedHeight = _resizeOriginal.Height + _resizePosition.Y - Location.Y;
-                        break;
-                    case DNDResizeType.LeftUp:
-                        Location = new Point(
-                            _resizePosition.X + (MousePosition.X - _resizeDelta.X),
-                            _resizePosition.Y + (MousePosition.Y - _resizeDelta.Y));
-                        estimatedWidth = _resizeOriginal.Width + _resizePosition.X - Location.X;
-                        estimatedHeight = _resizeOriginal.Height + _resizePosition.Y - Location.Y;
-                        break;
-                    case DNDResizeType.RightUp:
-                        Location = new Point(_resizePosition.X, _resizePosition.Y + (MousePosition.Y - _resizeDelta.Y));
-                        estimatedWidth = _resizeOriginal.Width + (MousePosition.X - _resizeDelta.X);
-                        estimatedHeight = _resizeOriginal.Height + _resizePosition.Y - Location.Y;
-                        break;
-                    case DNDResizeType.LeftDown:
-                        Location = new Point(_resizePosition.X + (MousePosition.X - _resizeDelta.X), _resizePosition.Y);
-                        estimatedWidth = _resizeOriginal.Width + _resizePosition.X - Location.X;
-                        estimatedHeight = _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y);
-                        break;
-                }
-
-                if (estimatedWidth < MinimumSize.Width)
-                    estimatedWidth = MinimumSize.Width;
-                if (estimatedHeight < MinimumSize.Height)
-                    estimatedHeight = MinimumSize.Height;
-
-                if (MaximumSize.Width > 0 && estimatedWidth > MaximumSize.Width)
-                    estimatedWidth = MaximumSize.Width;
-                if (MaximumSize.Height > 0 && estimatedHeight > MaximumSize.Height)
-                    estimatedHeight = MaximumSize.Height;
-
-                Size = new Size(estimatedWidth, estimatedHeight);
-                //OnResize(new Point(_sizeBefore.Width - Size.Width, _sizeBefore.Height - Size.Height));
-
-
-            }
-            #endregion
-
-            // Draw header.
-            //if (ShadowBox)
-            //    g.FillRectangle(new SolidBrush(Color.FromArgb(64, 64, 64, 64)), _shadowDistance.X, _shadowDistance.Y, Width, HeaderHeight);
-
-
-            //if (ShadowBox)
-            //    g.FillRectangle(new SolidBrush(Color.FromArgb(64, 64, 64, 64)), _shadowDistance.X, _shadowDistance.Y + HeaderHeight, Width, Height - HeaderHeight);
-
+            
             g.FillRectangle(new SolidBrush(HeaderColor), 0, 0, Width, HeaderHeight);
             g.DrawString(Text, HeaderFont, new SolidBrush(HeaderTextColor), HeaderPadding.Left, HeaderPadding.Top, Width - HeaderPadding.Right - HeaderPadding.Left, HeaderHeight - HeaderPadding.Bottom - HeaderPadding.Top, HeaderTextAlign);
             g.FillRectangle(new SolidBrush(BackColor), 0, HeaderHeight, Width, Height - HeaderHeight);
-
-            base.OnPaint(e);
 
             if (Resizable && ResizeIcon && ApplicationBehaviour.Resources.Reserved.FormResize != null)
             {
@@ -370,20 +362,17 @@ namespace System.Windows.Forms
             {
                 Editor.BeginGroup(width - 24);
 
-                var editorBorderColor = Editor.ColorField("      BorderColor", BorderColor);
-                if (editorBorderColor.Changed) BorderColor = editorBorderColor;
+                Editor.ColorField("      BorderColor", BorderColor, (c) => { BorderColor = c; });
 
                 var editorControlBox = Editor.BooleanField("      ControlBox", ControlBox);
                 if (editorControlBox.Changed) ControlBox = editorControlBox;
 
-                var editorHeaderColor = Editor.ColorField("      HeaderColor", HeaderColor, (c) => { HeaderColor = c; });
-                if (editorHeaderColor.Changed) HeaderColor = editorHeaderColor;
+                Editor.ColorField("      HeaderColor", HeaderColor, (c) => { HeaderColor = c; });
 
                 var editorHeaderHeight = Editor.IntField("      HeaderHeight", HeaderHeight);
                 if (editorHeaderHeight.Changed) HeaderHeight = editorHeaderHeight.Value[0];
 
-                var editorHeaderTextColor = Editor.ColorField("      HeaderTextColor", HeaderTextColor, (c) => { HeaderTextColor = c; });
-                if (editorHeaderTextColor.Changed) HeaderTextColor = editorHeaderTextColor;
+                Editor.ColorField("      HeaderTextColor", HeaderTextColor, (c) => { HeaderTextColor = c; });
 
                 var editorHeaderTextFormat = Editor.EnumField("      HeaderTextFormat", HeaderTextAlign);
                 if (editorHeaderTextFormat.Changed) HeaderTextAlign = (System.Drawing.ContentAlignment)editorHeaderTextFormat.Value;
@@ -413,7 +402,7 @@ namespace System.Windows.Forms
 
             var g = e.Graphics;
 
-            // Show resize.
+            #region Show resize.
             if (HighlightResizeBorders && !ResizeIcon)
             {
                 if (ClientRectangle.Contains(PointToClient(MousePosition)))
@@ -556,6 +545,7 @@ namespace System.Windows.Forms
                     }
                 }
             }
+            #endregion
         }
 
         public enum DNDResizeType

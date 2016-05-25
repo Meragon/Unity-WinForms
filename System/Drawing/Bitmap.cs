@@ -40,11 +40,19 @@ namespace System.Drawing
         }
         public Color GetPixel(int x, int y)
         {
-            return Color.FromUColor(uTexture.GetPixel(x, uTexture.height - y));
+            return Color.FromUColor(uTexture.GetPixel(x, uTexture.height - y - 1));
+        }
+        public Color[] GetPixels(int x, int y, int w, int h)
+        {
+            var ucs = uTexture.GetPixels(x, uTexture.height - y - 1, w, h);
+            Color[] cs = new Color[ucs.Length];
+            for (int i = 0; i < cs.Length; i++)
+                cs[i] = Color.FromUColor(ucs[i]);
+            return cs;
         }
         public void SetPixel(int x, int y, Color color)
         {
-            uTexture.SetPixel(x, uTexture.height - y, color.ToUColor());
+            uTexture.SetPixel(x, uTexture.height - y - 1, color.ToUColor());
         }
     }
 }
