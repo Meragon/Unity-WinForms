@@ -23,6 +23,8 @@ namespace System.Windows.Forms
         private static System.Drawing.PointF _mouseMovePosition;
         private static bool _mouseFoundHoveredControl;
         private PaintEventArgs _paintEventArgs;
+        private MouseEvents _userMouseEvent;
+        private MouseEventArgs _userMouseArgs;
 
         internal List<Control> Controls = new List<Control>();
         internal List<Control> BringToFrontControls = new List<Control>();
@@ -121,6 +123,7 @@ namespace System.Windows.Forms
             }
 
             var client_mpos = control.PointToClient(mousePosition);
+            //UnityEngine.Debug.Log(control.ToString() + " " + client_mpos.ToString());
 
             if (ignore_rect || contains)
             {
@@ -128,8 +131,10 @@ namespace System.Windows.Forms
                 {
                     if (!_mouseFoundHoveredControl)
                     {
-                        control.RaiseOnMouseHover(null);
-                        control.RaiseOnMouseEnter(null);
+                        MouseEventArgs m_args = new MouseEventArgs(MouseButtons.None, 0, (int)client_mpos.X, (int)client_mpos.Y, 0);
+
+                        control.RaiseOnMouseHover(m_args);
+                        control.RaiseOnMouseEnter(m_args);
 
                         if (control.Context)
                             _mouseFoundHoveredControl = true;
@@ -224,8 +229,10 @@ namespace System.Windows.Forms
 
         public void Draw()
         {
+            // Scale if needed.
+            //UnityEngine.GUI.matrix = UnityEngine.Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(0, Vector3.up), new Vector3(scale_x, scale_y, 1));
             GUI.color = Color.white;
-            
+
             for (int i = 0; i < Controls.Count; i++)
             {
                 if (!_ControlVisible(Controls[i])) continue;
@@ -369,15 +376,46 @@ namespace System.Windows.Forms
             _mouseButton = MouseButtons.None;
             _mouseFoundHoveredControl = false;
 
-            switch (Event.current.type)
+            int eventButton = -1;
+            int eventClicks = 0;
+            float eventDelta = 0;
+            EventType eventType = EventType.Ignore;
+
+            if (_userMouseArgs != null)
+            {
+                switch (_userMouseArgs.Button)
+                {
+                    case MouseButtons.Left: eventButton = 0; break;
+                    case MouseButtons.Right: eventButton = 1; break;
+                    case MouseButtons.Middle: eventButton = 2; break;
+                }
+                eventClicks = _userMouseArgs.Clicks;
+                eventDelta = _userMouseArgs.Delta;
+                switch (_userMouseEvent)
+                {
+                    case MouseEvents.Down: eventType = EventType.MouseDown; break;
+                    case MouseEvents.Up: eventType = EventType.MouseUp; break;
+                    case MouseEvents.Wheel: eventType = EventType.ScrollWheel; break;
+                }
+                _userMouseArgs = null;
+            }
+            else
+            {
+                eventButton = Event.current.button;
+                eventClicks = Event.current.clickCount;
+                eventDelta = Event.current.delta.y;
+                eventType = Event.current.type;
+            }
+
+            switch (eventType)
             {
                 case EventType.MouseDown:
-                    switch (Event.current.button)
+                    switch (eventButton)
                     {
                         case 0:
                             _mouseButton = MouseButtons.Left;
                             _mouseEvent = MouseEvents.Down;
-                            if (Event.current.clickCount > 1)
+                            if (eventClicks > 1)
                                 _mouseEvent = MouseEvents.DoubleClick;
                             break;
                         case 1:
@@ -391,7 +429,7 @@ namespace System.Windows.Forms
                     }
                     break;
                 case EventType.MouseUp:
-                    switch (Event.current.button)
+                    switch (eventButton)
                     {
                         case 0:
                             _mouseButton = MouseButtons.Left;
@@ -409,7 +447,7 @@ namespace System.Windows.Forms
                     break;
                 case EventType.ScrollWheel:
                     _mouseEvent = MouseEvents.Wheel;
-                    _mouseWheelDelta = Event.current.delta.y;
+                    _mouseWheelDelta = eventDelta;
                     break;
             }
 
@@ -493,6 +531,13 @@ namespace System.Windows.Forms
             }
 
             _mouseMovePosition = mousePosition;
+        }
+        public void RaiseMouseEvent(MouseEvents mEv, MouseEventArgs mArgs)
+        {
+            _userMouseEvent = mEv;
+            _userMouseArgs = mArgs;
+
+            ProccessMouse(new Drawing.PointF(mArgs.X, mArgs.Y));
         }
         public void Run(Control control)
         {

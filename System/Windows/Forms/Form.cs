@@ -408,12 +408,12 @@ namespace System.Windows.Forms
                 if (ClientRectangle.Contains(PointToClient(MousePosition)))
                 {
                     if (_resizeShow == DNDResizeType.None)
-                        _resizeAlpha = MathCustom.FloatLerp(_resizeAlpha, 0, 1);
+                        _resizeAlpha = MathHelper.FloatLerp(_resizeAlpha, 0, 1);
                     else
-                        _resizeAlpha = MathCustom.FloatLerp(_resizeAlpha, 255, 1);
+                        _resizeAlpha = MathHelper.FloatLerp(_resizeAlpha, 255, 1);
                 }
                 else
-                    _resizeAlpha = MathCustom.FloatLerp(_resizeAlpha, 0, 1);
+                    _resizeAlpha = MathHelper.FloatLerp(_resizeAlpha, 0, 1);
 
                 //SolidBrush resizeBrush = new SolidBrush(Color.FromArgb((int)_resizeAlpha, 8, 122, 204));
                 if (_resizeAlpha > 0)

@@ -59,14 +59,14 @@ namespace System.Windows.Forms
 
             if ((!Hovered) || !Enabled)
             {
-                currentBackColor = MathCustom.ColorLerp(currentBackColor, NormalColor, 5);
+                currentBackColor = MathHelper.ColorLerp(currentBackColor, NormalColor, 5);
 
                 g.FillRectangle(new SolidBrush(currentBackColor), 0, 0, Width, Height);
                 g.DrawRectangle(new Pen(NormalBorderColor), 0, 0, Width, Height);
             }
             else
             {
-                currentBackColor = MathCustom.ColorLerp(currentBackColor, HoverColor, 5);
+                currentBackColor = MathHelper.ColorLerp(currentBackColor, HoverColor, 5);
 
                 g.FillRectangle(new SolidBrush(currentBackColor), 0, 0, Width, Height);
                 g.DrawRectangle(new Pen(HoverBorderColor), 0, 0, Width, Height);

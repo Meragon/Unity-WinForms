@@ -9,6 +9,18 @@ namespace System.Windows.Forms
 {
     public class MessageBox
     {
+        private static Form _last;
+        public static Form Last
+        {
+            get
+            {
+                if (_last != null && (_last.IsDisposed || _last.Disposing))
+                    _last = null;
+                return _last;
+            }
+            private set { _last = value; }
+        }
+
         public static DialogResult Show(string text)
         {
             return Show(text, "");
@@ -57,6 +69,8 @@ namespace System.Windows.Forms
 
             form.Controls.Add(formButton_Ok);
             form.Show();
+
+            Last = form;
 
             return DialogResult.OK;
         }

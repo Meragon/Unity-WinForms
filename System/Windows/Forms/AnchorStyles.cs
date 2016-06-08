@@ -27,6 +27,10 @@ namespace System.Windows.Forms
         //     Элемент управления, привязанный к правому краю своего контейнера.
         Right = 8,
 
-        All = 15
+        TopLeft = Top | Left,
+        TopRight = Top | Right,
+        BottomLeft = Bottom | Left,
+        BottomRight = Bottom | Right,
+        All = Top | Bottom | Left | Right
     }
 }

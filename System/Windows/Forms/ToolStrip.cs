@@ -77,7 +77,7 @@ namespace System.Windows.Forms
         {
             base.OnMouseEnter(e);
 
-            var mc_pos = PointToClient(MousePosition);
+            var mc_pos = ((MouseEventArgs)e).Location;
             for (int i = 0, x = Padding.Left, y = Padding.Top; i < _items.Count; i++)
             {
                 if (_items[i].JustVisual) continue;
@@ -112,7 +112,7 @@ namespace System.Windows.Forms
                 _items[i].Selected = false;
             }
 
-            var mc_pos = PointToClient(MousePosition);
+            var mc_pos = e.Location;
             for (int i = 0, x = Padding.Left, y = Padding.Top; i < _items.Count; i++)
             {
                 if (_items[i].JustVisual) continue;
