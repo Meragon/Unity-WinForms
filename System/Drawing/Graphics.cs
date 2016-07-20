@@ -33,7 +33,7 @@ namespace System.Drawing
             _groupControls.RemoveAt(_groupControls.Count - 1);
         }
 
-        private PointF[] GetBezierApproximation(PointF[] controlPoints, int outputSegmentCount)
+        public static PointF[] GetBezierApproximation(PointF[] controlPoints, int outputSegmentCount)
         {
             PointF[] points = new PointF[outputSegmentCount + 1];
             for (int i = 0; i <= outputSegmentCount; i++)
@@ -43,7 +43,7 @@ namespace System.Drawing
             }
             return points;
         }
-        private PointF GetBezierPoint(float t, PointF[] controlPoints, int index, int count)
+        private static PointF GetBezierPoint(float t, PointF[] controlPoints, int index, int count)
         {
             if (count == 1)
                 return controlPoints[index];
@@ -64,7 +64,7 @@ namespace System.Drawing
                     else
                     {
                         GUI.skin.label.font = null;
-                        UnityEngine.Debug.LogWarning(font.Name);
+                        UnityEngine.Debug.Log(font.Name);
                     }
                 }
                 else
@@ -102,7 +102,7 @@ namespace System.Drawing
         public void Clear(System.Drawing.Color color)
         {
         }
-        public void DrawCurve(Pen pen, PointF[] points) // very slow.
+        public void DrawCurve(Pen pen, PointF[] points, int segments = 32) // very slow.
         {
             if (points == null || points.Length <= 1) return;
             if (points.Length == 2)
@@ -111,7 +111,7 @@ namespace System.Drawing
                 return;
             }
 
-            var bPoints = GetBezierApproximation(points, 32); // decrease segments for better fps.
+            var bPoints = GetBezierApproximation(points, segments); // decrease segments for better fps.
             for (int i = 0; i + 1 < bPoints.Length; i++)
                 DrawLine(pen, bPoints[i].X, bPoints[i].Y, bPoints[i + 1].X, bPoints[i + 1].Y);
         }
@@ -130,6 +130,11 @@ namespace System.Drawing
 
             if (GL_Lines)
             {
+                GL.PushMatrix();
+                if (DefaultMaterial != null)
+                    DefaultMaterial.SetPass(0);
+                GL.LoadOrtho();
+
                 GL.Begin(GL.LINES);
                 GL.Color(pen.Color.ToUColor());
 
@@ -139,6 +144,7 @@ namespace System.Drawing
                 GL.Vertex3(x2, y2, 0);
 
                 GL.End();
+                GL.PopMatrix();
                 return;
             }
 
@@ -155,7 +161,7 @@ namespace System.Drawing
                 float yDiff = y2 - y1;
                 var angle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
 
-                DrawTexture(System.Windows.Forms.ApplicationBehaviour.DefaultSpriteSmoothLine, x1, y1, (float)Math.Sqrt(xDiff * xDiff + yDiff * yDiff), pen.Width, pen.Color, (float)angle, new PointF());
+                DrawTexture(System.Windows.Forms.ApplicationBehaviour.Resources.Reserved.Circle, x1, y1, (float)Math.Sqrt(xDiff * xDiff + yDiff * yDiff), pen.Width, pen.Color, (float)angle, new PointF());
                 return;
             }
 
@@ -424,7 +430,7 @@ namespace System.Drawing
                         }
 
 
-                        //UnityEngine.Debug.Log(width.ToString() + " " + height.ToString());
+                        //Application.Log(width.ToString() + " " + height.ToString());
                         //return;
 
                         // Batching

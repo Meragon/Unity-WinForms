@@ -43,7 +43,7 @@ namespace System.Windows.Forms
 
         public FileDialog()
         {
-#if !UNITY_STANDALONE
+#if !UNITY_STANDALONE && !UNITY_ANDROID
             throw new NotSupportedException();
 #endif
             BackColor = Color.White;

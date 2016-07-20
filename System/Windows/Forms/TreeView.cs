@@ -422,6 +422,7 @@ namespace System.Windows.Forms
 
             ProccesNode(root);
             _UpdateScrollList();
+            _FixScrollIndex();
         }
 
         public void CollapseAll()

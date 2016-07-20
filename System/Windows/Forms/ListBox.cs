@@ -63,9 +63,9 @@ namespace System.Windows.Forms
             get { return _selectedIndex; }
             set
             {
-                bool changed = _selectedIndex != value;
+                bool changed = _selectedIndex != value && value != -1;
                 _selectedIndex = value;
-                if (changed) SelectedIndexChanged(this, null);
+                if (changed) OnSelectedIndexChanged(EventArgs.Empty);
             }
         }
         public object SelectedItem
@@ -245,6 +245,12 @@ namespace System.Windows.Forms
             base.OnResize(delta);
 
             _visibleItems = Height / ItemHeight;
+        }
+        protected override void OnSelectedIndexChanged(EventArgs e)
+        {
+            base.OnSelectedIndexChanged(e);
+
+            SelectedIndexChanged(this, e);
         }
         protected override void OnLatePaint(PaintEventArgs e)
         {

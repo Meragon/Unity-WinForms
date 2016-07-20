@@ -31,6 +31,7 @@ namespace System.Windows.Forms
         internal List<Control> ToCloseControls = new List<Control>();
 
         public static bool Debug { get; set; }
+        public static float DeltaTime { get { return UnityEngine.Time.deltaTime; } }
         public static bool IsDraging { get { return _dragndrop; } }
         public static bool IsStandalone
         {
@@ -92,7 +93,7 @@ namespace System.Windows.Forms
         }
         private static Control _ParentContains(Control control, System.Drawing.PointF mousePosition, Control currentControl, ref bool ok)
         {
-            //UnityEngine.Debug.Log(control.Name);
+            //Application.Log(control.Name);
             if (control == null || control.Parent == null) return currentControl;
 
             var parentLocation = control.Parent.PointToScreen(System.Drawing.Point.Zero);
@@ -123,7 +124,7 @@ namespace System.Windows.Forms
             }
 
             var client_mpos = control.PointToClient(mousePosition);
-            //UnityEngine.Debug.Log(control.ToString() + " " + client_mpos.ToString());
+            //Application.Log(control.ToString() + " " + client_mpos.ToString());
 
             if (ignore_rect || contains)
             {
@@ -214,7 +215,7 @@ namespace System.Windows.Forms
                 case KeyCode.Quote: key = Keys.OemQuotes; break;
             }
 
-            UnityEngine.Debug.Log(key.ToString() + " mod: " + mod.ToString());
+            Application.Log(key.ToString() + " mod: " + mod.ToString());
 
             return key;
         }
@@ -468,7 +469,7 @@ namespace System.Windows.Forms
 
                             var clientRect = new System.Drawing.Rectangle(c_location.X, c_location.Y, Controls[i].Width, Controls[i].Height);
                             var contains = clientRect.Contains(mousePosition);
-                            //UnityEngine.Debug.Log(Controls[i].ToString() + " " + contains.ToString());
+                            //Application.Log(Controls[i].ToString() + " " + contains.ToString());
                             if (!contains)
                             {
                                 /*bool dispose = true;
@@ -573,7 +574,7 @@ namespace System.Windows.Forms
                     else
                     {
 #if UNITY_EDITOR
-                        UnityEngine.Debug.LogError("Not found. Da hell. " + ToCloseControls[0].GetType().ToString());
+                        Application.LogError("Not found. Da hell. " + ToCloseControls[0].GetType().ToString());
 #endif
                     }
 
@@ -594,6 +595,14 @@ namespace System.Windows.Forms
             _dragData = data;
             _dragControlEffects = effect;
             _dragRender = render;
+        }
+        public static void Log(object message)
+        {
+            UnityEngine.Debug.Log(message);
+        }
+        public static void LogError(object message)
+        {
+            UnityEngine.Debug.LogError(message);
         }
         public static void NextTabControl(Control control)
         {

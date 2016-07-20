@@ -28,7 +28,7 @@ namespace System.Windows.Forms
         internal static Texture2D DefaultSpriteSmoothLine { get; private set; }
         public static AppResources Resources { get; private set; }
 
-        public GUISkin Skin;
+        public Material LineMaterial;
         public AppResources _Resources;
         public static bool ShowControlProperties { get; set; }
 
@@ -39,6 +39,7 @@ namespace System.Windows.Forms
 
         private void Awake()
         {
+            System.Drawing.Graphics.DefaultMaterial = LineMaterial;
             Resources = _Resources;
 
             _lastWidth = UnityEngine.Screen.width;
@@ -75,9 +76,7 @@ namespace System.Windows.Forms
                 _controller.ProccessMouse(mousePosition);
                 _controller.ProccessKeys();
             }
-
-            if (Skin != null)
-                GUI.skin = Skin;
+            
             _controller.Draw();
         }
     }

@@ -168,10 +168,7 @@ namespace System.Windows.Forms
         {
             items.Clear();
             if (owner.TreeView != null)
-            {
-                owner.TreeView.ScrollIndex = 0;
                 owner.TreeView.Refresh();
-            }
         }
         public bool Contains(TreeNode node)
         {
