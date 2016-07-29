@@ -141,7 +141,7 @@ namespace System.Windows.Forms
 
         private void _parent_Resize(Point delta)
         {
-            //UnityEngine.Debug.Log(this.GetType().ToString() + " " + delta.X.ToString());
+            //Application.Log(this.GetType().ToString() + " " + delta.X.ToString());
 
             bool an_right = (Anchor & AnchorStyles.Right) == AnchorStyles.Right;
             bool an_bottom = (Anchor & AnchorStyles.Bottom) == AnchorStyles.Bottom;

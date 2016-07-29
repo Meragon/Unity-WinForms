@@ -85,7 +85,12 @@ namespace System.Windows.Forms
                     }
                 }
                 else
-                    g.DrawString(Text, Font, new SolidBrush(ForeColor), Padding.Left + 2, Padding.Top, Width - Padding.Right - Padding.Left, Height - Padding.Bottom - Padding.Top);
+                {
+                    if (Multiline)
+                        g.DrawString(Text, Font, new SolidBrush(ForeColor), Padding.Left + 2, Padding.Top, Width - Padding.Right - Padding.Left, Height - Padding.Bottom - Padding.Top, ContentAlignment.TopLeft);
+                    else
+                        g.DrawString(Text, Font, new SolidBrush(ForeColor), Padding.Left + 2, Padding.Top, Width - Padding.Right - Padding.Left, Height - Padding.Bottom - Padding.Top, TextAlign);
+                }
 
                 if (_shouldFocus)
                 {
@@ -94,7 +99,12 @@ namespace System.Windows.Forms
                 }
             }
             else
-                g.DrawString(Text, Font, new SolidBrush(ForeColor), new RectangleF(Padding.Left, Padding.Top, Width - Padding.Left - Padding.Right, Height - Padding.Bottom - Padding.Top));
+            {
+                if (Multiline)
+                    g.DrawString(Text, Font, new SolidBrush(ForeColor), Padding.Left, Padding.Top, Width - Padding.Left - Padding.Right, Height - Padding.Bottom - Padding.Top, ContentAlignment.TopLeft);
+                else
+                    g.DrawString(Text, Font, new SolidBrush(ForeColor), Padding.Left, Padding.Top, Width - Padding.Left - Padding.Right, Height - Padding.Bottom - Padding.Top, TextAlign);
+            }
 
             g.DrawRectangle(new Pen(_hovered ? BorderHoverColor : BorderColor), 0, 0, Width, Height);
         }

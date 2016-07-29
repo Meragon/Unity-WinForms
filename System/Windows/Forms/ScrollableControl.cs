@@ -77,8 +77,8 @@ namespace System.Windows.Forms
             }
 
             _scrollRect = new Rectangle(_scrollMinX, _scrollMinY, _scrollMaxX - _scrollMinX, _scrollMaxY - _scrollMinY);
-            //UnityEngine.Debug.Log("sr: " + _scrollRect.ToString());
-            //UnityEngine.Debug.Log("cr: " + ClientRectangle.ToString());
+            //Application.Log("sr: " + _scrollRect.ToString());
+            //Application.Log("cr: " + ClientRectangle.ToString());
             if (ClientRectangle.Contains(_scrollRect)) return;
             int _scrollDelta = se.OldValue - se.NewValue;
 
@@ -93,14 +93,14 @@ namespace System.Windows.Forms
                     bool scrollDown = _scrollDelta < 0;
                     if (scrollDown)
                     {
-                        //UnityEngine.Debug.Log(_scrollDelta.ToString());
+                        //Application.Log(_scrollDelta.ToString());
                         if (_scrollRect.Y + _scrollRect.Height + _scrollDelta < Height - 8)
                             return;
                         //if (_scrollDelta + _scrollMinY + ScrollOffset.Y < 0)
                         //  return;
 
-                        //UnityEngine.Debug.Log("y");
-                        /*UnityEngine.Debug.Log("smy: " + _scrollMaxY.ToString() + " sd: " + _scrollDelta.ToString() + " soy: " + ScrollOffset.Y.ToString() +
+                        //Application.Log("y");
+                        /*Application.Log("smy: " + _scrollMaxY.ToString() + " sd: " + _scrollDelta.ToString() + " soy: " + ScrollOffset.Y.ToString() +
                             " h: " + Height.ToString());*/
                         //if (_scrollMaxY + ScrollOffset.Y * -1 + _scrollDelta > Height)
                         //  return;
@@ -111,7 +111,7 @@ namespace System.Windows.Forms
                             return;
                         //if (_scrollRect.Y + _scrollRect.Height + _scrollDelta > Height)
                           //  return;
-                        //UnityEngine.Debug.Log(_scrollDelta + _scrollMaxY + ScrollOffset.Y);
+                        //Application.Log(_scrollDelta + _scrollMaxY + ScrollOffset.Y);
                         //if (_scrollDelta + _scrollMaxY + ScrollOffset.Y > Height)
                         //  return;
                     }
@@ -121,7 +121,7 @@ namespace System.Windows.Forms
                     _scrollOffset -= new int[] { 0, _scrollDelta };
                     break;
             }
-            //UnityEngine.Debug.Log(ScrollOffset);
+            //Application.Log(ScrollOffset);
             _SetOffset(_scrollOffset);
             Scroll(this, se);
         }

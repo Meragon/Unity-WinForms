@@ -20,6 +20,7 @@ This is WinForms wrapper (including System.Drawing). Here you can create base co
 - ColorPicker;
 - \* Accordion;
 - ToolTip;
+- MonthCalendar;
 
 \* - not really good.
 

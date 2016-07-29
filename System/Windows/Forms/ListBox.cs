@@ -331,6 +331,7 @@ namespace System.Windows.Forms
                 _items.Clear();
                 _UpdateOwnerHeight();
                 _owner.ScrollIndex = 0;
+                _owner._selectedIndex = -1;
             }
             public bool Contains(object value)
             {
