@@ -73,7 +73,7 @@ namespace System.Windows.Forms
         }
         protected virtual void OnMouseHover(EventArgs e)
         {
-
+            
         }
         protected virtual void OnMouseLeave(EventArgs e)
         {
@@ -264,7 +264,6 @@ namespace System.Windows.Forms
                     _dropDownToolStrip.Items[i].Selected = false;
                 }
                 _dropDownToolStrip.ShadowBox = true;
-                _dropDownToolStrip.TopMost = Parent.TopMost;
                 _dropDownToolStrip.Orientation = Orientation.Vertical;
                 int height = 0;
                 for (int i = 0; i < DropDownItems.Count; i++)

@@ -61,7 +61,6 @@ namespace System.Windows.Forms
             formButton_Ok.Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
             formButton_Ok.Location = new Point(form.Width - 8 - formButton_Ok.Width, form.Height - formButton_Ok.Height - 8);
             formButton_Ok.Text = "Ok";
-            formButton_Ok.TopMost = true;
             formButton_Ok.Click += (object sender, EventArgs args) =>
             {
                 form.Close();

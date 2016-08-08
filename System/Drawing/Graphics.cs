@@ -20,6 +20,7 @@ namespace System.Drawing
         public static bool NoStrings { get; set; }
 
         internal Control Control { get; set; }
+        internal float FillRate { get; set; }
         internal Rectangle Group { get; set; }
         internal void GroupBegin(Control groupControl)
         {
@@ -388,12 +389,16 @@ namespace System.Drawing
                 GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                 // Right.
                 GUI.DrawTexture(new Rect(c_position.X + x + width - pen.Width, c_position.Y + y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+
+                FillRate += width * pen.Width + pen.Width * (height - pen.Width * 2);
+
                 // Bottom.
                 if (height > 1)
                 {
                     if (Control != null)
                         Control.Batches++;
                     GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y + height - pen.Width, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                    FillRate += width * pen.Width;
                 }
                 // Left.
                 if (width > 1)
@@ -401,6 +406,7 @@ namespace System.Drawing
                     if (Control != null)
                         Control.Batches++;
                     GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                    FillRate += pen.Width * (height - pen.Width * 2);
                 }
             }
             else
@@ -464,17 +470,20 @@ namespace System.Drawing
 
                         GUI.DrawTexture(new Rect(position.X, position.Y, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                         GUI.DrawTexture(new Rect(position.X + width - pen.Width, position.Y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                        FillRate += width * pen.Width + pen.Width * (height - pen.Width * 2);
                         if (height > 1)
                         {
                             if (Control != null)
                                 Control.Batches++;
                             GUI.DrawTexture(new Rect(position.X, position.Y + height - pen.Width, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                            FillRate += width * pen.Width + pen.Width;
                         }
                         if (width > 1)
                         {
                             if (Control != null)
                                 Control.Batches++;
                             GUI.DrawTexture(new Rect(position.X, position.Y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                            FillRate += pen.Width * (height - pen.Width * 2);
                         }
 
                         break;
@@ -489,6 +498,7 @@ namespace System.Drawing
                                 Control.Batches += 2;
                             GUI.DrawTexture(new Rect(position.X + i, position.Y, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Top.
                             GUI.DrawTexture(new Rect(position.X + i, position.Y + height - pen.Width, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Bottom.
+                            FillRate += dash_width * pen.Width * 2;
                         }
                         for (float i = 0; i < height; i += dash_step)
                         {
@@ -499,6 +509,7 @@ namespace System.Drawing
                                 Control.Batches += 2;
                             GUI.DrawTexture(new Rect(position.X + width - pen.Width, position.Y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Right.
                             GUI.DrawTexture(new Rect(position.X, position.Y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Left.
+                            FillRate += pen.Width * dash_height * 2;
                         }
                         break;
                 }
@@ -540,6 +551,7 @@ namespace System.Drawing
 
             if (Control != null)
                 Control.Batches += 1;
+            FillRate += width * height;
 
             GUI.skin.label.alignment = TextAnchor.UpperLeft;
             switch (alignment)
@@ -804,6 +816,7 @@ namespace System.Drawing
             if (Control == null || texture == null) return;
 
             Control.Batches++;
+            FillRate += width * height;
 
             GUI.color = color.ToUColor();
             if (!_group)
@@ -840,6 +853,7 @@ namespace System.Drawing
             if (Control == null) return;
 
             Control.Batches++;
+            FillRate += width * height;
 
             GUI.color = Color.White.ToUColor();
             if (!_group)
@@ -911,8 +925,8 @@ namespace System.Drawing
             if (color.A <= 0) return;
 
             if (Control != null) Control.Batches += 1;
-            //x += Control.Offset.X;
-            //y += Control.Offset.Y;
+
+            FillRate += width * height;
 
             GUI.color = color.ToUColor();
             if (!_group)

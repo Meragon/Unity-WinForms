@@ -55,9 +55,8 @@ namespace System.Windows.Forms
                 System.Drawing.Size deltaSize = new System.Drawing.Size(
                     (int)(_lastWidth - UnityEngine.Screen.width),
                     (int)(_lastHeight - UnityEngine.Screen.height));
-                for (int i = 0; i < _controller.Controls.Count; i++)
-                    if (_controller.Controls[i].Parent == null)
-                        _controller.Controls[i].AddjustSizeToScreen(deltaSize);
+                for (int i = 0; i < _controller.Forms.Count; i++)
+                    _controller.Forms[i].AddjustSizeToScreen(deltaSize);
             }
             _lastWidth = UnityEngine.Screen.width;
             _lastHeight = UnityEngine.Screen.height;
@@ -76,7 +75,7 @@ namespace System.Windows.Forms
                 _controller.ProccessMouse(mousePosition);
                 _controller.ProccessKeys();
             }
-            
+
             _controller.Draw();
         }
     }

@@ -70,6 +70,7 @@ namespace System.Windows.Forms
         public bool Resizable { get; set; }
         public bool ResizeIcon { get; set; }
         public override string Text { get; set; }
+        public bool TopMost { get; set; }
 
         public Form()
         {
@@ -92,7 +93,7 @@ namespace System.Windows.Forms
             ShadowBox = true;
             Size = new Size(334, 260);
             Visible = false;
-
+            
             Owner.UpClick += _Application_UpClick;
             Owner.UpdateEvent += Owner_UpdateEvent;
         }
@@ -188,7 +189,6 @@ namespace System.Windows.Forms
             CloseButton.NormalBorderColor = System.Drawing.Color.Transparent;
             CloseButton.Size = new System.Drawing.Size(24, 16);
             CloseButton.ForeColor = System.Drawing.Color.FromArgb(64, 64, 64);
-            CloseButton.TopMost = this.TopMost;
 
             CloseButton.BringToFront();
             CloseButton.Click += (o, e) => { Close(); };
@@ -268,14 +268,9 @@ namespace System.Windows.Forms
         public void Show()
         {
             Visible = true;
-            int self = Owner.Controls.FindIndex(x => x == this);
+            int self = Owner.Forms.FindIndex(x => x == this);
             if (self == -1)
-            {
-                Owner.Controls.Add(this);
-                if (Controls != null)
-                    for (int i = 0; i < Controls.Count; i++)
-                        Owner.Controls.Add(Controls[i]);
-            }
+                Owner.Forms.Add(this);
             Focus();
         }
         public virtual DialogResult ShowDialog()
@@ -285,6 +280,16 @@ namespace System.Windows.Forms
 
         public event FormClosingEventHandler FormClosing = delegate { };
 
+        public override void Dispose()
+        {
+            Owner.Forms.Remove(this);
+            base.Dispose();
+        }
+        public override void Focus()
+        {
+            base.Focus();
+            BringToFront();
+        }
         protected virtual void OnClosed(EventArgs e)
         {
 

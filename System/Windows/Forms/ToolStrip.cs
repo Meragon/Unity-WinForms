@@ -73,9 +73,9 @@ namespace System.Windows.Forms
             Owner.DownClick -= Application_UpClick;
             base.Dispose();
         }
-        protected override void OnMouseEnter(EventArgs e)
+        protected override void OnMouseHover(EventArgs e)
         {
-            base.OnMouseEnter(e);
+            base.OnMouseHover(e);
 
             var mc_pos = ((MouseEventArgs)e).Location;
             for (int i = 0, x = Padding.Left, y = Padding.Top; i < _items.Count; i++)
@@ -169,6 +169,19 @@ namespace System.Windows.Forms
             }
 
             e.Graphics.DrawRectangle(new Drawing.Pen(BorderColor), 0, 0, Width, Height);
+        }
+        protected override object OnPaintEditor(float width)
+        {
+            var control = base.OnPaintEditor(width);
+
+#if UNITY_EDITOR
+            Editor.NewLine(1);
+            Editor.ColorField("BorderColor", BorderColor, new Action<Color>((c) => { BorderColor = c; }));
+            Editor.Label("Orientation", Orientation);
+            Editor.Label("OwnerItem", OwnerItem);
+#endif
+
+            return control;
         }
 
         public event ToolStripItemClickedEventHandler ItemClicked = delegate { };

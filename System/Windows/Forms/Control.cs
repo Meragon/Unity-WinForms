@@ -11,6 +11,7 @@ namespace System.Windows.Forms
     {
         public static Point MousePosition { get { return new Point((int)UnityEngine.Input.mousePosition.x, (int)(UnityEngine.Screen.height - UnityEngine.Input.mousePosition.y)); } }
 
+        private bool _context;
         [NonSerialized]
         private Control.ControlCollection _controls;
         private bool _disposing;
@@ -19,13 +20,13 @@ namespace System.Windows.Forms
         private Point _location = new Point();
         private int _height;
         private bool _isDisposed;
-        private bool _hovered;
+        internal bool hovered;
+        internal bool mouseEntered;
         [NonSerialized]
         private Control _parent;
-        private bool _topMost;
         private bool _visible;
         private int _width;
-        
+
         private bool _toggleFont;
         private bool _toggleControls;
         private bool _toggleSource;
@@ -39,7 +40,21 @@ namespace System.Windows.Forms
         internal bool Batched { get; set; } // For testing.
         public int Batches { get; internal set; }
         public Rectangle ClientRectangle { get { return new Rectangle(0, 0, Width, Height); } }
-        public virtual bool Context { get; set; } // Close on click control. TODO: make it obsolete, find other way.
+        public virtual bool Context // Close on click control. TODO: make it obsolete, find other way.
+        {
+            get { return _context; }
+            set
+            {
+                if (_context != value)
+                {
+                    _context = value;
+                    if (_context)
+                        Owner.Contexts.Add(this);
+                    else
+                        Owner.Contexts.Remove(this);
+                }
+            }
+        }
         public Control.ControlCollection Controls { get { return _controls; } set { _controls = value; } }
         public virtual Rectangle DisplayRectangle { get { return ClientRectangle; } }
         public bool Disposing { get { return _disposing; } }
@@ -56,7 +71,7 @@ namespace System.Windows.Forms
                 _height = value;
             }
         }
-        public bool Hovered { get { return _hovered; } }
+        public bool Hovered { get { return hovered; } }
         public bool IsDisposed { get { return _isDisposed; } }
         public int Left
         {
@@ -105,17 +120,6 @@ namespace System.Windows.Forms
             get { return this.Location.Y; }
             set { Location = new Point(Location.X, value); }
         }
-        [Obsolete("too many bugs here")]
-        public bool TopMost
-        {
-            get { return _topMost; }
-            set
-            {
-                foreach (var child in Controls)
-                    child.TopMost = value;
-                _topMost = value;
-            }
-        }
         public bool UserGroup { get; set; }
         public bool Visible
         {
@@ -136,7 +140,7 @@ namespace System.Windows.Forms
                 _width = value;
             }
         }
-        
+
         internal string Source { get; set; }
 
         private void _parent_Resize(Point delta)
@@ -214,9 +218,19 @@ namespace System.Windows.Forms
             if (AlwaysFocused) return;
 
             if (Parent != null)
+            {
                 Parent.BringToFront();
-            else
-                Owner.BringToFrontControls.Add(this);
+                Parent.Controls.Remove(this);
+                Parent.Controls.Insert(0, this);
+            }
+
+            var form = this as Form;
+            if (form == null) form = Application.GetRootControl(this) as Form;
+            if (form != null)
+            {
+                this.Owner.Forms.Remove(form);
+                this.Owner.Forms.Add(form);
+            }
         }
         public static Application DefaultController { get; set; }
         protected virtual Padding DefaultPadding { get { return Padding.Empty; } }
@@ -241,8 +255,9 @@ namespace System.Windows.Forms
                     Parent.Controls.RemoveAt(self);
             }
 
-            if (!Owner.ToCloseControls.Contains(this))
-                Owner.ToCloseControls.Add(this);
+            if (Context)
+                Owner.Contexts.Remove(this);
+
             Disposed(this, null);
             _isDisposed = true;
         }
@@ -372,7 +387,7 @@ namespace System.Windows.Forms
         {
             MouseEnter(this, e);
             if (Enabled)
-                _hovered = true;
+                hovered = true;
         }
         protected virtual void OnMouseHover(EventArgs e)
         {
@@ -381,7 +396,7 @@ namespace System.Windows.Forms
         protected virtual void OnMouseLeave(EventArgs e)
         {
             MouseLeave(this, e);
-            _hovered = false;
+            hovered = false;
         }
         protected virtual void OnMouseMove(MouseEventArgs e)
         {
@@ -406,7 +421,7 @@ namespace System.Windows.Forms
         protected virtual object OnPaintEditor(float width)
         {
             System.Windows.Forms.Control controlToSet = null;
-            
+
             Editor.BeginGroup(width - 24);
 
             string title = Name;
@@ -555,9 +570,6 @@ namespace System.Windows.Forms
 
             var editorText = Editor.TextField("Text", this.Text == null ? "" : this.Text);
             if (editorText.Changed) this.Text = editorText;
-
-            var editorTopMost = Editor.BooleanField("TopMost", this.TopMost);
-            if (editorTopMost.Changed) this.TopMost = editorTopMost;
 
             Editor.Label("Type", this.GetType());
 
@@ -766,7 +778,6 @@ namespace System.Windows.Forms
             {
                 _items.Add(value);
                 value.Parent = _owner;
-                value.TopMost = _owner.TopMost;
             }
             public virtual void AddRange(Control[] controls)
             {
@@ -774,7 +785,6 @@ namespace System.Windows.Forms
                 {
                     _items.Add(c);
                     c.Parent = _owner;
-                    c.TopMost = _owner.TopMost;
                 }
             }
             public void Clear()
@@ -800,6 +810,14 @@ namespace System.Windows.Forms
             public IEnumerator<Control> GetEnumerator()
             {
                 return _items.GetEnumerator();
+            }
+            public void Insert(int index, Control value)
+            {
+                _items.Insert(index, value);
+            }
+            public void Remove(Control item)
+            {
+                _items.Remove(item);
             }
             public void RemoveAt(int index)
             {

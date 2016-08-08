@@ -39,10 +39,11 @@ namespace Views
             _scrollPosition = GUILayout.BeginScrollView(_scrollPosition);
             GUILayout.BeginVertical();
             _filter = GUILayout.TextField(_filter);
-            for (int i = 0; i < System.Windows.Forms.Control.DefaultController.Controls.Count; i++)
+            GUILayout.Label("Forms");
+            for (int i = 0; i < System.Windows.Forms.Control.DefaultController.Forms.Count; i++)
             {
-                string c_type = System.Windows.Forms.Control.DefaultController.Controls[i].GetType().ToString().Replace("System.Windows.Forms", "SWF");
-                string c_name = System.Windows.Forms.Control.DefaultController.Controls[i].Name;
+                string c_type = System.Windows.Forms.Control.DefaultController.Forms[i].GetType().ToString().Replace("System.Windows.Forms", "SWF");
+                string c_name = System.Windows.Forms.Control.DefaultController.Forms[i].Name;
                 if (c_name == null) c_name = "";
                 if (!String.IsNullOrEmpty(_filter))
                 {
@@ -54,7 +55,53 @@ namespace Views
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
                     var w = AppControl.ShowWindow();
-                    (w as AppControl).Control = System.Windows.Forms.Control.DefaultController.Controls[i];
+                    (w as AppControl).Control = System.Windows.Forms.Control.DefaultController.Forms[i];
+                }
+                GUILayout.Label(c_type, GUILayout.Width(160));
+                GUILayout.Label(c_name, GUILayout.Width(220));
+                GUILayout.EndHorizontal();
+            }
+            GUILayout.Space(24);
+            GUILayout.Label("Context");
+            for (int i = 0; i < System.Windows.Forms.Control.DefaultController.Contexts.Count; i++)
+            {
+                string c_type = System.Windows.Forms.Control.DefaultController.Contexts[i].GetType().ToString().Replace("System.Windows.Forms", "SWF");
+                string c_name = System.Windows.Forms.Control.DefaultController.Contexts[i].Name;
+                if (c_name == null) c_name = "";
+                if (!String.IsNullOrEmpty(_filter))
+                {
+                    if (!c_type.ToLower().Contains(_filter.ToLower()) && !c_name.ToLower().Contains(_filter.ToLower()))
+                        continue;
+                }
+
+                GUILayout.BeginHorizontal(GUILayout.Width(width));
+                if (GUILayout.Button("...", GUILayout.Width(24)))
+                {
+                    var w = AppControl.ShowWindow();
+                    (w as AppControl).Control = System.Windows.Forms.Control.DefaultController.Contexts[i];
+                }
+                GUILayout.Label(c_type, GUILayout.Width(160));
+                GUILayout.Label(c_name, GUILayout.Width(220));
+                GUILayout.EndHorizontal();
+            }
+            GUILayout.Space(24);
+            GUILayout.Label("Hovered");
+            for (int i = 0; i < System.Windows.Forms.Control.DefaultController.HoveredControls.Count; i++)
+            {
+                string c_type = System.Windows.Forms.Control.DefaultController.HoveredControls[i].GetType().ToString().Replace("System.Windows.Forms", "SWF");
+                string c_name = System.Windows.Forms.Control.DefaultController.HoveredControls[i].Name;
+                if (c_name == null) c_name = "";
+                if (!String.IsNullOrEmpty(_filter))
+                {
+                    if (!c_type.ToLower().Contains(_filter.ToLower()) && !c_name.ToLower().Contains(_filter.ToLower()))
+                        continue;
+                }
+
+                GUILayout.BeginHorizontal(GUILayout.Width(width));
+                if (GUILayout.Button("...", GUILayout.Width(24)))
+                {
+                    var w = AppControl.ShowWindow();
+                    (w as AppControl).Control = System.Windows.Forms.Control.DefaultController.HoveredControls[i];
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));

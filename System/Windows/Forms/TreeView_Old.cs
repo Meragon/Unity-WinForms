@@ -219,7 +219,7 @@ namespace System.Windows.Forms
             _scrollIndex -= e.Delta;
             _scrollIndex = _scrollIndex < 0 ? 0 : _scrollIndex;
             _scrollIndex = _scrollIndex > _scrollItems - _renderList.Count ? _scrollItems - _renderList.Count : _scrollIndex;
-            //Application.Log(_scrollIndex);
+
             Refresh();
         }
         protected override void OnPaint(PaintEventArgs e)

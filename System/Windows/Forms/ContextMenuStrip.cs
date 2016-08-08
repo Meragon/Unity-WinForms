@@ -14,7 +14,6 @@ namespace System.Windows.Forms
             BackColor = Color.FromArgb(246, 246, 246);
             Context = true;
             ShadowBox = true;
-            TopMost = true;
         }
     }
 }

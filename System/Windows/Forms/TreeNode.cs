@@ -18,6 +18,8 @@ namespace System.Windows.Forms
         private int imageIndex = -1;
         private bool visible = true;
 
+        public static readonly Color DEFAULT_FORE_COLOR = Color.FromArgb(42, 42, 42);
+
         public Color BackColor { get; set; }
         public Rectangle Bounds { get; internal set; }
         public bool Enabled { get; set; }
@@ -101,7 +103,7 @@ namespace System.Windows.Forms
         {
             this.BackColor = Color.Transparent;
             this.Enabled = true;
-            this.ForeColor = Color.FromArgb(42, 42, 42);
+            this.ForeColor = DEFAULT_FORE_COLOR;
             this.ImageColor = Color.White;
             this.Text = text;
             if (children != null)

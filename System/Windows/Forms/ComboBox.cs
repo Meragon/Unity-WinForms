@@ -318,7 +318,6 @@ namespace System.Windows.Forms
 
                 var gpoint = PointToScreen(Point.Zero);
                 _listBox.Location = gpoint + new Point(0, Height);
-                _listBox.TopMost = true;
                 _listBox.SelectedValueChanged += (object sender, EventArgs args) =>
                 {
                     if (_listBox != null)

@@ -16,6 +16,7 @@ namespace System.Windows.Forms
         private TreeNodeCollection _nodes;
         private List<TreeNode> _nodeList;
 
+        private TreeNode _hoveredNode;
         private bool _scrollVisible = false;
         private bool _scroll;
         private bool _scrollHovered;
@@ -34,6 +35,7 @@ namespace System.Windows.Forms
         public Color BorderColor { get; set; }
         public ImageList ImageList { get { return _imageList; } set { _imageList = value; } }
         public int ItemHeight { get; set; }
+        public Color HoverColor { get; set; }
         public TreeNodeCollection Nodes { get { return _nodes; } private set { _nodes = value; } }
         public float ScrollIndex { get { return scrollIndex; } internal set { scrollIndex = value; } }
         public float ScrollSpeed { get; set; }
@@ -49,6 +51,7 @@ namespace System.Windows.Forms
             this.BorderColor = Color.FromArgb(130, 135, 144);
             this.ImageList = new ImageList();
             this.ItemHeight = 22;
+            this.HoverColor = Color.FromArgb(128, 187, 222, 251);
             this.Padding = new Padding(4);
             this.root = new TreeNode(this);
             this.root.Expand();
@@ -142,8 +145,9 @@ namespace System.Windows.Forms
         private void _OnDrawNode(object sender, DrawTreeNodeEventArgs e)
         {
             // Node drawing.
-            e.Graphics.FillRectangle(new SolidBrush(e.Node.BackColor), e.Node.Bounds);
-            if (e.Node.IsSelected) e.Graphics.FillRectangle(new SolidBrush(SelectionColor), UseNodeBoundsForSelection ? e.Node.Bounds.X : 0, e.Node.Bounds.Y - (int)scrollIndex, Width, ItemHeight);
+            e.Graphics.FillRectangle(e.Node.BackColor, e.Node.Bounds.X, e.Node.Bounds.Y, e.Node.Bounds.Width, e.Node.Bounds.Height);
+            if (e.Node.IsSelected || e.Node == _hoveredNode)
+                e.Graphics.FillRectangle((e.Node.IsSelected ? SelectionColor : HoverColor), UseNodeBoundsForSelection ? e.Node.Bounds.X : 0, e.Node.Bounds.Y - (int)scrollIndex, Width, ItemHeight);
 
             bool hasImage = false;
             int imageWidth = 0;
@@ -160,7 +164,7 @@ namespace System.Windows.Forms
 
             string stringToDraw = e.Node.Text;
             if (stringToDraw == null && e.Node.Tag != null) stringToDraw = e.Node.Tag.ToString();
-            e.Graphics.DrawString(stringToDraw, Font, new SolidBrush(e.Node.ForeColor), e.Node.Bounds.X + (hasImage ? imageWidth + 2 : 0), e.Node.Bounds.Y - (int)scrollIndex - 2, (WrapText ? Width : Width * 16), e.Bounds.Height + 4, ContentAlignment.MiddleLeft);
+            e.Graphics.DrawString(stringToDraw, Font, e.Node.ForeColor, e.Node.Bounds.X + (hasImage ? imageWidth + 2 : 0), e.Node.Bounds.Y - (int)scrollIndex - 2, (WrapText ? Width : Width * 16), e.Bounds.Height + 4, ContentAlignment.MiddleLeft);
             // End of drawing.
 
             DrawNode(this, e);
@@ -310,6 +314,8 @@ namespace System.Windows.Forms
                 _scrollHovered = true;
             else
                 _scrollHovered = false;
+
+            _hoveredNode = _GetNodeAtPosition(root, mclient);
         }
         protected override void OnMouseMove(MouseEventArgs e)
         {
