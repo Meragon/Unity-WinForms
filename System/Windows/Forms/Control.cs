@@ -9,7 +9,14 @@ namespace System.Windows.Forms
     [Serializable]
     public class Control : Component, IDisposable
     {
-        public static Point MousePosition { get { return new Point((int)UnityEngine.Input.mousePosition.x, (int)(UnityEngine.Screen.height - UnityEngine.Input.mousePosition.y)); } }
+        public static Application DefaultController { get; set; }
+        public static Point MousePosition
+        {
+            get
+            {
+                return new Point((int)UnityEngine.Input.mousePosition.x, (int)(UnityEngine.Screen.height - UnityEngine.Input.mousePosition.y));
+            }
+        }
 
         private bool _context;
         [NonSerialized]
@@ -27,6 +34,7 @@ namespace System.Windows.Forms
         private bool _visible;
         private int _width;
 
+        // Editor toggles.
         private bool _toggleFont;
         private bool _toggleControls;
         private bool _toggleSource;
@@ -130,7 +138,6 @@ namespace System.Windows.Forms
                 VisibleChanged(this, new EventArgs());
             }
         }
-        public bool VisibleInternal { get; set; }
         public int Width
         {
             get { return _width; }
@@ -205,7 +212,6 @@ namespace System.Windows.Forms
             ForeColor = Color.Black;
             UserGroup = true;
             _visible = true;
-            VisibleInternal = true;
 
 #if UNITY_EDITOR
             var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
@@ -221,7 +227,7 @@ namespace System.Windows.Forms
             {
                 Parent.BringToFront();
                 Parent.Controls.Remove(this);
-                Parent.Controls.Insert(0, this);
+                Parent.Controls.Add(this);
             }
 
             var form = this as Form;
@@ -232,8 +238,6 @@ namespace System.Windows.Forms
                 this.Owner.Forms.Add(form);
             }
         }
-        public static Application DefaultController { get; set; }
-        protected virtual Padding DefaultPadding { get { return Padding.Empty; } }
         public virtual new void Dispose()
         {
             if (_isDisposed) return;
@@ -286,7 +290,10 @@ namespace System.Windows.Forms
                 lastFocused.focused = false;
             lastFocused = this;
             focused = true;
-            BringToFront();
+
+            var form = this as Form;
+            if (form == null) form = Application.GetRootControl(this) as Form;
+            if (form != null) form.BringToFront();
         }
         public void Invalidate()
         {

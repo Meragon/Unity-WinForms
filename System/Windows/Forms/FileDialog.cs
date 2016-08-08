@@ -285,6 +285,7 @@ namespace System.Windows.Forms
 
                 filesTree = new TreeView();
                 filesTree.Anchor = AnchorStyles.All;
+                filesTree.BorderColor = Color.LightGray;
                 filesTree.Size = new Drawing.Size(Width, Height);
                 filesTree.SelectedNodeChanged += filesTree_SelectedNodeChanged;
                 filesTree.NodeMouseDoubleClick += filesTree_NodeMouseDoubleClick;

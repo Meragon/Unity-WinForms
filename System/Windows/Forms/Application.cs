@@ -22,8 +22,9 @@ namespace System.Windows.Forms
         private static float _mouseWheelDelta;
         private static System.Drawing.PointF _mouseMovePosition;
         private static bool _mouseFoundHoveredControl;
-        private System.Drawing.Point _mousePosition;
+        private System.Drawing.PointF _mousePosition;
         private PaintEventArgs _paintEventArgs;
+        private static bool _updateHoveredControls;
         private MouseEvents _userMouseEvent;
         private MouseEventArgs _userMouseArgs;
 
@@ -88,7 +89,7 @@ namespace System.Windows.Forms
         }
         private static bool _ControlVisible(Control control)
         {
-            if (control.Visible == false || control.VisibleInternal == false) return false;
+            if (control.Visible == false) return false;
             if (control.Parent == null)
                 return control.Visible;
             if (control.Parent.Visible)
@@ -390,6 +391,8 @@ namespace System.Windows.Forms
             _mouseEvent = MouseEvents.None;
             _mouseButton = MouseButtons.None;
             _mouseFoundHoveredControl = false;
+            if (_mousePosition != mousePosition)
+                _updateHoveredControls = true;
             _mousePosition = mousePosition;
 
             #region Set events.
@@ -573,22 +576,26 @@ namespace System.Windows.Forms
         }
         public void Update()
         {
-            for (int i = 0; i < HoveredControls.Count; i++)
+            if (_updateHoveredControls)
             {
-                var control = HoveredControls[i];
-                var formParent = GetRootControl(control) as Form;
-                if ((control.Context && _ControlAt(formParent, _mousePosition) != control) ||
-                    (formParent != null && formParent != _FormAt(_mousePosition)) ||
-                    _ControlAt(formParent, _mousePosition) != control)
+                for (int i = 0; i < HoveredControls.Count; i++)
                 {
-                    if (control.mouseEntered)
+                    var control = HoveredControls[i];
+                    var formParent = GetRootControl(control) as Form;
+                    if ((control.Context && _ControlAt(formParent, _mousePosition) != control) ||
+                        (formParent != null && formParent != _FormAt(_mousePosition)) ||
+                        _ControlAt(formParent, _mousePosition) != control)
                     {
-                        control.RaiseOnMouseLeave(new MouseEventArgs(MouseButtons.None, 0, _mousePosition.X, _mousePosition.Y, 0));
-                        control.mouseEntered = false;
-                        control.hovered = false;
-                        HoveredControls.Remove(control);
+                        if (control.mouseEntered)
+                        {
+                            control.RaiseOnMouseLeave(new MouseEventArgs(MouseButtons.None, 0, (int)_mousePosition.X, (int)_mousePosition.Y, 0));
+                            control.mouseEntered = false;
+                            control.hovered = false;
+                            HoveredControls.Remove(control);
+                        }
                     }
                 }
+                _updateHoveredControls = false;
             }
 
             UpdateEvent();
