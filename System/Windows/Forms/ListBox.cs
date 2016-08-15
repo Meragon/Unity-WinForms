@@ -121,21 +121,6 @@ namespace System.Windows.Forms
                 }
             }
         }
-        protected override void OnMouseEnter(EventArgs e)
-        {
-            base.OnMouseEnter(e);
-
-            var mclient = PointToClient(MousePosition);
-            for (int i = 0; i < Items.Count; i++)
-            {
-                var item_rect = new Rectangle(0, i * ItemHeight, Width, ItemHeight);
-                if (item_rect.Contains(mclient))
-                {
-                    _hoveredItem = i;
-                    break;
-                }
-            }
-        }
         protected override void OnMouseHover(EventArgs e)
         {
             base.OnMouseHover(e);
@@ -145,6 +130,16 @@ namespace System.Windows.Forms
                 _scrollHover = true;
             else
                 _scrollHover = false;
+            
+            for (int i = 0; i < Items.Count; i++)
+            {
+                var item_rect = new Rectangle(0, i * ItemHeight, Width, ItemHeight);
+                if (item_rect.Contains(mclient))
+                {
+                    _hoveredItem = i;
+                    break;
+                }
+            }
         }
         protected override void OnMouseLeave(EventArgs e)
         {
