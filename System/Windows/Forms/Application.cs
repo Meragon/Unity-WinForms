@@ -293,15 +293,16 @@ namespace System.Windows.Forms
             _paintEventArgs.Graphics.FillRate = 0;
 
             for (int i = 0; i < Forms.Count; i++)
-                if (Forms[i].TopMost == false)
+                if (Forms[i].Visible && Forms[i].TopMost == false)
                     Forms[i].RaiseOnPaint(_paintEventArgs);
 
             for (int i = 0; i < Forms.Count; i++)
-                if (Forms[i].TopMost)
+                if (Forms[i].Visible && Forms[i].TopMost)
                     Forms[i].RaiseOnPaint(_paintEventArgs);
 
             for (int i = 0; i < Contexts.Count; i++)
-                Contexts[i].RaiseOnPaint(_paintEventArgs);
+                if (Contexts[i].Visible)
+                    Contexts[i].RaiseOnPaint(_paintEventArgs);
 
             FillRate = _paintEventArgs.Graphics.FillRate;
 

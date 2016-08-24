@@ -29,22 +29,12 @@ namespace System.Windows.Forms
 
         public const int DefaultItemHeight = 20;
 
-        public ListBox()
-        {
-            _items = new ObjectCollection(this);
-
-            BackColor = Color.White;
-            BorderColor = Color.DarkGray;
-            ItemHeight = DefaultItemHeight;
-            WrapText = true;
-
-            Owner.UpClick += Application_UpClick;
-        }
-
         public Color BorderColor { get; set; }
+        public Color DisabledColor { get; set; }
         public bool FixedHeight { get; set; }
         public virtual int ItemHeight { get; set; }
         public ListBox.ObjectCollection Items { get { return _items; } }
+        public Color HoverColor { get; set; }
         internal int ScrollIndex
         {
             get { return _scrollIndex; }
@@ -58,6 +48,8 @@ namespace System.Windows.Forms
                     _scrollIndex = 0;
             }
         }
+        public Color ScrollColor { get; set; }
+        public Color ScrollHoveredColor { get; set; }
         public override int SelectedIndex
         {
             get { return _selectedIndex; }
@@ -85,7 +77,25 @@ namespace System.Windows.Forms
                     }
             }
         }
+        public Color SelectionColor { get; set; }
+        public Color SelectionDisabledColor { get; set; }
         public bool WrapText { get; set; }
+
+        public ListBox()
+        {
+            _items = new ObjectCollection(this);
+
+            BackColor = Color.White;
+            BorderColor = Color.DarkGray;
+            DisabledColor = Color.Gray;
+            ItemHeight = DefaultItemHeight;
+            HoverColor = Color.FromArgb(221, 238, 253);
+            SelectionColor = Color.FromArgb(187, 222, 251);
+            SelectionDisabledColor = Color.FromArgb(101, 203, 255);
+            WrapText = true;
+
+            Owner.UpClick += Application_UpClick;
+        }
 
         private void Application_UpClick(object sender, MouseEventArgs e)
         {
@@ -209,20 +219,31 @@ namespace System.Windows.Forms
 
             var g = e.Graphics;
 
+            // Paint list.
             g.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
             for (int i = 0; i < _visibleItems && i + ScrollIndex < Items.Count; i++)
             {
-                bool disabled = Items.IsDisabled(i + ScrollIndex);
-                if (i + _scrollIndex == SelectedIndex || i == _hoveredItem)
-                    g.FillRectangle(new SolidBrush(disabled ? Color.FromArgb(101, 203, 255) : Color.FromArgb(64, 0, 122, 204)), 0, i * ItemHeight, Width, ItemHeight);
+                bool itemDisabled = Items.IsDisabled(i + ScrollIndex);
+                bool itemSelected = i + _scrollIndex == SelectedIndex;
+                bool itemHovered = i == _hoveredItem;
+                if (itemSelected || itemHovered)
+                {
+                    Color itemBackColor = HoverColor;
+                    if (itemDisabled)
+                        itemBackColor = SelectionDisabledColor;
+                    else if (itemSelected)
+                        itemBackColor = SelectionColor;
+                    g.FillRectangle(itemBackColor, 0, i * ItemHeight, Width, ItemHeight);
+                }
 
-                g.DrawString(Items[i + ScrollIndex].ToString(), Font, new SolidBrush(disabled ? Color.Gray : ForeColor), 4, i * ItemHeight, WrapText ? Width : Width * 5, ItemHeight);
+                g.DrawString(Items[i + ScrollIndex].ToString(), Font, itemDisabled ? DisabledColor : ForeColor, 4, i * ItemHeight, WrapText ? Width : Width * 5, ItemHeight);
             }
 
             _scrollVisible = false;
             if (Items.Count > _visibleItems)
                 _scrollVisible = true;
 
+            // Paint scroll.
             if (_scrollVisible && Items.Count > 0)
             {
                 _scrollX = Width - _scrollWidth;
@@ -230,9 +251,9 @@ namespace System.Windows.Forms
                 _scrollHeight = (int)((float)(_visibleItems * Height) / Items.Count);
                 if (_scrollHeight < 4)
                     _scrollHeight = 4;
-                Color _scrollColor = Color.FromArgb(222, 222, 230);
-                if (_scrollHover || _scroll) _scrollColor = Color.FromArgb(136, 136, 136);
-                g.FillRectangle(new SolidBrush(_scrollColor), _scrollX, _scrollY, _scrollWidth, _scrollHeight);
+                Color _scrollColor = ScrollColor;
+                if (_scrollHover || _scroll) _scrollColor = ScrollHoveredColor;
+                g.FillRectangle(_scrollColor, _scrollX, _scrollY, _scrollWidth, _scrollHeight);
             }
         }
         protected override void OnResize(Point delta)

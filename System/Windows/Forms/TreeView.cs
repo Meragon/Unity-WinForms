@@ -51,7 +51,7 @@ namespace System.Windows.Forms
             this.BorderColor = Color.FromArgb(130, 135, 144);
             this.ImageList = new ImageList();
             this.ItemHeight = 22;
-            this.HoverColor = Color.FromArgb(128, 187, 222, 251);
+            this.HoverColor = Color.FromArgb(221, 238, 253);
             this.Padding = new Padding(4);
             this.root = new TreeNode(this);
             this.root.Expand();
