@@ -42,7 +42,9 @@ namespace System.Drawing
         Regular = 0,
         Bold = 1,
         Italic = 2,
+        [Obsolete("it's not working")]
         Underline = 4,
+        [Obsolete("it's not working")]
         Strikeout = 8,
     }
 }

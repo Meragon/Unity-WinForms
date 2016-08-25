@@ -272,6 +272,7 @@ namespace System.Windows.Forms
             if (self == -1)
                 Owner.Forms.Add(this);
             Focus();
+            Shown(this, null);
         }
         public virtual DialogResult ShowDialog()
         {
@@ -279,6 +280,7 @@ namespace System.Windows.Forms
         }
 
         public event FormClosingEventHandler FormClosing = delegate { };
+        public event EventHandler Shown = delegate { };
 
         public override void Dispose()
         {

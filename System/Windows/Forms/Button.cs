@@ -11,14 +11,20 @@ namespace System.Windows.Forms
     {
         internal ColorF currentBackColor;
         private Color _normalColor;
-        
+
         private bool _toggleEditor = true;
 
+        public new Color BackColor
+        {
+            get { return NormalColor; }
+            set { NormalColor = value; }
+        }
         public virtual Color HoverBorderColor { get; set; }
         public virtual Color HoverColor { get; set; }
         public Bitmap Image { get; set; }
         public Bitmap ImageHover { get; set; }
         public Color ImageColor { get; set; }
+        public Color? ImageHoverColor { get; set; }
         public virtual Color NormalBorderColor { get; set; }
         public virtual Color NormalColor
         {
@@ -46,7 +52,7 @@ namespace System.Windows.Forms
 
             currentBackColor = NormalColor;
         }
-        
+
         protected override void OnKeyUp(KeyEventArgs e)
         {
             base.OnKeyUp(e);
@@ -76,17 +82,26 @@ namespace System.Windows.Forms
             if (!Enabled) textBrush.Color = ForeColor + Color.FromArgb(0, 128, 128, 128);
             if (Image != null && Image.uTexture != null)
             {
+                var imageToPaint = Image;
+                var imageColorToPaint = ImageColor;
+                if (Hovered)
+                {
+                    if (ImageHover != null)
+                        imageToPaint = ImageHover;
+                    if (ImageHoverColor != null)
+                        imageColorToPaint = ImageHoverColor.Value;
+                }
                 switch (BackgroundImageLayout)
                 {
                     default:
                     case ImageLayout.None:
-                        g.DrawTexture(Hovered && ImageHover != null ? ImageHover : Image, 0, 0, Image.Width, Image.Height, ImageColor);
+                        g.DrawTexture(imageToPaint, 0, 0, Image.Width, Image.Height, imageColorToPaint);
                         break;
                     case ImageLayout.Center:
-                        g.DrawTexture(Hovered && ImageHover != null ? ImageHover : Image, Width / 2 - Image.Width / 2, Height / 2 - Image.Height / 2, Image.Width, Image.Height, ImageColor);
+                        g.DrawTexture(imageToPaint, Width / 2 - Image.Width / 2, Height / 2 - Image.Height / 2, Image.Width, Image.Height, imageColorToPaint);
                         break;
                     case ImageLayout.Stretch:
-                        g.DrawTexture(Hovered && ImageHover != null ? ImageHover : Image, 0, 0, Width, Height, ImageColor);
+                        g.DrawTexture(imageToPaint, 0, 0, Width, Height, imageColorToPaint);
                         break;
                     case ImageLayout.Zoom:
                         // TODO: not working.
@@ -102,7 +117,7 @@ namespace System.Windows.Forms
         protected override object OnPaintEditor(float width)
         {
             var control = base.OnPaintEditor(width);
-            
+
             Editor.BeginVertical();
             Editor.NewLine(1);
 
