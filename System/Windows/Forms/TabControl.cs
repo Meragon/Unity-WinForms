@@ -94,7 +94,6 @@ namespace System.Windows.Forms
             btn.Size = new Size(page.Width, HeaderHeight);
             btn.Location = new Point(page.Offset, 0);
             btn.NormalColor = Color.FromArgb(204, 206, 219);
-            btn.TopMost = TopMost;
             btn.NormalBorderColor = Color.Transparent;
             btn.HoverBorderColor = Color.Transparent;
 
