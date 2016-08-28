@@ -37,7 +37,9 @@ namespace System.Windows.Forms
         public int ItemHeight { get; set; }
         public Color HoverColor { get; set; }
         public TreeNodeCollection Nodes { get { return _nodes; } private set { _nodes = value; } }
+        public Color ScrollColor { get; set; }
         public float ScrollIndex { get { return scrollIndex; } internal set { scrollIndex = value; } }
+        public Color ScrollHoverColor { get; set; }
         public float ScrollSpeed { get; set; }
         public TreeNode SelectedNode { get; set; }
         public Color SelectionColor { get; set; }
@@ -56,6 +58,8 @@ namespace System.Windows.Forms
             this.root = new TreeNode(this);
             this.root.Expand();
             this.Resize += TreeView_Resize;
+            this.ScrollColor = Color.FromArgb(222, 222, 230);
+            this.ScrollHoverColor = Color.FromArgb(136, 136, 136);
             this.ScrollSpeed = 2;
             this.SelectionColor = Color.FromArgb(187, 222, 251);
             this.SmoothScrolling = true;
@@ -361,15 +365,15 @@ namespace System.Windows.Forms
 
             if (_scrollVisible)
             {
-                Color _scrollColor = Color.FromArgb(222, 222, 230);
-                if (_scrollHovered || _scroll) _scrollColor = Color.FromArgb(136, 136, 136);
+                Color _scrollColor = ScrollColor;
+                if (_scrollHovered || _scroll) _scrollColor = ScrollHoverColor;
 
                 float _scrollYCoeff = Height / _scroll_ItemsEstimatedHeigh;
                 _scrollbarHeight = Height * _scrollYCoeff;
                 if (_scrollbarHeight < 8) _scrollbarHeight = 8;
                 _scrollbarY = scrollIndex * _scrollYCoeff;
 
-                e.Graphics.FillRectangle(new SolidBrush(_scrollColor), Width - _scrollbarWidth + 2, _scrollbarY, _scrollbarWidth - 2, _scrollbarHeight);
+                e.Graphics.FillRectangle(_scrollColor, Width - _scrollbarWidth + 2, _scrollbarY, _scrollbarWidth - 2, _scrollbarHeight);
             }
             #endregion
 
@@ -429,6 +433,20 @@ namespace System.Windows.Forms
             ProccesNode(root);
             _UpdateScrollList();
             _FixScrollIndex();
+        }
+
+        internal void EnsureVisible(TreeNode node)
+        {
+            var nodeIsInScrollList =_scrollNodeList.Find(x => x == node);
+            if (nodeIsInScrollList != null) return;
+
+            var nodeIndex = _nodeList.FindIndex(x => x == node);
+            if (nodeIndex == -1) return; // Is not exist in tree.
+
+            scrollIndex = node.Bounds.Y;
+
+            _FixScrollIndex();
+            _UpdateScrollList();
         }
 
         public void CollapseAll()

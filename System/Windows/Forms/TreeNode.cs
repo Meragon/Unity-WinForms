@@ -150,6 +150,10 @@ namespace System.Windows.Forms
         {
             expanded = false;
         }
+        public void EnsureVisible()
+        {
+            treeView.EnsureVisible(this);
+        }
         public void Expand()
         {
             expanded = true;

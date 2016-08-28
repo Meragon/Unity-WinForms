@@ -68,6 +68,14 @@ namespace System.Windows.Forms
         {
             return from_value + (to_value - from_value) * speed * Application.DeltaTime;
         }
+        public static bool InRange(int val, int min, int max)
+        {
+            return (val >= min && val <= max);
+        }
+        public static bool InRange(float val, float min, float max)
+        {
+            return (val >= min && val <= max);
+        }
         public static float Hermite(float value1, float tangent1, float value2, float tangent2, float amount)
         {
             // originaly from https://github.com/mono/MonoGame/
