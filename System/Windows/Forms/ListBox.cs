@@ -90,6 +90,8 @@ namespace System.Windows.Forms
             DisabledColor = Color.Gray;
             ItemHeight = DefaultItemHeight;
             HoverColor = Color.FromArgb(221, 238, 253);
+            ScrollColor = Color.FromArgb(222, 222, 230);
+            ScrollHoveredColor = Color.FromArgb(136, 136, 136);
             SelectionColor = Color.FromArgb(187, 222, 251);
             SelectionDisabledColor = Color.FromArgb(101, 203, 255);
             WrapText = true;
