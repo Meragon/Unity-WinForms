@@ -128,6 +128,17 @@ namespace System.Windows.Forms
             var mouseToClient = control.PointToClient(mousePosition);
             var controlForm = GetRootControl(control) as Form;
             if (control.Context || (controlForm != null && controlForm == _FormAt(mousePosition)))
+            {
+                if (control.Context == false)
+                {
+                    for (int i = 0; i < Contexts.Count; i++)
+                    {
+                        var contextControl = Contexts[i];
+                        var contextRect = new System.Drawing.Rectangle(contextControl.Location.X, contextControl.Location.Y, contextControl.Width, contextControl.Height);
+                        if (contextRect.Contains(mousePosition))
+                            return false;
+                    }
+                }
                 if (control.ClientRectangle.Contains(mouseToClient))
                 {
                     if (control.mouseEntered == false)
@@ -140,6 +151,7 @@ namespace System.Windows.Forms
                     control.RaiseOnMouseHover(new MouseEventArgs(MouseButtons.None, 0, mouseToClient.X, mouseToClient.Y, 0));
                     return true;
                 }
+            }
 
             return false;
         }
