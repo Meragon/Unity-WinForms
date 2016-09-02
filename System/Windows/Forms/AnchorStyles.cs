@@ -5,6 +5,7 @@ using System.Text;
 
 namespace System.Windows.Forms
 {
+    [Flags]
     public enum AnchorStyles
     {
         // Сводка:

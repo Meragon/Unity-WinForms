@@ -19,14 +19,14 @@ namespace System.Windows.Forms
             get { return NormalColor; }
             set { NormalColor = value; }
         }
-        public virtual Color HoverBorderColor { get; set; }
-        public virtual Color HoverColor { get; set; }
+        public Color HoverBorderColor { get; set; }
+        public Color HoverColor { get; set; }
         public Bitmap Image { get; set; }
         public Bitmap ImageHover { get; set; }
         public Color ImageColor { get; set; }
         public Color? ImageHoverColor { get; set; }
-        public virtual Color NormalBorderColor { get; set; }
-        public virtual Color NormalColor
+        public Color NormalBorderColor { get; set; }
+        public Color NormalColor
         {
             get { return _normalColor; }
             set

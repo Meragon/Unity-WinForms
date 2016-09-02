@@ -31,7 +31,7 @@ namespace System.Windows.Forms
         protected internal ToolStrip Parent { get; set; }
         public virtual bool Pressed { get { return false; } }
         public virtual bool Selected { get; internal set; }
-        public virtual Size Size { get { return new Size(Width, Height); } set { Width = value.Width; Height = value.Height; } }
+        public Size Size { get { return new Size(Width, Height); } set { Width = value.Width; Height = value.Height; } }
         public virtual string Text { get; set; }
         public virtual StringFormat TextAlign { get; set; }
         public bool Visible { get; set; }

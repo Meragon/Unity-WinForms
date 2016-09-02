@@ -224,7 +224,7 @@ namespace System.Windows.Forms
             for (int i = 0; i < _visibleItems && i + ScrollIndex < Items.Count; i++)
             {
                 bool itemDisabled = Items.IsDisabled(i + ScrollIndex);
-                bool itemSelected = i + _scrollIndex == SelectedIndex;
+                bool itemSelected = (i + _scrollIndex) == SelectedIndex;
                 bool itemHovered = i == _hoveredItem;
                 if (itemSelected || itemHovered)
                 {

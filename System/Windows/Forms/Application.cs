@@ -72,17 +72,14 @@ namespace System.Windows.Forms
             {
                 control = parentControl;
 
-                if (control != null)
-                {
-                    if (parentControl.Controls.Count > 0)
-                        for (int i = 0; i < parentControl.Controls.Count; i++)
-                        {
-                            var childControl = parentControl.Controls[i];
-                            var childControlAt = _ControlAt(childControl, mousePosition);
-                            if (childControlAt != null)
-                                control = childControlAt;
-                        }
-                }
+                if (parentControl.Controls.Count > 0)
+                    for (int i = 0; i < parentControl.Controls.Count; i++)
+                    {
+                        var childControl = parentControl.Controls[i];
+                        var childControlAt = _ControlAt(childControl, mousePosition);
+                        if (childControlAt != null)
+                            control = childControlAt;
+                    }
             }
 
             return control;

@@ -37,6 +37,7 @@ namespace System.Drawing
         }
     }
 
+    [Flags]
     public enum FontStyle
     {
         Regular = 0,

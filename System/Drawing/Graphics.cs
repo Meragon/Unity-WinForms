@@ -36,6 +36,7 @@ namespace System.Drawing
 
         public static PointF[] GetBezierApproximation(PointF[] controlPoints, int outputSegmentCount)
         {
+            if (outputSegmentCount <= 0) return null;
             PointF[] points = new PointF[outputSegmentCount + 1];
             for (int i = 0; i <= outputSegmentCount; i++)
             {
@@ -332,7 +333,7 @@ namespace System.Drawing
         }
         public void DrawPoint(Color color, int x, int y)
         {
-            DrawPoint(color, x, y);
+            DrawPoint(color, (float)x, (float)y);
         }
         public void DrawPoint(Color color, float x, float y)
         {

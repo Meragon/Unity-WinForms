@@ -14,7 +14,7 @@ namespace System.Windows.Forms
         public ScrollEventArgs(ScrollEventType type, int newValue)
         {
             _scrollType = type;
-            NewValue = NewValue;
+            NewValue = newValue;
         }
         public ScrollEventArgs(ScrollEventType type, int oldValue, int newValue)
         {
