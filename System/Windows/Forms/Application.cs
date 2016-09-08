@@ -31,6 +31,7 @@ namespace System.Windows.Forms
         internal List<Control> Contexts = new List<Control>();
         internal List<Form> Forms = new List<Form>();
         internal List<Control> HoveredControls = new List<Control>();
+        internal List<Form> ModalForms = new List<Form>();
 
         public static bool Debug { get; set; }
         public static float DeltaTime { get { return UnityEngine.Time.deltaTime; } }
@@ -101,8 +102,45 @@ namespace System.Windows.Forms
                 _FillListWithControls(control.Controls[i], list);
             }
         }
+        private bool _FindTopForm(ref Control lastPreccessedControl, IList<Form> formList, Predicate<Form> condition = null)
+        {
+            for (int i = formList.Count - 1; i >= 0; i--)
+            {
+                var form = formList[i];
+                var result = _FindTopForm(ref lastPreccessedControl, form, condition);
+                if (result) return result;
+            }
+
+            return false;
+        }
+        private bool _FindTopForm(ref Control lastPreccessedControl, Form form, Predicate<Form> condition = null)
+        {
+            Control controlToProcess = form;
+
+            if (condition != null && condition.Invoke(form) == false) return false;
+            if (_ControlVisible(form) == false || form.Enabled == false) return false;
+
+            controlToProcess = _ControlAt(controlToProcess, _mousePosition);
+            if (controlToProcess != null)
+                if (_ProcessControl(_mousePosition, controlToProcess, false))
+                {
+                    lastPreccessedControl = form;
+                    return true;
+                }
+
+            return false;
+        }
         private Form _FormAt(System.Drawing.Point mousePosition)
         {
+            if (ModalForms.Count > 0)
+            {
+                var lastModalForm = ModalForms.Last();
+                var formRect = new System.Drawing.Rectangle(lastModalForm.Location.X, lastModalForm.Location.Y, lastModalForm.Width, lastModalForm.Height);
+                if (formRect.Contains(mousePosition))
+                    return lastModalForm;
+
+                return null;
+            }
             for (int i = Forms.Count - 1; i >= 0; i--)
                 if (Forms[i].TopMost && Forms[i].Visible && Forms[i].Enabled)
                 {
@@ -308,6 +346,10 @@ namespace System.Windows.Forms
             for (int i = 0; i < Forms.Count; i++)
                 if (Forms[i].Visible && Forms[i].TopMost)
                     Forms[i].RaiseOnPaint(_paintEventArgs);
+
+            for (int i = 0; i < ModalForms.Count; i++)
+                if (ModalForms[i].Visible)
+                    ModalForms[i].RaiseOnPaint(_paintEventArgs);
 
             for (int i = 0; i < Contexts.Count; i++)
                 if (Contexts[i].Visible)
@@ -526,37 +568,14 @@ namespace System.Windows.Forms
                 }
                 // Forms then.
                 if (found == false)
-                    for (int i = Forms.Count - 1; i >= -1; i--)
-                    {
-                        // Top first.
-                        if (i == -1)
-                        {
-                            if (alwaysTop)
-                            {
-                                i = Forms.Count;
-                                alwaysTop = false;
-                                continue;
-                            }
-                            break;
-                        }
-
-                        var form = Forms[i];
-                        Control controlToProcess = form;
-
-                        if (alwaysTop && !form.TopMost) continue;
-                        if (_ControlVisible(form) == false || form.Enabled == false) continue;
-
-                        controlToProcess = _ControlAt(controlToProcess, mousePosition);
-                        if (controlToProcess != null)
-                        {
-                            if (_ProcessControl(mousePosition, controlToProcess, false))
-                            {
-                                lastPreccessedControl = form;
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
+                {
+                    if (ModalForms.Count > 0)
+                        found = _FindTopForm(ref lastPreccessedControl, ModalForms.Last());
+                    if (found == false)
+                        found = _FindTopForm(ref lastPreccessedControl, Forms, x => x.TopMost);
+                    if (found == false)
+                        found = _FindTopForm(ref lastPreccessedControl, Forms, x => x.TopMost == false);
+                }
 
                 if (!found && _mouseEvent == MouseEvents.Up)
                 {

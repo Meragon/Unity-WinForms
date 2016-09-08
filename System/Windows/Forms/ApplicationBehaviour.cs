@@ -55,6 +55,8 @@ namespace System.Windows.Forms
                 System.Drawing.Size deltaSize = new System.Drawing.Size(
                     (int)(_lastWidth - UnityEngine.Screen.width),
                     (int)(_lastHeight - UnityEngine.Screen.height));
+                for (int i = 0; i < _controller.ModalForms.Count; i++)
+                    _controller.ModalForms[i].AddjustSizeToScreen(deltaSize);
                 for (int i = 0; i < _controller.Forms.Count; i++)
                     _controller.Forms[i].AddjustSizeToScreen(deltaSize);
             }

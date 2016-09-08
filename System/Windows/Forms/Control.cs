@@ -234,8 +234,16 @@ namespace System.Windows.Forms
             if (form == null) form = Application.GetRootControl(this) as Form;
             if (form != null)
             {
-                this.Owner.Forms.Remove(form);
-                this.Owner.Forms.Add(form);
+                if (this.Owner.Forms.Contains(form))
+                {
+                    this.Owner.Forms.Remove(form);
+                    this.Owner.Forms.Add(form);
+                }
+                else if (form.IsModal)
+                {
+                    this.Owner.ModalForms.Remove(form);
+                    this.Owner.ModalForms.Add(form);
+                }
             }
         }
         public virtual new void Dispose()

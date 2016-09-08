@@ -13,6 +13,7 @@ namespace System.Windows.Forms
         [NonSerialized]
         private Button _closeButton;
         private MenuStrip _mainMenuStrip;
+        private static Point _nextLocation = new Point(64, 64);
         private bool _windowMove = false;
         private Point _windowMoveDelta;
 
@@ -23,7 +24,7 @@ namespace System.Windows.Forms
         private int _resizeOffset = 8;
         private DNDResizeType _resizeShow;
         private float _resizeAlpha;
-        
+
         private bool _toggleEditor = true;
 
         public Color BorderColor { get; set; }
@@ -57,6 +58,7 @@ namespace System.Windows.Forms
             }
         }
         public DialogResult DialogResult { get; set; }
+        public bool IsModal { get { return Owner.ModalForms.Contains(this); } }
         public Color HeaderColor { get; set; }
         public Font HeaderFont { get; set; }
         public int HeaderHeight { get; set; }
@@ -69,6 +71,18 @@ namespace System.Windows.Forms
         public bool Movable { get; set; }
         public bool Resizable { get; set; }
         public bool ResizeIcon { get; set; }
+        public new Size Size
+        {
+            get { return base.Size; }
+            set
+            {
+                base.Size = value;
+                if (_nextLocation.X + value.Width > Screen.PrimaryScreen.WorkingArea.Width - 32)
+                    _nextLocation = new Point(64, _nextLocation.Y);
+                if (_nextLocation.Y + value.Height > Screen.PrimaryScreen.WorkingArea.Height - 32)
+                    _nextLocation = new Point(_nextLocation.X, 32);
+            }
+        }
         public override string Text { get; set; }
         public bool TopMost { get; set; }
 
@@ -81,7 +95,7 @@ namespace System.Windows.Forms
             BorderColor = Color.FromArgb(204, 206, 219);
             //BorderColor = Color.FromArgb(155, 159, 185);
             Font = new Font("Arial", 14);
-            Location = new Point(64, 64);
+            Location = _nextLocation;
             HeaderColor = Color.FromArgb(238, 238, 242);
             HeaderFont = Font;
             HeaderTextColor = Color.FromArgb(64, 64, 64);
@@ -93,9 +107,15 @@ namespace System.Windows.Forms
             ShadowBox = true;
             Size = new Size(334, 260);
             Visible = false;
-            
+
             Owner.UpClick += _Application_UpClick;
             Owner.UpdateEvent += Owner_UpdateEvent;
+
+            _nextLocation = new Point(_nextLocation.X + 26, _nextLocation.Y + 26);
+            if (_nextLocation.X + Width > Screen.PrimaryScreen.WorkingArea.Width - 32)
+                _nextLocation = new Point(32, _nextLocation.Y);
+            if (_nextLocation.Y + Height > Screen.PrimaryScreen.WorkingArea.Height - 32)
+                _nextLocation = new Point(_nextLocation.X, 32);
         }
 
         private void _Application_UpClick(object sender, MouseEventArgs e)
@@ -195,7 +215,7 @@ namespace System.Windows.Forms
 
             Controls.Add(CloseButton);
         }
-        
+
         public void Close()
         {
             var fc_args = new FormClosingEventArgs(CloseReason.UserClosing, false);
@@ -274,9 +294,16 @@ namespace System.Windows.Forms
             Focus();
             Shown(this, null);
         }
-        public virtual DialogResult ShowDialog()
+        public DialogResult ShowDialog()
         {
-            return Forms.DialogResult.Cancel;
+            Visible = true;
+            int self = Owner.ModalForms.FindIndex(x => x == this);
+            if (self == -1)
+                Owner.ModalForms.Add(this);
+            Focus();
+            Shown(this, null);
+
+            return DialogResult.None;
         }
 
         public event FormClosingEventHandler FormClosing = delegate { };
@@ -284,13 +311,11 @@ namespace System.Windows.Forms
 
         public override void Dispose()
         {
-            Owner.Forms.Remove(this);
+            if (IsModal == false)
+                Owner.Forms.Remove(this);
+            else
+                Owner.ModalForms.Remove(this);
             base.Dispose();
-        }
-        public override void Focus()
-        {
-            base.Focus();
-            BringToFront();
         }
         protected virtual void OnClosed(EventArgs e)
         {
@@ -346,7 +371,7 @@ namespace System.Windows.Forms
         protected override void OnPaint(PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            
+
             g.FillRectangle(new SolidBrush(HeaderColor), 0, 0, Width, HeaderHeight);
             g.DrawString(Text, HeaderFont, new SolidBrush(HeaderTextColor), HeaderPadding.Left, HeaderPadding.Top, Width - HeaderPadding.Right - HeaderPadding.Left, HeaderHeight - HeaderPadding.Bottom - HeaderPadding.Top, HeaderTextAlign);
             g.FillRectangle(new SolidBrush(BackColor), 0, HeaderHeight, Width, Height - HeaderHeight);
@@ -360,7 +385,7 @@ namespace System.Windows.Forms
         protected override object OnPaintEditor(float width)
         {
             var control = base.OnPaintEditor(width);
-            
+
             Editor.BeginVertical();
             Editor.NewLine(1);
 

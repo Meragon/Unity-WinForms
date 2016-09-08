@@ -239,9 +239,8 @@ namespace System.Windows.Forms
             base.OnPaint(e);
             e.Graphics.DrawLine(new Pen(BorderColor), 1, HeaderHeight, Width - 1, HeaderHeight);
         }
-        public override DialogResult ShowDialog()
+        public new DialogResult ShowDialog()
         {
-            Focus();
             var fs = Filter.Split('|');
             for (int i = 0; i < fs.Length; i += 2)
                 comboFilter.Items.Add(fs[i]);
@@ -256,7 +255,9 @@ namespace System.Windows.Forms
             }
 
             fileRender.SetDirectory(fileRender.currentPath);
-            Show();
+
+            base.ShowDialog();
+
             return Forms.DialogResult.None;
         }
 

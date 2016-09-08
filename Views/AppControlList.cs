@@ -39,6 +39,29 @@ namespace Views
             _scrollPosition = GUILayout.BeginScrollView(_scrollPosition);
             GUILayout.BeginVertical();
             _filter = GUILayout.TextField(_filter);
+            GUILayout.Label("Modal Forms");
+            for (int i = 0; i < System.Windows.Forms.Control.DefaultController.ModalForms.Count; i++)
+            {
+                string c_type = System.Windows.Forms.Control.DefaultController.ModalForms[i].GetType().ToString().Replace("System.Windows.Forms", "SWF");
+                string c_name = System.Windows.Forms.Control.DefaultController.ModalForms[i].Name;
+                if (c_name == null) c_name = "";
+                if (!String.IsNullOrEmpty(_filter))
+                {
+                    if (!c_type.ToLower().Contains(_filter.ToLower()) && !c_name.ToLower().Contains(_filter.ToLower()))
+                        continue;
+                }
+
+                GUILayout.BeginHorizontal(GUILayout.Width(width));
+                if (GUILayout.Button("...", GUILayout.Width(24)))
+                {
+                    var w = AppControl.ShowWindow();
+                    (w as AppControl).Control = System.Windows.Forms.Control.DefaultController.ModalForms[i];
+                }
+                GUILayout.Label(c_type, GUILayout.Width(160));
+                GUILayout.Label(c_name, GUILayout.Width(220));
+                GUILayout.EndHorizontal();
+            }
+            GUILayout.Space(24);
             GUILayout.Label("Forms");
             for (int i = 0; i < System.Windows.Forms.Control.DefaultController.Forms.Count; i++)
             {
