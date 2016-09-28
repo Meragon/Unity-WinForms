@@ -371,6 +371,16 @@ namespace System.Windows.Forms
         }
         public void ProccessKeys()
         {
+            // Close context if possible.
+            if (Event.current.keyCode == KeyCode.Escape && Event.current.type == EventType.KeyDown)
+            {
+                if (Contexts.Count > 0)
+                {
+                    Contexts[0].Dispose();
+                    return;
+                }
+            }
+
             if (Event.current.keyCode != KeyCode.None)
             {
                 KeyEventArgs args = new KeyEventArgs();
