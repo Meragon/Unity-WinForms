@@ -47,6 +47,7 @@ namespace System.Windows.Forms
             throw new NotSupportedException();
 #endif
             BackColor = Color.White;
+            HeaderTextAlign = ContentAlignment.MiddleCenter;
             Filter = "All files|*.*";
             MinimumSize = new Drawing.Size(240, 240);
             Padding = new Padding(12, 12, 12, 12);

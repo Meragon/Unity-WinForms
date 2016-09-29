@@ -47,6 +47,15 @@ namespace System.Windows.Forms
         public virtual ImageLayout BackgroundImageLayout { get; set; }
         internal bool Batched { get; set; } // For testing.
         public int Batches { get; internal set; }
+        public Rectangle Bounds
+        {
+            get { return new Rectangle(Location.X, Location.Y, Width, Height); }
+            set
+            {
+                Location = new Point(value.X, value.Y);
+                Size = new Size(value.Width, value.Height);
+            }
+        }
         public Rectangle ClientRectangle { get { return new Rectangle(0, 0, Width, Height); } }
         public virtual bool Context // Close on click control. TODO: make it obsolete, find other way.
         {
@@ -818,6 +827,10 @@ namespace System.Windows.Forms
             {
                 _items.GetEnumerator().Dispose();
             }
+            public Control Find(Predicate<Control> match)
+            {
+                return _items.Find(match);
+            }
             public int FindIndex(Predicate<Control> match)
             {
                 return _items.FindIndex(match);
@@ -826,11 +839,15 @@ namespace System.Windows.Forms
             {
                 return _items.GetEnumerator();
             }
+            public int IndexOf(Control control)
+            {
+                return _items.IndexOf(control);
+            }
             public void Insert(int index, Control value)
             {
                 _items.Insert(index, value);
             }
-            public void Remove(Control item)
+            public virtual void Remove(Control item)
             {
                 _items.Remove(item);
             }
