@@ -11,22 +11,48 @@ namespace System.Windows.Forms
     {
         private List<TabPageButton> buttons = new List<TabPageButton>();
         private int selectedIndex = -1;
-        internal int tabCount = 0;
+        internal int tabPageCount = 0;
 
         public Color BorderColor { get; set; }
-        public new Rectangle DisplayRectangle { get { return new Rectangle(4, 24, Width - 8, Height - 28); } }
+        public new Rectangle DisplayRectangle
+        {
+            get
+            {
+                return new Rectangle(
+                    Padding.Left, 
+                    HeaderHeight + Padding.Top, 
+                    Width - Padding.Horizontal, 
+                    Height - HeaderHeight - Padding.Vertical);
+            }
+        }
+        public int HeaderHeight { get; set; }
         public int SelectedIndex
         {
             get { return selectedIndex; }
             set { SelectTab(value); }
         }
-        public int TabCount { get { return tabCount; } }
+        public TabPage SelectedTab
+        {
+            get
+            {
+                if (selectedIndex == -1) return null;
+                return TabPages[selectedIndex];
+            }
+            set
+            {
+                var tabIndex = TabPages.IndexOf(value);
+                SelectTab(tabIndex);
+            }
+        }
+        public int TabCount { get { return tabPageCount; } }
         public TabControl.TabPageCollection TabPages { get; private set; }
 
         public TabControl()
         {
             BorderColor = Color.FromArgb(172, 172, 172);
             Controls = new ControlCollection(this);
+            HeaderHeight = 30;
+            Padding = new Padding(4);
             TabPages = new TabPageCollection(this);
         }
 
@@ -49,15 +75,15 @@ namespace System.Windows.Forms
 
             // Borders.
             var borderPen = new Pen(BorderColor);
-            e.Graphics.DrawLine(borderPen, 0, 20, 0, Height); // Left.
-            e.Graphics.DrawLine(borderPen, Width - 1, 20, Width - 1, Height); // Right.
+            e.Graphics.DrawLine(borderPen, 0, HeaderHeight, 0, Height); // Left.
+            e.Graphics.DrawLine(borderPen, Width - 1, HeaderHeight, Width - 1, Height); // Right.
             e.Graphics.DrawLine(borderPen, 0, Height - 1, Width, Height - 1); // Botttom.
 
-            if (selectedIndex != -1 && selectedIndex < tabCount)
+            if (selectedIndex != -1 && selectedIndex < tabPageCount)
             {
                 var activeButton = buttons[selectedIndex];
-                e.Graphics.DrawLine(borderPen, 0, 20, activeButton.Location.X + 1, 20);
-                e.Graphics.DrawLine(borderPen, activeButton.Location.X + activeButton.Width - 1, 20, Width, 20);
+                e.Graphics.DrawLine(borderPen, 0, HeaderHeight, activeButton.Location.X + 1, HeaderHeight);
+                e.Graphics.DrawLine(borderPen, activeButton.Location.X + activeButton.Width - 1, HeaderHeight, Width, HeaderHeight);
             }
         }
 
@@ -66,19 +92,28 @@ namespace System.Windows.Forms
             if (TabPages.Count > 0 && SelectedIndex == -1)
                 SelectedIndex = 0;
 
-            TabPageButton pageButton = new TabPageButton(this, tabCount);
+            TabPageButton pageButton = new TabPageButton(this, tabPageCount);
             pageButton.HoverBorderColor = Color.Transparent;
             pageButton.NormalBorderColor = Color.Transparent;
-            pageButton.Location = new Point(tabCount * pageButton.Width - tabCount, 0);
-            pageButton.Height = 20;
+            pageButton.Location = new Point(tabPageCount * pageButton.Width - tabPageCount, 0);
+            pageButton.Height = HeaderHeight;
             pageButton.Text = tabPage.Text;
             pageButton.Hide();
 
             (Controls as ControlCollection).AddInternal(pageButton);
             buttons.Add(pageButton);
 
-            tabCount++;
-            return tabCount;
+            tabPageCount++;
+            return tabPageCount;
+        }
+        internal int FindTabPage(TabPage tabPage)
+        {
+            if (TabPages != null)
+                for (int i = 0; i < tabPageCount; i++)
+                    if (TabPages[i].Equals(tabPage))
+                        return i;
+
+            return -1;
         }
         internal void HideSelectedPage()
         {
@@ -88,9 +123,25 @@ namespace System.Windows.Forms
             buttons[selectedIndex].Hide();
             TabPages[selectedIndex].Visible = false;
         }
+        internal void RemoveTabPage(int index)
+        {
+            if (index < 0 || index >= tabPageCount)
+                throw new ArgumentException("tabControl.RemoveTabPage(index)");
+
+            tabPageCount--;
+
+            TabPages.RemoveAt(index);
+            Controls.Remove(buttons[index]);
+            buttons.RemoveAt(index);
+
+            if (selectedIndex == tabPageCount)
+                SelectedIndex = tabPageCount - 1;
+
+            SelectTab(SelectedIndex);
+        }
         protected void RemoveAll()
         {
-            tabCount = 0;
+            tabPageCount = 0;
             selectedIndex = -1;
 
             buttons.Clear();
@@ -123,8 +174,19 @@ namespace System.Windows.Forms
             }
             public override void Remove(Control value)
             {
-                // TODO:
                 base.Remove(value);
+
+                if (value is TabPage == false) return;
+
+                int index = owner.FindTabPage((TabPage)value);
+                int curSelectedIndex = owner.SelectedIndex;
+
+                if (index != -1)
+                {
+                    owner.RemoveTabPage(index);
+                    if (index == curSelectedIndex)
+                        owner.SelectedIndex = 0;
+                }
             }
 
             internal void AddInternal(Control value)
@@ -141,7 +203,7 @@ namespace System.Windows.Forms
                 this.owner = owner;
             }
 
-            public int Count { get { return owner.tabCount; } }
+            public int Count { get { return owner.tabPageCount; } }
             public bool IsReadOnly { get { return false; } }
 
             public virtual TabPage this[int index]
@@ -318,7 +380,7 @@ namespace System.Windows.Forms
                 if (value is TabPage == false) throw new ArgumentException("tabPageCollection.Add(value is not TabPage)");
 
                 Add(value as TabPage);
-                return owner.tabCount - 1;
+                return owner.tabPageCount - 1;
             }
             bool IList.Contains(object value)
             {
@@ -371,7 +433,7 @@ namespace System.Windows.Forms
                 hidden = true;
                 BackColor = Color.FromArgb(235, 235, 235);
                 Location = new Point(Location.X, 2);
-                Height = 18;
+                Height = owner.HeaderHeight - 2;
                 HoverColor = Color.FromArgb(223, 238, 252);
             }
             public void Show()
@@ -379,7 +441,7 @@ namespace System.Windows.Forms
                 hidden = false;
                 BackColor = Color.White;
                 Location = new Point(Location.X, 0);
-                Height = 20;
+                Height = owner.HeaderHeight;
                 HoverColor = Color.White;
             }
 
