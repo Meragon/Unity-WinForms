@@ -13,7 +13,7 @@ namespace System.Windows.Forms
         [NonSerialized]
         private Button _closeButton;
         private MenuStrip _mainMenuStrip;
-        private static Point _nextLocation = new Point(64, 64);
+        private static Point _nextLocation = new Point(128, 64);
         private bool _windowMove = false;
         private Point _windowMoveDelta;
 

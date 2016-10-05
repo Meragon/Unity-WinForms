@@ -15,6 +15,7 @@ namespace System.Windows.Forms
             BackColor = Color.FromArgb(240, 240, 240);
             BorderColor = Color.LightGray;
             ForeColor = Color.Gray;
+            Size = new Size(168, 286);
             TabIndex = -1;
         }
         protected override void OnLatePaint(PaintEventArgs e)
