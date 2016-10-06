@@ -206,10 +206,12 @@ namespace System.Windows.Forms
         {
             _dropDownItems = new ToolStripItemCollection(Parent, null);
 
-            ArrowImage = ApplicationBehaviour.Resources.Reserved.DropDownRightArrow_Black;
+            ArrowColor = Color.Black;
+            ArrowImage = ApplicationBehaviour.Resources.Images.DropDownRightArrow;
         }
 
-        public UnityEngine.Texture2D ArrowImage { get; set; }
+        public Color ArrowColor { get; set; }
+        public Bitmap ArrowImage { get; set; }
         public ToolStripItemCollection DropDownItems { get { return _dropDownItems; } }
         public override bool Pressed
         {
@@ -322,7 +324,7 @@ namespace System.Windows.Forms
             base.OnPaint(e);
             if (_dropDownItems.Count > 0 && Parent.Orientation == Orientation.Vertical)
             {
-                e.Graphics.DrawTexture(ArrowImage, e.ClipRectangle.X + e.ClipRectangle.Width - 26, e.ClipRectangle.Y, 24, 24);
+                e.Graphics.DrawTexture(ArrowImage, e.ClipRectangle.X + e.ClipRectangle.Width - 26, e.ClipRectangle.Y, 24, 24, ArrowColor);
             }
         }
     }
@@ -374,7 +376,7 @@ namespace System.Windows.Forms
 
                 e.Graphics.FillRectangle(new SolidBrush(HoverColor), e.ClipRectangle.X + 4, e.ClipRectangle.Y + 4, rectWH, rectWH);
                 e.Graphics.DrawRectangle(new Pen(HoverColor - Color.FromArgb(0, 64, 64, 64)), e.ClipRectangle.X + 4, e.ClipRectangle.Y + 4, rectWH, rectWH);
-                e.Graphics.DrawTexture(ApplicationBehaviour.Resources.Reserved.Checked, e.ClipRectangle.X + 6, e.ClipRectangle.Y + 6, checkedWH, checkedWH);
+                e.Graphics.DrawTexture(ApplicationBehaviour.Resources.Images.Checked, e.ClipRectangle.X + 6, e.ClipRectangle.Y + 6, checkedWH, checkedWH);
             }
 
             if (!String.IsNullOrEmpty(ShortcutKeys))

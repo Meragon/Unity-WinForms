@@ -83,7 +83,7 @@ namespace System.Windows.Forms
             ButtonIncrease.NormalBorderColor = Color.FromArgb(172, 172, 172);
             ButtonIncrease.HoverColor = Color.FromArgb(228, 241, 252);
             ButtonIncrease.HoverBorderColor = Color.FromArgb(126, 180, 234);
-            ButtonIncrease.Image = ApplicationBehaviour.Resources.Reserved.NumericUp;
+            ButtonIncrease.Image = ApplicationBehaviour.Resources.Images.NumericUp;
             ButtonIncrease.Click += delegate { if (Enabled) Value += Increment; };
 
             ButtonDecrease = new Button();
@@ -95,7 +95,7 @@ namespace System.Windows.Forms
             ButtonDecrease.NormalBorderColor = Color.FromArgb(172, 172, 172);
             ButtonDecrease.HoverColor = Color.FromArgb(228, 241, 252);
             ButtonDecrease.HoverBorderColor = Color.FromArgb(126, 180, 234);
-            ButtonDecrease.Image = ApplicationBehaviour.Resources.Reserved.NumericDown;
+            ButtonDecrease.Image = ApplicationBehaviour.Resources.Images.NumericDown;
             ButtonDecrease.Click += delegate { if (Enabled) Value -= Increment; };
 
             Controls.Add(ButtonIncrease);

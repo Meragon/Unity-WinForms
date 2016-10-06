@@ -163,7 +163,7 @@ namespace System.Drawing
                 float yDiff = y2 - y1;
                 var angle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
 
-                DrawTexture(System.Windows.Forms.ApplicationBehaviour.Resources.Reserved.Circle, x1, y1, (float)Math.Sqrt(xDiff * xDiff + yDiff * yDiff), pen.Width, pen.Color, (float)angle, new PointF());
+                DrawTexture(System.Windows.Forms.ApplicationBehaviour.Resources.Images.Circle, x1, y1, (float)Math.Sqrt(xDiff * xDiff + yDiff * yDiff), pen.Width, pen.Color, (float)angle, new PointF());
                 return;
             }
 
@@ -879,13 +879,13 @@ namespace System.Drawing
             if (!_group)
             {
                 var c_position = Control.PointToScreen(Point.Zero);
-                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), System.Windows.Forms.ApplicationBehaviour.Resources.Reserved.Circle);
+                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), System.Windows.Forms.ApplicationBehaviour.Resources.Images.Circle);
             }
             else
             {
                 var c_position = Control.PointToScreen(Point.Zero);
                 var g_position = _groupControlLast.PointToScreen(Point.Zero);
-                GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), System.Windows.Forms.ApplicationBehaviour.Resources.Reserved.Circle);
+                GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), System.Windows.Forms.ApplicationBehaviour.Resources.Images.Circle);
             }
         }
         public void FillPolygonConvex(SolidBrush brush, PointF[] points)

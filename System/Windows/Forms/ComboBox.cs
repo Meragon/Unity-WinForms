@@ -247,7 +247,7 @@ namespace System.Windows.Forms
                 }
             }
             if (Enabled)
-                g.DrawTexture(ApplicationBehaviour.Resources.Reserved.ComboBoxArrow, Width - 16, Height / 2 - 8, 16, 16);
+                g.DrawTexture(ApplicationBehaviour.Resources.Images.CurvedArrowDown, Width - 16 - 1, Height / 2 - 8, 16, 16, Color.FromArgb(64, 64, 64));
             //else
             //    g.DrawTexture(Application.Resources.ComboBoxArrow, Width - 16, Height / 2 - 8, 16, 16, Color.White);
             if (Enabled)

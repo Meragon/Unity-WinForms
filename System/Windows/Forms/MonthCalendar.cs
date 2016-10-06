@@ -125,7 +125,7 @@ namespace System.Windows.Forms
             Value = DateTime.Now;
 
             Button prevMonthButton = new Button();
-            prevMonthButton.Image = ApplicationBehaviour.Resources.Reserved.ArrowLeft;
+            prevMonthButton.Image = ApplicationBehaviour.Resources.Images.ArrowLeft;
             prevMonthButton.ImageColor = Color.FromArgb(48, 48, 48);
             prevMonthButton.Size = new Size(16, 16);
             prevMonthButton.Location = new Point(4, 8);
@@ -137,7 +137,7 @@ namespace System.Windows.Forms
 
             Button nextMonthButton = new Button();
             nextMonthButton.Anchor = AnchorStyles.Right;
-            nextMonthButton.Image = ApplicationBehaviour.Resources.Reserved.ArrowRight;
+            nextMonthButton.Image = ApplicationBehaviour.Resources.Images.ArrowRight;
             nextMonthButton.ImageColor = Color.FromArgb(48, 48, 48);
             nextMonthButton.Size = new Size(16, 16);
             nextMonthButton.Location = new Point(Width - nextMonthButton.Width - 4, 8);

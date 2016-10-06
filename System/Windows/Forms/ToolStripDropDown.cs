@@ -39,7 +39,11 @@ namespace System.Windows.Forms
             for (int i = 0; i < Items.Count; i++)
             {
                 if (Items[i] is ToolStripDropDownItem)
-                    (Items[i] as ToolStripDropDownItem).ArrowImage = ApplicationBehaviour.Resources.Reserved.DropDownRightArrow_Black;
+                {
+                    var ddi = Items[i] as ToolStripDropDownItem;
+                    ddi.ArrowImage = ApplicationBehaviour.Resources.Images.DropDownRightArrow;
+                    ddi.ArrowColor = Color.Black;
+                }
                 Items[i].ForeColor = Color.FromArgb(64, 64, 64);
                 Items[i].HoverColor = Color.FromArgb(160, 210, 222, 245);
                 Items[i].TextAlign.LineAlignment = StringAlignment.Center;

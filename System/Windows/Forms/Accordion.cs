@@ -103,8 +103,8 @@ namespace System.Windows.Forms
         {
             base.OnPaint(e);
 
-            var image = ApplicationBehaviour.Resources.Reserved.ArrowDown;
-            if (!Collapsed) image = ApplicationBehaviour.Resources.Reserved.ArrowUp;
+            var image = ApplicationBehaviour.Resources.Images.ArrowDown;
+            if (!Collapsed) image = ApplicationBehaviour.Resources.Images.ArrowUp;
 
             var imageRect = new Rectangle(8, Height / 2 - image.height / 2, image.width, image.height);
             e.Graphics.DrawTexture(image, imageRect);

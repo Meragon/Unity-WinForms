@@ -225,7 +225,7 @@ namespace System.Windows.Forms
                 {
                     navigationButtonRight = new Button();
                     navigationButtonRight.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-                    navigationButtonRight.Image = ApplicationBehaviour.Resources.Reserved.ArrowRight;
+                    navigationButtonRight.Image = ApplicationBehaviour.Resources.Images.ArrowRight;
                     navigationButtonRight.ImageColor = Color.Black;
                     navigationButtonRight.Size = new Size(16, 16);
                     navigationButtonRight.Location = new Point(Width - navigationButtonRight.Width, ItemSize.Height - navigationButtonRight.Height - 2);
@@ -241,7 +241,7 @@ namespace System.Windows.Forms
 
                     navigationButtonLeft = new Button();
                     navigationButtonLeft.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-                    navigationButtonLeft.Image = ApplicationBehaviour.Resources.Reserved.ArrowLeft;
+                    navigationButtonLeft.Image = ApplicationBehaviour.Resources.Images.ArrowLeft;
                     navigationButtonLeft.ImageColor = Color.Black;
                     navigationButtonLeft.Size = navigationButtonRight.Size;
                     navigationButtonLeft.Location = new Point(navigationButtonRight.Location.X - navigationButtonRight.Width, navigationButtonRight.Location.Y);
@@ -257,6 +257,19 @@ namespace System.Windows.Forms
                     (Controls as ControlCollection).AddInternal(navigationButtonRight);
 
                     pagesButtonsPanel.Width = navigationButtonLeft.Location.X - 2;
+                }
+            }
+            else
+            {
+                if (navigationButtonLeft != null)
+                {
+                    navigationButtonLeft.Dispose();
+                    navigationButtonLeft = null;
+                }
+                if (navigationButtonRight != null)
+                {
+                    navigationButtonRight.Dispose();
+                    navigationButtonRight = null;
                 }
             }
 
