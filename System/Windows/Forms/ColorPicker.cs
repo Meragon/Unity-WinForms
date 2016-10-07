@@ -46,8 +46,8 @@ namespace System.Windows.Forms
             e.Graphics.FillRectangle(new SolidBrush(Color.Black), 0, Height - 3, Width, 3);
             e.Graphics.FillRectangle(new SolidBrush(Color.White), 0, Height - 3, alphaWidth, 3);
 
-            var borderColor = NormalBorderColor;
-            if (Hovered) borderColor = HoverBorderColor;
+            var borderColor = BorderColor;
+            if (Hovered) borderColor = BorderHoverColor;
             e.Graphics.DrawRectangle(new Pen(borderColor), 0, 0, Width, Height);
         }
 
@@ -508,8 +508,8 @@ namespace System.Windows.Forms
 
                 e.Graphics.DrawRectangle(new Pen(Color.White), Saturation * Width - 2, Height - Brightness * Height - 2, 4, 4);
 
-                var borderColor = NormalBorderColor;
-                if (Hovered) borderColor = HoverBorderColor;
+                var borderColor = BorderColor;
+                if (Hovered) borderColor = BorderHoverColor;
                 e.Graphics.DrawRectangle(new Pen(borderColor), 0, 0, Width, Height);
             }
 
@@ -604,8 +604,8 @@ namespace System.Windows.Forms
 
                 e.Graphics.DrawLine(new Pen(Color.White), 0, Hue * Height, Width, Hue * Height);
 
-                var borderColor = NormalBorderColor;
-                if (Hovered) borderColor = HoverBorderColor;
+                var borderColor = BorderColor;
+                if (Hovered) borderColor = BorderHoverColor;
                 e.Graphics.DrawRectangle(new Pen(borderColor), 0, 0, Width, Height);
             }
 
@@ -686,8 +686,8 @@ namespace System.Windows.Forms
 
                 e.Graphics.DrawLine(new Pen(Color.White), Alpha * Width, 0, Alpha * Width, Height);
 
-                var borderColor = NormalBorderColor;
-                if (Hovered) borderColor = HoverBorderColor;
+                var borderColor = BorderColor;
+                if (Hovered) borderColor = BorderHoverColor;
                 e.Graphics.DrawRectangle(new Pen(borderColor), 0, 0, Width, Height);
             }
 

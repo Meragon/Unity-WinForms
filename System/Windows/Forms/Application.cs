@@ -407,25 +407,25 @@ namespace System.Windows.Forms
                             break;
                     }
                 }
-
-                if (Control.lastFocused != null && Control.lastFocused.IsDisposed == false)
+                
+                // Raise keys on selected controls if possible.
+                if (Control.lastSelected != null && Control.lastSelected.IsDisposed == false)
                 {
-                    var keyControl = Control.lastFocused;
-                    var parentForm = GetRootControl(Control.lastFocused) as Form;
+                    var keyControl = Control.lastSelected;
+                    var parentForm = GetRootControl(Control.lastSelected) as Form;
                     if (parentForm != null && parentForm.KeyPreview)
                         keyControl = parentForm;
 
                     switch (Event.current.type)
                     {
                         case EventType.KeyDown:
-
-                            // Tab swithing through controls.
+                            // Tab switching through controls.
                             if (TabSwitching && Event.current.keyCode == KeyCode.Tab)
                             {
                                 if (Event.current.modifiers == EventModifiers.None)
-                                    NextTabControl(Control.lastFocused);
+                                    NextTabControl(Control.lastSelected);
                                 else if (Event.current.modifiers == EventModifiers.Shift)
-                                    PrevTabControl(Control.lastFocused);
+                                    PrevTabControl(Control.lastSelected);
                                 break;
                             }
 
@@ -676,7 +676,7 @@ namespace System.Windows.Forms
                 List<Control> formControls = new List<Control>();
                 _FillListWithControls(controlForm, formControls);
 
-                List<Control> possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.TabIndex >= 0);
+                List<Control> possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.TabIndex >= 0 && x.CanSelect);
                 if (possibleControls.Find(x => x.TabIndex > 0) != null)
                 {
                     possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
@@ -699,7 +699,7 @@ namespace System.Windows.Forms
                 List<Control> formControls = new List<Control>();
                 _FillListWithControls(controlForm, formControls);
 
-                List<Control> possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.TabIndex >= 0);
+                List<Control> possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.TabIndex >= 0 && x.CanSelect);
                 if (possibleControls.Find(x => x.TabIndex > 0) != null)
                 {
                     possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));

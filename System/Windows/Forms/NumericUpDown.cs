@@ -76,25 +76,27 @@ namespace System.Windows.Forms
 
             ButtonIncrease = new Button();
             ButtonIncrease.Anchor = AnchorStyles.Right;
+            ButtonIncrease.CanSelect = false;
             ButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
             ButtonIncrease.Size = new Size(14, 8);
             ButtonIncrease.Name = "_numericButtonIncrease";
-            ButtonIncrease.NormalColor = Color.FromArgb(236, 236, 236);
-            ButtonIncrease.NormalBorderColor = Color.FromArgb(172, 172, 172);
+            ButtonIncrease.BackColor = Color.FromArgb(236, 236, 236);
+            ButtonIncrease.BorderColor = Color.FromArgb(172, 172, 172);
             ButtonIncrease.HoverColor = Color.FromArgb(228, 241, 252);
-            ButtonIncrease.HoverBorderColor = Color.FromArgb(126, 180, 234);
+            ButtonIncrease.BorderHoverColor = Color.FromArgb(126, 180, 234);
             ButtonIncrease.Image = ApplicationBehaviour.Resources.Images.NumericUp;
             ButtonIncrease.Click += delegate { if (Enabled) Value += Increment; };
 
             ButtonDecrease = new Button();
             ButtonDecrease.Anchor = AnchorStyles.Right;
+            ButtonDecrease.CanSelect = false;
             ButtonDecrease.Location = new Point(Width - 16, Height / 2);
             ButtonDecrease.Size = new Drawing.Size(14, 8);
             ButtonDecrease.Name = "_numericButtonDecrease";
-            ButtonDecrease.NormalColor = Color.FromArgb(236, 236, 236);
-            ButtonDecrease.NormalBorderColor = Color.FromArgb(172, 172, 172);
+            ButtonDecrease.BackColor = Color.FromArgb(236, 236, 236);
+            ButtonDecrease.BorderColor = Color.FromArgb(172, 172, 172);
             ButtonDecrease.HoverColor = Color.FromArgb(228, 241, 252);
-            ButtonDecrease.HoverBorderColor = Color.FromArgb(126, 180, 234);
+            ButtonDecrease.BorderHoverColor = Color.FromArgb(126, 180, 234);
             ButtonDecrease.Image = ApplicationBehaviour.Resources.Images.NumericDown;
             ButtonDecrease.Click += delegate { if (Enabled) Value -= Increment; };
 

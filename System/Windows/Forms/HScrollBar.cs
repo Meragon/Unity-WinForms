@@ -24,6 +24,8 @@ namespace System.Windows.Forms
             this.addButton.Image = ApplicationBehaviour.Resources.Images.CurvedArrowRight;
             this.addButton.Location = new Point(Width - ButtonSize.Width, 0);
             this.addButton.Size = ButtonSize;
+
+            this.Refresh();
         }
     }
 }

@@ -7,52 +7,69 @@ using System.Drawing;
 namespace System.Windows.Forms
 {
     [Serializable]
-    public class Button : Control
+    public class Button : Control, IButtonControl
     {
         internal ColorF currentBackColor;
+        private DialogResult dialogResult;
         private Color _normalColor;
 
         private bool _toggleEditor = true;
 
-        public new Color BackColor
+        public new Color BackColor { get; set; }
+        public virtual DialogResult DialogResult
         {
-            get { return NormalColor; }
-            set { NormalColor = value; }
+            get { return dialogResult; }
+            set { dialogResult = value; }
         }
-        public Color HoverBorderColor { get; set; }
+        public Color BorderColor { get; set; }
+        public Color BorderHoverColor { get; set; }
+        public Color BorderSelectColor { get; set; }
         public Color HoverColor { get; set; }
         public Bitmap Image { get; set; }
         public Bitmap ImageHover { get; set; }
         public Color ImageColor { get; set; }
         public Color? ImageHoverColor { get; set; }
-        public Color NormalBorderColor { get; set; }
-        public Color NormalColor
-        {
-            get { return _normalColor; }
-            set
-            {
-                _normalColor = value;
-                currentBackColor = value;
-            }
-        }
         public ContentAlignment TextAlign { get; set; }
 
         public Button()
         {
+            BackColor = Color.FromArgb(234, 234, 234);
             BackgroundImageLayout = ImageLayout.Center;
+            BorderColor = Color.FromArgb(172, 172, 172);
+            BorderHoverColor = Color.FromArgb(126, 180, 234);
+            BorderSelectColor = Color.FromArgb(51, 153, 255);
+            CanSelect = true;
             Font = new Drawing.Font("Arial", 12);
             ForeColor = Color.FromArgb(64, 64, 64);
             ImageColor = Color.White;
-            NormalColor = Color.FromArgb(234, 234, 234);
-            NormalBorderColor = Color.FromArgb(172, 172, 172);
             HoverColor = Color.FromArgb(223, 238, 252);
-            HoverBorderColor = Color.FromArgb(126, 180, 234);
             TextAlign = ContentAlignment.MiddleCenter;
             Size = new Drawing.Size(75, 23);
 
-            currentBackColor = NormalColor;
+            currentBackColor = BackColor;
         }
 
+        public void NotifyDefault(bool value)
+        {
+            // ?
+        }
+        public void PerformClick()
+        {
+            OnClick(EventArgs.Empty);
+        }
+
+        protected override void OnClick(EventArgs e)
+        {
+            Form form = FindFormInternal();
+            if (form != null)
+            {
+                form.DialogResult = dialogResult;
+                if (form.AcceptButton == this && form.dialog)
+                    form.Close();
+            }
+
+            base.OnClick(e);
+        }
         protected override void OnKeyUp(KeyEventArgs e)
         {
             base.OnKeyUp(e);
@@ -63,20 +80,27 @@ namespace System.Windows.Forms
         {
             Graphics g = e.Graphics;
 
-            if ((!Hovered) || !Enabled)
+            // Back.
+            if (Hovered == false || Enabled == false)
             {
-                currentBackColor = MathHelper.ColorLerp(currentBackColor, NormalColor, 5);
-
+                currentBackColor = MathHelper.ColorLerp(currentBackColor, BackColor, 5);
                 g.FillRectangle(new SolidBrush(currentBackColor), 0, 0, Width, Height);
-                g.DrawRectangle(new Pen(NormalBorderColor), 0, 0, Width, Height);
             }
             else
             {
                 currentBackColor = MathHelper.ColorLerp(currentBackColor, HoverColor, 5);
-
                 g.FillRectangle(new SolidBrush(currentBackColor), 0, 0, Width, Height);
-                g.DrawRectangle(new Pen(HoverBorderColor), 0, 0, Width, Height);
             }
+
+            // Border.
+            if (Enabled == false)
+                g.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
+            else if (Hovered)
+                g.DrawRectangle(new Pen(BorderHoverColor), 0, 0, Width, Height);
+            else if (Focused)
+                g.DrawRectangle(new Pen(BorderSelectColor), 0, 0, Width, Height);
+            else
+                g.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
 
             SolidBrush textBrush = new SolidBrush(ForeColor);
             if (!Enabled) textBrush.Color = ForeColor + Color.FromArgb(0, 128, 128, 128);
@@ -126,7 +150,7 @@ namespace System.Windows.Forms
             {
                 Editor.BeginGroup(width - 24);
 
-                Editor.ColorField("      HoverBorderColor", HoverBorderColor, (c) => { HoverBorderColor = c; });
+                Editor.ColorField("      HoverBorderColor", BorderHoverColor, (c) => { BorderHoverColor = c; });
                 Editor.ColorField("      HoverColor", HoverColor, (c) => { HoverColor = c; });
 
                 var editorImage = Editor.ObjectField("      Image", Image, typeof(UnityEngine.Texture2D));
@@ -135,9 +159,9 @@ namespace System.Windows.Forms
                 var editorImageHover = Editor.ObjectField("      ImageHover", ImageHover, typeof(UnityEngine.Texture2D));
                 if (editorImageHover.Changed) ImageHover = new Bitmap((UnityEngine.Texture2D)editorImageHover.Value);
 
+                Editor.ColorField("      BackColor", BackColor, (c) => { BackColor = c; });
                 Editor.ColorField("      ImageColor", ImageColor, (c) => { ImageColor = c; });
-                Editor.ColorField("      NormalBorderColor", NormalBorderColor, (c) => { NormalBorderColor = c; });
-                Editor.ColorField("      NormalColor", NormalColor, (c) => { NormalColor = c; });
+                Editor.ColorField("      NormalBorderColor", BorderColor, (c) => { BorderColor = c; });
 
                 var editorTextAlign = Editor.EnumField("      TextAlign", TextAlign);
                 if (editorTextAlign.Changed) TextAlign = (ContentAlignment)editorTextAlign.Value;

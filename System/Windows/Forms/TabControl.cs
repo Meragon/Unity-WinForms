@@ -199,8 +199,8 @@ namespace System.Windows.Forms
         {
             TabPageButton pageButton = new TabPageButton(this, tabPageCount);
             pageButton.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom;
-            pageButton.HoverBorderColor = Color.Transparent;
-            pageButton.NormalBorderColor = Color.Transparent;
+            pageButton.BorderHoverColor = Color.Transparent;
+            pageButton.BorderColor = Color.Transparent;
             pageButton.Location = new Point(tabPageCount * pageButton.Width - tabPageCount, 0);
             pageButton.Height = ItemSize.Height;
             pageButton.Text = tabPage.Text;

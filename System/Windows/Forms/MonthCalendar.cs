@@ -68,10 +68,10 @@ namespace System.Windows.Forms
                         todayButton.Text = "Today: " + TodayDate.ToShortDateString();
                         todayButton.TextAlign = ContentAlignment.MiddleLeft;
                         todayButton.Size = new Size(CellWidth * 4, 20);
-                        todayButton.NormalColor = Color.Transparent;
+                        todayButton.BackColor = Color.Transparent;
                         todayButton.HoverColor = Color.Transparent;
-                        todayButton.NormalBorderColor = Color.Transparent;
-                        todayButton.HoverBorderColor = Color.Transparent;
+                        todayButton.BorderColor = Color.Transparent;
+                        todayButton.BorderHoverColor = Color.Transparent;
                         todayButton.Click += (s, a) =>
                         {
                             Value = TodayDate;
@@ -129,9 +129,9 @@ namespace System.Windows.Forms
             prevMonthButton.ImageColor = Color.FromArgb(48, 48, 48);
             prevMonthButton.Size = new Size(16, 16);
             prevMonthButton.Location = new Point(4, 8);
-            prevMonthButton.NormalBorderColor = Color.Transparent;
-            prevMonthButton.HoverBorderColor = Color.Transparent;
-            prevMonthButton.NormalColor = Color.Transparent;
+            prevMonthButton.BorderColor = Color.Transparent;
+            prevMonthButton.BorderHoverColor = Color.Transparent;
+            prevMonthButton.BackColor = Color.Transparent;
             prevMonthButton.Click += (s, a) => { SetDate(_selectedDate.AddMonths(-1)); };
             Controls.Add(prevMonthButton);
 
@@ -141,9 +141,9 @@ namespace System.Windows.Forms
             nextMonthButton.ImageColor = Color.FromArgb(48, 48, 48);
             nextMonthButton.Size = new Size(16, 16);
             nextMonthButton.Location = new Point(Width - nextMonthButton.Width - 4, 8);
-            nextMonthButton.NormalBorderColor = Color.Transparent;
-            nextMonthButton.HoverBorderColor = Color.Transparent;
-            nextMonthButton.NormalColor = Color.Transparent;
+            nextMonthButton.BorderColor = Color.Transparent;
+            nextMonthButton.BorderHoverColor = Color.Transparent;
+            nextMonthButton.BackColor = Color.Transparent;
             nextMonthButton.Click += (s, a) => { SetDate(_selectedDate.AddMonths(1)); };
             Controls.Add(nextMonthButton);
 
@@ -195,9 +195,9 @@ namespace System.Windows.Forms
                         dayButton.ForeColor = dayColor;
                         dayButton.Size = new Size(CellWidth, 15);
                         dayButton.Location = new Point(3 + CellWidth * column, 33 + 15 * row);
-                        dayButton.NormalColor = Color.Transparent;
-                        dayButton.NormalBorderColor = Color.Transparent;
-                        dayButton.HoverBorderColor = Color.FromArgb(112, 192, 231);
+                        dayButton.BackColor = Color.Transparent;
+                        dayButton.BorderColor = Color.Transparent;
+                        dayButton.BorderHoverColor = Color.FromArgb(112, 192, 231);
                         dayButton.Text = startDate.Day.ToString();
                         dayButton.Click += (s, a) =>
                         {
@@ -208,18 +208,18 @@ namespace System.Windows.Forms
                         if (TodayDate.Year == startDate.Year && TodayDate.Month == startDate.Month && TodayDate.Day == startDate.Day)
                         {
                             dayButton.ForeColor = Color.FromArgb(0, 102, 204);
-                            dayButton.NormalBorderColor = dayButton.ForeColor;
-                            dayButton.HoverBorderColor = dayButton.NormalBorderColor;
-                            dayButton.NormalColor = Color.FromArgb(229, 243, 251);
-                            dayButton.HoverColor = dayButton.NormalColor;
+                            dayButton.BorderColor = dayButton.ForeColor;
+                            dayButton.BorderHoverColor = dayButton.BorderColor;
+                            dayButton.BackColor = Color.FromArgb(229, 243, 251);
+                            dayButton.HoverColor = dayButton.BackColor;
                         }
 
                         if (Value.Year == dayDate.Year && Value.Month == dayDate.Month && Value.Day == dayDate.Day)
                         {
-                            dayButton.NormalBorderColor = Color.FromArgb(38, 160, 218);
-                            dayButton.HoverBorderColor = dayButton.NormalBorderColor;
-                            dayButton.NormalColor = Color.FromArgb(203, 232, 246);
-                            dayButton.HoverColor = dayButton.NormalColor;
+                            dayButton.BorderColor = Color.FromArgb(38, 160, 218);
+                            dayButton.BorderHoverColor = dayButton.BorderColor;
+                            dayButton.BackColor = Color.FromArgb(203, 232, 246);
+                            dayButton.HoverColor = dayButton.BackColor;
                         }
 
                         startDate = startDate.AddDays(1);

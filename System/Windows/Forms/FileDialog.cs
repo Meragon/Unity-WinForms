@@ -62,8 +62,8 @@ namespace System.Windows.Forms
             buttonBack.Font = new Drawing.Font("Arial", 16, FontStyle.Bold);
             buttonBack.Image = FolderNavBack;
             buttonBack.Location = new Point(Padding.Left, HeaderHeight + Padding.Top);
-            buttonBack.NormalColor = Color.Transparent;
-            buttonBack.NormalBorderColor = Color.Transparent;
+            buttonBack.BackColor = Color.Transparent;
+            buttonBack.BorderColor = Color.Transparent;
             buttonBack.Size = new Size(22, 22);
             if (buttonBack.Image == null) buttonBack.Text = "◀";
             buttonBack.Click += (sender, args) =>
@@ -83,8 +83,8 @@ namespace System.Windows.Forms
             buttonUp.Font = new Drawing.Font("Arial", 16, FontStyle.Bold);
             buttonUp.Image = FolderNavUp;
             buttonUp.Location = new Point(buttonBack.Location.X + buttonBack.Width + 8, buttonBack.Location.Y);
-            buttonUp.NormalColor = Color.Transparent;
-            buttonUp.NormalBorderColor = Color.Transparent;
+            buttonUp.BackColor = Color.Transparent;
+            buttonUp.BorderColor = Color.Transparent;
             buttonUp.Size = new Drawing.Size(22, 22);
             if (buttonUp.Image == null) buttonUp.Text = "▲";
             buttonUp.Click += (sender, args) =>
@@ -101,8 +101,8 @@ namespace System.Windows.Forms
             buttonRefresh = new Button();
             buttonRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             buttonRefresh.Image = FolderNavRefresh;
-            buttonRefresh.NormalColor = Color.Transparent;
-            buttonRefresh.NormalBorderColor = Color.Transparent;
+            buttonRefresh.BackColor = Color.Transparent;
+            buttonRefresh.BorderColor = Color.Transparent;
             buttonRefresh.Size = new Size(22, 22);
             buttonRefresh.Location = new Point(Width - Padding.Right - buttonRefresh.Width, buttonUp.Location.Y);
             buttonRefresh.Click += (sender, args) =>

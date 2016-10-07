@@ -49,12 +49,19 @@ namespace System.Windows.Forms
         /// <param name="button"></param>
         public static void ClearColor(this Button button, Color clearColor)
         {
-            button.NormalColor = clearColor;
-            button.NormalBorderColor = clearColor;
+            button.BackColor = clearColor;
+            button.BorderColor = clearColor;
             button.HoverColor = clearColor;
-            button.HoverBorderColor = clearColor;
+            button.BorderHoverColor = clearColor;
         }
-        
+        public static void OpenUrl(this Button button, string url)
+        {
+#if UNITY_WEBGL || UNITY_WEBPLAYER
+            UnityEngine.Application.ExternalEval("window.open(\"" +  url + "\")"); // with popup blocking...
+#else
+            UnityEngine.Application.OpenURL(url);
+#endif
+        }
         public static void ToCenter(this Form f)
         {
             f.Location = new Point(

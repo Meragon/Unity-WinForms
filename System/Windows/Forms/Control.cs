@@ -19,17 +19,16 @@ namespace System.Windows.Forms
         }
 
         private bool _context;
-        [NonSerialized]
         private Control.ControlCollection _controls;
         private bool _disposing;
-        internal bool focused = false;
-        internal static Control lastFocused;
+        internal bool selected = false;
+        internal static Control lastSelected;
+        //internal static Control lastSelected;
         private Point _location = new Point();
         private int _height;
         private bool _isDisposed;
         internal bool hovered;
         internal bool mouseEntered;
-        [NonSerialized]
         private Control _parent;
         private bool _visible;
         private int _width;
@@ -56,6 +55,7 @@ namespace System.Windows.Forms
                 Size = new Size(value.Width, value.Height);
             }
         }
+        public bool CanSelect { get; set; }
         public Rectangle ClientRectangle { get { return new Rectangle(0, 0, Width, Height); } }
         public virtual bool Context // Close on click control. TODO: make it obsolete, find other way.
         {
@@ -76,7 +76,7 @@ namespace System.Windows.Forms
         public virtual Rectangle DisplayRectangle { get { return ClientRectangle; } }
         public bool Disposing { get { return _disposing; } }
         public bool Enabled { get; set; }
-        public bool Focused { get { return focused; } }
+        public bool Focused { get { return selected; } }
         public virtual Font Font { get; set; }
         public Color ForeColor { get; set; }
         public int Height
@@ -296,17 +296,13 @@ namespace System.Windows.Forms
         {
             if (self.Parent != null)
             {
-                self.Parent.focused = true;
+                self.Parent.selected = true;
                 _FocusParent(self.Parent);
             }
         }
         public virtual void Focus()
         {
-            if (AlwaysFocused) return;
-            if (lastFocused != null)
-                lastFocused.focused = false;
-            lastFocused = this;
-            focused = true;
+            Select();
 
             var form = this as Form;
             if (form == null) form = Application.GetRootControl(this) as Form;
@@ -348,6 +344,19 @@ namespace System.Windows.Forms
         public void ResumeLayout()
         {
 
+        }
+        public void Select()
+        {
+            if (AlwaysFocused) return;
+
+            if (lastSelected != null && CanSelect)
+                lastSelected.selected = false;
+
+            if (CanSelect)
+            {
+                lastSelected = this;
+                selected = true;
+            }
         }
         public void SuspendLayout()
         {
@@ -623,6 +632,14 @@ namespace System.Windows.Forms
         internal void AddjustSizeToScreen(Size delta)
         {
             _parent_Resize(new Point(delta.Width, delta.Height));
+        }
+        internal Form FindFormInternal()
+        {
+            Control cur = this;
+            while (cur != null && !(cur is Form))
+                cur = cur.Parent;
+            
+            return (Form)cur;
         }
         internal void RaiseOnDragDrop(DragEventArgs drgevent)
         {

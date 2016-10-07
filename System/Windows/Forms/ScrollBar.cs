@@ -13,11 +13,12 @@ namespace System.Windows.Forms
         private int maximum = 100;
         private int minimum = 0;
         protected ScrollOrientation scrollOrientation;
+        private Rectangle scrollRect;
         private int smallChange = 1;
         private int value = 0;
 
-        protected Button addButton;
-        protected Button subtractButton;
+        internal Button addButton;
+        internal Button subtractButton;
 
         public int LargeChange
         {
@@ -48,7 +49,10 @@ namespace System.Windows.Forms
                 bool changed = this.value != value;
                 this.value = value;
                 if (changed)
+                {
+                    UpdateScrollRect();
                     OnValueChanged(null);
+                }
             }
         }
 
@@ -64,22 +68,24 @@ namespace System.Windows.Forms
             var imageHoverColor = Color.Black;
 
             addButton = new RepeatButton();
-            addButton.HoverBorderColor = borderHoverColor;
+            addButton.CanSelect = false;
+            addButton.BorderHoverColor = borderHoverColor;
             addButton.HoverColor = backHoverColor;
             addButton.ImageColor = imageColor;
             addButton.ImageHoverColor = imageHoverColor;
-            addButton.NormalBorderColor = borderColor;
-            addButton.NormalColor = backColor;
+            addButton.BorderColor = borderColor;
+            addButton.BackColor = backColor;
             addButton.Click += (s, a) => { DoScroll(ScrollEventType.SmallIncrement); };
             Controls.Add(addButton);
 
             subtractButton = new RepeatButton();
-            subtractButton.HoverBorderColor = borderHoverColor;
+            subtractButton.CanSelect = false;
+            subtractButton.BorderHoverColor = borderHoverColor;
             subtractButton.HoverColor = backHoverColor;
             subtractButton.ImageColor = imageColor;
             subtractButton.ImageHoverColor = imageHoverColor;
-            subtractButton.NormalBorderColor = borderColor;
-            subtractButton.NormalColor = backColor;
+            subtractButton.BorderColor = borderColor;
+            subtractButton.BackColor = backColor;
             subtractButton.Click += (s, a) => { DoScroll(ScrollEventType.SmallDecrement); };
             Controls.Add(subtractButton);
         }
@@ -126,6 +132,40 @@ namespace System.Windows.Forms
             OnScroll(se);
             Value = se.NewValue;
         }
+        protected void UpdateScrollRect()
+        {
+            float sx = 0;
+            float sy = 0;
+            float sw = 0;
+            float sh = 0;
+
+            int scrollLength = 0;
+            if (scrollOrientation == ScrollOrientation.HorizontalScroll)
+                scrollLength = addButton.Location.X - subtractButton.Location.X - subtractButton.Width;
+            else
+                scrollLength = addButton.Location.Y - subtractButton.Location.Y - subtractButton.Height;
+
+            int valueLength = maximum - minimum;
+            float valueK = (float)(Value - minimum) / valueLength;
+            float scrollPos = scrollLength * valueK;
+
+            if (scrollOrientation == ScrollOrientation.HorizontalScroll)
+            {
+                sx = subtractButton.Location.X + subtractButton.Width + scrollPos;
+                sy = 0;
+                sw = 4;
+                sh = Height;
+            }
+            else
+            {
+                sx = 0;
+                sy = subtractButton.Location.Y + subtractButton.Height + scrollPos;
+                sw = Width;
+                sh = 4;
+            }
+
+            scrollRect = new Rectangle((int)sx, (int)sy, (int)sw, (int)sh);
+        }
 
         protected override void OnMouseWheel(MouseEventArgs e)
         {
@@ -160,20 +200,7 @@ namespace System.Windows.Forms
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            int scrollLength = 0;
-            if (scrollOrientation == ScrollOrientation.HorizontalScroll)
-                scrollLength = addButton.Location.X - subtractButton.Location.X - subtractButton.Width;
-            else
-                scrollLength = addButton.Location.Y - subtractButton.Location.Y - subtractButton.Height;
-
-            int valueLength = maximum - minimum;
-            float valueK = (float)(Value - minimum) / valueLength;
-            float scrollPos = scrollLength * valueK;
-
-            if (scrollOrientation == ScrollOrientation.HorizontalScroll)
-                e.Graphics.FillRectangle(ScrollColor, subtractButton.Location.X + subtractButton.Width + scrollPos, 0, 4, Height);
-            else
-                e.Graphics.FillRectangle(ScrollColor, 0, subtractButton.Location.Y + subtractButton.Height + scrollPos, Width, 4);
+            e.Graphics.FillRectangle(ScrollColor, scrollRect.X, scrollRect.Y, scrollRect.Width, scrollRect.Height);
         }
         protected override object OnPaintEditor(float width)
         {
@@ -190,6 +217,12 @@ namespace System.Windows.Forms
         protected virtual void OnValueChanged(EventArgs e)
         {
             ValueChanged(this, e);
+        }
+        public override void Refresh()
+        {
+            base.Refresh();
+
+            UpdateScrollRect();
         }
 
         public event ScrollEventHandler Scroll = delegate { };

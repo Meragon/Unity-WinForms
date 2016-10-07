@@ -10,8 +10,8 @@ namespace System.Windows.Forms
     [Serializable]
     public class Form : ContainerControl
     {
-        [NonSerialized]
         private Button _closeButton;
+        private Action<Form, DialogResult> _dialogCallback;
         private MenuStrip _mainMenuStrip;
         private static Point _nextLocation = new Point(128, 64);
         private bool _windowMove = false;
@@ -24,9 +24,11 @@ namespace System.Windows.Forms
         private int _resizeOffset = 8;
         private DNDResizeType _resizeShow;
         private float _resizeAlpha;
-
         private bool _toggleEditor = true;
 
+        internal bool dialog;
+
+        public IButtonControl AcceptButton { get; set; }
         public Color BorderColor { get; set; }
         public Button CloseButton { get { return _closeButton; } }
         public bool ControlBox
@@ -123,6 +125,31 @@ namespace System.Windows.Forms
             _windowMove = false;
             resizeType = DNDResizeType.None;
         }
+        private void _MakeButtonClose()
+        {
+            _closeButton = new Button();
+
+            CloseButton.Anchor = AnchorStyles.Right;
+            CloseButton.CanSelect = false;
+            CloseButton.Text = "";
+            if (ApplicationBehaviour.Resources != null && ApplicationBehaviour.Resources.Images.Close != null)
+                CloseButton.Image = ApplicationBehaviour.Resources.Images.Close;
+            else
+                CloseButton.Text = "X";
+            CloseButton.HoverColor = System.Drawing.Color.FromArgb(252, 252, 252);
+            CloseButton.BorderHoverColor = System.Drawing.Color.Transparent;
+            CloseButton.Location = new Point(Width - 32, 1);
+            CloseButton.Name = "buttonClose";
+            CloseButton.BackColor = System.Drawing.Color.FromArgb(238, 238, 242);
+            CloseButton.BorderColor = System.Drawing.Color.Transparent;
+            CloseButton.Size = new System.Drawing.Size(24, 16);
+            CloseButton.ForeColor = System.Drawing.Color.FromArgb(64, 64, 64);
+
+            CloseButton.BringToFront();
+            CloseButton.Click += (o, e) => { Close(); };
+
+            Controls.Add(CloseButton);
+        }
         private void Owner_UpdateEvent()
         {
             #region Resize
@@ -191,29 +218,14 @@ namespace System.Windows.Forms
             }
             #endregion
         }
-        private void _MakeButtonClose()
+        private void _SelectFirstControl()
         {
-            _closeButton = new Button();
-
-            CloseButton.Anchor = AnchorStyles.Right;
-            CloseButton.Text = "";
-            if (ApplicationBehaviour.Resources != null && ApplicationBehaviour.Resources.Images.Close != null)
-                CloseButton.Image = ApplicationBehaviour.Resources.Images.Close;
-            else
-                CloseButton.Text = "X";
-            CloseButton.HoverColor = System.Drawing.Color.FromArgb(252, 252, 252);
-            CloseButton.HoverBorderColor = System.Drawing.Color.Transparent;
-            CloseButton.Location = new Point(Width - 32, 1);
-            CloseButton.Name = "buttonClose";
-            CloseButton.NormalColor = System.Drawing.Color.FromArgb(238, 238, 242);
-            CloseButton.NormalBorderColor = System.Drawing.Color.Transparent;
-            CloseButton.Size = new System.Drawing.Size(24, 16);
-            CloseButton.ForeColor = System.Drawing.Color.FromArgb(64, 64, 64);
-
-            CloseButton.BringToFront();
-            CloseButton.Click += (o, e) => { Close(); };
-
-            Controls.Add(CloseButton);
+            for (int i = 0; i < Controls.Count; i++)
+                if (Controls[i].CanSelect)
+                {
+                    Controls[i].Select();
+                    return;
+                }
         }
 
         public void Close()
@@ -228,6 +240,9 @@ namespace System.Windows.Forms
                 OnClosed(null);
                 Dispose();
             }
+
+            if (dialog && _dialogCallback != null)
+                _dialogCallback.Invoke(this, this.DialogResult);
         }
         public void Hide()
         {
@@ -292,18 +307,25 @@ namespace System.Windows.Forms
             if (self == -1)
                 Owner.Forms.Add(this);
             Focus();
+            _SelectFirstControl();
             Shown(this, null);
         }
-        public DialogResult ShowDialog()
+        public DialogResult ShowDialog(Action<Form, DialogResult> onClosed = null)
         {
+            dialog = true;
+            _dialogCallback = onClosed;
+
             Visible = true;
             int self = Owner.ModalForms.FindIndex(x => x == this);
             if (self == -1)
+            {
                 Owner.ModalForms.Add(this);
+                Shown(this, null);
+            }
             Focus();
-            Shown(this, null);
+            _SelectFirstControl();
 
-            return DialogResult.None;
+            return this.DialogResult;
         }
 
         public event FormClosingEventHandler FormClosing = delegate { };
