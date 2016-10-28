@@ -74,6 +74,7 @@ namespace System.Windows.Forms
 
         public ScrollBar()
         {
+            BackColor = Color.FromArgb(240, 240, 240);
             ScrollColor = Color.FromArgb(205, 205, 205);
             ScrollHoverColor = Color.FromArgb(192, 192, 192);
 
@@ -238,6 +239,8 @@ namespace System.Windows.Forms
                     scrollRect = new Rectangle((int)sx, (int)sy, (int)sw, (int)sh);
                     UpdateValueAtScrollRect();
                 }
+                else if (sw > scrollLength + barSize)
+                    scrollRect = new Rectangle(0, 0, 17, (int)sh);
             }
             else
             {
@@ -254,6 +257,8 @@ namespace System.Windows.Forms
                     scrollRect = new Rectangle((int)sx, (int)sy, (int)sw, (int)sh);
                     UpdateValueAtScrollRect();
                 }
+                else if (sh > scrollLength + barSize)
+                    scrollRect = new Rectangle(0, 0, (int)sw, 17);
             }
         }
 
@@ -375,6 +380,10 @@ namespace System.Windows.Forms
                 scrollDestinationColor = ScrollColor;
             scrollCurrentColor = MathHelper.ColorLerp(scrollCurrentColor, scrollDestinationColor, 4);
 
+            if (scrollOrientation == ScrollOrientation.HorizontalScroll)
+                e.Graphics.FillRectangle(BackColor, subtractButton.Location.X + subtractButton.Width, 0, addButton.Location.X, Height);
+            else
+                e.Graphics.FillRectangle(BackColor, 0, subtractButton.Location.Y + subtractButton.Height, Width, addButton.Location.Y);
             e.Graphics.FillRectangle(scrollCurrentColor, scrollRect.X, scrollRect.Y, scrollRect.Width, scrollRect.Height);
         }
         protected override object OnPaintEditor(float width)

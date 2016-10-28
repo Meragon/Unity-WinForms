@@ -77,10 +77,15 @@ namespace System.Windows.Forms
                 c.Offset = new Point(offsetX, c.Offset.Y);
             }
         }
-        private void ResetOffset()
+        private void ResetHOffset()
         {
             for (int i = 0; i < Controls.Count; i++)
-                Controls[i].Offset = new Point();
+                Controls[i].Offset = new Point(0, Controls[i].Offset.Y);
+        }
+        private void ResetVOffset()
+        {
+            for (int i = 0; i < Controls.Count; i++)
+                Controls[i].Offset = new Point(Controls[i].Offset.X, 0);
         }
         private void VScroll_ValueChanged(object sender, EventArgs e)
         {
@@ -115,6 +120,7 @@ namespace System.Windows.Forms
                     vScroll.ValueChanged -= VScroll_ValueChanged;
                     vScroll.Dispose();
                     vScroll = null;
+                    ResetVOffset();
                 }
             }
             else if (vScroll != null)
@@ -122,6 +128,7 @@ namespace System.Windows.Forms
                 vScroll.ValueChanged -= VScroll_ValueChanged;
                 vScroll.Dispose();
                 vScroll = null;
+                ResetVOffset();
             }
 
             if (Columns.Count > 0)
@@ -143,6 +150,7 @@ namespace System.Windows.Forms
                     hScroll.ValueChanged -= HScroll_ValueChanged;
                     hScroll.Dispose();
                     hScroll = null;
+                    ResetHOffset();
                 }
             }
             else if (vScroll != null)
@@ -150,6 +158,7 @@ namespace System.Windows.Forms
                 hScroll.ValueChanged -= HScroll_ValueChanged;
                 vScroll.Dispose();
                 vScroll = null;
+                ResetHOffset();
             }
 
             // Update properties.
