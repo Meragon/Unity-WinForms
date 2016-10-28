@@ -96,6 +96,7 @@ namespace System.Windows.Forms
             btn.BackColor = Color.FromArgb(204, 206, 219);
             btn.BorderColor = Color.Transparent;
             btn.BorderHoverColor = Color.Transparent;
+            btn.BorderSelectColor = Color.Transparent;
 
             btn.Click += (object sender, EventArgs e) =>
             {

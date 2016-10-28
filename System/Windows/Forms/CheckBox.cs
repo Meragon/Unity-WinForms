@@ -8,8 +8,6 @@ namespace System.Windows.Forms
 {
     public class CheckBox : Button
     {
-        private bool _hovered;
-
         public bool Checked { get; set; }
 
         public CheckBox()
@@ -31,22 +29,12 @@ namespace System.Windows.Forms
         {
             base.OnKeyUp(e);
         }
-        protected override void OnMouseEnter(EventArgs e)
-        {
-            base.OnMouseHover(e);
-            _hovered = true;
-        }
-        protected override void OnMouseLeave(EventArgs e)
-        {
-            base.OnMouseLeave(e);
-            _hovered = false;
-        }
         protected override void OnPaint(PaintEventArgs e)
         {
             Graphics g = e.Graphics;
 
-            g.FillRectangle(new SolidBrush(_hovered || Focused ? Color.FromArgb(243, 249, 255) : Color.White), Padding.Left, Padding.Top + Height / 2 - 6, 12, 12);
-            g.DrawRectangle(new Pen(_hovered || Focused ? Color.FromArgb(51, 153, 255) : Color.FromArgb(172, 172, 172)), Padding.Left, Padding.Top + Height / 2 - 6, 12, 12);
+            g.FillRectangle(new SolidBrush(Hovered || Focused ? Color.FromArgb(243, 249, 255) : Color.White), Padding.Left, Padding.Top + Height / 2 - 6, 12, 12);
+            g.DrawRectangle(new Pen(Hovered || Focused ? Color.FromArgb(51, 153, 255) : Color.FromArgb(172, 172, 172)), Padding.Left, Padding.Top + Height / 2 - 6, 12, 12);
             if (Checked)
                 g.DrawTexture(ApplicationBehaviour.Resources.Images.Checked, Padding.Left, Padding.Top + Height / 2 - 6, 12, 12);
 

@@ -39,7 +39,20 @@ namespace System.Windows.Forms
 
         private void Awake()
         {
-            System.Drawing.Graphics.DefaultMaterial = LineMaterial;
+            if (LineMaterial != null)
+                System.Drawing.Graphics.DefaultMaterial = LineMaterial;
+            else
+            {
+                System.Drawing.Graphics.DefaultMaterial = new Material("Shader \"Lines/Colored Blended\" {" +
+                    "SubShader { Pass { " +
+                    "    Blend SrcAlpha OneMinusSrcAlpha " +
+                    "    ZWrite Off Cull Off Fog { Mode Off } " +
+                    "    BindChannels {" +
+                    "      Bind \"vertex\", vertex Bind \"color\", color }" +
+                    "} } }");
+                System.Drawing.Graphics.DefaultMaterial.hideFlags = HideFlags.HideAndDontSave;
+                System.Drawing.Graphics.DefaultMaterial.shader.hideFlags = HideFlags.HideAndDontSave;
+            }
             Resources = _Resources;
 
             _lastWidth = UnityEngine.Screen.width;

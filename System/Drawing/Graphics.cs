@@ -203,11 +203,12 @@ namespace System.Drawing
             GUI.color = pen.Color.ToUColor();
             if (!_group)
             {
-                Control.Batches++;
-
                 Point c_position = Point.Empty;
                 if (Control != null)
+                {
+                    Control.Batches++;
                     c_position = Control.PointToScreen(Point.Zero);
+                }
 
                 GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
             }
@@ -893,20 +894,24 @@ namespace System.Drawing
             if (points.Length < 3) return;
 
             if (DefaultMaterial != null)
+            {
                 DefaultMaterial.SetPass(0);
+                DefaultMaterial.color = brush.Color.ToUColor();
+            }
+            
+            GL.Begin(GL.TRIANGLES);
+
+            var color = brush.Color.ToUColor();
+            GL.Color(color);
 
             for (int i = 1; i + 1 < points.Length; i += 1)
             {
-                GL.Begin(GL.TRIANGLES);
-
-
-                GL.Color(brush.Color.ToUColor());
-                GL.Vertex3(points[0].X, points[1].Y, 0);
+                GL.Vertex3(points[0].X, points[0].Y, 0);
                 GL.Vertex3(points[i].X, points[i].Y, 0);
                 GL.Vertex3(points[i + 1].X, points[i + 1].Y, 0);
-
-                GL.End();
             }
+
+            GL.End();
         }
         public void FillRectangle(SolidBrush brush, Rectangle rect)
         {
@@ -925,7 +930,8 @@ namespace System.Drawing
             if (NoFill) return;
             if (color.A <= 0) return;
 
-            if (Control != null) Control.Batches += 1;
+            if (Control != null)
+                Control.Batches += 1;
 
             FillRate += width * height;
 
@@ -948,6 +954,25 @@ namespace System.Drawing
                 GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                 //UnityEngine.Graphics.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), System.Windows.Forms.Application.DefaultSprite, new Rect(), 0, 0, 0, 0, brush.Color.ToUColor(), DefaultMaterial);
             }
+        }
+        public void FillQuad(Color color, PointF[] points)
+        {
+            if (points == null || points.Length != 4) return;
+
+            FillQuad(color, points[0], points[1], points[2], points[3]);
+        }
+        public void FillQuad(Color color, PointF p1, PointF p2, PointF p3, PointF p4)
+        {
+            GL.Begin(GL.QUADS);
+            
+            GL.Color(color.ToUColor());
+
+            GL.Vertex3(p1.X, p1.Y, 0);
+            GL.Vertex3(p2.X, p2.Y, 0);
+            GL.Vertex3(p3.X, p3.Y, 0);
+            GL.Vertex3(p4.X, p4.Y, 0);
+
+            GL.End();
         }
         /// <summary>
         /// OnPaint call only.

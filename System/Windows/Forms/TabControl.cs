@@ -662,6 +662,7 @@ namespace System.Windows.Forms
                 this.owner = owner;
                 this.index = index;
 
+                BorderSelectColor = Color.Transparent;
                 EnabledBackColor = Color.White;
                 EnabledBackHoverColor = Color.White;
                 DisabledBackColor = Color.FromArgb(235, 235, 235);

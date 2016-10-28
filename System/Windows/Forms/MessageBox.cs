@@ -60,6 +60,7 @@ namespace System.Windows.Forms
             Button formButton_Ok = new Button();
             formButton_Ok.Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
             formButton_Ok.Location = new Point(form.Width - 8 - formButton_Ok.Width, form.Height - formButton_Ok.Height - 8);
+            formButton_Ok.TabIndex = 0;
             formButton_Ok.Text = "Ok";
             formButton_Ok.Click += (object sender, EventArgs args) =>
             {

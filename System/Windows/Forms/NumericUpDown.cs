@@ -67,6 +67,7 @@ namespace System.Windows.Forms
         {
             this.BackColor = Color.FromArgb(250, 250, 250);
             this.BorderColor = Color.FromArgb(175, 175, 175);
+            this.CanSelect = true;
             this.Increment = 1;
             this.Maximum = 100;
             this.Minimum = 0;

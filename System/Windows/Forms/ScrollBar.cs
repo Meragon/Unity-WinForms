@@ -12,6 +12,13 @@ namespace System.Windows.Forms
         private int largeChange = 10;
         private int maximum = 100;
         private int minimum = 0;
+        private int minScrollSize = 17;
+        private bool scrollCanDrag;
+        private ColorF scrollCurrentColor;
+        private Color scrollDestinationColor;
+        private Point scrollDragStartLocation;
+        private Point scrollDragRectOffset;
+        private bool scrollDraging;
         protected ScrollOrientation scrollOrientation;
         private Rectangle scrollRect;
         private int smallChange = 1;
@@ -22,13 +29,21 @@ namespace System.Windows.Forms
 
         public int LargeChange
         {
-            get { return largeChange; }
-            set { largeChange = value; }
+            get { return Math.Min(largeChange, maximum - minimum + 1); }
+            set
+            {
+                largeChange = value;
+                UpdateScrollRect();
+            }
         }
         public int Maximum
         {
             get { return maximum; }
-            set { maximum = value; }
+            set
+            {
+                maximum = value;
+                UpdateScrollRect();
+            }
         }
         public int Minimum
         {
@@ -36,6 +51,7 @@ namespace System.Windows.Forms
             set { minimum = value; }
         }
         public Color ScrollColor { get; set; }
+        public Color ScrollHoverColor { get; set; }
         public int SmallChange
         {
             get { return smallChange; }
@@ -51,7 +67,7 @@ namespace System.Windows.Forms
                 if (changed)
                 {
                     UpdateScrollRect();
-                    OnValueChanged(null);
+                    OnValueChanged(EventArgs.Empty);
                 }
             }
         }
@@ -59,6 +75,7 @@ namespace System.Windows.Forms
         public ScrollBar()
         {
             ScrollColor = Color.FromArgb(205, 205, 205);
+            ScrollHoverColor = Color.FromArgb(192, 192, 192);
 
             var backColor = Color.Transparent;
             var backHoverColor = Color.FromArgb(218, 218, 218);
@@ -88,6 +105,8 @@ namespace System.Windows.Forms
             subtractButton.BackColor = backColor;
             subtractButton.Click += (s, a) => { DoScroll(ScrollEventType.SmallDecrement); };
             Controls.Add(subtractButton);
+
+            Owner.UpClick += Owner_UpClick;
         }
 
         private void DoScroll(ScrollEventType type)
@@ -128,48 +147,200 @@ namespace System.Windows.Forms
                     break;
             }
 
+            UpdateScrollRect();
+
             ScrollEventArgs se = new ScrollEventArgs(type, oldValue, newValue, this.scrollOrientation);
             OnScroll(se);
             Value = se.NewValue;
         }
-        protected void UpdateScrollRect()
+        private void Owner_UpClick(object sender, MouseEventArgs e)
         {
-            float sx = 0;
-            float sy = 0;
-            float sw = 0;
-            float sh = 0;
+            if (scrollDraging)
+                UpdateScrollRect();
 
-            int scrollLength = 0;
+            scrollDraging = false;
+            scrollCanDrag = false;
+        }
+        private void UpdateValueAtScrollRect()
+        {
+            float scrollLength = 0;
             if (scrollOrientation == ScrollOrientation.HorizontalScroll)
                 scrollLength = addButton.Location.X - subtractButton.Location.X - subtractButton.Width;
             else
                 scrollLength = addButton.Location.Y - subtractButton.Location.Y - subtractButton.Height;
 
-            int valueLength = maximum - minimum;
-            float valueK = (float)(Value - minimum) / valueLength;
+            int valueRange = (maximum - minimum);
+            float barSize = minScrollSize;
+            if (largeChange > 0)
+                barSize = (float)scrollLength / ((float)valueRange / largeChange);
+            if (barSize < minScrollSize)
+                barSize = minScrollSize;
+
+            scrollLength -= barSize; // Addjusted range for scroll bar, depending on size.
+
+            if (scrollOrientation == ScrollOrientation.HorizontalScroll)
+                value = (int)(((valueRange - largeChange + 1) * (scrollRect.X - subtractButton.Location.X - subtractButton.Width)) / scrollLength + minimum);
+            else
+                value = (int)(((valueRange - largeChange + 1) * (scrollRect.Y - subtractButton.Location.Y - subtractButton.Height)) / scrollLength + minimum);
+            OnValueChanged(EventArgs.Empty);
+        }
+        protected void UpdateScrollRect()
+        {
+            // WIN_API Random calculations.
+
+            float sx = 0;
+            float sy = 0;
+            float sw = 0;
+            float sh = 0;
+
+            // Total range for scroll bar.
+            float scrollLength = 0;
+            if (scrollOrientation == ScrollOrientation.HorizontalScroll)
+                scrollLength = addButton.Location.X - subtractButton.Location.X - subtractButton.Width;
+            else
+                scrollLength = addButton.Location.Y - subtractButton.Location.Y - subtractButton.Height;
+
+            int valueRange = (maximum - minimum);
+            float barSize = minScrollSize;
+            if (largeChange > 0)
+                barSize = (float)scrollLength / ((float)valueRange / largeChange);
+            if (barSize < minScrollSize)
+                barSize = minScrollSize;
+            /*
+            Example:
+                this.Width = 134;
+                addButton.Width = 17;
+                subtractButton.Width = 17;
+
+                scrollLength = 134 - 17 - 17 = 100;
+                maximum = 400;
+                minimum = 0;
+                largeChange = 100; // 
+                estimatedScrollWidth = 100 / ((400 - 0) / 100) = 100 / (4) = 25;
+            */
+            scrollLength -= barSize; // Addjusted range for scroll bar, depending on size.
+
+            float valueK = (float)(Value - minimum) / (valueRange - largeChange + 1);
             float scrollPos = scrollLength * valueK;
 
             if (scrollOrientation == ScrollOrientation.HorizontalScroll)
             {
                 sx = subtractButton.Location.X + subtractButton.Width + scrollPos;
                 sy = 0;
-                sw = 4;
+                sw = barSize;
                 sh = Height;
+
+                scrollRect = new Rectangle((int)sx, (int)sy, (int)sw, (int)sh);
+
+                if (sx + sw > addButton.Location.X && sw < scrollLength + barSize)
+                {
+                    sx = addButton.Location.X - sw;
+                    scrollRect = new Rectangle((int)sx, (int)sy, (int)sw, (int)sh);
+                    UpdateValueAtScrollRect();
+                }
             }
             else
             {
                 sx = 0;
                 sy = subtractButton.Location.Y + subtractButton.Height + scrollPos;
                 sw = Width;
-                sh = 4;
-            }
+                sh = barSize;
 
-            scrollRect = new Rectangle((int)sx, (int)sy, (int)sw, (int)sh);
+                scrollRect = new Rectangle((int)sx, (int)sy, (int)sw, (int)sh);
+
+                if (sy + sh > addButton.Location.Y && sh < scrollLength + barSize)
+                {
+                    sy = addButton.Location.Y - sh;
+                    scrollRect = new Rectangle((int)sx, (int)sy, (int)sw, (int)sh);
+                    UpdateValueAtScrollRect();
+                }
+            }
         }
 
+        public override void Dispose()
+        {
+            Owner.UpClick -= Owner_UpClick;
+
+            base.Dispose();
+        }
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            base.OnMouseDown(e);
+
+            if (scrollRect.Contains(e.Location))
+            {
+                scrollCanDrag = true;
+                scrollDragStartLocation = e.Location;
+                scrollDragRectOffset = e.Location - scrollRect.Location;
+            }
+            else
+            {
+                scrollCanDrag = false;
+                scrollDraging = false;
+            }
+        }
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            base.OnMouseMove(e);
+
+            if (scrollCanDrag && e.Location.Distance(scrollDragStartLocation) > 2)
+            {
+                scrollCanDrag = false;
+                scrollDraging = true;
+            }
+
+            if (scrollDraging)
+            {
+                int sX = scrollRect.X;
+                int sY = scrollRect.Y;
+                if (scrollOrientation == ScrollOrientation.HorizontalScroll)
+                {
+                    sX = e.Location.X - scrollDragRectOffset.X;
+                    if (sX < subtractButton.Location.X + subtractButton.Width)
+                        sX = subtractButton.Location.X + subtractButton.Width;
+                    if (sX + scrollRect.Width > addButton.Location.X)
+                        sX = addButton.Location.X - scrollRect.Width;
+                }
+                else
+                {
+                    sY = e.Location.Y - scrollDragRectOffset.Y;
+                    if (sY < subtractButton.Location.Y + subtractButton.Height)
+                        sY = subtractButton.Location.Y + subtractButton.Height;
+                    if (sY + scrollRect.Height > addButton.Location.Y)
+                        sY = addButton.Location.Y - scrollRect.Height;
+                }
+                scrollRect = new Rectangle(sX, sY, scrollRect.Width, scrollRect.Height);
+
+                UpdateValueAtScrollRect();
+            }
+        }
+        protected override void OnMouseUp(MouseEventArgs e)
+        {
+            base.OnMouseUp(e);
+
+            if (scrollDraging == false)
+            {
+                var sEvent = ScrollEventType.LargeIncrement;
+                if (scrollRect.Contains(e.Location) == false)
+                {
+                    if (scrollOrientation == ScrollOrientation.HorizontalScroll)
+                    {
+                        if (scrollRect.X + scrollRect.Width / 2 > e.Location.X)
+                            sEvent = ScrollEventType.LargeDecrement;
+                    }
+                    else
+                    {
+                        if (scrollRect.Y + scrollRect.Height / 2 > e.Location.Y)
+                            sEvent = ScrollEventType.LargeDecrement;
+                    }
+
+                    DoScroll(sEvent);
+                }
+            }
+        }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            var wheelDelta = e.Delta;
+            var wheelDelta = e.Delta / 4;
 
             bool scrolled = false;
 
@@ -195,20 +366,52 @@ namespace System.Windows.Forms
 
             if (scrolled)
                 DoScroll(ScrollEventType.EndScroll);
-
-            base.OnMouseWheel(e);
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            e.Graphics.FillRectangle(ScrollColor, scrollRect.X, scrollRect.Y, scrollRect.Width, scrollRect.Height);
+            if (Hovered)
+                scrollDestinationColor = ScrollHoverColor;
+            else
+                scrollDestinationColor = ScrollColor;
+            scrollCurrentColor = MathHelper.ColorLerp(scrollCurrentColor, scrollDestinationColor, 4);
+
+            e.Graphics.FillRectangle(scrollCurrentColor, scrollRect.X, scrollRect.Y, scrollRect.Width, scrollRect.Height);
         }
         protected override object OnPaintEditor(float width)
         {
             var component = base.OnPaintEditor(width);
 #if UNITY_EDITOR
-            Editor.Label("Value", Value);
+            Editor.NewLine(1);
+            Editor.Label("\tScrollBar");
+
+            var editorLargeChange = Editor.IntField("LargeChange", LargeChange);
+            if (editorLargeChange.Changed)
+                LargeChange = editorLargeChange.Value[0];
+
+            var editorMaximum = Editor.IntField("Maximum", Maximum);
+            if (editorMaximum.Changed)
+                Maximum = editorMaximum.Value[0];
+
+            var editorMinimum = Editor.IntField("Minimum", Minimum);
+            if (editorMinimum.Changed)
+                Minimum = editorMinimum.Value[0];
+
+            Editor.ColorField("ScrollColor", ScrollColor, (c) => { ScrollColor = c; });
+
+            var editorSmallChange = Editor.IntField("SmallChange", SmallChange);
+            if (editorSmallChange.Changed)
+                SmallChange = editorSmallChange.Value[0];
+
+            var editorValue = Editor.IntField("Value", Value);
+            if (editorValue.Changed)
+                Value = editorValue.Value[0];
 #endif
             return component;
+        }
+        protected override void OnResize(Point delta)
+        {
+            base.OnResize(delta);
+            UpdateScrollRect();
         }
         protected virtual void OnScroll(ScrollEventArgs se)
         {

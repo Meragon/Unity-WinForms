@@ -161,8 +161,6 @@ namespace System.Windows.Forms
 
         private void _parent_Resize(Point delta)
         {
-            //Application.Log(this.GetType().ToString() + " " + delta.X.ToString());
-
             bool an_right = (Anchor & AnchorStyles.Right) == AnchorStyles.Right;
             bool an_bottom = (Anchor & AnchorStyles.Bottom) == AnchorStyles.Bottom;
             bool an_left = (Anchor & AnchorStyles.Left) == AnchorStyles.Left;
@@ -170,6 +168,9 @@ namespace System.Windows.Forms
 
             if (Anchor != AnchorStyles.None)
             {
+                int prevWidth = _width;
+                int prevHeight = _height;
+
                 if (an_right)
                     Location = new Point(Location.X - delta.X, Location.Y);
                 else
@@ -186,9 +187,6 @@ namespace System.Windows.Forms
                         _width = Size.Width - delta.X;
                         delta = new Point(delta.X, delta.Y);
                     }
-                    _height = Size.Height;
-                    //if (an_right)
-                    //OnResize(delta);
                 }
                 if (an_top)
                 {
@@ -198,10 +196,13 @@ namespace System.Windows.Forms
                         _height = Size.Height - delta.Y;
                         delta = new Point(delta.X, delta.Y);
                     }
-                    _width = Size.Width;
-                    //if (an_bottom)
-                    //OnResize(delta);
                 }
+
+                // Reset delta for childs.
+                if (prevWidth - _width == 0)
+                    delta = new Point(0, delta.Y);
+                if (prevHeight - _height == 0)
+                    delta = new Point(delta.X, 0);
 
                 if ((an_left && an_right) || (an_top && an_bottom))
                     OnResize(delta);
@@ -219,6 +220,7 @@ namespace System.Windows.Forms
             Enabled = true;
             Font = new Drawing.Font("Arial", 12);
             ForeColor = Color.Black;
+            TabIndex = -1;
             UserGroup = true;
             _visible = true;
 
@@ -325,16 +327,17 @@ namespace System.Windows.Forms
             if (Parent != null)
                 p = Parent.PointToClient(p);
 
-            p.X -= Location.X;
-            p.Y -= Location.Y;
+            p.X -= Location.X + Offset.X;
+            p.Y -= Location.Y + Offset.Y;
             return p;
         }
         public Point PointToScreen(Point p)
         {
             if (Parent != null)
                 p = Parent.PointToScreen(p);
-            p.X += Location.X;
-            p.Y += Location.Y;
+
+            p.X += Location.X + Offset.X;
+            p.Y += Location.Y + Offset.Y;
             return p;
         }
         public virtual void Refresh()
@@ -347,16 +350,13 @@ namespace System.Windows.Forms
         }
         public void Select()
         {
-            if (AlwaysFocused) return;
+            if (AlwaysFocused || CanSelect == false) return;
 
-            if (lastSelected != null && CanSelect)
+            if (lastSelected != null)
                 lastSelected.selected = false;
 
-            if (CanSelect)
-            {
-                lastSelected = this;
-                selected = true;
-            }
+            lastSelected = this;
+            selected = true;
         }
         public void SuspendLayout()
         {
@@ -441,7 +441,10 @@ namespace System.Windows.Forms
         }
         protected virtual void OnMouseWheel(MouseEventArgs e)
         {
-
+            // TODO: should I raise in parent?
+            // remove base call if you have stack overflow.
+            if (Parent != null)
+                Parent.RaiseOnMouseWheel(e);
         }
         protected virtual void OnPaint(PaintEventArgs e)
         {
@@ -574,6 +577,8 @@ namespace System.Windows.Forms
             var editorName = Editor.TextField("Name", this.Name == null ? "" : this.Name);
             if (editorName.Changed) this.Name = editorName;
 
+            Editor.Label("Offset", Offset);
+
             var editorPadding = Editor.IntField("Padding", this.Padding.Left, this.Padding.Top, this.Padding.Right, this.Padding.Bottom);
             if (editorPadding.Changed)
                 Padding = new Forms.Padding(editorPadding.Value[0], editorPadding.Value[3], editorPadding.Value[2], editorPadding.Value[1]);
@@ -620,8 +625,8 @@ namespace System.Windows.Forms
         {
             if (delta != Point.Zero)
                 if (Controls != null)
-                    foreach (var us in Controls)
-                        us._parent_Resize(delta);
+                    for (int i = 0; i < Controls.Count; i++)
+                        Controls[i]._parent_Resize(delta);
             Resize(this, null);
         }
         protected virtual void OnTextChanged(EventArgs e)
@@ -638,7 +643,7 @@ namespace System.Windows.Forms
             Control cur = this;
             while (cur != null && !(cur is Form))
                 cur = cur.Parent;
-            
+
             return (Form)cur;
         }
         internal void RaiseOnDragDrop(DragEventArgs drgevent)
@@ -739,7 +744,8 @@ namespace System.Windows.Forms
             if (Controls != null)
                 for (int i = 0; i < Controls.Count; i++)
                 {
-                    if (!Controls[i].Visible) continue;
+                    if (Application.ControlIsVisible(Controls[i]) == false) continue;
+
                     var currentAbspos = Controls[i].PointToScreen(System.Drawing.Point.Zero);
                     if (currentAbspos.X + Controls[i].Width < 0 || currentAbspos.X > UnityEngine.Screen.width ||
                     currentAbspos.Y + Controls[i].Height < 0 || currentAbspos.Y > UnityEngine.Screen.height)
@@ -750,9 +756,9 @@ namespace System.Windows.Forms
             e.Graphics.Control = this;
             if (Application.Debug)
             {
-                e.Graphics.DrawString(GetType().ToString().Replace("System.Windows.Forms", "SWF"), Font, Brushes.White, 3, 1, 256, 32);
-                e.Graphics.DrawString(GetType().ToString().Replace("System.Windows.Forms", "SWF"), Font, Brushes.White, 5, 3, 256, 32);
-                e.Graphics.DrawString(GetType().ToString().Replace("System.Windows.Forms", "SWF"), Font, Brushes.DarkRed, 4, 2, 256, 32);
+                e.Graphics.DrawString(GetType().Name, Font, Brushes.White, 3, 1, 256, 32);
+                e.Graphics.DrawString(GetType().Name, Font, Brushes.White, 5, 3, 256, 32);
+                e.Graphics.DrawString(GetType().Name, Font, Brushes.DarkRed, 4, 2, 256, 32);
                 e.Graphics.DrawRectangle(Pens.DarkRed, 0, 0, Width, Height);
             }
             OnLatePaint(e);

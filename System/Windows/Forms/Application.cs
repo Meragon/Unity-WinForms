@@ -64,8 +64,9 @@ namespace System.Windows.Forms
                     var contextRect = new System.Drawing.Rectangle(contextItem.Location.X, contextItem.Location.Y, contextItem.Width, contextItem.Height);
                     if (contextRect.Contains(mousePosition))
                     {
-                        control = contextItem;
-                        break;
+                        var childControl = _ControlAt(contextItem, mousePosition);
+                        if (childControl != null)
+                            control = childControl;
                     }
                 }
             }
@@ -85,21 +86,38 @@ namespace System.Windows.Forms
 
             return control;
         }
-        private static bool _ControlVisible(Control control)
+        internal static bool ControlIsVisible(Control control)
         {
             if (control.Visible == false) return false;
+            if (control.Location.X + control.Offset.X + control.Width < 0) return false;
+            if (control.Location.Y + control.Offset.Y + control.Height< 0) return false;
+            if (control.Parent != null)
+            {
+                if (control.Location.X + control.Offset.X > control.Parent.Width) return false;
+                if (control.Location.Y + control.Offset.Y > control.Parent.Height) return false;
+            }
+            return true;
+        }
+        private static bool _ControlWParentVisible(Control control)
+        {
+            if (ControlIsVisible(control) == false) return false;
+
             if (control.Parent == null)
                 return control.Visible;
             if (control.Parent.Visible)
-                return _ControlVisible(control.Parent);
+                return _ControlWParentVisible(control.Parent);
             return false;
         }
-        private static void _FillListWithControls(Control control, List<Control> list)
+        private static void _FillListWithVisibleControls(Control control, List<Control> list)
         {
             for (int i = 0; i < control.Controls.Count; i++)
             {
-                list.Add(control.Controls[i]);
-                _FillListWithControls(control.Controls[i], list);
+                var c = control.Controls[i];
+                if (c.Visible)
+                {
+                    list.Add(c);
+                    _FillListWithVisibleControls(c, list);
+                }
             }
         }
         private bool _FindTopForm(ref Control lastPreccessedControl, IList<Form> formList, Predicate<Form> condition = null)
@@ -107,18 +125,19 @@ namespace System.Windows.Forms
             for (int i = formList.Count - 1; i >= 0; i--)
             {
                 var form = formList[i];
-                var result = _FindTopForm(ref lastPreccessedControl, form, condition);
+                if (condition != null && condition.Invoke(form) == false) continue;
+
+                var result = _FindTopControl(ref lastPreccessedControl, form);
                 if (result) return result;
             }
 
             return false;
         }
-        private bool _FindTopForm(ref Control lastPreccessedControl, Form form, Predicate<Form> condition = null)
+        private bool _FindTopControl(ref Control lastPreccessedControl, Control form)
         {
             Control controlToProcess = form;
 
-            if (condition != null && condition.Invoke(form) == false) return false;
-            if (_ControlVisible(form) == false || form.Enabled == false) return false;
+            if (_ControlWParentVisible(form) == false || form.Enabled == false) return false;
 
             controlToProcess = _ControlAt(controlToProcess, _mousePosition);
             if (controlToProcess != null)
@@ -130,8 +149,15 @@ namespace System.Windows.Forms
 
             return false;
         }
-        private Form _FormAt(System.Drawing.Point mousePosition)
+        private Control _ControlAt(System.Drawing.Point mousePosition)
         {
+            if (Contexts.Count > 0)
+            {
+                var lastContext = Contexts.Last();
+                var cRect = new System.Drawing.Rectangle(lastContext.Location.X, lastContext.Location.Y, lastContext.Width, lastContext.Height);
+                if (cRect.Contains(mousePosition))
+                    return lastContext;
+            }
             if (ModalForms.Count > 0)
             {
                 var lastModalForm = ModalForms.Last();
@@ -164,14 +190,15 @@ namespace System.Windows.Forms
             if (control == null) return false;
 
             var mouseToClient = control.PointToClient(mousePosition);
-            var controlForm = GetRootControl(control) as Form;
-            if (control.Context || (controlForm != null && controlForm == _FormAt(mousePosition)))
+            var controlForm = GetRootControl(control);
+            if (control.Context || (controlForm != null && controlForm == _ControlAt(mousePosition)))
             {
                 if (control.Context == false)
                 {
                     for (int i = 0; i < Contexts.Count; i++)
                     {
                         var contextControl = Contexts[i];
+                        if (contextControl == controlForm) continue;
                         var contextRect = new System.Drawing.Rectangle(contextControl.Location.X, contextControl.Location.Y, contextControl.Width, contextControl.Height);
                         if (contextRect.Contains(mousePosition))
                             return false;
@@ -407,7 +434,7 @@ namespace System.Windows.Forms
                             break;
                     }
                 }
-                
+
                 // Raise keys on selected controls if possible.
                 if (Control.lastSelected != null && Control.lastSelected.IsDisposed == false)
                 {
@@ -560,27 +587,25 @@ namespace System.Windows.Forms
                     }
                 }
 
-                bool alwaysTop = true;
                 bool found = false;
                 Control lastPreccessedControl = null;
+
                 // Check context first.
+
                 for (int i = 0; i < Contexts.Count; i++)
                 {
                     var contextControl = Contexts[i];
                     if (contextControl.Enabled == false || contextControl.Visible == false) continue;
 
-                    if (_ProcessControl(mousePosition, contextControl, false))
-                    {
-                        lastPreccessedControl = contextControl;
-                        found = true;
-                        break;
-                    }
+                    found = _FindTopControl(ref lastPreccessedControl, contextControl);
+                    if (found) break;
                 }
+
                 // Forms then.
                 if (found == false)
                 {
                     if (ModalForms.Count > 0)
-                        found = _FindTopForm(ref lastPreccessedControl, ModalForms.Last());
+                        found = _FindTopControl(ref lastPreccessedControl, ModalForms.Last());
                     if (found == false)
                         found = _FindTopForm(ref lastPreccessedControl, Forms, x => x.TopMost);
                     if (found == false)
@@ -622,7 +647,7 @@ namespace System.Windows.Forms
                     var control = HoveredControls[i];
                     var formParent = GetRootControl(control) as Form;
                     if ((control.Context && _ControlAt(formParent, _mousePosition) != control) ||
-                        (formParent != null && formParent != _FormAt(_mousePosition)) ||
+                        (formParent != null && formParent != _ControlAt(_mousePosition)) ||
                         _ControlAt(formParent, _mousePosition) != control)
                     {
                         if (control.mouseEntered)
@@ -674,14 +699,15 @@ namespace System.Windows.Forms
             if (controlForm != null && controlForm.Controls.Count > 0)
             {
                 List<Control> formControls = new List<Control>();
-                _FillListWithControls(controlForm, formControls);
+                _FillListWithVisibleControls(controlForm, formControls);
 
                 List<Control> possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.TabIndex >= 0 && x.CanSelect);
                 if (possibleControls.Find(x => x.TabIndex > 0) != null)
                 {
                     possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
-                    possibleControls.Reverse();
+                    //possibleControls.Reverse();
                 }
+                if (possibleControls.Count == 0) return;
 
                 int controlIndex = possibleControls.FindIndex(x => x == control);
 
@@ -697,14 +723,15 @@ namespace System.Windows.Forms
             if (controlForm != null && controlForm.Controls.Count > 0)
             {
                 List<Control> formControls = new List<Control>();
-                _FillListWithControls(controlForm, formControls);
+                _FillListWithVisibleControls(controlForm, formControls);
 
                 List<Control> possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.TabIndex >= 0 && x.CanSelect);
                 if (possibleControls.Find(x => x.TabIndex > 0) != null)
                 {
                     possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
-                    possibleControls.Reverse();
+                    //possibleControls.Reverse();
                 }
+                if (possibleControls.Count == 0) return;
 
                 int controlIndex = possibleControls.FindIndex(x => x == control);
 
