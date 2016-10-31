@@ -9,10 +9,10 @@ namespace System.Windows.Forms
     /// <summary>
     /// Simple implementation of DataGridView.
     /// </summary>
-    [Obsolete("WIP")]
     public class TableView : Control
     {
         private HScrollBar hScroll;
+        internal TableColumn lastSortedColumn;
         private float maxScrollHeight
         {
             get
@@ -33,7 +33,7 @@ namespace System.Windows.Forms
                 return w;
             }
         }
-        private TableButton topLeftButton;
+        private TableColumnButton topLeftButton;
         private VScrollBar vScroll;
 
         public Color BorderColor { get; set; }
@@ -61,7 +61,7 @@ namespace System.Windows.Forms
         {
             if (topLeftButton == null)
             {
-                topLeftButton = new TableButton(ColumnsStyle);
+                topLeftButton = new TableColumnButton(ColumnsStyle);
                 topLeftButton.Size = new Size(40, 20);
                 Controls.Add(topLeftButton);
             }
@@ -173,7 +173,7 @@ namespace System.Windows.Forms
                     hScroll.Width = Width - vScroll.Width;
                 else
                     hScroll.Width = Width;
-                
+
                 hScroll.LargeChange = (int)((float)(hScroll.Maximum - hScroll.Minimum) / ((float)maxScrollWidth / Width));
                 hScroll.BringToFront();
             }
@@ -208,6 +208,7 @@ namespace System.Windows.Forms
             {
                 var row = Rows[i];
                 row.control.Location = new Point(Padding.Left, cY);
+                row.control.Text = (i + 1).ToString();
                 if (topLeftButton != null)
                     row.control.Width = topLeftButton.Width;
 
@@ -232,9 +233,10 @@ namespace System.Windows.Forms
 
             if (column.control == null)
             {
-                var cButton = new TableButton(ColumnsStyle);
-                cButton.columnIndex = Columns.FindIndex(column);
+                var cButton = new TableColumnButton(ColumnsStyle);
+                cButton.column = column;
                 cButton.EnableHorizontalResizing = true;
+                cButton.table = this;
                 cButton.Text = column.HeaderText;
 
                 column.control = cButton;
@@ -251,10 +253,9 @@ namespace System.Windows.Forms
 
             if (row.control == null)
             {
-                var rButton = new TableButton(ColumnsStyle);
+                var rButton = new TableRowButton(ColumnsStyle);
                 rButton.Size = new Size(40, row.Height);
                 rButton.Text = Rows.Count.ToString();
-                rButton.TextAlign = ContentAlignment.MiddleRight;
 
                 row.control = rButton;
                 Controls.Add(rButton);
@@ -282,9 +283,14 @@ namespace System.Windows.Forms
             {
                 if (row.ItemsControls[i] != null) continue;
 
+                int controlColumn = i;
                 TextBox itemControl = new TextBox();
                 itemControl.BorderColor = Color.Transparent;
                 itemControl.Size = new Size(Columns[i].Width, row.Height);
+                itemControl.TextChanged += (s, a) =>
+                {
+                    row.Items[controlColumn] = itemControl.Text;
+                };
                 if (row.Items[i] != null)
                     itemControl.Text = row.Items[i].ToString();
 
@@ -323,7 +329,66 @@ namespace System.Windows.Forms
             UpdateScrolls();
         }
 
-        internal class TableButton : Button
+        public virtual void Sort(TableColumn column, ListSortDirection direction)
+        {
+            int columnIndex = Columns.FindIndex(column);
+            Dictionary<TableRow, object[]> items = new Dictionary<TableRow, object[]>();
+            for (int i = 0; i < Rows.Count; i++)
+            {
+                var r = Rows[i];
+                items.Add(r, r.Items);
+            }
+
+            var itemsList = items.ToList();
+            if (direction == ListSortDirection.Ascending)
+                itemsList.Sort((x, y) =>
+                {
+                    var v1 = x.Value[columnIndex];
+                    var v2 = y.Value[columnIndex];
+
+                    if (v1 == null && v2 == null)
+                        return 0;
+
+                    if (v1 == null)
+                        return -1;
+                    if (v2 == null)
+                        return 1;
+
+                    var we = v1.ToString().CompareTo(v2.ToString());
+                    return we;
+                });
+            else
+                itemsList.Sort((x, y) =>
+                {
+                    var v1 = x.Value[columnIndex];
+                    var v2 = y.Value[columnIndex];
+
+                    if (v1 == null && v2 == null)
+                        return 0;
+
+                    if (v1 == null)
+                        return 1;
+                    if (v2 == null)
+                        return -1;
+
+                    var we = v1.ToString().CompareTo(v2.ToString());
+                    return -we;
+                });
+
+            Rows.ClearList();
+
+            for (int i = 0; i < itemsList.Count; i++)
+                Rows.Add(itemsList[i].Key);
+
+            AlignRows();
+
+            if (lastSortedColumn != null)
+                lastSortedColumn.control.Padding = new Padding(8, 0, 8, 0);
+            lastSortedColumn = column;
+            lastSortedColumn.control.Padding = new Padding(24, 0, 8, 0);
+        }
+
+        internal class TableColumnButton : Button
         {
             private Control prevButton;
             private resizeTypes resizeType = resizeTypes.None;
@@ -332,12 +397,14 @@ namespace System.Windows.Forms
             private Point resizeStartLocation;
             private int resizeStartWidth;
 
-            internal int columnIndex = -1;
+            internal TableColumn column;
+            internal ListSortDirection lastSortDirection;
+            internal TableView table;
 
             public bool EnableHorizontalResizing { get; set; }
             public int ResizeWidth { get; set; }
 
-            public TableButton(TableButtonStyle style)
+            public TableColumnButton(TableButtonStyle style)
             {
                 BackColor = style.BackColor;
                 HoverColor = style.HoverColor;
@@ -352,6 +419,12 @@ namespace System.Windows.Forms
                 Owner.UpClick += Owner_UpClick;
             }
 
+            private ListSortDirection GetNextSortDirection()
+            {
+                if (lastSortDirection == ListSortDirection.Ascending)
+                    return ListSortDirection.Descending;
+                return ListSortDirection.Ascending;
+            }
             private void Owner_UpClick(object sender, MouseEventArgs e)
             {
                 resizing = false;
@@ -381,8 +454,8 @@ namespace System.Windows.Forms
                             // Find prev button.
                             var table = Parent as TableView;
                             var button = table.topLeftButton;
-                            if (columnIndex > 0)
-                                button = table.Columns[columnIndex - 1].control as TableButton;
+                            if (column.Index > 0)
+                                button = table.Columns[column.Index - 1].control as TableColumnButton;
                             prevButton = button;
                         }
                         break;
@@ -435,6 +508,47 @@ namespace System.Windows.Forms
                     }
                 }
             }
+            protected override void OnMouseUp(MouseEventArgs e)
+            {
+                base.OnMouseUp(e);
+
+                if (resizeType != resizeTypes.None) return;
+
+                switch (e.Button)
+                {
+                    case MouseButtons.Left:
+                        // Sort.
+                        lastSortDirection = GetNextSortDirection();
+                        table.Sort(column, lastSortDirection);
+                        break;
+                    case MouseButtons.Right:
+                        // Create context menu.
+                        ContextMenuStrip contextMenu = new ContextMenuStrip();
+
+                        var itemSort = new ToolStripMenuItem("Sort");
+                        contextMenu.Items.Add(itemSort);
+
+                        var itemSortAsc = new ToolStripMenuItem("Ascending");
+                        itemSortAsc.Click += (s, a) =>
+                        {
+                            lastSortDirection = ListSortDirection.Ascending;
+                            table.Sort(column, lastSortDirection);
+                        };
+                        var itemSortDesc = new ToolStripMenuItem("Descending");
+                        itemSortDesc.Click += (s, a) =>
+                        {
+                            lastSortDirection = ListSortDirection.Descending;
+                            table.Sort(column, lastSortDirection);
+                        };
+
+                        itemSort.DropDownItems.Add(itemSortAsc);
+                        itemSort.DropDownItems.Add(itemSortDesc);
+
+                        contextMenu.Show(null, MousePosition);
+                        break;
+
+                }
+            }
             protected override void OnPaint(PaintEventArgs e)
             {
                 base.OnPaint(e);
@@ -448,6 +562,20 @@ namespace System.Windows.Forms
                         e.Graphics.DrawTexture(ApplicationBehaviour.Resources.Images.CurvedArrowRight, Width - 14, (Height - 16) / 2, 16, 16, Color.Gray);
                         break;
                 }
+
+                if (table != null)
+                    if (column == table.lastSortedColumn)
+                    {
+                        switch (lastSortDirection)
+                        {
+                            case ListSortDirection.Ascending:
+                                e.Graphics.DrawTexture(ApplicationBehaviour.Resources.Images.ArrowUp, 8, Height / 2 - 4, 8, 8, Color.Gray);
+                                break;
+                            case ListSortDirection.Descending:
+                                e.Graphics.DrawTexture(ApplicationBehaviour.Resources.Images.ArrowDown, 8, Height / 2 - 4, 8, 8, Color.Gray);
+                                break;
+                        }
+                    }
             }
 
             private enum resizeTypes : byte
@@ -457,6 +585,20 @@ namespace System.Windows.Forms
                 Left,
                 Right,
                 Up
+            }
+        }
+        internal class TableRowButton : Button
+        {
+            public TableRowButton(TableButtonStyle style)
+            {
+                BackColor = style.BackColor;
+                HoverColor = style.HoverColor;
+                BorderColor = style.BorderColor;
+                BorderHoverColor = style.BorderHoverColor;
+                BorderSelectColor = style.BorderSelectColor;
+                Padding = new Padding(8, 0, 8, 0);
+                Size = new Size(100, 20);
+                TextAlign = ContentAlignment.MiddleRight;
             }
         }
     }
@@ -546,6 +688,11 @@ namespace System.Windows.Forms
             owner = table;
         }
 
+        internal void ClearList()
+        {
+            items.Clear();
+        }
+
         public virtual int Add()
         {
             TableRow row = new TableRow(this);
@@ -570,18 +717,34 @@ namespace System.Windows.Forms
             row.Items = values;
             return Add(row);
         }
+        public void Clear()
+        {
+            for (; items.Count > 0;)
+                Remove(items[0]);
+        }
         public TableRow Last()
         {
             return items.Last();
         }
+        public void Remove(TableRow row)
+        {
+            if (row.control != null)
+                row.control.Dispose();
+            if (row.ItemsControls != null)
+                for (int i = 0; i < row.ItemsControls.Length; i++)
+                    row.ItemsControls[i].Dispose();
+
+            items.Remove(row);
+        }
     }
     public class TableColumn
     {
-        internal Button control;
+        internal TableView.TableColumnButton control;
         private TableColumnCollection owner;
 
         public const int DEFAULT_WIDTH = 40;
 
+        public int Index { get { return owner.owner.Columns.FindIndex(this); } }
         public string HeaderText { get; set; }
         public string Name { get; set; }
         public int Width

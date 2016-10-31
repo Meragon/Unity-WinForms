@@ -78,7 +78,7 @@ namespace System.Windows.Forms
             ScrollColor = Color.FromArgb(205, 205, 205);
             ScrollHoverColor = Color.FromArgb(192, 192, 192);
 
-            var backColor = Color.Transparent;
+            var backColor = Color.FromArgb(240, 240, 240);
             var backHoverColor = Color.FromArgb(218, 218, 218);
             var borderColor = Color.Transparent;
             var borderHoverColor = Color.Transparent;
@@ -381,9 +381,15 @@ namespace System.Windows.Forms
             scrollCurrentColor = MathHelper.ColorLerp(scrollCurrentColor, scrollDestinationColor, 4);
 
             if (scrollOrientation == ScrollOrientation.HorizontalScroll)
-                e.Graphics.FillRectangle(BackColor, subtractButton.Location.X + subtractButton.Width, 0, addButton.Location.X, Height);
+            {
+                int backX = subtractButton.Location.X + subtractButton.Width;
+                e.Graphics.FillRectangle(BackColor, backX, 0, addButton.Location.X - backX, Height);
+            }
             else
-                e.Graphics.FillRectangle(BackColor, 0, subtractButton.Location.Y + subtractButton.Height, Width, addButton.Location.Y);
+            {
+                int backY = subtractButton.Location.Y + subtractButton.Height;
+                e.Graphics.FillRectangle(BackColor, 0, backY, Width, addButton.Location.Y - backY);
+            }
             e.Graphics.FillRectangle(scrollCurrentColor, scrollRect.X, scrollRect.Y, scrollRect.Width, scrollRect.Height);
         }
         protected override object OnPaintEditor(float width)
