@@ -75,8 +75,8 @@ namespace System.Windows.Forms
             this.Size = new Drawing.Size(120, 20);
             this.TextAlign = HorizontalAlignment.Left;
 
-            ButtonIncrease = new Button();
-            ButtonIncrease.Anchor = AnchorStyles.Right;
+            ButtonIncrease = new RepeatButton();
+            ButtonIncrease.Anchor = AnchorStyles.Right | AnchorStyles.Top;
             ButtonIncrease.CanSelect = false;
             ButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
             ButtonIncrease.Size = new Size(14, 8);
@@ -88,8 +88,8 @@ namespace System.Windows.Forms
             ButtonIncrease.Image = ApplicationBehaviour.Resources.Images.NumericUp;
             ButtonIncrease.Click += delegate { if (Enabled) Value += Increment; };
 
-            ButtonDecrease = new Button();
-            ButtonDecrease.Anchor = AnchorStyles.Right;
+            ButtonDecrease = new RepeatButton();
+            ButtonDecrease.Anchor = AnchorStyles.Right | AnchorStyles.Top;
             ButtonDecrease.CanSelect = false;
             ButtonDecrease.Location = new Point(Width - 16, Height / 2);
             ButtonDecrease.Size = new Drawing.Size(14, 8);

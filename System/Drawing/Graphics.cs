@@ -223,7 +223,7 @@ namespace System.Drawing
                 switch (pen.DashStyle)
                 {
                     case Drawing2D.DashStyle.Solid:
-                        Control.Batches++;
+                        if (Control != null) Control.Batches++;
                         GUI.DrawTexture(new Rect(position.X, position.Y, width, height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                         break;
                     case Drawing2D.DashStyle.Dash:
@@ -234,7 +234,7 @@ namespace System.Drawing
                                 float dash_width = dash_step - 2;
                                 if (i + dash_width > width)
                                     dash_width = width - i;
-                                Control.Batches++;
+                                if (Control != null) Control.Batches++;
                                 GUI.DrawTexture(new Rect(position.X + i, position.Y, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                             }
 
@@ -244,7 +244,7 @@ namespace System.Drawing
                                 float dash_height = dash_step - 2;
                                 if (i + dash_height > height)
                                     dash_height = height - i;
-                                Control.Batches++;
+                                if (Control != null) Control.Batches++;
                                 GUI.DrawTexture(new Rect(position.X + width - pen.Width, position.Y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                             }
                         break;
@@ -898,7 +898,7 @@ namespace System.Drawing
                 DefaultMaterial.SetPass(0);
                 DefaultMaterial.color = brush.Color.ToUColor();
             }
-            
+
             GL.Begin(GL.TRIANGLES);
 
             var color = brush.Color.ToUColor();
@@ -964,7 +964,7 @@ namespace System.Drawing
         public void FillQuad(Color color, PointF p1, PointF p2, PointF p3, PointF p4)
         {
             GL.Begin(GL.QUADS);
-            
+
             GL.Color(color.ToUColor());
 
             GL.Vertex3(p1.X, p1.Y, 0);

@@ -90,6 +90,7 @@ namespace System.Windows.Forms
             AutoCompleteMode = Forms.AutoCompleteMode.None;
             AutoCompleteSource = Forms.AutoCompleteSource.None;
             BackColor = Color.FromArgb(234, 234, 234);
+            CanSelect = true;
             DropDownStyle = ComboBoxStyle.DropDownList;
 
             BorderColor = Color.DarkGray;

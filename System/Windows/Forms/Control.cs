@@ -84,8 +84,9 @@ namespace System.Windows.Forms
             get { return _height; }
             set
             {
-                OnResize(new Point(0, _height - value));
+                var delta = new Point(0, _height - value);
                 _height = value;
+                OnResize(delta);
             }
         }
         public bool Hovered { get { return hovered; } }
@@ -152,8 +153,9 @@ namespace System.Windows.Forms
             get { return _width; }
             set
             {
-                OnResize(new Point(_width - value, 0));
+                var delta = new Point(_width - value, 0);
                 _width = value;
+                OnResize(delta);
             }
         }
 
@@ -216,6 +218,7 @@ namespace System.Windows.Forms
             else if (DefaultController != null)
                 DefaultController.Run(this);
 
+            Anchor = AnchorStyles.Left | AnchorStyles.Top;
             Controls = new ControlCollection(this);
             Enabled = true;
             Font = new Drawing.Font("Arial", 12);
@@ -365,7 +368,7 @@ namespace System.Windows.Forms
 
         protected virtual void OnClick(EventArgs e)
         {
-
+            Click(this, e);
         }
         protected virtual void OnDoubleClick(EventArgs e)
         {
@@ -405,7 +408,7 @@ namespace System.Windows.Forms
         }
         protected virtual void OnMouseClick(MouseEventArgs e)
         {
-
+            Click(this, e);
         }
         protected virtual void OnMouseDoubleClick(MouseEventArgs e)
         {
@@ -661,8 +664,6 @@ namespace System.Windows.Forms
         internal void RaiseOnMouseClick(MouseEventArgs e)
         {
             OnMouseClick(e);
-            OnClick(e);
-            Click(this, e);
         }
         internal void RaiseOnMouseDoubleClick(MouseEventArgs e)
         {
@@ -724,11 +725,13 @@ namespace System.Windows.Forms
             {
                 if (ShadowHandler == null)
                 {
-                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), 6 + 6, 6 + 6, Width - 12, Height - 12);
-                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), 6 + 5, 6 + 5, Width - 10, Height - 10);
-                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), 6 + 4, 6 + 4, Width - 8, Height - 8);
-                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), 6 + 3, 6 + 3, Width - 6, Height - 6);
-                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), 6 + 2, 6 + 2, Width - 4, Height - 4);
+                    int shX = e.ClipRectangle.X + 6;
+                    int shY = e.ClipRectangle.Y + 6;
+                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), shX + 6, shY + 6, Width - 12, Height - 12);
+                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), shX + 5, shY + 5, Width - 10, Height - 10);
+                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), shX + 4, shY + 4, Width - 8, Height - 8);
+                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), shX + 3, shY + 3, Width - 6, Height - 6);
+                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), shX + 2, shY + 2, Width - 4, Height - 4);
                 }
                 else
                     ShadowHandler.Invoke(e);
@@ -736,7 +739,7 @@ namespace System.Windows.Forms
 
             if (UserGroup)
             {
-                e.Graphics.Group = new Drawing.Rectangle(0, 0, Width, Height);
+                e.Graphics.Group = new Drawing.Rectangle(e.ClipRectangle.X, e.ClipRectangle.Y, Width, Height);
                 e.Graphics.GroupBegin(this);
             }
             OnPaintBackground(e);

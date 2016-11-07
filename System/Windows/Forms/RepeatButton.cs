@@ -45,8 +45,7 @@ namespace System.Windows.Forms
             {
                 if (repeatCooldownCurrent <= 0)
                 {
-                    var margs = new MouseEventArgs(MouseButtons.Left, 1, 1, 1, 0);
-                    RaiseOnMouseClick(margs);
+                    PerformClick();
 
                     repeatCooldown = repeatCooldownMin;
                     repeatCooldownCurrent = repeatCooldown;

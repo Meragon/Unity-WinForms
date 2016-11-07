@@ -10,10 +10,12 @@ namespace System.Windows.Forms
     public class ToolStrip : ScrollableControl
     {
         private ToolStripItemCollection _items;
+        private PaintEventArgs p_args;
 
         public ToolStrip()
         {
             _items = new ToolStripItemCollection(this, null);
+            p_args = new PaintEventArgs();
 
             BackColor = Color.FromArgb(246, 246, 246);
             BorderColor = Color.FromArgb(204, 206, 219);
@@ -153,13 +155,16 @@ namespace System.Windows.Forms
 
             base.OnPaint(e);
 
-            e.Graphics.FillRectangle(new Drawing.SolidBrush(BackColor), 0, 0, Width, Height);
+            p_args.Graphics = e.Graphics;
+            p_args.ClipRectangle = e.ClipRectangle;
+
+            p_args.Graphics.FillRectangle(new Drawing.SolidBrush(BackColor), 0, 0, Width, Height);
             if (Orientation == Forms.Orientation.Vertical)
-                e.Graphics.DrawLine(new Drawing.Pen(Drawing.Color.FromArgb(215, 215, 215)), 24, 2, 24, Height - 2);
+                p_args.Graphics.DrawLine(new Drawing.Pen(Drawing.Color.FromArgb(215, 215, 215)), 24, 2, 24, Height - 2);
             for (int i = 0, x = Padding.Left, y = Padding.Top; i < _items.Count; i++)
             {
-                e.ClipRectangle = new Drawing.Rectangle(x, y, _items[i].Width, _items[i].Height);
-                _items[i].RaiseOnPaint(e);
+                p_args.ClipRectangle = new Drawing.Rectangle(x, y, _items[i].Width, _items[i].Height);
+                _items[i].RaiseOnPaint(p_args);
 
                 if (_items[i].JustVisual) continue;
                 if (Orientation == Forms.Orientation.Horizontal)
@@ -168,7 +173,7 @@ namespace System.Windows.Forms
                     y += _items[i].Height;
             }
 
-            e.Graphics.DrawRectangle(new Drawing.Pen(BorderColor), 0, 0, Width, Height);
+            p_args.Graphics.DrawRectangle(new Drawing.Pen(BorderColor), 0, 0, Width, Height);
         }
         protected override object OnPaintEditor(float width)
         {

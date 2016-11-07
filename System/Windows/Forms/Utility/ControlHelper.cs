@@ -53,6 +53,17 @@ namespace System.Windows.Forms
             button.BorderColor = clearColor;
             button.HoverColor = clearColor;
             button.BorderHoverColor = clearColor;
+            button.BorderSelectColor = clearColor;
+        }
+        public static void FillToBottom(this Control control, int offset = 0)
+        {
+            if (control.Parent == null) return;
+            control.Height = control.Parent.Height - control.Location.Y - offset;
+        }
+        public static void FillToRight(this Control control, int offset = 0)
+        {
+            if (control.Parent == null) return;
+            control.Width = control.Parent.Width - control.Location.X - offset;
         }
         public static void OpenUrl(this Button button, string url)
         {

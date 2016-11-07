@@ -349,6 +349,10 @@ namespace System.Windows.Forms
 
             return key;
         }
+        internal void UpdatePaintClipRect()
+        {
+            _paintEventArgs.ClipRectangle = new Drawing.Rectangle(0, 0, Screen.PrimaryScreen.WorkingArea.Width, Screen.PrimaryScreen.WorkingArea.Height);
+        }
 
         public Application()
         {

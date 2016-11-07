@@ -59,6 +59,7 @@ namespace System.Windows.Forms
             _lastHeight = UnityEngine.Screen.height;
 
             _controller = new Application();
+            _controller.UpdatePaintClipRect();
             Control.DefaultController = _controller;
         }
         private void Update()
@@ -72,6 +73,7 @@ namespace System.Windows.Forms
                     _controller.ModalForms[i].AddjustSizeToScreen(deltaSize);
                 for (int i = 0; i < _controller.Forms.Count; i++)
                     _controller.Forms[i].AddjustSizeToScreen(deltaSize);
+                _controller.UpdatePaintClipRect();
             }
             _lastWidth = UnityEngine.Screen.width;
             _lastHeight = UnityEngine.Screen.height;

@@ -74,7 +74,7 @@ namespace System.Windows.Forms
         {
             base.OnKeyUp(e);
             if (e.KeyCode == UnityEngine.KeyCode.Space || e.KeyCode == UnityEngine.KeyCode.Return)
-                RaiseOnMouseClick(new MouseEventArgs(MouseButtons.Left, 1, Width / 2, Height / 2, 0));
+                PerformClick();
         }
         protected override void OnPaint(PaintEventArgs e)
         {
