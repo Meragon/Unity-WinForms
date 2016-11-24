@@ -21,13 +21,13 @@ namespace System.Windows.Forms
         private static Control _mouseLastClickControl;
         private static float _mouseWheelDelta;
         private static System.Drawing.PointF _mouseMovePosition;
-        private static bool _mouseFoundHoveredControl;
         private System.Drawing.PointF _mousePosition;
         private PaintEventArgs _paintEventArgs;
         private static bool _updateHoveredControls;
         private MouseEvents _userMouseEvent;
         private MouseEventArgs _userMouseArgs;
 
+        internal static Control activeResizeControl;
         internal List<Control> Contexts = new List<Control>();
         internal List<Form> Forms = new List<Form>();
         internal List<Control> HoveredControls = new List<Control>();
@@ -90,7 +90,7 @@ namespace System.Windows.Forms
         {
             if (control.Visible == false) return false;
             if (control.Location.X + control.Offset.X + control.Width < 0) return false;
-            if (control.Location.Y + control.Offset.Y + control.Height< 0) return false;
+            if (control.Location.Y + control.Offset.Y + control.Height < 0) return false;
             if (control.Parent != null)
             {
                 if (control.Location.X + control.Offset.X > control.Parent.Width) return false;
@@ -360,6 +360,8 @@ namespace System.Windows.Forms
 
             _paintEventArgs = new PaintEventArgs();
             _paintEventArgs.Graphics = new Drawing.Graphics();
+
+            Cursor.Current = Cursors.Default;
         }
 
         public void Draw()
@@ -399,6 +401,11 @@ namespace System.Windows.Forms
 
             // ToolTip.
             ToolTip.OnPaint(_paintEventArgs);
+
+            var cursor = Cursor.CurrentSystem;
+            if (cursor == null)
+                cursor = Cursor.Current;
+            cursor.Draw(_paintEventArgs.Graphics, Drawing.Rectangle.Empty);
         }
         public void ProccessKeys()
         {
@@ -483,7 +490,6 @@ namespace System.Windows.Forms
         {
             _mouseEvent = MouseEvents.None;
             _mouseButton = MouseButtons.None;
-            _mouseFoundHoveredControl = false;
             if (_mousePosition != mousePosition)
                 _updateHoveredControls = true;
             _mousePosition = mousePosition;
@@ -666,6 +672,52 @@ namespace System.Windows.Forms
                 _updateHoveredControls = false;
             }
 
+            // Update cursor for resize events.
+            if (activeResizeControl == null)
+            {
+                if (HoveredControls.Count == 0)
+                    Cursor.CurrentSystem = null;
+                else
+                {
+                    var iResizableControl = HoveredControls[0] as IResizableControl;
+                    var resizableControl = iResizableControl as Control;
+                    if (iResizableControl != null && resizableControl != null)
+                    {
+                        var formClientPosition = resizableControl.PointToClient(Cursor.Position);
+                        var hoveredFormResize = iResizableControl.GetResizeAt(formClientPosition);
+                        switch (hoveredFormResize)
+                        {
+                            default:
+                            case ControlResizeTypes.None:
+                                Cursor.CurrentSystem = null;
+                                break;
+
+                            case ControlResizeTypes.Down:
+                            case ControlResizeTypes.Up:
+                                Cursor.CurrentSystem = Cursors.SizeNS;
+                                break;
+
+                            case ControlResizeTypes.Left:
+                            case ControlResizeTypes.Right:
+                                Cursor.CurrentSystem = Cursors.SizeWE;
+                                break;
+
+                            case ControlResizeTypes.LeftDown:
+                            case ControlResizeTypes.RightUp:
+                                Cursor.CurrentSystem = Cursors.SizeNESW;
+                                break;
+
+                            case ControlResizeTypes.LeftUp:
+                            case ControlResizeTypes.RightDown:
+                                Cursor.CurrentSystem = Cursors.SizeNWSE;
+                                break;
+                        }
+                    }
+                    else
+                        Cursor.CurrentSystem = null;
+                }
+            }
+
             UpdateEvent();
         }
 
@@ -705,7 +757,7 @@ namespace System.Windows.Forms
                 List<Control> formControls = new List<Control>();
                 _FillListWithVisibleControls(controlForm, formControls);
 
-                List<Control> possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.TabIndex >= 0 && x.CanSelect);
+                List<Control> possibleControls = formControls.FindAll(x => x.IsDisposed == false && x.CanSelect);
                 if (possibleControls.Find(x => x.TabIndex > 0) != null)
                 {
                     possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
@@ -729,7 +781,7 @@ namespace System.Windows.Forms
                 List<Control> formControls = new List<Control>();
                 _FillListWithVisibleControls(controlForm, formControls);
 
-                List<Control> possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.TabIndex >= 0 && x.CanSelect);
+                List<Control> possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.CanSelect);
                 if (possibleControls.Find(x => x.TabIndex > 0) != null)
                 {
                     possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));

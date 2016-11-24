@@ -142,7 +142,8 @@ namespace System.Drawing
         }
         public static void Label(object value)
         {
-            UnityEngine.GUILayout.Label(value.ToString());
+            if (value != null)
+                UnityEngine.GUILayout.Label(value.ToString());
         }
         public static void Label(string name, object value)
         {

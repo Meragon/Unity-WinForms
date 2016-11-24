@@ -227,6 +227,10 @@ namespace System.Windows.Forms
 
             UpdateScrolls();
         }
+        internal void RaiseOnRowClick(TableRow row, MouseEventArgs mArgs)
+        {
+            OnRowClick(row, mArgs);
+        }
         internal void UpdateColumn(TableColumn column)
         {
             CreateTopLeftButton();
@@ -254,6 +258,7 @@ namespace System.Windows.Forms
             if (row.control == null)
             {
                 var rButton = new TableRowButton(ColumnsStyle);
+                rButton.row = row;
                 rButton.Size = new Size(40, row.Height);
                 rButton.Text = Rows.Count.ToString();
 
@@ -387,6 +392,10 @@ namespace System.Windows.Forms
             lastSortedColumn = column;
             lastSortedColumn.control.Padding = new Padding(24, 0, 8, 0);
         }
+
+        public event RowClickContext OnRowClick = delegate { };
+
+        public delegate void RowClickContext(TableRow row, MouseEventArgs mArgs);
 
         internal class TableColumnButton : Button
         {
@@ -589,6 +598,8 @@ namespace System.Windows.Forms
         }
         internal class TableRowButton : Button
         {
+            internal TableRow row;
+
             public TableRowButton(TableButtonStyle style)
             {
                 BackColor = style.BackColor;
@@ -600,6 +611,16 @@ namespace System.Windows.Forms
                 Size = new Size(100, 20);
                 TextAlign = ContentAlignment.MiddleRight;
             }
+
+            protected override void OnMouseClick(MouseEventArgs e)
+            {
+                base.OnMouseClick(e);
+
+                var ne = new MouseEventArgs(e.Button, e.Clicks, e.X + Location.X, e.Y + Location.Y, e.Delta);
+
+                var table = Parent as TableView;
+                table.RaiseOnRowClick(row, ne);
+            }
         }
     }
 
@@ -608,6 +629,7 @@ namespace System.Windows.Forms
         internal Button control;
         internal TableRowCollection owner;
 
+        public int Index { get { return owner.FindIndex(this); } }
         public object[] Items { get; internal set; }
         public TableRowControlsCollection ItemsControls { get; internal set; }
         public int Height { get; set; }
@@ -722,6 +744,10 @@ namespace System.Windows.Forms
             for (; items.Count > 0;)
                 Remove(items[0]);
         }
+        public int FindIndex(TableRow row)
+        {
+            return items.FindIndex(x => x == row);
+        }
         public TableRow Last()
         {
             return items.Last();
@@ -735,6 +761,8 @@ namespace System.Windows.Forms
                     row.ItemsControls[i].Dispose();
 
             items.Remove(row);
+
+            owner.UpdateRows();
         }
     }
     public class TableColumn
@@ -744,7 +772,7 @@ namespace System.Windows.Forms
 
         public const int DEFAULT_WIDTH = 40;
 
-        public int Index { get { return owner.owner.Columns.FindIndex(this); } }
+        public int Index { get { return owner.FindIndex(this); } }
         public string HeaderText { get; set; }
         public string Name { get; set; }
         public int Width

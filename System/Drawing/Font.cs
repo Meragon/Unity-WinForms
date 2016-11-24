@@ -11,14 +11,12 @@ namespace System.Drawing
         private string _name = "";
         private FontStyle _style;
 
+        internal UnityEngine.Font _uFont;
+
         public string Name { get { return _name; } }
         public float Size { get; set; }
         public FontStyle Style { get { return _style; } }
-
-        internal Font()
-        {
-
-        }
+        
         public Font(string familyName, float emSize)
         {
             _name = familyName;

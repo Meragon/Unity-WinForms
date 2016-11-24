@@ -37,6 +37,8 @@ namespace System.Windows.Forms
             [Tooltip("Form close button")]
             public Texture2D Close;
 
+            public CursorImages Cursors;
+
             [Tooltip("ComboBox, VScrollBar")]
             public Texture2D CurvedArrowDown;
 
@@ -60,6 +62,23 @@ namespace System.Windows.Forms
 
             [Tooltip("NumericUpDown")]
             public Texture2D NumericUp;
+        }
+
+        [Serializable]
+        public struct CursorImages
+        {
+            [Tooltip("Leave this field empty if you don't want to use your own cursor.")]
+            public Texture2D Default;
+
+            public Texture2D Hand;
+            public Texture2D Help;
+            public Texture2D HSplit;
+            public Texture2D SizeAll;
+            public Texture2D SizeNESW;
+            public Texture2D SizeNS;
+            public Texture2D SizeNWSE;
+            public Texture2D SizeWE;
+            public Texture2D VSplit;
         }
     }
 }

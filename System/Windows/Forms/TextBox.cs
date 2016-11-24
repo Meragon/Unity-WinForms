@@ -39,7 +39,7 @@ namespace System.Windows.Forms
             CanSelect = true;
             TextAlign = HorizontalAlignment.Left;
             ForeColor = Color.Black;
-            Padding = new Forms.Padding(1, 0, 2, 0);
+            Padding = new Forms.Padding(2, 0, 2, 0);
             Size = new Size(128, 24);
         }
 
@@ -66,20 +66,22 @@ namespace System.Windows.Forms
 
             g.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
 
-            if (Enabled && ReadOnly == false)
+            if (Enabled)
             {
                 if (Focused)
                 {
                     if (_shouldFocus)
                         UnityEngine.GUI.SetNextControlName(Name);
 
-                    var _tempText = Text;
+                    var _tempText = "";
                     if (!Multiline)
-                        Text = g.DrawTextField(Text, Font, new SolidBrush(ForeColor), Padding.Left, Padding.Top, Width - Padding.Right - Padding.Left, Height - Padding.Bottom - Padding.Top, TextAlign);
+                        _tempText = g.DrawTextField(Text, Font, new SolidBrush(ForeColor), Padding.Left, Padding.Top, Width - Padding.Right - Padding.Left, Height - Padding.Bottom - Padding.Top, TextAlign);
                     else
-                        Text = g.DrawTextArea(Text, Font, new SolidBrush(ForeColor), Padding.Left, Padding.Top, Width - Padding.Right - Padding.Left, Height - Padding.Bottom - Padding.Top);
-                    if (_text != _tempText)
+                        _tempText = g.DrawTextArea(Text, Font, new SolidBrush(ForeColor), Padding.Left, Padding.Top, Width - Padding.Right - Padding.Left, Height - Padding.Bottom - Padding.Top);
+                    if (ReadOnly == false && Text != _tempText)
                     {
+                        Text = _tempText;
+
                         OnTextChanged(new EventArgs());
                         if (TextChangedCallback != null && TextChangedCallbackInfo != null)
                             TextChangedCallback.Invoke(TextChangedCallbackInfo);

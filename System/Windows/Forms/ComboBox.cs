@@ -118,29 +118,29 @@ namespace System.Windows.Forms
                     {
                         if (Items.IsDisabled(_selectedIndex + 1))
                             break;
-                        if (_selectedIndex + 1 < _items.Count)
-                            SelectedIndex++;
                         if (_listBox != null)
                         {
-                            _listBox.SelectedIndex = SelectedIndex;
-                            if (_listBox.ScrollIndex - 1 < SelectedIndex)
-                                _listBox.ScrollIndex = SelectedIndex - 1;
+                            _listBox.SelectedIndex++;
+                            SelectedIndex = Items.FindIndex(x => x == _listBox.SelectedItem);
                         }
-
+                        else if (_selectedIndex + 1 < _items.Count)
+                            SelectedIndex++;
                     }
                     break;
                 case UnityEngine.KeyCode.UpArrow:
                     {
                         if (Items.IsDisabled(_selectedIndex - 1))
                             break;
-                        if (_selectedIndex > 0)
-                            SelectedIndex--;
+
                         if (_listBox != null)
                         {
-                            _listBox.SelectedIndex = SelectedIndex;
-                            if (_listBox.ScrollIndex > SelectedIndex)
-                                _listBox.ScrollIndex = SelectedIndex;
+                            _listBox.SelectedIndex--;
+                            if (_listBox.SelectedIndex < 0 && _listBox.Items.Count > 0)
+                                _listBox.SelectedIndex = 0;
+                            SelectedIndex = Items.FindIndex(x => x == _listBox.SelectedItem);
                         }
+                        else if (_selectedIndex > 0)
+                            SelectedIndex--;
                     }
                     break;
                 case UnityEngine.KeyCode.Return:
@@ -234,7 +234,7 @@ namespace System.Windows.Forms
                             _listBox = null;
                             _listBoxOpened = false;
                         }
-                        _CreateListBox(_filter);
+                        _CreateListBox(_filterBuffer);
                     }
                     _filter = _filterBuffer;
                 }
@@ -297,14 +297,24 @@ namespace System.Windows.Forms
                 _listBox.Width = Width;
                 _listBox.Height = _listBox.ItemHeight * (Items.Count > MaxDropDownItems ? MaxDropDownItems : Items.Count);
                 if (_listBox.Height < _listBox.ItemHeight) _listBox.Height = _listBox.ItemHeight;
-                foreach (var item in Items)
+                bool selectedIndexChanged = false;
+                for (int i = 0; i < Items.Count; i++)
                 {
+                    var item = Items[i];
                     if (DropDownStyle == ComboBoxStyle.DropDownList || String.IsNullOrEmpty(filter))
                         _listBox.Items.Add(item);
                     else
                     {
-                        if (item.ToString().ToLower().Contains(filter.ToLower()))
+                        var itemString = item.ToString();
+                        if (itemString.ToLower().Contains(filter.ToLower()))
+                        {
                             _listBox.Items.Add(item);
+                            if (itemString == filter)
+                            {
+                                _listBox.SelectedIndex = i;
+                                selectedIndexChanged = true;
+                            }
+                        }
                     }
                 }
                 for (int i = 0; i < Items.Count; i++)
@@ -313,9 +323,12 @@ namespace System.Windows.Forms
                         _listBox.Items.Disable(i);
                         //Application.Log(i);
                     }
-                if (SelectedIndex > -1)
-                    _listBox.ScrollIndex = SelectedIndex;
-                _listBox.SelectedIndex = SelectedIndex;
+                if (selectedIndexChanged == false)
+                {
+                    if (SelectedIndex > -1)
+                        _listBox.ScrollIndex = SelectedIndex;
+                    _listBox.SelectedIndex = SelectedIndex;
+                }
 
                 var gpoint = PointToScreen(Point.Zero);
                 _listBox.Location = gpoint + new Point(0, Height);
@@ -422,6 +435,14 @@ namespace System.Windows.Forms
                         _disabledItems.RemoveAt(i);
                         break;
                     }
+            }
+            public object Find(Predicate<object> match)
+            {
+                return _items.Find(match);
+            }
+            public int FindIndex(Predicate<object> match)
+            {
+                return _items.FindIndex(match);
             }
             public IEnumerator GetEnumerator()
             {

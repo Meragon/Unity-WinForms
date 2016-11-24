@@ -10,11 +10,6 @@ namespace System.Windows.Forms
     public class ToolTip : Component
     {
         private static ToolTip _instance;
-        private static StringFormat _formatCenter = new StringFormat()
-        {
-            Alignment = StringAlignment.Center,
-            LineAlignment = StringAlignment.Center
-        };
         private static float _alphaF;
         private static float _alphaWait;
         private static float _waitToShow;
@@ -36,6 +31,8 @@ namespace System.Windows.Forms
                 _initialDelay = UnityEngine.Mathf.Clamp(value, 0, 32767);
             }
         }
+        public Padding Padding { get; set; }
+        public HorizontalAlignment TextAlign { get; set; }
 
         public ToolTip()
         {
@@ -43,6 +40,8 @@ namespace System.Windows.Forms
             BorderColor = Color.FromArgb(118, 118, 118);
             Font = new Font("Arial", 12);
             ForeColor = Color.FromArgb(118, 118, 118);
+            Padding = new Padding(4);
+            TextAlign = HorizontalAlignment.Center;
         }
 
         public void SetToolTip(Control control, string caption)
@@ -125,7 +124,12 @@ namespace System.Windows.Forms
 
                 e.Graphics.FillRectangle(fillBrush, loc.X, loc.Y, size.Width, stringHeight);
                 e.Graphics.DrawRectangle(new Pen(borderColor), loc.X, loc.Y, size.Width, stringHeight);
-                e.Graphics.DrawString(_instance._text, textFont, new SolidBrush(textColor), loc.X, loc.Y, size.Width, stringHeight, _formatCenter);
+                e.Graphics.DrawString(_instance._text, textFont, new SolidBrush(textColor), 
+                    loc.X + _instance.Padding.Left, 
+                    loc.Y + _instance.Padding.Top, 
+                    size.Width - _instance.Padding.Bottom, 
+                    stringHeight - _instance.Padding.Right, 
+                    _instance.TextAlign);
 
                 if (_alphaWait > 0)
                     _alphaWait -= 1;

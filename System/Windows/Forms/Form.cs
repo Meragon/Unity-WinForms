@@ -8,7 +8,7 @@ using System.Drawing;
 namespace System.Windows.Forms
 {
     [Serializable]
-    public class Form : ContainerControl
+    public class Form : ContainerControl, IResizableControl
     {
         private Button _closeButton;
         private Action<Form, DialogResult> _dialogCallback;
@@ -17,13 +17,16 @@ namespace System.Windows.Forms
         private bool _windowMove = false;
         private Point _windowMoveDelta;
 
-        private DNDResizeType resizeType;
+        private bool resizeActive;
+        private ControlResizeTypes resizeType;
         private Size _resizeOriginal;
         private Point _resizePosition;
         private Point _resizeDelta;
         private int _resizeOffset = 8;
-        private DNDResizeType _resizeShow;
+        private ControlResizeTypes _resizeShow;
         private float _resizeAlpha;
+        protected Button resizeButton;
+        private bool resizeIcon;
         private bool _toggleEditor = true;
 
         internal bool dialog;
@@ -72,7 +75,23 @@ namespace System.Windows.Forms
         public MenuStrip MainMenuStrip { get { return _mainMenuStrip; } set { _mainMenuStrip = value; } }
         public bool Movable { get; set; }
         public bool Resizable { get; set; }
-        public bool ResizeIcon { get; set; }
+        public bool ResizeIcon
+        {
+            get { return resizeIcon; }
+            set
+            {
+                if (resizeIcon == value) return;
+
+                resizeIcon = value;
+                if (value == false && resizeButton != null && resizeButton.IsDisposed == false)
+                {
+                    resizeButton.Dispose();
+                    resizeButton = null;
+                }
+                else
+                    _MakeButtonResize();
+            }
+        }
         public new Size Size
         {
             get { return base.Size; }
@@ -96,6 +115,7 @@ namespace System.Windows.Forms
             BackColor = Color.FromArgb(238, 238, 242);
             BorderColor = Color.FromArgb(204, 206, 219);
             //BorderColor = Color.FromArgb(155, 159, 185);
+            CanSelect = true;
             Font = new Font("Arial", 14);
             Location = _nextLocation;
             HeaderColor = Color.FromArgb(238, 238, 242);
@@ -123,7 +143,11 @@ namespace System.Windows.Forms
         private void _Application_UpClick(object sender, MouseEventArgs e)
         {
             _windowMove = false;
-            resizeType = DNDResizeType.None;
+            resizeType = ControlResizeTypes.None;
+            if (Application.activeResizeControl == this)
+                Application.activeResizeControl = null;
+            
+            resizeActive = false;
         }
         private void _MakeButtonClose()
         {
@@ -150,51 +174,60 @@ namespace System.Windows.Forms
 
             Controls.Add(CloseButton);
         }
+        private void _MakeButtonResize()
+        {
+            var img = ApplicationBehaviour.Resources.Images.FormResize;
+            if (img == null) return;
+
+            resizeButton = new ResizeButton(this, img);
+            resizeButton.Location = new Point(Width - img.width - 2, Height - img.height - 2);
+            Controls.Add(resizeButton);
+        }
         private void Owner_UpdateEvent()
         {
             #region Resize
             int estimatedWidth = 0;
             int estimatedHeight = 0;
 
-            if (resizeType != DNDResizeType.None && Resizable)
+            if (resizeType != ControlResizeTypes.None && Resizable)
             {
                 switch (resizeType)
                 {
-                    case DNDResizeType.Right:
+                    case ControlResizeTypes.Right:
                         estimatedWidth = _resizeOriginal.Width + (MousePosition.X - _resizeDelta.X);
                         estimatedHeight = _resizeOriginal.Height;
                         break;
-                    case DNDResizeType.Down:
+                    case ControlResizeTypes.Down:
                         estimatedWidth = _resizeOriginal.Width;
                         estimatedHeight = _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y);
                         break;
-                    case DNDResizeType.RightDown:
+                    case ControlResizeTypes.RightDown:
                         estimatedWidth = _resizeOriginal.Width + (MousePosition.X - _resizeDelta.X);
                         estimatedHeight = _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y);
                         break;
-                    case DNDResizeType.Left:
+                    case ControlResizeTypes.Left:
                         Location = new Point(_resizePosition.X + (MousePosition.X - _resizeDelta.X), _resizePosition.Y);
                         estimatedWidth = _resizeOriginal.Width + _resizePosition.X - Location.X;
                         estimatedHeight = _resizeOriginal.Height;
                         break;
-                    case DNDResizeType.Up:
+                    case ControlResizeTypes.Up:
                         Location = new Point(_resizePosition.X, _resizePosition.Y + (MousePosition.Y - _resizeDelta.Y));
                         estimatedWidth = _resizeOriginal.Width;
                         estimatedHeight = _resizeOriginal.Height + _resizePosition.Y - Location.Y;
                         break;
-                    case DNDResizeType.LeftUp:
+                    case ControlResizeTypes.LeftUp:
                         Location = new Point(
                             _resizePosition.X + (MousePosition.X - _resizeDelta.X),
                             _resizePosition.Y + (MousePosition.Y - _resizeDelta.Y));
                         estimatedWidth = _resizeOriginal.Width + _resizePosition.X - Location.X;
                         estimatedHeight = _resizeOriginal.Height + _resizePosition.Y - Location.Y;
                         break;
-                    case DNDResizeType.RightUp:
+                    case ControlResizeTypes.RightUp:
                         Location = new Point(_resizePosition.X, _resizePosition.Y + (MousePosition.Y - _resizeDelta.Y));
                         estimatedWidth = _resizeOriginal.Width + (MousePosition.X - _resizeDelta.X);
                         estimatedHeight = _resizeOriginal.Height + _resizePosition.Y - Location.Y;
                         break;
-                    case DNDResizeType.LeftDown:
+                    case ControlResizeTypes.LeftDown:
                         Location = new Point(_resizePosition.X + (MousePosition.X - _resizeDelta.X), _resizePosition.Y);
                         estimatedWidth = _resizeOriginal.Width + _resizePosition.X - Location.X;
                         estimatedHeight = _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y);
@@ -212,7 +245,6 @@ namespace System.Windows.Forms
                     estimatedHeight = MaximumSize.Height;
 
                 Size = new Size(estimatedWidth, estimatedHeight);
-                //OnResize(new Point(_sizeBefore.Width - Size.Width, _sizeBefore.Height - Size.Height));
 
 
             }
@@ -244,61 +276,65 @@ namespace System.Windows.Forms
             if (dialog && _dialogCallback != null)
                 _dialogCallback.Invoke(this, this.DialogResult);
         }
-        public void Hide()
+        public ControlResizeTypes GetResizeAt(Point location)
         {
-            Visible = false;
-        }
-        public DNDResizeType ResizeMouseAt(MouseEventArgs e)
-        {
-            DNDResizeType r_type = DNDResizeType.None;
+            ControlResizeTypes r_type = ControlResizeTypes.None;
             if (Resizable)
             {
                 if (ResizeIcon == false)
                 {
                     // Resize.
-                    r_type = DNDResizeType.None;
+                    r_type = ControlResizeTypes.None;
 
                     // Left side.
-                    if (e.X < _resizeOffset)
+                    if (location.X < _resizeOffset)
                     {
-                        r_type = DNDResizeType.Left;
-                        if (e.Y < _resizeOffset)
-                            r_type = DNDResizeType.LeftUp;
-                        else if (e.Y > Height - _resizeOffset)
-                            r_type = DNDResizeType.LeftDown;
+                        r_type = ControlResizeTypes.Left;
+                        if (location.Y < _resizeOffset)
+                            r_type = ControlResizeTypes.LeftUp;
+                        else if (location.Y > Height - _resizeOffset)
+                            r_type = ControlResizeTypes.LeftDown;
                     }
-                    else if (e.X > Width - _resizeOffset)
+                    else if (location.X > Width - _resizeOffset)
                     {
                         // Right side.
-                        r_type = DNDResizeType.Right;
-                        if (e.Y < _resizeOffset)
-                            r_type = DNDResizeType.RightUp;
-                        else if (e.Y > Height - _resizeOffset)
-                            r_type = DNDResizeType.RightDown;
+                        r_type = ControlResizeTypes.Right;
+                        if (location.Y < _resizeOffset)
+                            r_type = ControlResizeTypes.RightUp;
+                        else if (location.Y > Height - _resizeOffset)
+                            r_type = ControlResizeTypes.RightDown;
                     }
-                    else if (e.Y < _resizeOffset)
-                        r_type = DNDResizeType.Up;
-                    else if (e.Y > Height - _resizeOffset)
-                        r_type = DNDResizeType.Down;
-                }
-                else
-                {
-                    var resizeIcon = ApplicationBehaviour.Resources.Images.FormResize;
-                    if (resizeIcon != null)
-                    {
-                        if (new Rectangle(Width - resizeIcon.width - 4, Height - resizeIcon.height - 4, resizeIcon.width + 4, resizeIcon.height + 4).Contains(e.Location))
-                            r_type = DNDResizeType.RightDown;
-                    }
+                    else if (location.Y < _resizeOffset)
+                        r_type = ControlResizeTypes.Up;
+                    else if (location.Y > Height - _resizeOffset)
+                        r_type = ControlResizeTypes.Down;
                 }
             }
             return r_type;
         }
-        public void SetResize(DNDResizeType resize)
+        public void Hide()
+        {
+            Visible = false;
+        }
+        public void SetResize(ControlResizeTypes resize)
         {
             resizeType = resize;
             _resizeDelta = MousePosition;
             _resizeOriginal = Size;
             _resizePosition = PointToScreen(Point.Zero);
+
+            switch (resize)
+            {
+                case ControlResizeTypes.None:
+                    resizeActive = false;
+                    Application.activeResizeControl = null;
+                    break;
+
+                default:
+                    resizeActive = true;
+                    Application.activeResizeControl = this;
+                    break;
+            }
         }
         public void Show()
         {
@@ -357,15 +393,10 @@ namespace System.Windows.Forms
 
             if (e.Button == MouseButtons.Left)
             {
-                resizeType = ResizeMouseAt(e);
+                resizeType = GetResizeAt(e.Location);
+                SetResize(resizeType);
 
-                if (resizeType != DNDResizeType.None)
-                {
-                    _resizeDelta = MousePosition;
-                    _resizeOriginal = Size;
-                    _resizePosition = PointToScreen(Point.Zero);
-                }
-                else
+                if (resizeType == ControlResizeTypes.None)
                 {
                     // Move then.
                     if (Movable)
@@ -381,14 +412,9 @@ namespace System.Windows.Forms
         {
             base.OnMouseMove(e);
             if (_windowMove)
-            {
                 Location = PointToScreen(e.Location) - _windowMoveDelta;
-            }
             else
-            {
-                _resizeShow = ResizeMouseAt(e);
-            }
-
+                _resizeShow = GetResizeAt(e.Location);
         }
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -397,12 +423,6 @@ namespace System.Windows.Forms
             g.FillRectangle(new SolidBrush(HeaderColor), 0, 0, Width, HeaderHeight);
             g.DrawString(Text, HeaderFont, new SolidBrush(HeaderTextColor), HeaderPadding.Left, HeaderPadding.Top, Width - HeaderPadding.Right - HeaderPadding.Left, HeaderHeight - HeaderPadding.Bottom - HeaderPadding.Top, HeaderTextAlign);
             g.FillRectangle(new SolidBrush(BackColor), 0, HeaderHeight, Width, Height - HeaderHeight);
-
-            if (Resizable && ResizeIcon && ApplicationBehaviour.Resources.Images.FormResize != null)
-            {
-                var resizeIcon = ApplicationBehaviour.Resources.Images.FormResize;
-                g.DrawTexture(ApplicationBehaviour.Resources.Images.FormResize, Width - resizeIcon.width - 4, Height - resizeIcon.height - 4, resizeIcon.width, resizeIcon.height);
-            }
         }
         protected override object OnPaintEditor(float width)
         {
@@ -454,6 +474,8 @@ namespace System.Windows.Forms
             /*if (!AlwaysFocused && !Focused)
                 e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(64, 180, 180, 180)), 0, 0, Width, Height);*/
 
+            return;
+
             var g = e.Graphics;
 
             #region Show resize.
@@ -461,7 +483,7 @@ namespace System.Windows.Forms
             {
                 if (ClientRectangle.Contains(PointToClient(MousePosition)))
                 {
-                    if (_resizeShow == DNDResizeType.None)
+                    if (_resizeShow == ControlResizeTypes.None)
                         _resizeAlpha = MathHelper.FloatLerp(_resizeAlpha, 0, 1);
                     else
                         _resizeAlpha = MathHelper.FloatLerp(_resizeAlpha, 255, 1);
@@ -474,7 +496,7 @@ namespace System.Windows.Forms
                 {
                     switch (_resizeShow)
                     {
-                        case DNDResizeType.Right:
+                        case ControlResizeTypes.Right:
                             //g.FillRectangle(resizeBrush, Width - _resizeOffset, 0, _resizeOffset, Height); 
                             g.DrawTexture(
                                 ApplicationBehaviour.Resources.Images.ArrowRight,
@@ -484,7 +506,7 @@ namespace System.Windows.Forms
                                 ApplicationBehaviour.Resources.Images.ArrowRight.height,
                                 Color.FromArgb((int)_resizeAlpha, Color.White));
                             break;
-                        case DNDResizeType.RightDown:
+                        case ControlResizeTypes.RightDown:
                             g.DrawTexture(
                                 ApplicationBehaviour.Resources.Images.ArrowRight,
                                 Width - ApplicationBehaviour.Resources.Images.ArrowRight.width,
@@ -504,7 +526,7 @@ namespace System.Windows.Forms
                             //g.FillRectangle(resizeBrush, Width - _resizeOffset, 0, _resizeOffset, Height - _resizeOffset);
                             //g.FillRectangle(resizeBrush, 0, Height - _resizeOffset, Width, _resizeOffset);
                             break;
-                        case DNDResizeType.Down:
+                        case ControlResizeTypes.Down:
                             g.DrawTexture(
                                 ApplicationBehaviour.Resources.Images.ArrowDown,
                                 Width / 2 - ApplicationBehaviour.Resources.Images.ArrowDown.width / 2,
@@ -515,7 +537,7 @@ namespace System.Windows.Forms
                                 );
                             //g.FillRectangle(resizeBrush, 0, Height - _resizeOffset, Width, _resizeOffset); 
                             break;
-                        case DNDResizeType.LeftDown:
+                        case ControlResizeTypes.LeftDown:
                             g.DrawTexture(
                                 ApplicationBehaviour.Resources.Images.ArrowLeft,
                                 0,
@@ -535,7 +557,7 @@ namespace System.Windows.Forms
                             //g.FillRectangle(resizeBrush, 0, 0, _resizeOffset, Height - _resizeOffset);
                             //g.FillRectangle(resizeBrush, 0, Height - _resizeOffset, Width, _resizeOffset);
                             break;
-                        case DNDResizeType.Left:
+                        case ControlResizeTypes.Left:
                             g.DrawTexture(
                                 ApplicationBehaviour.Resources.Images.ArrowLeft,
                                 0,
@@ -546,7 +568,7 @@ namespace System.Windows.Forms
                                 );
                             //g.FillRectangle(resizeBrush, 0, 0, _resizeOffset, Height); 
                             break;
-                        case DNDResizeType.LeftUp:
+                        case ControlResizeTypes.LeftUp:
                             g.DrawTexture(
                                 ApplicationBehaviour.Resources.Images.ArrowLeft,
                                 0,
@@ -566,7 +588,7 @@ namespace System.Windows.Forms
                             //g.FillRectangle(resizeBrush, 0, _resizeOffset, _resizeOffset, Height - _resizeOffset);
                             //g.FillRectangle(resizeBrush, 0, 0, Width, _resizeOffset);
                             break;
-                        case DNDResizeType.Up:
+                        case ControlResizeTypes.Up:
                             g.DrawTexture(
                                 ApplicationBehaviour.Resources.Images.ArrowUp,
                                 Width / 2 - ApplicationBehaviour.Resources.Images.ArrowUp.width / 2,
@@ -577,7 +599,7 @@ namespace System.Windows.Forms
                                 );
                             //g.FillRectangle(resizeBrush, 0, 0, Width, _resizeOffset); 
                             break;
-                        case DNDResizeType.RightUp:
+                        case ControlResizeTypes.RightUp:
                             g.DrawTexture(
                                 ApplicationBehaviour.Resources.Images.ArrowRight,
                                 Width - ApplicationBehaviour.Resources.Images.ArrowRight.width,
@@ -600,21 +622,6 @@ namespace System.Windows.Forms
                 }
             }
             #endregion
-        }
-
-        public enum DNDResizeType
-        {
-            None,
-
-            Right,
-            Down,
-            Left,
-            Up,
-
-            RightDown,
-            LeftDown,
-            LeftUp,
-            RightUp
         }
     }
 

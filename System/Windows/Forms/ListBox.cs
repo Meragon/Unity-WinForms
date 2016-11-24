@@ -55,6 +55,8 @@ namespace System.Windows.Forms
             get { return _selectedIndex; }
             set
             {
+                if (value < -1 || value >= _items.Count) return;
+
                 bool changed = _selectedIndex != value && value != -1;
                 _selectedIndex = value;
                 if (changed) OnSelectedIndexChanged(EventArgs.Empty);

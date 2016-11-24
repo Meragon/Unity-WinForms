@@ -58,19 +58,17 @@ namespace System.Drawing
             int guiSkinFontSizeBuffer = GUI.skin.label.fontSize;
             if (font != null)
             {
-                if (System.Windows.Forms.ApplicationBehaviour.Resources != null)
-                {
-                    var _font = System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
-                    if (_font != null)
-                        GUI.skin.label.font = _font;
-                    else
-                    {
-                        GUI.skin.label.font = null;
-                        UnityEngine.Debug.Log(font.Name);
-                    }
-                }
+                if (font._uFont == null)
+                    font._uFont = System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
+
+                if (font._uFont != null)
+                    GUI.skin.label.font = font._uFont;
                 else
+                {
                     GUI.skin.label.font = null;
+                    UnityEngine.Debug.LogError("Font not found: " + font.Name);
+                }
+
                 GUI.skin.label.fontSize = (int)(font.Size);
                 bool styleBold = (font.Style & FontStyle.Bold) == FontStyle.Bold;
                 bool styleItalic = (font.Style & FontStyle.Italic) == FontStyle.Italic;
@@ -87,11 +85,14 @@ namespace System.Drawing
             }
             else
             {
-                var _font = System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Find(f => f.fontNames[0] == "Arial");
-                if (_font != null)
-                    GUI.skin.label.font = _font;
-                GUI.skin.label.fontSize = (int)(12);
-                GUI.skin.label.fontStyle = UnityEngine.FontStyle.Normal;
+                if (ApplicationBehaviour.Resources.Fonts.Count > 0)
+                {
+                    var _font = ApplicationBehaviour.Resources.Fonts[0];
+                    if (_font != null)
+                        GUI.skin.label.font = _font;
+                    GUI.skin.label.fontSize = (int)(12);
+                    GUI.skin.label.fontStyle = UnityEngine.FontStyle.Normal;
+                }
             }
             return guiSkinFontSizeBuffer;
         }
@@ -815,39 +816,54 @@ namespace System.Drawing
         }
         public void DrawTexture(Texture texture, float x, float y, float width, float height, Color color, float angle, PointF pivot)
         {
-            if (Control == null || texture == null) return;
+            if (texture == null) return;
 
-            Control.Batches++;
+            if (Control != null)
+                Control.Batches++;
+
             FillRate += width * height;
 
             GUI.color = color.ToUColor();
             if (!_group)
             {
-                var c_position = Control.PointToScreen(Point.Zero);
-                if (angle != 0)
+                if (Control != null)
                 {
-                    Matrix4x4 matrixBackup = GUI.matrix;
-                    GUIUtility.RotateAroundPivot(angle, new Vector2(c_position.X + x + pivot.X, c_position.Y + y + pivot.Y));
-                    GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), texture);
-                    GUI.matrix = matrixBackup;
+                    var c_position = Control.PointToScreen(Point.Zero);
+
+                    x += c_position.X;
+                    y += c_position.Y;
                 }
-                else
-                    GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), texture);
-            }
-            else
-            {
-                var c_position = Control.PointToScreen(Point.Zero);
-                var g_position = _groupControlLast.PointToScreen(Point.Zero);
 
                 if (angle != 0)
                 {
                     Matrix4x4 matrixBackup = GUI.matrix;
-                    GUIUtility.RotateAroundPivot(angle, new Vector2(c_position.X - g_position.X + x + pivot.X, c_position.Y - g_position.Y + y + pivot.Y));
-                    GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), texture);
+                    GUIUtility.RotateAroundPivot(angle, new Vector2(x + pivot.X,y + pivot.Y));
+                    GUI.DrawTexture(new Rect(x, y, width, height), texture);
                     GUI.matrix = matrixBackup;
                 }
                 else
-                    GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), texture);
+                    GUI.DrawTexture(new Rect(x, y, width, height), texture);
+            }
+            else
+            {
+                if (Control != null)
+                {
+                    var c_position = Control.PointToScreen(Point.Zero);
+                    var g_position = _groupControlLast.PointToScreen(Point.Zero);
+
+                    x += c_position.X - g_position.X;
+                    y += c_position.Y - g_position.Y;
+                }
+
+                if (angle != 0)
+                {
+                    Matrix4x4 matrixBackup = GUI.matrix;
+                    GUIUtility.RotateAroundPivot(angle, new Vector2(x + pivot.X, y + pivot.Y));
+                    GUI.DrawTexture(new Rect(x, y, width, height), texture);
+                    GUI.matrix = matrixBackup;
+                }
+                else
+                    GUI.DrawTexture(new Rect(x, y, width, height), texture);
             }
         }
         public void DrawTexture(Texture texture, float x, float y, float width, float height, Material mat)
@@ -951,7 +967,10 @@ namespace System.Drawing
                     c_position = Control.PointToScreen(Point.Zero);
                 var g_position = _groupControlLast.PointToScreen(Point.Zero);
 
-                GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                x += c_position.X - g_position.X;
+                y += c_position.Y - g_position.Y;
+
+                GUI.DrawTexture(new Rect(x, y, width, height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                 //UnityEngine.Graphics.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), System.Windows.Forms.Application.DefaultSprite, new Rect(), 0, 0, 0, 0, brush.Color.ToUColor(), DefaultMaterial);
             }
         }

@@ -18,6 +18,7 @@ namespace System.Windows.Forms
         public Button ButtonDecrease { get; private set; }
 
         public Color BorderColor { get; set; }
+        public Color DisabledColor { get; set; }
         public decimal Increment { get; set; }
         public decimal Maximum
         {
@@ -68,6 +69,7 @@ namespace System.Windows.Forms
             this.BackColor = Color.FromArgb(250, 250, 250);
             this.BorderColor = Color.FromArgb(175, 175, 175);
             this.CanSelect = true;
+            this.DisabledColor = Color.FromArgb(240, 240, 240);
             this.Increment = 1;
             this.Maximum = 100;
             this.Minimum = 0;
@@ -143,14 +145,14 @@ namespace System.Windows.Forms
 
             if (Enabled)
             {
-                g.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
+                g.FillRectangle(BackColor, 0, 0, Width, Height);
 
                 if (Focused)
                 {
                     if (_shouldFocus)
                         UnityEngine.GUI.SetNextControlName(Name);
 
-                    _valueText = g.DrawTextField(_valueText, Font, new SolidBrush(ForeColor), Padding.Left, 0, Width + (ButtonIncrease.Visible ? -16 : 0), Height, TextAlign);
+                    _valueText = g.DrawTextField(_valueText, Font, new SolidBrush(ForeColor), Padding.Left - 2, 0, Width + (ButtonIncrease.Visible ? -16 : 0) + 4, Height, TextAlign);
 
                     if (_shouldFocus)
                     {
@@ -173,7 +175,10 @@ namespace System.Windows.Forms
                 }
             }
             else
+            {
+                g.FillRectangle(DisabledColor, 0, 0, Width, Height);
                 g.DrawString(Value.ToString(), Font, Brushes.Black, Padding.Left, 0, Width + (ButtonIncrease.Visible ? -24 : 0), Height, TextAlign);
+            }
 
             g.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
         }

@@ -41,6 +41,10 @@ namespace System.Windows.Forms
         public bool AllowDrop { get; set; }
         public bool AlwaysFocused { get; set; }
         public virtual AnchorStyles Anchor { get; set; }
+        /// <summary>
+        /// GUI.BeingGroup(...) & GUI.EndGroup().
+        /// </summary>
+        public bool AutoGroup { get; set; }
         public virtual bool AutoSize { get; set; }
         public Color BackColor { get; set; }
         public virtual ImageLayout BackgroundImageLayout { get; set; }
@@ -112,6 +116,7 @@ namespace System.Windows.Forms
         public Application Owner { get; internal set; }
         public Padding Padding { get; set; }
         public Control Parent { get { return _parent; } set { _parent = value; } }
+        public bool PreventChildDisposing { get; set; }
         public Size Size
         {
             get
@@ -138,7 +143,6 @@ namespace System.Windows.Forms
             get { return this.Location.Y; }
             set { Location = new Point(Location.X, value); }
         }
-        public bool UserGroup { get; set; }
         public bool Visible
         {
             get { return _visible; }
@@ -224,7 +228,7 @@ namespace System.Windows.Forms
             Font = new Drawing.Font("Arial", 12);
             ForeColor = Color.Black;
             TabIndex = -1;
-            UserGroup = true;
+            AutoGroup = true;
             _visible = true;
 
 #if UNITY_EDITOR
@@ -267,12 +271,13 @@ namespace System.Windows.Forms
             _disposing = true;
             OnDisposing(this, new EventArgs());
 
-            if (Controls != null)
+            if (PreventChildDisposing == false)
+            {
                 for (; Controls.Count > 0;)
-                {
                     Controls[0].Dispose();
-                }
-            Controls.Clear();
+
+                Controls.Clear();
+            }
 
             if (Parent != null)
             {
@@ -489,6 +494,10 @@ namespace System.Windows.Forms
             if (editorBackgroundImageLayout.Changed) this.BackgroundImageLayout = (ImageLayout)editorBackgroundImageLayout.Value;
 
             Editor.Label("Batches", Batches);
+
+            var editorCanSelect = Editor.BooleanField("CanSelect", CanSelect);
+            if (editorCanSelect.Changed)
+                CanSelect = editorCanSelect.Value;
 
             Editor.Label("ClientRectangle", this.ClientRectangle);
             Editor.Label("Context", this.Context);
@@ -737,9 +746,15 @@ namespace System.Windows.Forms
                     ShadowHandler.Invoke(e);
             }
 
-            if (UserGroup)
+            if (AutoGroup)
             {
-                e.Graphics.Group = new Drawing.Rectangle(e.ClipRectangle.X, e.ClipRectangle.Y, Width, Height);
+                int gx = e.ClipRectangle.X;
+                int gy = e.ClipRectangle.Y;
+
+                if (gx != 0 && gy != 9) // Reset?
+                    e.ClipRectangle = new Rectangle(0, 0, Screen.PrimaryScreen.WorkingArea.Width, Screen.PrimaryScreen.WorkingArea.Height);
+
+                e.Graphics.Group = new Drawing.Rectangle(gx, gy, Width, Height);
                 e.Graphics.GroupBegin(this);
             }
             OnPaintBackground(e);
@@ -753,6 +768,7 @@ namespace System.Windows.Forms
                     if (currentAbspos.X + Controls[i].Width < 0 || currentAbspos.X > UnityEngine.Screen.width ||
                     currentAbspos.Y + Controls[i].Height < 0 || currentAbspos.Y > UnityEngine.Screen.height)
                         continue;
+
                     e.Graphics.Control = Controls[i];
                     Controls[i].RaiseOnPaint(e);
                 }
@@ -765,7 +781,7 @@ namespace System.Windows.Forms
                 e.Graphics.DrawRectangle(Pens.DarkRed, 0, 0, Width, Height);
             }
             OnLatePaint(e);
-            if (UserGroup)
+            if (AutoGroup)
                 e.Graphics.GroupEnd();
             Batched = true;
 

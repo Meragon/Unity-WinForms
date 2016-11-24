@@ -83,6 +83,8 @@ namespace System.Windows.Forms
         private void OnApplicationFocus(bool focusStatus)
         {
             _paused = !focusStatus;
+
+            UnityEngine.Cursor.visible = Cursor.IsVisible;
         }
         private void OnGUI()
         {
