@@ -203,8 +203,28 @@ namespace System.Windows.Forms
             };
 
             fileRender.filesTree.NodeMouseClick += filesTree_NodeMouseClick;
+
+            this.Shown += FileDialog_Shown;
         }
 
+        private void FileDialog_Shown(object sender, EventArgs e)
+        {
+            var fs = Filter.Split('|');
+            for (int i = 0; i < fs.Length; i += 2)
+                comboFilter.Items.Add(fs[i]);
+
+            if (comboFilter.Items.Count > 0)
+            {
+                comboFilter.SelectedIndex = 0;
+                comboFilter.SelectedIndexChanged += (s, a) =>
+                {
+                    fileRender.SetDirectory(fileRender.currentPath);
+                };
+            }
+
+            fileRender.SetDirectory(fileRender.currentPath);
+
+        }
         protected virtual void filesTree_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
@@ -239,27 +259,6 @@ namespace System.Windows.Forms
         {
             base.OnPaint(e);
             e.Graphics.DrawLine(new Pen(BorderColor), 1, HeaderHeight, Width - 1, HeaderHeight);
-        }
-        public new DialogResult ShowDialog()
-        {
-            var fs = Filter.Split('|');
-            for (int i = 0; i < fs.Length; i += 2)
-                comboFilter.Items.Add(fs[i]);
-
-            if (comboFilter.Items.Count > 0)
-            {
-                comboFilter.SelectedIndex = 0;
-                comboFilter.SelectedIndexChanged += (sender, args) =>
-                {
-                    fileRender.SetDirectory(fileRender.currentPath);
-                };
-            }
-
-            fileRender.SetDirectory(fileRender.currentPath);
-
-            base.ShowDialog();
-
-            return Forms.DialogResult.None;
         }
 
         protected void OpenFile()
