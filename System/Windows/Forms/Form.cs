@@ -146,7 +146,7 @@ namespace System.Windows.Forms
             resizeType = ControlResizeTypes.None;
             if (Application.activeResizeControl == this)
                 Application.activeResizeControl = null;
-            
+
             resizeActive = false;
         }
         private void _MakeButtonClose()
@@ -336,14 +336,17 @@ namespace System.Windows.Forms
                     break;
             }
         }
-        public void Show()
+        public void Show(bool shouldFocus = true)
         {
             Visible = true;
             int self = Owner.Forms.FindIndex(x => x == this);
             if (self == -1)
                 Owner.Forms.Add(this);
-            Focus();
-            _SelectFirstControl();
+            if (shouldFocus)
+            {
+                Focus();
+                _SelectFirstControl();
+            }
             Shown(this, null);
         }
         public DialogResult ShowDialog(Action<Form, DialogResult> onClosed = null)

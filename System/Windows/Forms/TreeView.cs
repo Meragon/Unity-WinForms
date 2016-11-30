@@ -11,12 +11,12 @@ namespace System.Windows.Forms
         private bool _drag;
         private TreeNode _dragNode;
         private Point _dragPosition;
-
+        private string _filter;
         private ImageList _imageList;
+        private TreeNode _hoveredNode;
         private TreeNodeCollection _nodes;
         private List<TreeNode> _nodeList;
-
-        private TreeNode _hoveredNode;
+        private float _resetFilterTime;
         private bool _scrollVisible = false;
         private bool _scroll;
         private bool _scrollHovered;
@@ -35,14 +35,14 @@ namespace System.Windows.Forms
         public Color BorderColor { get; set; }
         public ImageList ImageList { get { return _imageList; } set { _imageList = value; } }
         public int ItemHeight { get; set; }
-        public Color HoverColor { get; set; }
         public TreeNodeCollection Nodes { get { return _nodes; } private set { _nodes = value; } }
-        public Color ScrollColor { get; set; }
+        public Color ScrollBarColor { get; set; }
         public float ScrollIndex { get { return scrollIndex; } internal set { scrollIndex = value; } }
-        public Color ScrollHoverColor { get; set; }
+        public Color ScrollBarHoverColor { get; set; }
         public float ScrollSpeed { get; set; }
         public TreeNode SelectedNode { get; set; }
         public Color SelectionColor { get; set; }
+        public Color SelectionHoverColor { get; set; }
         public bool SmoothScrolling { get; set; }
         public bool UseNodeBoundsForSelection { get; set; }
         public bool WrapText { get; set; }
@@ -54,15 +54,15 @@ namespace System.Windows.Forms
             this.CanSelect = true;
             this.ImageList = new ImageList();
             this.ItemHeight = 22;
-            this.HoverColor = Color.FromArgb(221, 238, 253);
             this.Padding = new Padding(4);
             this.root = new TreeNode(this);
             this.root.Expand();
             this.Resize += TreeView_Resize;
-            this.ScrollColor = Color.FromArgb(222, 222, 230);
-            this.ScrollHoverColor = Color.FromArgb(136, 136, 136);
+            this.ScrollBarColor = Color.FromArgb(222, 222, 230);
+            this.ScrollBarHoverColor = Color.FromArgb(136, 136, 136);
             this.ScrollSpeed = 2;
             this.SelectionColor = Color.FromArgb(187, 222, 251);
+            this.SelectionHoverColor = Color.FromArgb(221, 238, 253);
             this.SmoothScrolling = true;
 
             _nodes = new TreeNodeCollection(root);
@@ -152,7 +152,7 @@ namespace System.Windows.Forms
             // Node drawing.
             e.Graphics.FillRectangle(e.Node.BackColor, e.Node.Bounds.X, e.Node.Bounds.Y, e.Node.Bounds.Width, e.Node.Bounds.Height);
             if (e.Node.IsSelected || e.Node == _hoveredNode)
-                e.Graphics.FillRectangle((e.Node.IsSelected ? SelectionColor : HoverColor), UseNodeBoundsForSelection ? e.Node.Bounds.X : 0, e.Node.Bounds.Y - (int)scrollIndex, Width, ItemHeight);
+                e.Graphics.FillRectangle((e.Node.IsSelected ? SelectionColor : SelectionHoverColor), UseNodeBoundsForSelection ? e.Node.Bounds.X : 0, e.Node.Bounds.Y - (int)scrollIndex, Width, ItemHeight);
 
             bool hasImage = false;
             int imageWidth = 0;
@@ -205,6 +205,11 @@ namespace System.Windows.Forms
             }
 
             return true;
+        }
+        private void _SelectNode(TreeNode node)
+        {
+            SelectedNode = node;
+            SelectedNodeChanged(this, new TreeViewEventArgs(node));
         }
         private void _SelectPrevious()
         {
@@ -267,6 +272,12 @@ namespace System.Windows.Forms
             {
                 switch (e.KeyCode)
                 {
+                    case UnityEngine.KeyCode.Space:
+                    case UnityEngine.KeyCode.Return:
+                        if (SelectedNode != null)
+                            SelectedNode.Toggle();
+                        break;
+
                     case UnityEngine.KeyCode.DownArrow:
                         _SelectNext();
                         break;
@@ -282,6 +293,14 @@ namespace System.Windows.Forms
                         _SelectPrevious();
                         break;
                 }
+            }
+
+            char c = KeyHelper.GetLastInputChar();
+            if (char.IsLetterOrDigit(c) || char.IsPunctuation(c))
+            {
+                _filter += c;
+                _resetFilterTime = 3; // sec.
+                SelectNodeWText(_filter);
             }
         }
         protected override void OnMouseDoubleClick(MouseEventArgs e)
@@ -352,6 +371,14 @@ namespace System.Windows.Forms
         }
         protected override void OnPaint(PaintEventArgs e)
         {
+            // Reset filter.
+            if (_resetFilterTime > 0)
+            {
+                _resetFilterTime -= Application.DeltaTime;
+                if (_resetFilterTime <= 0)
+                    _filter = "";
+            }
+
             e.Graphics.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
 
             for (int i = 0; i < _scrollNodeList.Count; i++)
@@ -366,15 +393,15 @@ namespace System.Windows.Forms
 
             if (_scrollVisible)
             {
-                Color _scrollColor = ScrollColor;
-                if (_scrollHovered || _scroll) _scrollColor = ScrollHoverColor;
+                Color _scrollBarColor = ScrollBarColor;
+                if (_scrollHovered || _scroll) _scrollBarColor = ScrollBarHoverColor;
 
                 float _scrollYCoeff = Height / _scroll_ItemsEstimatedHeigh;
                 _scrollbarHeight = Height * _scrollYCoeff;
                 if (_scrollbarHeight < 8) _scrollbarHeight = 8;
                 _scrollbarY = scrollIndex * _scrollYCoeff;
 
-                e.Graphics.FillRectangle(_scrollColor, Width - _scrollbarWidth + 2, _scrollbarY, _scrollbarWidth - 2, _scrollbarHeight);
+                e.Graphics.FillRectangle(_scrollBarColor, Width - _scrollbarWidth + 2, _scrollbarY, _scrollbarWidth - 2, _scrollbarHeight);
             }
             #endregion
 
@@ -393,11 +420,19 @@ namespace System.Windows.Forms
             if (itemHeightBuffer.Changed)
                 ItemHeight = itemHeightBuffer.Value[0];
 
+            Editor.ColorField("ScrollBarColor", ScrollBarColor, (c) => { ScrollBarColor = c; });
+            Editor.ColorField("ScrollBarHoverColor", ScrollBarHoverColor, (c) => { ScrollBarHoverColor = c; });
+
             var scrollSpeedBuffer = Editor.Slider("ScrollSpeed", ScrollSpeed, 0, 255);
             if (scrollSpeedBuffer.Changed)
                 ScrollSpeed = scrollSpeedBuffer.Value;
 
+            var scrollIndexBuffer = Editor.Slider("ScrollIndex", ScrollIndex, -1, _nodeList.Count * ItemHeight);
+            if (scrollIndexBuffer.Changed)
+                ScrollIndex = scrollIndexBuffer.Value;
+
             Editor.ColorField("SelectionColor", SelectionColor, (c) => { SelectionColor = c; });
+            Editor.ColorField("SelectionHoverColor", SelectionHoverColor, (c) => { SelectionHoverColor = c; });
 
             var smoothScrollingBuffer = Editor.BooleanField("SmoothScrolling", SmoothScrolling);
             if (smoothScrollingBuffer.Changed)
@@ -448,6 +483,28 @@ namespace System.Windows.Forms
 
             _FixScrollIndex();
             _UpdateScrollList();
+        }
+        protected void SelectNodeWText(string text, bool caseSencitive = false)
+        {
+            string lowerText = text;
+            if (caseSencitive == false) lowerText = text.ToLower();
+
+            for (int i = 0; i < _nodeList.Count; i++)
+            {
+                var node = _nodeList[i];
+                string nodeText = node.Text;
+                if (nodeText.Length < text.Length) continue;
+
+                string clippedNodeText = nodeText.Substring(0, text.Length);
+                if (caseSencitive == false) clippedNodeText = clippedNodeText.ToLower();
+
+                if (clippedNodeText == lowerText)
+                {
+                    EnsureVisible(node);
+                    _SelectNode(node);
+                    break;
+                }
+            }
         }
 
         public void CollapseAll()

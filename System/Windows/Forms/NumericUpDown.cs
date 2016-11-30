@@ -107,8 +107,16 @@ namespace System.Windows.Forms
             Controls.Add(ButtonDecrease);
 
             Resize += _UpdateButtonsLocation;
+            LostFocus += (s, a) => { _ConfirmValue(); };
         }
 
+        private void _ConfirmValue()
+        {
+            decimal value = Value;
+            if (decimal.TryParse(_valueText, out value))
+                if (Value != value)
+                    Value = value;
+        }
         private void _UpdateButtonsLocation(object sender, EventArgs e)
         {
             if (ButtonIncrease != null)
@@ -129,13 +137,22 @@ namespace System.Windows.Forms
             ButtonIncrease.Visible = false;
             ButtonDecrease.Visible = false;
         }
+        protected override void OnKeyPress(KeyEventArgs e)
+        {
+            base.OnKeyPress(e);
+
+            if (e.KeyCode == UnityEngine.KeyCode.Return)
+                _ConfirmValue();
+        }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            base.OnMouseWheel(e);
-            if (e.Delta < 0)
-                Value--;
-            if (e.Delta > 0)
-                Value++;
+            if (Focused)
+            {
+                if (e.Delta < 0)
+                    Value--;
+                if (e.Delta > 0)
+                    Value++;
+            }
         }
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -162,17 +179,6 @@ namespace System.Windows.Forms
                 }
                 else
                     g.DrawString(_valueText, Font, new SolidBrush(ForeColor), Padding.Left, 0, Width + (ButtonIncrease.Visible ? -16 : 0), Height, TextAlign);
-
-                decimal value = Value;
-                if (!decimal.TryParse(_valueText, out value))
-                {
-                    // Do nothing.
-                }
-                else
-                {
-                    if (Value != value)
-                        Value = value;
-                }
             }
             else
             {

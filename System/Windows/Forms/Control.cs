@@ -358,13 +358,16 @@ namespace System.Windows.Forms
         }
         public void Select()
         {
-            if (AlwaysFocused || CanSelect == false) return;
+            if (CanSelect == false || lastSelected == this) return;
 
-            if (lastSelected != null)
+            if (lastSelected != null && lastSelected.AlwaysFocused == false)
+            {
                 lastSelected.selected = false;
+                lastSelected.LostFocus(lastSelected, EventArgs.Empty);
+            }
 
-            lastSelected = this;
             selected = true;
+            lastSelected = this;
         }
         public void SuspendLayout()
         {
@@ -798,6 +801,8 @@ namespace System.Windows.Forms
 
         public event EventHandler Click = delegate { };
         public new event EventHandler Disposed = delegate { };
+        public event EventHandler GotFocus = delegate { };
+        public event EventHandler LostFocus = delegate { };
         public event KeyEventHandler KeyDown = delegate { };
         public event KeyEventHandler KeyUp = delegate { };
         public event MouseEventHandler MouseDown = delegate { };

@@ -178,7 +178,6 @@ namespace System.Windows.Forms
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            base.OnMouseWheel(e);
             bool down = e.Delta < 0;
             if (down)
             {
