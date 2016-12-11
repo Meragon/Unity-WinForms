@@ -243,7 +243,6 @@ namespace System.Windows.Forms
 
             if (Parent != null)
             {
-                Parent.BringToFront();
                 Parent.Controls.Remove(this);
                 Parent.Controls.Add(this);
             }

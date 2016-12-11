@@ -23,7 +23,7 @@ namespace System.Windows.Forms
         private static System.Drawing.PointF _mouseMovePosition;
         private System.Drawing.PointF _mousePosition;
         private PaintEventArgs _paintEventArgs;
-        private static bool _updateHoveredControls;
+        private static bool updateHoveredControl;
         private MouseEvents _userMouseEvent;
         private MouseEventArgs _userMouseArgs;
 
@@ -31,6 +31,7 @@ namespace System.Windows.Forms
         internal List<Control> Contexts = new List<Control>();
         internal List<Form> Forms = new List<Form>();
         internal List<Control> HoveredControls = new List<Control>();
+        internal Control hoveredControl;
         internal List<Form> ModalForms = new List<Form>();
 
         public static bool Debug { get; set; }
@@ -51,41 +52,38 @@ namespace System.Windows.Forms
         public static Action<Control> ShowCallback { get; set; }
         public bool TabSwitching { get; set; }
 
-        private Control _ControlAt(Control parentControl, System.Drawing.Point mousePosition)
+        private static bool Contains(Control parent, Control child)
         {
-            Control control = null;
+            if (parent == child) return true;
 
-            //if (parentControl == null || parentControl.Enabled == false || parentControl.Visible == false) return control;
-            if (parentControl == null)
+            for (int i = 0; i < parent.Controls.Count; i++)
             {
-                for (int i = 0; i < Contexts.Count; i++)
+                var c = parent.Controls[i];
+                if (c == child) return true;
+
+                return Contains(c, child);
+            }
+
+            return false;
+        }
+        private Control FindControlAt(Control currentControl, System.Drawing.Point position)
+        {
+            for (int i = currentControl.Controls.Count - 1; i >= 0; i--)
+            {
+                var child = currentControl.Controls[i]; 
+                if (child.Visible == false || child.Enabled == false) continue;
+
+                var childMClient = child.PointToClient(position);
+                if (child.DisplayRectangle.Contains(childMClient))
                 {
-                    var contextItem = Contexts[i];
-                    var contextRect = new System.Drawing.Rectangle(contextItem.Location.X, contextItem.Location.Y, contextItem.Width, contextItem.Height);
-                    if (contextRect.Contains(mousePosition))
-                    {
-                        var childControl = _ControlAt(contextItem, mousePosition);
-                        if (childControl != null)
-                            control = childControl;
-                    }
+                    currentControl = child;
+                    return FindControlAt(currentControl, position);
                 }
             }
-            else if (parentControl.Enabled && parentControl.Visible && _IsHovered(parentControl, mousePosition))
-            {
-                control = parentControl;
 
-                if (parentControl.Controls.Count > 0)
-                    for (int i = 0; i < parentControl.Controls.Count; i++)
-                    {
-                        var childControl = parentControl.Controls[i];
-                        var childControlAt = _ControlAt(childControl, mousePosition);
-                        if (childControlAt != null)
-                            control = childControlAt;
-                    }
-            }
-
-            return control;
+            return currentControl;
         }
+
         internal static bool ControlIsVisible(Control control)
         {
             if (control.Visible == false) return false;
@@ -120,105 +118,70 @@ namespace System.Windows.Forms
                 }
             }
         }
-        private bool _FindTopForm(ref Control lastPreccessedControl, IList<Form> formList, Predicate<Form> condition = null)
-        {
-            for (int i = formList.Count - 1; i >= 0; i--)
-            {
-                var form = formList[i];
-                if (condition != null && condition.Invoke(form) == false) continue;
-
-                var result = _FindTopControl(ref lastPreccessedControl, form);
-                if (result) return result;
-            }
-
-            return false;
-        }
-        private bool _FindTopControl(ref Control lastPreccessedControl, Control form)
-        {
-            Control controlToProcess = form;
-
-            if (_ControlWParentVisible(form) == false || form.Enabled == false) return false;
-
-            controlToProcess = _ControlAt(controlToProcess, _mousePosition);
-            if (controlToProcess != null)
-                if (_ProcessControl(_mousePosition, controlToProcess, false))
-                {
-                    lastPreccessedControl = form;
-                    return true;
-                }
-
-            return false;
-        }
         private Control _ControlAt(System.Drawing.Point mousePosition)
         {
+            Control control = null;
+
             if (Contexts.Count > 0)
             {
-                var lastContext = Contexts.Last();
-                var cRect = new System.Drawing.Rectangle(lastContext.Location.X, lastContext.Location.Y, lastContext.Width, lastContext.Height);
-                if (cRect.Contains(mousePosition))
-                    return lastContext;
+                for (int i = 0; i < Contexts.Count; i++)
+                {
+                    var contextControl = Contexts[i];
+                    var cRect = new System.Drawing.Rectangle(contextControl.Location.X, contextControl.Location.Y, contextControl.Width, contextControl.Height);
+                    if (cRect.Contains(mousePosition))
+                    {
+                        control = contextControl;
+                        break;
+                    }
+                }
             }
-            if (ModalForms.Count > 0)
+            if (control == null && ModalForms.Count > 0)
             {
                 var lastModalForm = ModalForms.Last();
                 var formRect = new System.Drawing.Rectangle(lastModalForm.Location.X, lastModalForm.Location.Y, lastModalForm.Width, lastModalForm.Height);
                 if (formRect.Contains(mousePosition))
-                    return lastModalForm;
-
-                return null;
+                    control = lastModalForm;
             }
-            for (int i = Forms.Count - 1; i >= 0; i--)
-                if (Forms[i].TopMost && Forms[i].Visible && Forms[i].Enabled)
+            if (control == null)
+                for (int i = Forms.Count - 1; i >= 0; i--)
                 {
-                    var formRect = new System.Drawing.Rectangle(Forms[i].Location.X, Forms[i].Location.Y, Forms[i].Width, Forms[i].Height);
-                    if (formRect.Contains(mousePosition))
-                        return Forms[i];
+                    var form = Forms[i];
+                    if (form.TopMost && form.Visible && form.Enabled)
+                    {
+                        var formRect = new System.Drawing.Rectangle(form.Location.X, form.Location.Y, form.Width, form.Height);
+                        if (formRect.Contains(mousePosition))
+                        {
+                            control = form;
+                            break;
+                        }
+                    }
                 }
 
-            for (int i = Forms.Count - 1; i >= 0; i--)
-                if (Forms[i].TopMost == false && Forms[i].Visible && Forms[i].Enabled)
+            if (control == null)
+                for (int i = Forms.Count - 1; i >= 0; i--)
                 {
-                    var formRect = new System.Drawing.Rectangle(Forms[i].Location.X, Forms[i].Location.Y, Forms[i].Width, Forms[i].Height);
-                    if (formRect.Contains(mousePosition))
-                        return Forms[i];
+                    var form = Forms[i];
+                    if (form.TopMost == false && form.Visible && form.Enabled)
+                    {
+                        var formRect = new System.Drawing.Rectangle(form.Location.X, form.Location.Y, form.Width, form.Height);
+                        if (formRect.Contains(mousePosition))
+                        {
+                            control = form;
+                            break;
+                        }
+                    }
                 }
 
-            return null;
+            if (control != null)
+                control = FindControlAt(control, mousePosition);
+
+            return control;
         }
         private bool _IsHovered(Control control, System.Drawing.Point mousePosition)
         {
             if (control == null) return false;
 
-            var mouseToClient = control.PointToClient(mousePosition);
-            var controlForm = GetRootControl(control);
-            if (control.Context || (controlForm != null && controlForm == _ControlAt(mousePosition)))
-            {
-                if (control.Context == false)
-                {
-                    for (int i = 0; i < Contexts.Count; i++)
-                    {
-                        var contextControl = Contexts[i];
-                        if (contextControl == controlForm) continue;
-                        var contextRect = new System.Drawing.Rectangle(contextControl.Location.X, contextControl.Location.Y, contextControl.Width, contextControl.Height);
-                        if (contextRect.Contains(mousePosition))
-                            return false;
-                    }
-                }
-                if (control.ClientRectangle.Contains(mouseToClient))
-                {
-                    if (control.mouseEntered == false)
-                    {
-                        control.mouseEntered = true;
-                        control.RaiseOnMouseEnter(new MouseEventArgs(MouseButtons.None, 0, mouseToClient.X, mouseToClient.Y, 0));
-                        HoveredControls.Add(control);
-                    }
-                    control.hovered = true;
-                    control.RaiseOnMouseHover(new MouseEventArgs(MouseButtons.None, 0, mouseToClient.X, mouseToClient.Y, 0));
-                    return true;
-                }
-            }
-
-            return false;
+            return control == hoveredControl;
         }
         private bool _IsPointInPolygon(List<System.Drawing.Point> polygon, System.Drawing.Point testPoint)
         {
@@ -406,6 +369,8 @@ namespace System.Windows.Forms
             if (cursor == null)
                 cursor = Cursor.Current;
             cursor.Draw(_paintEventArgs.Graphics, Drawing.Rectangle.Empty);
+
+//            GUI.Label(new Rect(600, 0, 200, 32), updateHoveredControl.ToString());
         }
         public void ProccessKeys()
         {
@@ -491,7 +456,7 @@ namespace System.Windows.Forms
             _mouseEvent = MouseEvents.None;
             _mouseButton = MouseButtons.None;
             if (_mousePosition != mousePosition)
-                _updateHoveredControls = true;
+                updateHoveredControl = true;
             _mousePosition = mousePosition;
 
             #region Set events.
@@ -573,8 +538,8 @@ namespace System.Windows.Forms
 
             #endregion
 
-            if (_mouseLastClickControl != null && _mouseEvent == MouseEvents.None && _mouseMovePosition != mousePosition)
-                _ProcessControl(mousePosition, _mouseLastClickControl, true);
+            //if (_mouseLastClickControl != null && _mouseEvent == MouseEvents.None && _mouseMovePosition != mousePosition)
+            //    _ProcessControl(mousePosition, _mouseLastClickControl, true);
 
             if (_mouseEvent != MouseEvents.None || _mouseMovePosition != mousePosition)
             {
@@ -584,8 +549,7 @@ namespace System.Windows.Forms
                     if (Contexts[i].Context)
                     {
                         var contextControl = Contexts[i];
-
-                        if (_IsHovered(contextControl, mousePosition) == false)
+                        if (Contains(contextControl, hoveredControl) == false)
                         {
                             if (_mouseEvent == MouseEvents.Down)
                             {
@@ -596,42 +560,21 @@ namespace System.Windows.Forms
                         }
                     }
                 }
-
-                bool found = false;
-                Control lastPreccessedControl = null;
-
-                // Check context first.
-
-                for (int i = 0; i < Contexts.Count; i++)
-                {
-                    var contextControl = Contexts[i];
-                    if (contextControl.Enabled == false || contextControl.Visible == false) continue;
-
-                    found = _FindTopControl(ref lastPreccessedControl, contextControl);
-                    if (found) break;
-                }
-
-                // Forms then.
-                if (found == false)
-                {
-                    if (ModalForms.Count > 0)
-                        found = _FindTopControl(ref lastPreccessedControl, ModalForms.Last());
-                    if (found == false)
-                        found = _FindTopForm(ref lastPreccessedControl, Forms, x => x.TopMost);
-                    if (found == false)
-                        found = _FindTopForm(ref lastPreccessedControl, Forms, x => x.TopMost == false);
-                }
-
-                if (!found && _mouseEvent == MouseEvents.Up)
+                
+                if (hoveredControl == null && _mouseEvent == MouseEvents.Up)
                 {
                     _dragndrop = false;
                     _dragData = null;
                 }
 
+                if (hoveredControl != null)
+                    _ProcessControl(_mousePosition, hoveredControl, false);
+
                 if (_mouseEvent == MouseEvents.Down)
-                    DownClick(lastPreccessedControl, new MouseEventArgs(_mouseButton, 1, (int)mousePosition.X, (int)mousePosition.Y, 0));
+                    DownClick(hoveredControl, new MouseEventArgs(_mouseButton, 1, (int)mousePosition.X, (int)mousePosition.Y, 0));
+                
                 if (_mouseEvent == MouseEvents.Up)
-                    UpClick(lastPreccessedControl, new MouseEventArgs(_mouseButton, 1, (int)mousePosition.X, (int)mousePosition.Y, 0));
+                    UpClick(hoveredControl, new MouseEventArgs(_mouseButton, 1, (int)mousePosition.X, (int)mousePosition.Y, 0));
             }
 
             _mouseMovePosition = mousePosition;
@@ -650,36 +593,50 @@ namespace System.Windows.Forms
         }
         public void Update()
         {
-            if (_updateHoveredControls)
+            // Update hovered control.
+            if (hoveredControl != null)
             {
-                for (int i = 0; i < HoveredControls.Count; i++)
+                var mclient = hoveredControl.PointToClient(Control.MousePosition);
+                var hargs = new MouseEventArgs(MouseButtons.None, 0, mclient.X, mclient.Y, 0);
+                hoveredControl.RaiseOnMouseHover(hargs);
+                if (updateHoveredControl)
+                    hoveredControl.RaiseOnMouseMove(hargs);
+            }
+
+            if (updateHoveredControl)
+            {
+                var controlAtMouse = _ControlAt(Control.MousePosition);
+                if (hoveredControl != controlAtMouse && hoveredControl != null)
                 {
-                    var control = HoveredControls[i];
-                    var formParent = GetRootControl(control) as Form;
-                    if ((control.Context && _ControlAt(formParent, _mousePosition) != control) ||
-                        (formParent != null && formParent != _ControlAt(_mousePosition)) ||
-                        _ControlAt(formParent, _mousePosition) != control)
+                    hoveredControl.hovered = false;
+                    hoveredControl.mouseEntered = false;
+                    hoveredControl.RaiseOnMouseLeave(new MouseEventArgs(MouseButtons.None, 0, 0, 0, 0));
+                }
+                if (controlAtMouse == null)
+                    hoveredControl = null;
+                else
+                {
+                    hoveredControl = controlAtMouse;
+                    if (controlAtMouse.mouseEntered == false)
                     {
-                        if (control.mouseEntered)
-                        {
-                            control.RaiseOnMouseLeave(new MouseEventArgs(MouseButtons.None, 0, (int)_mousePosition.X, (int)_mousePosition.Y, 0));
-                            control.mouseEntered = false;
-                            control.hovered = false;
-                            HoveredControls.Remove(control);
-                        }
+                        var mclient = controlAtMouse.PointToClient(Control.MousePosition);
+
+                        controlAtMouse.hovered = true;
+                        controlAtMouse.mouseEntered = true;
+                        controlAtMouse.RaiseOnMouseEnter(new MouseEventArgs(MouseButtons.None, 0, mclient.X, mclient.Y, 0));
                     }
                 }
-                _updateHoveredControls = false;
+                updateHoveredControl = false;
             }
 
             // Update cursor for resize events.
             if (activeResizeControl == null)
             {
-                if (HoveredControls.Count == 0)
+                if (hoveredControl == null)
                     Cursor.CurrentSystem = null;
                 else
                 {
-                    var iResizableControl = HoveredControls[0] as IResizableControl;
+                    var iResizableControl = hoveredControl as IResizableControl;
                     var resizableControl = iResizableControl as Control;
                     if (iResizableControl != null && resizableControl != null)
                     {

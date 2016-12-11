@@ -370,7 +370,7 @@ namespace System.Drawing
         public void DrawRectangle(Pen pen, float x, float y, float width, float height)
         {
             if (NoRects) return;
-            if (pen.Color.A <= 0) return;
+            if (pen.Color.A <= 0 || pen.Width <= 0) return;
             GUI.color = pen.Color.ToUColor();
 
             /*if (Control.Batched)
@@ -611,6 +611,15 @@ namespace System.Drawing
 
             GUI.skin.label.fontSize = guiSkinFontSizeBuffer;
         }
+        public void DrawString(string s, Font font, Color color, float x, float y, float width, float height, HorizontalAlignment alignment)
+        {
+            ContentAlignment ca = ContentAlignment.MiddleLeft;
+            if (alignment == HorizontalAlignment.Center)
+                ca = ContentAlignment.MiddleCenter;
+            else if (alignment == HorizontalAlignment.Right)
+                ca = ContentAlignment.MiddleRight;
+            DrawString(s, font, color, x, y, width, height, ca);
+        }
         public void DrawString(string s, Font font, SolidBrush brush, float x, float y, float width, float height, HorizontalAlignment horizontalAlignment)
         {
             ContentAlignment alignment = ContentAlignment.MiddleLeft;
@@ -837,7 +846,7 @@ namespace System.Drawing
                 if (angle != 0)
                 {
                     Matrix4x4 matrixBackup = GUI.matrix;
-                    GUIUtility.RotateAroundPivot(angle, new Vector2(x + pivot.X,y + pivot.Y));
+                    GUIUtility.RotateAroundPivot(angle, new Vector2(x + pivot.X, y + pivot.Y));
                     GUI.DrawTexture(new Rect(x, y, width, height), texture);
                     GUI.matrix = matrixBackup;
                 }
@@ -993,6 +1002,16 @@ namespace System.Drawing
 
             GL.End();
         }
+        public void Focus()
+        {
+            if (Control != null)
+                UnityEngine.GUI.FocusControl(Control.Name);
+        }
+        public void FocusNext()
+        {
+            if (Control != null)
+                UnityEngine.GUI.SetNextControlName(Control.Name);
+        }
         /// <summary>
         /// OnPaint call only.
         /// </summary>
@@ -1013,7 +1032,7 @@ namespace System.Drawing
 
             return new SizeF(size.x, size.y);
         }
-        public SizeF MeasureStringSimple(string text, Font font)
+        public static SizeF MeasureStringSimple(string text, Font font)
         {
             return new SizeF() { Width = text.Length * 8, Height = font.Size }; // fast but not accurate.
         }

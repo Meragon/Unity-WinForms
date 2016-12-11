@@ -48,12 +48,13 @@ namespace System.Windows.Forms
 
             form.Controls.Add(formGroup);
 
-            Label formLabel = new Label();
+            TextBox formLabel = new TextBox();
             formLabel.Anchor = AnchorStyles.Left | AnchorStyles.Bottom | AnchorStyles.Right | AnchorStyles.Top;
             formLabel.Font = textFont;
             formLabel.Size = formGroup.Size;
             formLabel.Text = text;
-            formLabel.TextAlign = ContentAlignment.TopLeft;
+            formLabel.ReadOnly = true;
+            formLabel.Multiline = true;
 
             formGroup.Controls.Add(formLabel);
 

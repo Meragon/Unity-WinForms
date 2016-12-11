@@ -12,7 +12,8 @@ namespace System.Windows.Forms
         private decimal _maximum;
         private bool _shouldFocus;
         private decimal _value;
-        private string _valueText = "0";
+
+        protected string valueText = "0";
 
         public Button ButtonIncrease { get; private set; }
         public Button ButtonDecrease { get; private set; }
@@ -52,7 +53,7 @@ namespace System.Windows.Forms
                 if (value < Minimum) value = Minimum;
                 bool changed = _value != value;
                 _value = value;
-                _valueText = value.ToString();
+                valueText = value.ToString();
                 if (changed)
                 {
                     ValueChanged(this, null);
@@ -113,7 +114,7 @@ namespace System.Windows.Forms
         private void _ConfirmValue()
         {
             decimal value = Value;
-            if (decimal.TryParse(_valueText, out value))
+            if (decimal.TryParse(valueText, out value))
                 if (Value != value)
                     Value = value;
         }
@@ -136,6 +137,12 @@ namespace System.Windows.Forms
         {
             ButtonIncrease.Visible = false;
             ButtonDecrease.Visible = false;
+        }
+        protected override void OnLatePaint(PaintEventArgs e)
+        {
+            base.OnLatePaint(e);
+
+            e.Graphics.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
         }
         protected override void OnKeyPress(KeyEventArgs e)
         {
@@ -166,27 +173,24 @@ namespace System.Windows.Forms
 
                 if (Focused)
                 {
-                    if (_shouldFocus)
-                        UnityEngine.GUI.SetNextControlName(Name);
+                    if (_shouldFocus) e.Graphics.FocusNext();
 
-                    _valueText = g.DrawTextField(_valueText, Font, new SolidBrush(ForeColor), Padding.Left - 2, 0, Width + (ButtonIncrease.Visible ? -16 : 0) + 4, Height, TextAlign);
+                    valueText = g.DrawTextField(valueText, Font, new SolidBrush(ForeColor), Padding.Left - 2, 0, Width + (ButtonIncrease.Visible ? -16 : 0) + 4, Height, TextAlign);
 
                     if (_shouldFocus)
                     {
-                        UnityEngine.GUI.FocusControl(Name);
+                        e.Graphics.Focus();
                         _shouldFocus = false;
                     }
                 }
                 else
-                    g.DrawString(_valueText, Font, new SolidBrush(ForeColor), Padding.Left, 0, Width + (ButtonIncrease.Visible ? -16 : 0), Height, TextAlign);
+                    g.DrawString(valueText, Font, new SolidBrush(ForeColor), Padding.Left, 0, Width + (ButtonIncrease.Visible ? -16 : 0), Height, TextAlign);
             }
             else
             {
                 g.FillRectangle(DisabledColor, 0, 0, Width, Height);
                 g.DrawString(Value.ToString(), Font, Brushes.Black, Padding.Left, 0, Width + (ButtonIncrease.Visible ? -24 : 0), Height, TextAlign);
             }
-
-            g.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
         }
         public void ShowButtons()
         {

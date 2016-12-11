@@ -11,12 +11,16 @@ namespace System.Windows.Forms
     /// </summary>
     public class TableView : Control
     {
+        private bool columnHeadersHidden;
         private HScrollBar hScroll;
+        private bool hScrollHidden;
         internal TableColumn lastSortedColumn;
         private float maxScrollHeight
         {
             get
             {
+                if (Rows.Count == 0) return 1;
+
                 var h = Rows.Last().control.Location.Y + Rows.Last().control.Height;
                 if (hScroll != null)
                     h += hScroll.Height;
@@ -27,14 +31,18 @@ namespace System.Windows.Forms
         {
             get
             {
+                if (Columns.Count == 0) return 1;
+
                 var w = Columns.Last().control.Location.X + Columns.Last().control.Width;
                 if (vScroll != null)
                     w += vScroll.Width;
                 return w;
             }
         }
+        private bool rowHeadersHidden;
         private TableColumnButton topLeftButton;
         private VScrollBar vScroll;
+        private bool vScrollHidden;
 
         public Color BorderColor { get; set; }
         public int CellPadding { get; set; }
@@ -62,9 +70,12 @@ namespace System.Windows.Forms
             if (topLeftButton == null)
             {
                 topLeftButton = new TableColumnButton(ColumnsStyle);
+                topLeftButton.Name = "topLeftButton";
                 topLeftButton.Size = new Size(40, 20);
                 Controls.Add(topLeftButton);
             }
+
+            topLeftButton.Visible = !rowHeadersHidden && !columnHeadersHidden;
         }
         private void HScroll_ValueChanged(object sender, EventArgs e)
         {
@@ -112,6 +123,7 @@ namespace System.Windows.Forms
                         vScroll.Height = Height;
                         vScroll.Location = new Point(Width - vScroll.Width, 0);
                         vScroll.ValueChanged += VScroll_ValueChanged;
+                        vScroll.Visible = !vScrollHidden;
                         Controls.Add(vScroll);
                     }
                 }
@@ -142,6 +154,7 @@ namespace System.Windows.Forms
                         hScroll.Width = Width;
                         hScroll.Location = new Point(0, Height - hScroll.Height);
                         hScroll.ValueChanged += HScroll_ValueChanged;
+                        hScroll.Visible = !hScrollHidden;
                         Controls.Add(hScroll);
                     }
                 }
@@ -155,7 +168,7 @@ namespace System.Windows.Forms
             }
             else if (vScroll != null)
             {
-                hScroll.ValueChanged -= HScroll_ValueChanged;
+                vScroll.ValueChanged -= VScroll_ValueChanged;
                 vScroll.Dispose();
                 vScroll = null;
                 ResetHOffset();
@@ -199,20 +212,26 @@ namespace System.Windows.Forms
         internal void AlignRows()
         {
             int cY = Padding.Top;
-            if (topLeftButton != null)
+            if (topLeftButton != null && columnHeadersHidden == false)
             {
                 topLeftButton.Location = new Point(Padding.Left, Padding.Top);
                 cY = topLeftButton.Location.Y + topLeftButton.Height + CellPadding;
             }
             for (int i = 0, cellIndex = 1; i < Rows.Count; i++)
             {
-                var row = Rows[i];
-                row.control.Location = new Point(Padding.Left, cY);
-                row.control.Text = (i + 1).ToString();
-                if (topLeftButton != null)
-                    row.control.Width = topLeftButton.Width;
+                int cX = Padding.Left;
 
-                int cX = row.control.Location.X + row.control.Width + CellPadding;
+                var row = Rows[i];
+                if (rowHeadersHidden == false)
+                {
+                    row.control.Location = new Point(cX, cY);
+                    row.control.Text = (i + 1).ToString();
+                    if (topLeftButton != null)
+                        row.control.Width = topLeftButton.Width;
+
+                    cX += row.control.Width + CellPadding;
+                }
+
                 for (int k = 0; k < row.ItemsControls.Length; k++)
                 {
                     row.ItemsControls[k].Location = new Point(cX, cY);
@@ -240,6 +259,7 @@ namespace System.Windows.Forms
                 var cButton = new TableColumnButton(ColumnsStyle);
                 cButton.column = column;
                 cButton.EnableHorizontalResizing = true;
+                cButton.Name = column.Name;
                 cButton.table = this;
                 cButton.Text = column.HeaderText;
 
@@ -247,9 +267,17 @@ namespace System.Windows.Forms
                 Controls.Add(cButton);
             }
 
+            column.control.Visible = !columnHeadersHidden;
+
             AlignColumns();
 
             UpdateRows();
+        }
+        internal void UpdateColumns()
+        {
+            for (int i = 0; i < Columns.Count; i++)
+                UpdateColumn(Columns[i]);
+            AlignColumns();
         }
         internal void UpdateRow(TableRow row, bool align = true)
         {
@@ -265,6 +293,8 @@ namespace System.Windows.Forms
                 row.control = rButton;
                 Controls.Add(rButton);
             }
+
+            row.control.Visible = !rowHeadersHidden;
 
             if (row.Items.Length != Columns.Count)
                 row.AddjustItemsCountTo(Columns.Count);
@@ -327,6 +357,18 @@ namespace System.Windows.Forms
         {
             e.Graphics.FillRectangle(BackColor, 0, 0, Width, Height);
         }
+        protected override object OnPaintEditor(float width)
+        {
+            var control = base.OnPaintEditor(width);
+
+#if UNITY_EDITOR
+            Editor.NewLine(1);
+            Editor.Label("columnHeadersHidden", columnHeadersHidden);
+            Editor.Label("rowHeadersHidden", rowHeadersHidden);
+#endif
+
+            return control;
+        }
         protected override void OnResize(Point delta)
         {
             base.OnResize(delta);
@@ -334,8 +376,50 @@ namespace System.Windows.Forms
             UpdateScrolls();
         }
 
+        public void HideColumnHeaders()
+        {
+            columnHeadersHidden = true;
+
+            UpdateColumns();
+        }
+        public void HideRowHeaders()
+        {
+            rowHeadersHidden = true;
+
+            UpdateRows();
+        }
+        public void HideScrolls()
+        {
+            hScrollHidden = true;
+            vScrollHidden = true;
+
+            if (hScroll != null) hScroll.Visible = !hScrollHidden;
+            if (vScroll != null) vScroll.Visible = !vScrollHidden;
+        }
+        public void ShowColumnHeaders()
+        {
+            columnHeadersHidden = false;
+
+            UpdateColumns();
+        }
+        public void ShowRowHeaders()
+        {
+            rowHeadersHidden = false;
+
+            UpdateRows();
+        }
+        public void ShowScrolls()
+        {
+            hScrollHidden = false;
+            vScrollHidden = false;
+
+            if (hScroll != null) hScroll.Visible = !hScrollHidden;
+            if (vScroll != null) vScroll.Visible = !vScrollHidden;
+        }
         public virtual void Sort(TableColumn column, ListSortDirection direction)
         {
+            if (column == null) return;
+
             int columnIndex = Columns.FindIndex(column);
             Dictionary<TableRow, object[]> items = new Dictionary<TableRow, object[]>();
             for (int i = 0; i < Rows.Count; i++)
@@ -397,7 +481,7 @@ namespace System.Windows.Forms
 
         public delegate void RowClickContext(TableRow row, MouseEventArgs mArgs);
 
-        internal class TableColumnButton : Button
+        internal class TableColumnButton : Button, IResizableControl
         {
             private Control prevButton;
             private resizeTypes resizeType = resizeTypes.None;
@@ -433,6 +517,18 @@ namespace System.Windows.Forms
                 if (lastSortDirection == ListSortDirection.Ascending)
                     return ListSortDirection.Descending;
                 return ListSortDirection.Ascending;
+            }
+            public ControlResizeTypes GetResizeAt(Point mclient)
+            {
+                if (EnableHorizontalResizing)
+                {
+                    if (mclient.X < ResizeWidth)
+                        return ControlResizeTypes.Left;
+                    else if (mclient.X > Width - ResizeWidth)
+                        return ControlResizeTypes.Right;
+                }
+
+                return ControlResizeTypes.None;
             }
             private void Owner_UpClick(object sender, MouseEventArgs e)
             {
@@ -522,6 +618,7 @@ namespace System.Windows.Forms
                 base.OnMouseUp(e);
 
                 if (resizeType != resizeTypes.None) return;
+                if (table == null) return;
 
                 switch (e.Button)
                 {
@@ -562,16 +659,6 @@ namespace System.Windows.Forms
             {
                 base.OnPaint(e);
 
-                switch (resizeType)
-                {
-                    case resizeTypes.Left:
-                        e.Graphics.DrawTexture(ApplicationBehaviour.Resources.Images.CurvedArrowLeft, -2, (Height - 16) / 2, 16, 16, Color.Gray);
-                        break;
-                    case resizeTypes.Right:
-                        e.Graphics.DrawTexture(ApplicationBehaviour.Resources.Images.CurvedArrowRight, Width - 14, (Height - 16) / 2, 16, 16, Color.Gray);
-                        break;
-                }
-
                 if (table != null)
                     if (column == table.lastSortedColumn)
                     {
@@ -586,6 +673,8 @@ namespace System.Windows.Forms
                         }
                     }
             }
+
+            
 
             private enum resizeTypes : byte
             {
@@ -624,6 +713,7 @@ namespace System.Windows.Forms
         }
     }
 
+    #region Other
     public class TableRow
     {
         internal Button control;
@@ -828,6 +918,11 @@ namespace System.Windows.Forms
 
             owner.UpdateColumn(column);
         }
+        public void Clear()
+        {
+            for (; items.Count > 0;)
+                Remove(items[0]);
+        }
         public int FindIndex(TableColumn column)
         {
             return items.FindIndex(x => x == column);
@@ -835,6 +930,14 @@ namespace System.Windows.Forms
         public TableColumn Last()
         {
             return items.Last();
+        }
+        public void Remove(TableColumn column)
+        {
+            if (column.control != null)
+                column.control.Dispose();
+            items.Remove(column);
+
+            owner.UpdateColumns();
         }
     }
     public class TableButtonStyle
@@ -854,4 +957,5 @@ namespace System.Windows.Forms
             HoverColor = Color.FromArgb(243, 248, 254);
         }
     }
+    #endregion
 }
