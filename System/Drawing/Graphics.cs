@@ -1005,12 +1005,12 @@ namespace System.Drawing
         public void Focus()
         {
             if (Control != null)
-                UnityEngine.GUI.FocusControl(Control.Name);
+                UnityEngine.GUI.FocusControl(Control.GetHashCode().ToString("X2"));
         }
         public void FocusNext()
         {
             if (Control != null)
-                UnityEngine.GUI.SetNextControlName(Control.Name);
+                UnityEngine.GUI.SetNextControlName(Control.GetHashCode().ToString("X2"));
         }
         /// <summary>
         /// OnPaint call only.

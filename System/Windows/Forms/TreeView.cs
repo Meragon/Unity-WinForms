@@ -26,7 +26,8 @@ namespace System.Windows.Forms
         private float _scrollbarWidth = 10;
         private float _scrollStartY;
         private float _scroll_ItemsEstimatedHeigh;
-        private List<TreeNode> _scrollNodeList;
+
+        protected List<TreeNode> scrollNodeList;
 
         internal TreeNode root;
 
@@ -67,7 +68,7 @@ namespace System.Windows.Forms
 
             _nodes = new TreeNodeCollection(root);
             _nodeList = new List<TreeNode>();
-            _scrollNodeList = new List<TreeNode>();
+            scrollNodeList = new List<TreeNode>();
 
             onDrawNode = _OnDrawNode;
 
@@ -240,7 +241,7 @@ namespace System.Windows.Forms
         }
         private void _UpdateScrollList()
         {
-            _scrollNodeList = new List<TreeNode>();
+            scrollNodeList = new List<TreeNode>();
 
             int startNode = (int)(scrollIndex / ItemHeight) - 1;
             if (startNode < 0) startNode = 0;
@@ -250,7 +251,7 @@ namespace System.Windows.Forms
             {
                 if (_nodeList[i].Bounds.Y + _nodeList[i].Bounds.Height > 0 && _nodeList[i].Bounds.Y - (int)scrollIndex < Height)
                 {
-                    _scrollNodeList.Add(_nodeList[i]);
+                    scrollNodeList.Add(_nodeList[i]);
                 }
             }
         }
@@ -381,9 +382,9 @@ namespace System.Windows.Forms
 
             e.Graphics.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
 
-            for (int i = 0; i < _scrollNodeList.Count; i++)
+            for (int i = 0; i < scrollNodeList.Count; i++)
             {
-                OnDrawNode(new DrawTreeNodeEventArgs(e.Graphics, _scrollNodeList[i], _scrollNodeList[i].Bounds, TreeNodeStates.Default));
+                OnDrawNode(new DrawTreeNodeEventArgs(e.Graphics, scrollNodeList[i], scrollNodeList[i].Bounds, TreeNodeStates.Default));
             }
 
             #region Scroll.
@@ -464,7 +465,7 @@ namespace System.Windows.Forms
         public override void Refresh()
         {
             _nodeList = new List<TreeNode>();
-            _scrollNodeList = new List<TreeNode>();
+            scrollNodeList = new List<TreeNode>();
 
             ProccesNode(root);
             _UpdateScrollList();
@@ -473,7 +474,7 @@ namespace System.Windows.Forms
 
         internal void EnsureVisible(TreeNode node)
         {
-            var nodeIsInScrollList =_scrollNodeList.Find(x => x == node);
+            var nodeIsInScrollList =scrollNodeList.Find(x => x == node);
             if (nodeIsInScrollList != null) return;
 
             var nodeIndex = _nodeList.FindIndex(x => x == node);

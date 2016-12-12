@@ -137,6 +137,7 @@ namespace System.Windows.Forms
         public bool ShadowBox { get; set; }
         public DrawHandler ShadowHandler { get; set; }
         public int TabIndex { get; set; }
+        public object Tag { get; set; }
         public virtual string Text { get; set; }
         public int Top
         {

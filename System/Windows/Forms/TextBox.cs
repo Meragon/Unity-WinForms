@@ -71,7 +71,7 @@ namespace System.Windows.Forms
                 if (Focused)
                 {
                     if (_shouldFocus)
-                        UnityEngine.GUI.SetNextControlName(Name);
+                        e.Graphics.FocusNext();
 
                     var _tempText = "";
                     if (!Multiline)
@@ -97,7 +97,7 @@ namespace System.Windows.Forms
 
                 if (_shouldFocus)
                 {
-                    UnityEngine.GUI.FocusControl(Name);
+                    e.Graphics.Focus();
                     _shouldFocus = false;
                 }
             }
@@ -110,6 +110,29 @@ namespace System.Windows.Forms
             }
 
             g.DrawRectangle(new Pen(_hovered ? BorderHoverColor : BorderColor), 0, 0, Width, Height);
+        }
+        protected override object OnPaintEditor(float width)
+        {
+            var control = base.OnPaintEditor(width);
+
+#if UNITY_EDITOR
+
+            Editor.NewLine(1);
+            Editor.ColorField("BorderColor", BorderColor, (c) => { BorderColor = c; });
+            Editor.ColorField("BorderHoverColor", BorderHoverColor, (c) => { BorderHoverColor = c; });
+
+            var editorMultiline = Editor.BooleanField("Multiline", Multiline);
+            if (editorMultiline.Changed)
+                Multiline = editorMultiline.Value;
+
+            var editorReadonly = Editor.BooleanField("ReadOnly", ReadOnly);
+            if (editorReadonly.Changed)
+                ReadOnly = editorReadonly.Value;
+
+            Editor.Label("TextAlign", TextAlign);
+#endif
+
+            return control;
         }
 
         public delegate void CallbackDelegate(object data);

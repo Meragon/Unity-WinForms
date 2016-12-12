@@ -222,7 +222,7 @@ namespace System.Windows.Forms
                 if (Focused)
                 {
                     if (_shouldFocus)
-                        UnityEngine.GUI.SetNextControlName(Name);
+                        e.Graphics.FocusNext();
 
                     var _filterBuffer = g.DrawTextField(_filter, Font, new SolidBrush(ForeColor), 4, 0, Width - 8 - 16, Height, HorizontalAlignment.Left);
                     if (_filterBuffer != _filter)
@@ -242,7 +242,7 @@ namespace System.Windows.Forms
 
                 if (_shouldFocus)
                 {
-                    UnityEngine.GUI.FocusControl(Name);
+                    e.Graphics.Focus();
                     _shouldFocus = false;
                 }
             }

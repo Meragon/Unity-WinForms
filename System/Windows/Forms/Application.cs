@@ -61,7 +61,8 @@ namespace System.Windows.Forms
                 var c = parent.Controls[i];
                 if (c == child) return true;
 
-                return Contains(c, child);
+                if (Contains(c, child))
+                    return true;
             }
 
             return false;
@@ -135,42 +136,48 @@ namespace System.Windows.Forms
                     }
                 }
             }
-            if (control == null && ModalForms.Count > 0)
+            if (ModalForms.Count > 0)
             {
-                var lastModalForm = ModalForms.Last();
-                var formRect = new System.Drawing.Rectangle(lastModalForm.Location.X, lastModalForm.Location.Y, lastModalForm.Width, lastModalForm.Height);
-                if (formRect.Contains(mousePosition))
-                    control = lastModalForm;
+                if (control == null)
+                {
+                    var lastModalForm = ModalForms.Last();
+                    var formRect = new System.Drawing.Rectangle(lastModalForm.Location.X, lastModalForm.Location.Y, lastModalForm.Width, lastModalForm.Height);
+                    if (formRect.Contains(mousePosition))
+                        control = lastModalForm;
+                }
             }
-            if (control == null)
-                for (int i = Forms.Count - 1; i >= 0; i--)
-                {
-                    var form = Forms[i];
-                    if (form.TopMost && form.Visible && form.Enabled)
+            else
+            {
+                if (control == null)
+                    for (int i = Forms.Count - 1; i >= 0; i--)
                     {
-                        var formRect = new System.Drawing.Rectangle(form.Location.X, form.Location.Y, form.Width, form.Height);
-                        if (formRect.Contains(mousePosition))
+                        var form = Forms[i];
+                        if (form.TopMost && form.Visible && form.Enabled)
                         {
-                            control = form;
-                            break;
+                            var formRect = new System.Drawing.Rectangle(form.Location.X, form.Location.Y, form.Width, form.Height);
+                            if (formRect.Contains(mousePosition))
+                            {
+                                control = form;
+                                break;
+                            }
                         }
                     }
-                }
 
-            if (control == null)
-                for (int i = Forms.Count - 1; i >= 0; i--)
-                {
-                    var form = Forms[i];
-                    if (form.TopMost == false && form.Visible && form.Enabled)
+                if (control == null)
+                    for (int i = Forms.Count - 1; i >= 0; i--)
                     {
-                        var formRect = new System.Drawing.Rectangle(form.Location.X, form.Location.Y, form.Width, form.Height);
-                        if (formRect.Contains(mousePosition))
+                        var form = Forms[i];
+                        if (form.TopMost == false && form.Visible && form.Enabled)
                         {
-                            control = form;
-                            break;
+                            var formRect = new System.Drawing.Rectangle(form.Location.X, form.Location.Y, form.Width, form.Height);
+                            if (formRect.Contains(mousePosition))
+                            {
+                                control = form;
+                                break;
+                            }
                         }
                     }
-                }
+            }
 
             if (control != null)
                 control = FindControlAt(control, mousePosition);
