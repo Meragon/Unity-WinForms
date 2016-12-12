@@ -38,6 +38,14 @@ namespace System.Drawing
         {
             uTexture.Apply();
         }
+        public void ClearColor(Color c, bool apply = true)
+        {
+            var colors = new UnityEngine.Color32[Width * Height];
+            for (int i = 0; i < colors.Length; i++)
+                colors[i] = c.ToUColor();
+            uTexture.SetPixels32(colors);
+            if (apply) Apply();
+        }
         public Color GetPixel(int x, int y)
         {
             return Color.FromUColor(uTexture.GetPixel(x, uTexture.height - y - 1));
