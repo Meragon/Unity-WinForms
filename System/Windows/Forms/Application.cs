@@ -13,26 +13,26 @@ namespace System.Windows.Forms
         private static DragDropEffects _dragControlEffects;
         private static DragDropRenderHandler _dragRender;
         private static KeyCode _currentKeyDown = KeyCode.None;
-        private static List<_HotKey> _hotKeys = new List<_HotKey>();
-        private bool _keyModeLeftControl;
-        private bool _keyModeLeftShift;
+        private static readonly List<_HotKey> _hotKeys = new List<_HotKey>();
         private static MouseEvents _mouseEvent = 0;
         private static MouseButtons _mouseButton = 0;
         private static Control _mouseLastClickControl;
         private static float _mouseWheelDelta;
         private static System.Drawing.PointF _mouseMovePosition;
         private System.Drawing.PointF _mousePosition;
-        private PaintEventArgs _paintEventArgs;
+        private readonly PaintEventArgs _paintEventArgs;
+        private static float _scaleX = 1f;
+        private static float _scaleY = 1f;
         private static bool updateHoveredControl;
         private MouseEvents _userMouseEvent;
         private MouseEventArgs _userMouseArgs;
 
         internal static Control activeResizeControl;
-        internal List<Control> Contexts = new List<Control>();
-        internal List<Form> Forms = new List<Form>();
-        internal List<Control> HoveredControls = new List<Control>();
+        internal readonly List<Control> Contexts = new List<Control>();
+        internal readonly FormCollection Forms = new FormCollection();
+        internal readonly List<Control> HoveredControls = new List<Control>();
         internal Control hoveredControl;
-        internal List<Form> ModalForms = new List<Form>();
+        internal readonly List<Form> ModalForms = new List<Form>();
 
         public static bool Debug { get; set; }
         public static float DeltaTime { get { return UnityEngine.Time.deltaTime; } }
@@ -47,6 +47,32 @@ namespace System.Windows.Forms
 #else
                 return false;
 #endif
+            }
+        }
+        public static float ScaleX
+        {
+            get { return _scaleX; }
+            set
+            {
+                _scaleX = value;
+                if (value < .1f)
+                {
+                    _scaleX = 1f;
+                    Log("Minimum scale value should be >= .1f");
+                }
+            }
+        }
+        public static float ScaleY
+        {
+            get { return _scaleY; }
+            set
+            {
+                _scaleY = value;
+                if (value < .1f)
+                {
+                    _scaleY = 1f;
+                    Log("Minimum scale value should be >= .1f");
+                }
             }
         }
         public static Action<Control> ShowCallback { get; set; }
@@ -67,11 +93,11 @@ namespace System.Windows.Forms
 
             return false;
         }
-        private Control FindControlAt(Control currentControl, System.Drawing.Point position)
+        private static Control FindControlAt(Control currentControl, System.Drawing.Point position)
         {
             for (int i = currentControl.Controls.Count - 1; i >= 0; i--)
             {
-                var child = currentControl.Controls[i]; 
+                var child = currentControl.Controls[i];
                 if (child.Visible == false || child.Enabled == false) continue;
 
                 var childMClient = child.PointToClient(position);
@@ -183,29 +209,6 @@ namespace System.Windows.Forms
                 control = FindControlAt(control, mousePosition);
 
             return control;
-        }
-        private bool _IsHovered(Control control, System.Drawing.Point mousePosition)
-        {
-            if (control == null) return false;
-
-            return control == hoveredControl;
-        }
-        private bool _IsPointInPolygon(List<System.Drawing.Point> polygon, System.Drawing.Point testPoint)
-        {
-            bool result = false;
-            int j = polygon.Count - 1;
-            for (int i = 0; i < polygon.Count; i++)
-            {
-                if (polygon[i].Y < testPoint.Y && polygon[j].Y >= testPoint.Y || polygon[j].Y < testPoint.Y && polygon[i].Y >= testPoint.Y)
-                {
-                    if (polygon[i].X + (testPoint.Y - polygon[i].Y) / (polygon[j].Y - polygon[i].Y) * (polygon[j].X - polygon[i].X) < testPoint.X)
-                    {
-                        result = !result;
-                    }
-                }
-                j = i;
-            }
-            return result;
         }
         private static Control _ParentContains(Control control, System.Drawing.PointF mousePosition, Control currentControl, ref bool ok)
         {
@@ -337,17 +340,15 @@ namespace System.Windows.Forms
         public void Draw()
         {
             // Scale if needed.
-            //UnityEngine.GUI.matrix = UnityEngine.Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(0, Vector3.up), new Vector3(scale_x, scale_y, 1));
+            if (ScaleX != 1f || ScaleY != 1f)
+                UnityEngine.GUI.matrix = UnityEngine.Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(0, Vector3.up), new Vector3(ScaleX, ScaleY, 1));
+
             GUI.color = Color.white;
 
             _paintEventArgs.Graphics.FillRate = 0;
 
             for (int i = 0; i < Forms.Count; i++)
-                if (Forms[i].Visible && Forms[i].TopMost == false)
-                    Forms[i].RaiseOnPaint(_paintEventArgs);
-
-            for (int i = 0; i < Forms.Count; i++)
-                if (Forms[i].Visible && Forms[i].TopMost)
+                if (Forms[i].Visible)
                     Forms[i].RaiseOnPaint(_paintEventArgs);
 
             for (int i = 0; i < ModalForms.Count; i++)
@@ -372,12 +373,13 @@ namespace System.Windows.Forms
             // ToolTip.
             ToolTip.OnPaint(_paintEventArgs);
 
-            var cursor = Cursor.CurrentSystem;
-            if (cursor == null)
-                cursor = Cursor.Current;
-            cursor.Draw(_paintEventArgs.Graphics, Drawing.Rectangle.Empty);
-
-//            GUI.Label(new Rect(600, 0, 200, 32), updateHoveredControl.ToString());
+            var cursor = Cursor.CurrentSystem ?? Cursor.Current;
+            cursor.Draw(_paintEventArgs.Graphics,
+                new Drawing.Rectangle(
+                    Control.MousePosition.X,
+                    Control.MousePosition.Y,
+                    (int)(cursor.Size.Width / ScaleX),
+                    (int)(cursor.Size.Height / ScaleY)));
         }
         public void ProccessKeys()
         {
@@ -460,6 +462,9 @@ namespace System.Windows.Forms
         }
         public void ProccessMouse(System.Drawing.PointF mousePosition)
         {
+            if (ScaleX != 1f || ScaleY != 1f)
+                mousePosition = new Drawing.PointF(mousePosition.X / ScaleX, mousePosition.Y / ScaleY);
+
             _mouseEvent = MouseEvents.None;
             _mouseButton = MouseButtons.None;
             if (_mousePosition != mousePosition)
@@ -567,7 +572,7 @@ namespace System.Windows.Forms
                         }
                     }
                 }
-                
+
                 if (hoveredControl == null && _mouseEvent == MouseEvents.Up)
                 {
                     _dragndrop = false;
@@ -579,7 +584,7 @@ namespace System.Windows.Forms
 
                 if (_mouseEvent == MouseEvents.Down)
                     DownClick(hoveredControl, new MouseEventArgs(_mouseButton, 1, (int)mousePosition.X, (int)mousePosition.Y, 0));
-                
+
                 if (_mouseEvent == MouseEvents.Up)
                     UpClick(hoveredControl, new MouseEventArgs(_mouseButton, 1, (int)mousePosition.X, (int)mousePosition.Y, 0));
             }
@@ -633,6 +638,7 @@ namespace System.Windows.Forms
                         controlAtMouse.RaiseOnMouseEnter(new MouseEventArgs(MouseButtons.None, 0, mclient.X, mclient.Y, 0));
                     }
                 }
+
                 updateHoveredControl = false;
             }
 
@@ -647,7 +653,7 @@ namespace System.Windows.Forms
                     var resizableControl = iResizableControl as Control;
                     if (iResizableControl != null && resizableControl != null)
                     {
-                        var formClientPosition = resizableControl.PointToClient(Cursor.Position);
+                        var formClientPosition = resizableControl.PointToClient(Control.MousePosition);
                         var hoveredFormResize = iResizableControl.GetResizeAt(formClientPosition);
                         switch (hoveredFormResize)
                         {

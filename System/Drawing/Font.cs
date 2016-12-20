@@ -8,10 +8,10 @@ namespace System.Drawing
     [Serializable]
     public sealed class Font
     {
-        private string _name = "";
-        private FontStyle _style;
+        private readonly string _name;
+        private readonly FontStyle _style;
 
-        internal UnityEngine.Font _uFont;
+        internal UnityEngine.Font UFont;
 
         public string Name { get { return _name; } }
         public float Size { get; set; }
@@ -31,7 +31,7 @@ namespace System.Drawing
 
         public override string ToString()
         {
-            return "{ " + Name + "; " + Size.ToString() + "; " + Style.ToString() + " }";
+            return string.Format("[{0}, {1}, {2}]", Name, Size, Style);
         }
     }
 

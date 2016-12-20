@@ -12,7 +12,14 @@ namespace System.Windows.Forms
 
         public CheckBox()
         {
+            BackColor = Color.White;
+            BorderColor = Color.FromArgb(112, 112, 112);
+            BorderHoverColor = Color.FromArgb(51, 153, 255);
+            BorderDisableColor = Color.FromArgb(188, 188, 188);
+            CanSelect = true;
+            DisableColor = Color.FromArgb(230, 230, 230);
             ForeColor = Color.Black;
+            HoverColor = Color.FromArgb(243, 249, 255);
             Size = new Drawing.Size(128, 17);
             TextAlign = ContentAlignment.MiddleLeft;
 
@@ -33,12 +40,32 @@ namespace System.Windows.Forms
         {
             Graphics g = e.Graphics;
 
-            g.FillRectangle(new SolidBrush(Hovered || Focused ? Color.FromArgb(243, 249, 255) : Color.White), Padding.Left, Padding.Top + Height / 2 - 6, 12, 12);
-            g.DrawRectangle(new Pen(Hovered || Focused ? Color.FromArgb(51, 153, 255) : Color.FromArgb(172, 172, 172)), Padding.Left, Padding.Top + Height / 2 - 6, 12, 12);
-            if (Checked)
-                g.DrawTexture(ApplicationBehaviour.Resources.Images.Checked, Padding.Left, Padding.Top + Height / 2 - 6, 12, 12);
+            var backColor = DisableColor;
+            var borderColor = BorderDisableColor;
+            if (Enabled)
+            {
+                if (Hovered)
+                {
+                    backColor = HoverColor;
+                    borderColor = BorderHoverColor;
+                }
+                else
+                {
+                    backColor = BackColor;
+                    borderColor = BorderColor;
+                }
+            }
 
-            g.DrawString(Text, Font, new SolidBrush(ForeColor), Padding.Left + 18, Padding.Top + 0, Width - 20, Height, TextAlign);
+            var checkRectX = Padding.Left;
+            var checkRectY = Padding.Top + Height / 2 - 6;
+            var checkRectWH = 12;
+
+            g.FillRectangle(backColor, checkRectX, checkRectY, checkRectWH, checkRectWH);
+            g.DrawRectangle(new Pen(borderColor), checkRectX, checkRectY, checkRectWH, checkRectWH);
+            if (Checked)
+                g.DrawTexture(ApplicationBehaviour.Resources.Images.Checked, checkRectX, checkRectY, checkRectWH, checkRectWH);
+
+            g.DrawString(Text, Font, new SolidBrush(ForeColor), checkRectX + checkRectWH + 4, Padding.Top + 0, Width - 20, Height, TextAlign);
         }
 
         public event EventHandler CheckedChanged = delegate { };

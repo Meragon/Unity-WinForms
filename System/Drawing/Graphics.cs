@@ -9,9 +9,9 @@ namespace System.Drawing
 {
     public sealed class Graphics : IDeviceContext, IDisposable
     {
-        internal bool _group { get { return _groupControls.Count > 0; } }
+        private bool _group { get { return _groupControls.Count > 0; } }
         private Control _groupControlLast { get { return _groupControls[_groupControls.Count - 1]; } }
-        private List<Control> _groupControls = new List<Control>();
+        private readonly List<Control> _groupControls = new List<Control>();
 
         public static UnityEngine.Material DefaultMaterial { get; set; }
         public static bool GL_Lines { get; set; }
@@ -58,11 +58,11 @@ namespace System.Drawing
             int guiSkinFontSizeBuffer = GUI.skin.label.fontSize;
             if (font != null)
             {
-                if (font._uFont == null)
-                    font._uFont = System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
+                if (font.UFont == null)
+                    font.UFont = System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
 
-                if (font._uFont != null)
-                    GUI.skin.label.font = font._uFont;
+                if (font.UFont != null)
+                    GUI.skin.label.font = font.UFont;
                 else
                 {
                     GUI.skin.label.font = null;

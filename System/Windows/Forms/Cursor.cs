@@ -95,7 +95,7 @@ namespace System.Windows.Forms
         }
         public void Draw(Graphics g, Rectangle targetRect)
         {
-            g.DrawImage(image, Position.X + HotSpot.X, Position.Y + HotSpot.Y, Size.Width, Size.Height);
+            g.DrawImage(image, targetRect.X + HotSpot.X / Application.ScaleX, targetRect.Y + HotSpot.Y / Application.ScaleY, targetRect.Width, targetRect.Height);
         }
 
         public enum PointPositionTypes

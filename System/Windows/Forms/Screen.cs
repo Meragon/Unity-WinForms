@@ -18,13 +18,13 @@ namespace System.Windows.Forms
                 if (primaryScreen == null)
                 {
                     primaryScreen = new Screen();
-                    primaryScreen.workingArea = new Rectangle(0, 0, (int)(UnityEngine.Screen.width), (int)(UnityEngine.Screen.height));
+                    primaryScreen.workingArea = new Rectangle(0, 0, (int)(UnityEngine.Screen.width / Application.ScaleX), (int)(UnityEngine.Screen.height / Application.ScaleY));
                 }
                 else
                 {
-                    if (primaryScreen.workingArea.Width != UnityEngine.Screen.width ||
-                        primaryScreen.workingArea.Height != UnityEngine.Screen.height)
-                        primaryScreen.workingArea = new Rectangle(0, 0, (int)UnityEngine.Screen.width, (int)UnityEngine.Screen.height);
+                    if (primaryScreen.workingArea.Width != (UnityEngine.Screen.width / Application.ScaleX) ||
+                        primaryScreen.workingArea.Height != (UnityEngine.Screen.height / Application.ScaleY))
+                        primaryScreen.workingArea = new Rectangle(0, 0, (int)(UnityEngine.Screen.width / Application.ScaleX), (int)(UnityEngine.Screen.height / Application.ScaleY));
                 }
                 return primaryScreen;
             }

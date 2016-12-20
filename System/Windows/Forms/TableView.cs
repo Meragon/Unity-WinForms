@@ -44,12 +44,15 @@ namespace System.Windows.Forms
         private VScrollBar vScroll;
         private bool vScrollHidden;
 
+        public int ColumnsDefaultWidth = 100;
+
         public Color BorderColor { get; set; }
         public int CellPadding { get; set; }
         public int ColumnCount { get { return Columns.Count; } }
         public TableColumnCollection Columns { get; private set; }
         public TableButtonStyle ColumnsStyle { get; set; }
         public TableRowCollection Rows { get; private set; }
+        public bool SkipControlsInitializations { get; set; }
 
         public TableView()
         {
@@ -58,6 +61,7 @@ namespace System.Windows.Forms
             CellPadding = 1;
             ColumnsStyle = new TableButtonStyle();
             Padding = new Padding(2);
+            SkipControlsInitializations = false;
 
             Columns = new TableColumnCollection(this);
             Rows = new TableRowCollection(this);
@@ -69,7 +73,7 @@ namespace System.Windows.Forms
         {
             if (topLeftButton == null)
             {
-                topLeftButton = new TableColumnButton(ColumnsStyle);
+                topLeftButton = new TableColumnButton(this, ColumnsStyle);
                 topLeftButton.Name = "topLeftButton";
                 topLeftButton.Size = new Size(40, 20);
                 Controls.Add(topLeftButton);
@@ -234,11 +238,15 @@ namespace System.Windows.Forms
 
                 for (int k = 0; k < row.ItemsControls.Length; k++)
                 {
-                    row.ItemsControls[k].Location = new Point(cX, cY);
-                    row.ItemsControls[k].TabIndex = cellIndex;
-                    row.ItemsControls[k].Size = new Size(Columns[k].Width, row.Height);
+                    var rowIC = row.ItemsControls[k];
+                    if (rowIC == null) continue;
+
+                    rowIC.Location = new Point(cX, cY);
+                    rowIC.TabIndex = cellIndex;
+                    rowIC.Size = new Size(Columns[k].Width, row.Height);
+
                     cellIndex++;
-                    cX += row.ItemsControls[k].Width + CellPadding;
+                    cX += rowIC.Width + CellPadding;
                 }
 
                 cY += row.control.Height + CellPadding;
@@ -256,7 +264,7 @@ namespace System.Windows.Forms
 
             if (column.control == null)
             {
-                var cButton = new TableColumnButton(ColumnsStyle);
+                var cButton = new TableColumnButton(this, ColumnsStyle);
                 cButton.column = column;
                 cButton.EnableHorizontalResizing = true;
                 cButton.Name = column.Name;
@@ -268,10 +276,6 @@ namespace System.Windows.Forms
             }
 
             column.control.Visible = !columnHeadersHidden;
-
-            AlignColumns();
-
-            UpdateRows();
         }
         internal void UpdateColumns()
         {
@@ -279,7 +283,7 @@ namespace System.Windows.Forms
                 UpdateColumn(Columns[i]);
             AlignColumns();
         }
-        internal void UpdateRow(TableRow row, bool align = true)
+        internal void UpdateRow(TableRow row)
         {
             CreateTopLeftButton();
 
@@ -299,6 +303,7 @@ namespace System.Windows.Forms
             if (row.Items.Length != Columns.Count)
                 row.AddjustItemsCountTo(Columns.Count);
 
+
             if (row.ItemsControls == null)
                 row.ItemsControls = new TableRow.TableRowControlsCollection(row, Columns.Count);
             if (row.ItemsControls.Length != row.Items.Length)
@@ -308,37 +313,40 @@ namespace System.Windows.Forms
                 {
                     Array.Copy(row.ItemsControls.items, 0, newControls, 0, newControls.Length);
                     for (int i = newControls.Length; i < row.ItemsControls.Length; i++)
-                        row.ItemsControls[i].Dispose();
+                    {
+                        var rowC = row.ItemsControls[i];
+                        if (rowC != null)
+                            rowC.Dispose();
+                    }
                 }
                 else
                     Array.Copy(row.ItemsControls.items, 0, newControls, 0, row.ItemsControls.Length);
                 row.ItemsControls.items = newControls;
             }
-            for (int i = 0; i < row.Items.Length; i++)
-            {
-                if (row.ItemsControls[i] != null) continue;
 
-                int controlColumn = i;
-                TextBox itemControl = new TextBox();
-                itemControl.BorderColor = Color.Transparent;
-                itemControl.Size = new Size(Columns[i].Width, row.Height);
-                itemControl.TextChanged += (s, a) =>
+            if (SkipControlsInitializations == false)
+                for (int i = 0; i < row.Items.Length; i++)
                 {
-                    row.Items[controlColumn] = itemControl.Text;
-                };
-                if (row.Items[i] != null)
-                    itemControl.Text = row.Items[i].ToString();
+                    if (row.ItemsControls[i] != null) continue;
 
-                row.ItemsControls[i] = itemControl;
-            }
+                    int controlColumn = i;
+                    TextBox itemControl = new TextBox();
+                    itemControl.BorderColor = Color.Transparent;
+                    itemControl.Size = new Size(Columns[i].Width, row.Height);
+                    itemControl.TextChanged += (s, a) =>
+                    {
+                        row.Items[controlColumn] = itemControl.Text;
+                    };
+                    if (row.Items[i] != null)
+                        itemControl.Text = row.Items[i].ToString();
 
-            if (align)
-                AlignRows();
+                    row.ItemsControls.items[i] = itemControl;
+                }
         }
         internal void UpdateRows()
         {
             for (int i = 0; i < Rows.Count; i++)
-                UpdateRow(Rows[i], false);
+                UpdateRow(Rows[i]);
             AlignRows();
         }
 
@@ -374,6 +382,13 @@ namespace System.Windows.Forms
             base.OnResize(delta);
 
             UpdateScrolls();
+        }
+        public override void Refresh()
+        {
+            base.Refresh();
+
+            AlignColumns();
+            AlignRows();
         }
 
         public void HideColumnHeaders()
@@ -497,7 +512,7 @@ namespace System.Windows.Forms
             public bool EnableHorizontalResizing { get; set; }
             public int ResizeWidth { get; set; }
 
-            public TableColumnButton(TableButtonStyle style)
+            public TableColumnButton(TableView t, TableButtonStyle style)
             {
                 BackColor = style.BackColor;
                 HoverColor = style.HoverColor;
@@ -506,7 +521,7 @@ namespace System.Windows.Forms
                 BorderSelectColor = style.BorderSelectColor;
                 Padding = new Padding(8, 0, 8, 0);
                 ResizeWidth = 8;
-                Size = new Size(100, 20);
+                Size = new Size(t.ColumnsDefaultWidth, 20);
                 TextAlign = ContentAlignment.MiddleLeft;
 
                 Owner.UpClick += Owner_UpClick;
@@ -674,7 +689,7 @@ namespace System.Windows.Forms
                     }
             }
 
-            
+
 
             private enum resizeTypes : byte
             {
@@ -848,7 +863,10 @@ namespace System.Windows.Forms
                 row.control.Dispose();
             if (row.ItemsControls != null)
                 for (int i = 0; i < row.ItemsControls.Length; i++)
-                    row.ItemsControls[i].Dispose();
+                {
+                    var rowIC = row.ItemsControls[i];
+                    if (rowIC != null) rowIC.Dispose();
+                }
 
             items.Remove(row);
 
@@ -860,8 +878,6 @@ namespace System.Windows.Forms
         internal TableView.TableColumnButton control;
         private TableColumnCollection owner;
 
-        public const int DEFAULT_WIDTH = 40;
-
         public int Index { get { return owner.FindIndex(this); } }
         public string HeaderText { get; set; }
         public string Name { get; set; }
@@ -871,7 +887,7 @@ namespace System.Windows.Forms
             {
                 if (control != null)
                     return control.Width;
-                return DEFAULT_WIDTH;
+                return owner.owner.ColumnsDefaultWidth;
             }
             set
             {

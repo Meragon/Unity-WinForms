@@ -22,8 +22,10 @@ namespace System.Windows.Forms
             set { dialogResult = value; }
         }
         public Color BorderColor { get; set; }
+        public Color BorderDisableColor { get; set; }
         public Color BorderHoverColor { get; set; }
         public Color BorderSelectColor { get; set; }
+        public Color DisableColor { get; set; }
         public Color HoverColor { get; set; }
         public Bitmap Image { get; set; }
         public Bitmap ImageHover { get; set; }
@@ -36,9 +38,11 @@ namespace System.Windows.Forms
             BackColor = Color.FromArgb(234, 234, 234);
             BackgroundImageLayout = ImageLayout.Center;
             BorderColor = Color.FromArgb(172, 172, 172);
+            BorderDisableColor = Color.FromArgb(217, 217, 217);
             BorderHoverColor = Color.FromArgb(126, 180, 234);
             BorderSelectColor = Color.FromArgb(51, 153, 255);
             CanSelect = true;
+            DisableColor = Color.FromArgb(239, 239, 239);
             Font = new Drawing.Font("Arial", 12);
             ForeColor = Color.FromArgb(64, 64, 64);
             ImageColor = Color.White;
@@ -81,20 +85,21 @@ namespace System.Windows.Forms
             Graphics g = e.Graphics;
 
             // Back.
-            if (Hovered == false || Enabled == false)
+            if (Enabled)
             {
-                currentBackColor = MathHelper.ColorLerp(currentBackColor, BackColor, 5);
-                g.FillRectangle(new SolidBrush(currentBackColor), 0, 0, Width, Height);
+                if (Hovered == false)
+                    currentBackColor = MathHelper.ColorLerp(currentBackColor, BackColor, 5);
+                else
+                    currentBackColor = MathHelper.ColorLerp(currentBackColor, HoverColor, 5);
             }
             else
-            {
-                currentBackColor = MathHelper.ColorLerp(currentBackColor, HoverColor, 5);
-                g.FillRectangle(new SolidBrush(currentBackColor), 0, 0, Width, Height);
-            }
+                currentBackColor = MathHelper.ColorLerp(currentBackColor, DisableColor, 5);
+
+            g.FillRectangle(new SolidBrush(currentBackColor), 0, 0, Width, Height);
 
             // Border.
             if (Enabled == false)
-                g.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
+                g.DrawRectangle(new Pen(BorderDisableColor), 0, 0, Width, Height);
             else if (Hovered)
                 g.DrawRectangle(new Pen(BorderHoverColor), 0, 0, Width, Height);
             else if (Focused)

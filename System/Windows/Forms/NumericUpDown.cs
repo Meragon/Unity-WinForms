@@ -65,7 +65,11 @@ namespace System.Windows.Forms
         public CallbackDelegate ValueChangedCallback { get; set; }
         public object ValueChangedCallbackInfo { get; set; }
 
-        public NumericUpDown()
+        public NumericUpDown() : this(true)
+        {
+            
+        }
+        public NumericUpDown(bool initButtons)
         {
             this.BackColor = Color.FromArgb(250, 250, 250);
             this.BorderColor = Color.FromArgb(175, 175, 175);
@@ -78,34 +82,37 @@ namespace System.Windows.Forms
             this.Size = new Drawing.Size(120, 20);
             this.TextAlign = HorizontalAlignment.Left;
 
-            ButtonIncrease = new RepeatButton();
-            ButtonIncrease.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-            ButtonIncrease.CanSelect = false;
-            ButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
-            ButtonIncrease.Size = new Size(14, 8);
-            ButtonIncrease.Name = "_numericButtonIncrease";
-            ButtonIncrease.BackColor = Color.FromArgb(236, 236, 236);
-            ButtonIncrease.BorderColor = Color.FromArgb(172, 172, 172);
-            ButtonIncrease.HoverColor = Color.FromArgb(228, 241, 252);
-            ButtonIncrease.BorderHoverColor = Color.FromArgb(126, 180, 234);
-            ButtonIncrease.Image = ApplicationBehaviour.Resources.Images.NumericUp;
-            ButtonIncrease.Click += delegate { if (Enabled) Value += Increment; };
+            if (initButtons)
+            {
+                ButtonIncrease = new RepeatButton();
+                ButtonIncrease.Anchor = AnchorStyles.Right | AnchorStyles.Top;
+                ButtonIncrease.CanSelect = false;
+                ButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
+                ButtonIncrease.Size = new Size(14, 8);
+                ButtonIncrease.Name = "_numericButtonIncrease";
+                ButtonIncrease.BackColor = Color.FromArgb(236, 236, 236);
+                ButtonIncrease.BorderColor = Color.FromArgb(172, 172, 172);
+                ButtonIncrease.HoverColor = Color.FromArgb(228, 241, 252);
+                ButtonIncrease.BorderHoverColor = Color.FromArgb(126, 180, 234);
+                ButtonIncrease.Image = ApplicationBehaviour.Resources.Images.NumericUp;
+                ButtonIncrease.Click += delegate { if (Enabled) Value += Increment; };
 
-            ButtonDecrease = new RepeatButton();
-            ButtonDecrease.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-            ButtonDecrease.CanSelect = false;
-            ButtonDecrease.Location = new Point(Width - 16, Height / 2);
-            ButtonDecrease.Size = new Drawing.Size(14, 8);
-            ButtonDecrease.Name = "_numericButtonDecrease";
-            ButtonDecrease.BackColor = Color.FromArgb(236, 236, 236);
-            ButtonDecrease.BorderColor = Color.FromArgb(172, 172, 172);
-            ButtonDecrease.HoverColor = Color.FromArgb(228, 241, 252);
-            ButtonDecrease.BorderHoverColor = Color.FromArgb(126, 180, 234);
-            ButtonDecrease.Image = ApplicationBehaviour.Resources.Images.NumericDown;
-            ButtonDecrease.Click += delegate { if (Enabled) Value -= Increment; };
+                ButtonDecrease = new RepeatButton();
+                ButtonDecrease.Anchor = AnchorStyles.Right | AnchorStyles.Top;
+                ButtonDecrease.CanSelect = false;
+                ButtonDecrease.Location = new Point(Width - 16, Height / 2);
+                ButtonDecrease.Size = new Drawing.Size(14, 8);
+                ButtonDecrease.Name = "_numericButtonDecrease";
+                ButtonDecrease.BackColor = Color.FromArgb(236, 236, 236);
+                ButtonDecrease.BorderColor = Color.FromArgb(172, 172, 172);
+                ButtonDecrease.HoverColor = Color.FromArgb(228, 241, 252);
+                ButtonDecrease.BorderHoverColor = Color.FromArgb(126, 180, 234);
+                ButtonDecrease.Image = ApplicationBehaviour.Resources.Images.NumericDown;
+                ButtonDecrease.Click += delegate { if (Enabled) Value -= Increment; };
 
-            Controls.Add(ButtonIncrease);
-            Controls.Add(ButtonDecrease);
+                Controls.Add(ButtonIncrease);
+                Controls.Add(ButtonDecrease);
+            }
 
             Resize += _UpdateButtonsLocation;
             LostFocus += (s, a) => { _ConfirmValue(); };
@@ -167,6 +174,10 @@ namespace System.Windows.Forms
 
             Graphics g = e.Graphics;
 
+            int textPaddingRight = 0;
+            if (ButtonIncrease != null && ButtonIncrease.Visible)
+                textPaddingRight = -16;
+
             if (Enabled)
             {
                 g.FillRectangle(BackColor, 0, 0, Width, Height);
@@ -175,7 +186,7 @@ namespace System.Windows.Forms
                 {
                     if (_shouldFocus) e.Graphics.FocusNext();
 
-                    valueText = g.DrawTextField(valueText, Font, new SolidBrush(ForeColor), Padding.Left - 2, 0, Width + (ButtonIncrease.Visible ? -16 : 0) + 4, Height, TextAlign);
+                    valueText = g.DrawTextField(valueText, Font, new SolidBrush(ForeColor), Padding.Left - 2, 0, Width + textPaddingRight + 4, Height, TextAlign);
 
                     if (_shouldFocus)
                     {
@@ -184,12 +195,12 @@ namespace System.Windows.Forms
                     }
                 }
                 else
-                    g.DrawString(valueText, Font, new SolidBrush(ForeColor), Padding.Left, 0, Width + (ButtonIncrease.Visible ? -16 : 0), Height, TextAlign);
+                    g.DrawString(valueText, Font, ForeColor, Padding.Left, 0, Width + textPaddingRight, Height, TextAlign);
             }
             else
             {
                 g.FillRectangle(DisabledColor, 0, 0, Width, Height);
-                g.DrawString(Value.ToString(), Font, Brushes.Black, Padding.Left, 0, Width + (ButtonIncrease.Visible ? -24 : 0), Height, TextAlign);
+                g.DrawString(Value.ToString(), Font, Brushes.Black, Padding.Left, 0, Width + textPaddingRight, Height, TextAlign);
             }
         }
         public void ShowButtons()

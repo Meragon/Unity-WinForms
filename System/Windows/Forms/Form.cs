@@ -10,6 +10,7 @@ namespace System.Windows.Forms
     [Serializable]
     public class Form : ContainerControl, IResizableControl
     {
+        private Pen _borderPen;
         private Button _closeButton;
         private Action<Form, DialogResult> _dialogCallback;
         private MenuStrip _mainMenuStrip;
@@ -22,17 +23,28 @@ namespace System.Windows.Forms
         private Size _resizeOriginal;
         private Point _resizePosition;
         private Point _resizeDelta;
-        private int _resizeOffset = 8;
+        private const int _resizeOffset = 8;
         private ControlResizeTypes _resizeShow;
         private float _resizeAlpha;
         protected Button resizeButton;
         private bool resizeIcon;
         private bool _toggleEditor = true;
+        private bool _topMost;
 
         internal bool dialog;
 
         public IButtonControl AcceptButton { get; set; }
-        public Color BorderColor { get; set; }
+        public Color BorderColor
+        {
+            get { return _borderPen.Color; }
+            set
+            {
+                if (_borderPen == null)
+                    _borderPen = new Pen(value);
+                else
+                    _borderPen.Color = value;
+            }
+        }
         public Button CloseButton { get { return _closeButton; } }
         public bool ControlBox
         {
@@ -105,7 +117,15 @@ namespace System.Windows.Forms
             }
         }
         public override string Text { get; set; }
-        public bool TopMost { get; set; }
+        public bool TopMost
+        {
+            get { return _topMost; }
+            set
+            {
+                _topMost = value;
+                Owner.Forms.Sort();
+            }
+        }
 
         public Form()
         {
@@ -278,38 +298,33 @@ namespace System.Windows.Forms
         }
         public ControlResizeTypes GetResizeAt(Point location)
         {
-            ControlResizeTypes r_type = ControlResizeTypes.None;
-            if (Resizable)
-            {
-                if (ResizeIcon == false)
-                {
-                    // Resize.
-                    r_type = ControlResizeTypes.None;
+            if (!Resizable || ResizeIcon) return ControlResizeTypes.None;
 
-                    // Left side.
-                    if (location.X < _resizeOffset)
-                    {
-                        r_type = ControlResizeTypes.Left;
-                        if (location.Y < _resizeOffset)
-                            r_type = ControlResizeTypes.LeftUp;
-                        else if (location.Y > Height - _resizeOffset)
-                            r_type = ControlResizeTypes.LeftDown;
-                    }
-                    else if (location.X > Width - _resizeOffset)
-                    {
-                        // Right side.
-                        r_type = ControlResizeTypes.Right;
-                        if (location.Y < _resizeOffset)
-                            r_type = ControlResizeTypes.RightUp;
-                        else if (location.Y > Height - _resizeOffset)
-                            r_type = ControlResizeTypes.RightDown;
-                    }
-                    else if (location.Y < _resizeOffset)
-                        r_type = ControlResizeTypes.Up;
-                    else if (location.Y > Height - _resizeOffset)
-                        r_type = ControlResizeTypes.Down;
-                }
+            var r_type = ControlResizeTypes.None;
+
+            // Left side.
+            if (location.X < _resizeOffset)
+            {
+                r_type = ControlResizeTypes.Left;
+                if (location.Y < _resizeOffset)
+                    r_type = ControlResizeTypes.LeftUp;
+                else if (location.Y > Height - _resizeOffset)
+                    r_type = ControlResizeTypes.LeftDown;
             }
+            else if (location.X > Width - _resizeOffset)
+            {
+                // Right side.
+                r_type = ControlResizeTypes.Right;
+                if (location.Y < _resizeOffset)
+                    r_type = ControlResizeTypes.RightUp;
+                else if (location.Y > Height - _resizeOffset)
+                    r_type = ControlResizeTypes.RightDown;
+            }
+            else if (location.Y < _resizeOffset)
+                r_type = ControlResizeTypes.Up;
+            else if (location.Y > Height - _resizeOffset)
+                r_type = ControlResizeTypes.Down;
+
             return r_type;
         }
         public void Hide()
@@ -423,9 +438,9 @@ namespace System.Windows.Forms
         {
             Graphics g = e.Graphics;
 
-            g.FillRectangle(new SolidBrush(HeaderColor), 0, 0, Width, HeaderHeight);
-            g.DrawString(Text, HeaderFont, new SolidBrush(HeaderTextColor), HeaderPadding.Left, HeaderPadding.Top, Width - HeaderPadding.Right - HeaderPadding.Left, HeaderHeight - HeaderPadding.Bottom - HeaderPadding.Top, HeaderTextAlign);
-            g.FillRectangle(new SolidBrush(BackColor), 0, HeaderHeight, Width, Height - HeaderHeight);
+            g.FillRectangle(HeaderColor, 0, 0, Width, HeaderHeight);
+            g.DrawString(Text, HeaderFont, HeaderTextColor, HeaderPadding.Left, HeaderPadding.Top, Width - HeaderPadding.Right - HeaderPadding.Left, HeaderHeight - HeaderPadding.Bottom - HeaderPadding.Top, HeaderTextAlign);
+            g.FillRectangle(BackColor, 0, HeaderHeight, Width, Height - HeaderHeight);
         }
         protected override object OnPaintEditor(float width)
         {
@@ -463,6 +478,9 @@ namespace System.Windows.Forms
                 var editorResizable = Editor.BooleanField("      Resizable", Resizable);
                 if (editorResizable.Changed) Resizable = editorResizable;
 
+                var editorTopMost = Editor.BooleanField("      TopMost", TopMost);
+                if (editorTopMost.Changed) TopMost = editorTopMost.Value;
+
                 Editor.EndGroup();
             }
             Editor.EndVertical();
@@ -473,158 +491,7 @@ namespace System.Windows.Forms
         {
             base.OnLatePaint(e);
 
-            e.Graphics.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
-            /*if (!AlwaysFocused && !Focused)
-                e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(64, 180, 180, 180)), 0, 0, Width, Height);*/
-
-            return;
-
-            var g = e.Graphics;
-
-            #region Show resize.
-            if (HighlightResizeBorders && !ResizeIcon)
-            {
-                if (ClientRectangle.Contains(PointToClient(MousePosition)))
-                {
-                    if (_resizeShow == ControlResizeTypes.None)
-                        _resizeAlpha = MathHelper.FloatLerp(_resizeAlpha, 0, 1);
-                    else
-                        _resizeAlpha = MathHelper.FloatLerp(_resizeAlpha, 255, 1);
-                }
-                else
-                    _resizeAlpha = MathHelper.FloatLerp(_resizeAlpha, 0, 1);
-
-                //SolidBrush resizeBrush = new SolidBrush(Color.FromArgb((int)_resizeAlpha, 8, 122, 204));
-                if (_resizeAlpha > 0)
-                {
-                    switch (_resizeShow)
-                    {
-                        case ControlResizeTypes.Right:
-                            //g.FillRectangle(resizeBrush, Width - _resizeOffset, 0, _resizeOffset, Height); 
-                            g.DrawTexture(
-                                ApplicationBehaviour.Resources.Images.ArrowRight,
-                                Width - ApplicationBehaviour.Resources.Images.ArrowRight.width,
-                                Height / 2 - ApplicationBehaviour.Resources.Images.ArrowRight.height / 2,
-                                ApplicationBehaviour.Resources.Images.ArrowRight.width,
-                                ApplicationBehaviour.Resources.Images.ArrowRight.height,
-                                Color.FromArgb((int)_resizeAlpha, Color.White));
-                            break;
-                        case ControlResizeTypes.RightDown:
-                            g.DrawTexture(
-                                ApplicationBehaviour.Resources.Images.ArrowRight,
-                                Width - ApplicationBehaviour.Resources.Images.ArrowRight.width,
-                                Height / 2 - ApplicationBehaviour.Resources.Images.ArrowRight.height / 2,
-                                ApplicationBehaviour.Resources.Images.ArrowRight.width,
-                                ApplicationBehaviour.Resources.Images.ArrowRight.height,
-                                Color.FromArgb((int)_resizeAlpha, Color.White)
-                                );
-                            g.DrawTexture(
-                                ApplicationBehaviour.Resources.Images.ArrowDown,
-                                Width / 2 - ApplicationBehaviour.Resources.Images.ArrowDown.width / 2,
-                                Height - ApplicationBehaviour.Resources.Images.ArrowDown.height,
-                                ApplicationBehaviour.Resources.Images.ArrowDown.width,
-                                ApplicationBehaviour.Resources.Images.ArrowDown.height,
-                                Color.FromArgb((int)_resizeAlpha, Color.White)
-                                );
-                            //g.FillRectangle(resizeBrush, Width - _resizeOffset, 0, _resizeOffset, Height - _resizeOffset);
-                            //g.FillRectangle(resizeBrush, 0, Height - _resizeOffset, Width, _resizeOffset);
-                            break;
-                        case ControlResizeTypes.Down:
-                            g.DrawTexture(
-                                ApplicationBehaviour.Resources.Images.ArrowDown,
-                                Width / 2 - ApplicationBehaviour.Resources.Images.ArrowDown.width / 2,
-                                Height - ApplicationBehaviour.Resources.Images.ArrowDown.height,
-                                ApplicationBehaviour.Resources.Images.ArrowDown.width,
-                                ApplicationBehaviour.Resources.Images.ArrowDown.height,
-                                Color.FromArgb((int)_resizeAlpha, Color.White)
-                                );
-                            //g.FillRectangle(resizeBrush, 0, Height - _resizeOffset, Width, _resizeOffset); 
-                            break;
-                        case ControlResizeTypes.LeftDown:
-                            g.DrawTexture(
-                                ApplicationBehaviour.Resources.Images.ArrowLeft,
-                                0,
-                                Height / 2 - ApplicationBehaviour.Resources.Images.ArrowLeft.height / 2,
-                                ApplicationBehaviour.Resources.Images.ArrowLeft.width,
-                                ApplicationBehaviour.Resources.Images.ArrowLeft.height,
-                                Color.FromArgb((int)_resizeAlpha, Color.White)
-                                );
-                            g.DrawTexture(
-                                ApplicationBehaviour.Resources.Images.ArrowDown,
-                                Width / 2 - ApplicationBehaviour.Resources.Images.ArrowDown.width / 2,
-                                Height - ApplicationBehaviour.Resources.Images.ArrowDown.height,
-                                ApplicationBehaviour.Resources.Images.ArrowDown.width,
-                                ApplicationBehaviour.Resources.Images.ArrowDown.height,
-                                Color.FromArgb((int)_resizeAlpha, Color.White)
-                                );
-                            //g.FillRectangle(resizeBrush, 0, 0, _resizeOffset, Height - _resizeOffset);
-                            //g.FillRectangle(resizeBrush, 0, Height - _resizeOffset, Width, _resizeOffset);
-                            break;
-                        case ControlResizeTypes.Left:
-                            g.DrawTexture(
-                                ApplicationBehaviour.Resources.Images.ArrowLeft,
-                                0,
-                                Height / 2 - ApplicationBehaviour.Resources.Images.ArrowLeft.height / 2,
-                                ApplicationBehaviour.Resources.Images.ArrowLeft.width,
-                                ApplicationBehaviour.Resources.Images.ArrowLeft.height,
-                                Color.FromArgb((int)_resizeAlpha, Color.White)
-                                );
-                            //g.FillRectangle(resizeBrush, 0, 0, _resizeOffset, Height); 
-                            break;
-                        case ControlResizeTypes.LeftUp:
-                            g.DrawTexture(
-                                ApplicationBehaviour.Resources.Images.ArrowLeft,
-                                0,
-                                Height / 2 - ApplicationBehaviour.Resources.Images.ArrowLeft.height / 2,
-                                ApplicationBehaviour.Resources.Images.ArrowLeft.width,
-                                ApplicationBehaviour.Resources.Images.ArrowLeft.height,
-                                Color.FromArgb((int)_resizeAlpha, Color.White)
-                                );
-                            g.DrawTexture(
-                                ApplicationBehaviour.Resources.Images.ArrowUp,
-                                Width / 2 - ApplicationBehaviour.Resources.Images.ArrowUp.width / 2,
-                                0,
-                                ApplicationBehaviour.Resources.Images.ArrowUp.width,
-                                ApplicationBehaviour.Resources.Images.ArrowUp.height,
-                                Color.FromArgb((int)_resizeAlpha, Color.White)
-                                );
-                            //g.FillRectangle(resizeBrush, 0, _resizeOffset, _resizeOffset, Height - _resizeOffset);
-                            //g.FillRectangle(resizeBrush, 0, 0, Width, _resizeOffset);
-                            break;
-                        case ControlResizeTypes.Up:
-                            g.DrawTexture(
-                                ApplicationBehaviour.Resources.Images.ArrowUp,
-                                Width / 2 - ApplicationBehaviour.Resources.Images.ArrowUp.width / 2,
-                                0,
-                                ApplicationBehaviour.Resources.Images.ArrowUp.width,
-                                ApplicationBehaviour.Resources.Images.ArrowUp.height,
-                                Color.FromArgb((int)_resizeAlpha, Color.White)
-                                );
-                            //g.FillRectangle(resizeBrush, 0, 0, Width, _resizeOffset); 
-                            break;
-                        case ControlResizeTypes.RightUp:
-                            g.DrawTexture(
-                                ApplicationBehaviour.Resources.Images.ArrowRight,
-                                Width - ApplicationBehaviour.Resources.Images.ArrowRight.width,
-                                Height / 2 - ApplicationBehaviour.Resources.Images.ArrowRight.height / 2,
-                                ApplicationBehaviour.Resources.Images.ArrowRight.width,
-                                ApplicationBehaviour.Resources.Images.ArrowRight.height,
-                                Color.FromArgb((int)_resizeAlpha, Color.White));
-                            g.DrawTexture(
-                                ApplicationBehaviour.Resources.Images.ArrowUp,
-                                Width / 2 - ApplicationBehaviour.Resources.Images.ArrowUp.width / 2,
-                                0,
-                                ApplicationBehaviour.Resources.Images.ArrowUp.width,
-                                ApplicationBehaviour.Resources.Images.ArrowUp.height,
-                                Color.FromArgb((int)_resizeAlpha, Color.White)
-                                );
-                            //g.FillRectangle(resizeBrush, Width - _resizeOffset, _resizeOffset, _resizeOffset, Height - _resizeOffset);
-                            //g.FillRectangle(resizeBrush, 0, 0, Width, _resizeOffset);
-                            break;
-                    }
-                }
-            }
-            #endregion
+            e.Graphics.DrawRectangle(_borderPen, 0, 0, Width, Height);
         }
     }
 

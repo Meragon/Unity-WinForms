@@ -10,11 +10,14 @@ namespace System.Windows.Forms
     public class Control : Component, IDisposable
     {
         public static Application DefaultController { get; set; }
+        public static Font DefaultFont = new Font("Arial", 12);
         public static Point MousePosition
         {
             get
             {
-                return new Point((int)UnityEngine.Input.mousePosition.x, (int)(UnityEngine.Screen.height - UnityEngine.Input.mousePosition.y));
+                return new Point(
+                    (int)(UnityEngine.Input.mousePosition.x / Application.ScaleX), 
+                    (int)((UnityEngine.Screen.height - UnityEngine.Input.mousePosition.y) / Application.ScaleY));
             }
         }
 
@@ -226,7 +229,7 @@ namespace System.Windows.Forms
             Anchor = AnchorStyles.Left | AnchorStyles.Top;
             Controls = new ControlCollection(this);
             Enabled = true;
-            Font = new Drawing.Font("Arial", 12);
+            Font = DefaultFont;
             ForeColor = Color.Black;
             TabIndex = -1;
             AutoGroup = true;
@@ -248,8 +251,7 @@ namespace System.Windows.Forms
                 Parent.Controls.Add(this);
             }
 
-            var form = this as Form;
-            if (form == null) form = Application.GetRootControl(this) as Form;
+            var form = this as Form ?? Application.GetRootControl(this) as Form;
             if (form != null)
             {
                 if (this.Owner.Forms.Contains(form))
@@ -264,12 +266,12 @@ namespace System.Windows.Forms
                 }
             }
         }
-        public virtual new void Dispose()
+        public new virtual void Dispose()
         {
             if (_isDisposed) return;
 
             _disposing = true;
-            OnDisposing(this, new EventArgs());
+            OnDisposing(this, EventArgs.Empty);
 
             if (PreventChildDisposing == false)
             {
@@ -314,9 +316,10 @@ namespace System.Windows.Forms
         {
             Select();
 
-            var form = this as Form;
-            if (form == null) form = Application.GetRootControl(this) as Form;
+            var form = this as Form ?? Application.GetRootControl(this) as Form;
             if (form != null) form.BringToFront();
+
+            GotFocus(this, EventArgs.Empty);
         }
         public void Invalidate()
         {
@@ -589,7 +592,7 @@ namespace System.Windows.Forms
             var editorMinimumSize = Editor.IntField("MinimumSize", this.MinimumSize.Width, this.MinimumSize.Height);
             if (editorMinimumSize.Changed) this.MinimumSize = new Drawing.Size(editorMinimumSize.Value[0], editorMinimumSize.Value[1]);
 
-            var editorName = Editor.TextField("Name", this.Name == null ? "" : this.Name);
+            var editorName = Editor.TextField("Name", Name ?? "");
             if (editorName.Changed) this.Name = editorName;
 
             Editor.Label("Offset", Offset);
@@ -621,7 +624,7 @@ namespace System.Windows.Forms
             var editorTabIndex = Editor.Slider("TabIndex", this.TabIndex, 0, 255);
             if (editorTabIndex.Changed) this.TabIndex = (int)editorTabIndex.Value;
 
-            var editorText = Editor.TextField("Text", this.Text == null ? "" : this.Text);
+            var editorText = Editor.TextField("Text", Text ?? "");
             if (editorText.Changed) this.Text = editorText;
 
             Editor.Label("Type", this.GetType());
@@ -739,11 +742,12 @@ namespace System.Windows.Forms
                 {
                     int shX = e.ClipRectangle.X + 6;
                     int shY = e.ClipRectangle.Y + 6;
-                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), shX + 6, shY + 6, Width - 12, Height - 12);
-                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), shX + 5, shY + 5, Width - 10, Height - 10);
-                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), shX + 4, shY + 4, Width - 8, Height - 8);
-                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), shX + 3, shY + 3, Width - 6, Height - 6);
-                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), shX + 2, shY + 2, Width - 4, Height - 4);
+                    var shadowColor = Color.FromArgb(12, 64, 64, 64);
+                    e.Graphics.FillRectangle(shadowColor, shX + 6, shY + 6, Width - 12, Height - 12);
+                    e.Graphics.FillRectangle(shadowColor, shX + 5, shY + 5, Width - 10, Height - 10);
+                    e.Graphics.FillRectangle(shadowColor, shX + 4, shY + 4, Width - 8, Height - 8);
+                    e.Graphics.FillRectangle(shadowColor, shX + 3, shY + 3, Width - 6, Height - 6);
+                    e.Graphics.FillRectangle(shadowColor, shX + 2, shY + 2, Width - 4, Height - 4);
                 }
                 else
                     ShadowHandler.Invoke(e);
@@ -768,8 +772,8 @@ namespace System.Windows.Forms
                     if (Application.ControlIsVisible(Controls[i]) == false) continue;
 
                     var currentAbspos = Controls[i].PointToScreen(System.Drawing.Point.Zero);
-                    if (currentAbspos.X + Controls[i].Width < 0 || currentAbspos.X > UnityEngine.Screen.width ||
-                    currentAbspos.Y + Controls[i].Height < 0 || currentAbspos.Y > UnityEngine.Screen.height)
+                    if (currentAbspos.X + Controls[i].Width < 0 || currentAbspos.X > Screen.PrimaryScreen.WorkingArea.Width ||
+                    currentAbspos.Y + Controls[i].Height < 0 || currentAbspos.Y > Screen.PrimaryScreen.WorkingArea.Height)
                         continue;
 
                     e.Graphics.Control = Controls[i];
@@ -820,8 +824,8 @@ namespace System.Windows.Forms
 
         public class ControlCollection : IEnumerator<Control>, IEnumerable<Control>, IList
         {
-            private List<Control> _items = new List<Control>();
-            private Control _owner;
+            private readonly List<Control> _items = new List<Control>();
+            private readonly Control _owner;
 
             public ControlCollection(Control owner)
             {
@@ -950,39 +954,45 @@ namespace System.Windows.Forms
 
             int IList.Add(object value)
             {
-                if (value is Control)
+                var control = value as Control;
+                if (control != null)
                 {
-                    Add(value as Control);
+                    Add(control);
                     return _items.Count - 1;
                 }
                 return -1;
             }
             bool IList.Contains(object value)
             {
-                if (value is Control)
-                    return _items.Contains(value as Control);
+                var control = value as Control;
+                if (control != null)
+                    return _items.Contains(control);
                 return false;
             }
             int IList.IndexOf(object value)
             {
-                if (value is Control)
-                    return _items.IndexOf(value as Control);
+                var control = value as Control;
+                if (control != null)
+                    return _items.IndexOf(control);
                 return -1;
             }
             void IList.Insert(int index, object value)
             {
-                if (value is Control)
-                    _items.Insert(index, value as Control);
+                var control = value as Control;
+                if (control != null)
+                    _items.Insert(index, control);
             }
             void IList.Remove(object value)
             {
-                if (value is Control)
-                    _items.Remove(value as Control);
+                var control = value as Control;
+                if (control != null)
+                    _items.Remove(control);
             }
             public void CopyTo(Array array, int index)
             {
-                if (array is Control[])
-                    _items.CopyTo(array as Control[], index);
+                var controls = array as Control[];
+                if (controls != null)
+                    _items.CopyTo(controls, index);
             }
         }
     }
