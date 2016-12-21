@@ -446,14 +446,12 @@ namespace System.Windows.Forms
         {
             var control = base.OnPaintEditor(width);
 
+            Editor.BeginGroup(width - 24);
             Editor.BeginVertical();
-            Editor.NewLine(1);
 
             _toggleEditor = Editor.Foldout("Form", _toggleEditor);
             if (_toggleEditor)
             {
-                Editor.BeginGroup(width - 24);
-
                 Editor.ColorField("      BorderColor", BorderColor, (c) => { BorderColor = c; });
 
                 var editorControlBox = Editor.BooleanField("      ControlBox", ControlBox);
@@ -481,9 +479,9 @@ namespace System.Windows.Forms
                 var editorTopMost = Editor.BooleanField("      TopMost", TopMost);
                 if (editorTopMost.Changed) TopMost = editorTopMost.Value;
 
-                Editor.EndGroup();
             }
             Editor.EndVertical();
+            Editor.EndGroup();
 
             return control;
         }

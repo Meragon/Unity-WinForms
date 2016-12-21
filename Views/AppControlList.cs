@@ -108,23 +108,20 @@ namespace Views
                 GUILayout.EndHorizontal();
             }
             GUILayout.Space(24);
-            GUILayout.Label("Hovered");
-            for (int i = 0; i < System.Windows.Forms.Control.DefaultController.HoveredControls.Count; i++)
+            GUILayout.Label("Hovered Control");
+
+            var hoveredControl = System.Windows.Forms.Control.DefaultController.hoveredControl;
+            if (hoveredControl != null)
             {
-                string c_type = System.Windows.Forms.Control.DefaultController.HoveredControls[i].GetType().ToString().Replace("System.Windows.Forms", "SWF");
-                string c_name = System.Windows.Forms.Control.DefaultController.HoveredControls[i].Name;
+                string c_type = hoveredControl.GetType().ToString().Replace("System.Windows.Forms", "SWF");
+                string c_name = hoveredControl.Name;
                 if (c_name == null) c_name = "";
-                if (!String.IsNullOrEmpty(_filter))
-                {
-                    if (!c_type.ToLower().Contains(_filter.ToLower()) && !c_name.ToLower().Contains(_filter.ToLower()))
-                        continue;
-                }
 
                 GUILayout.BeginHorizontal(GUILayout.Width(width));
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
                     var w = AppControl.ShowWindow();
-                    (w as AppControl).Control = System.Windows.Forms.Control.DefaultController.HoveredControls[i];
+                    (w as AppControl).Control = hoveredControl;
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));

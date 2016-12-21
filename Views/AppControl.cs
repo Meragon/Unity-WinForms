@@ -50,7 +50,7 @@ namespace Views
         }
         void Update()
         {
-            if (_repaintWait < 1)
+            if (_repaintWait < .5f)
                 _repaintWait += Time.deltaTime;
             else
             {
@@ -69,16 +69,7 @@ namespace Views
 
             _scrollPosition = UnityEngine.GUILayout.BeginScrollView(_scrollPosition);
 
-            var control = Control.RaiseOnPaintEditor(position.width);
-
-            UnityEngine.GUILayout.Label("");
-            if (UnityEngine.GUILayout.Button("Dispose", "Box"))
-                Control.Dispose();
-            if (UnityEngine.GUILayout.Button("Render", "Box"))
-            {
-                var renderWindow = (AppControlRender)AppControlRender.ShowWindow();
-                renderWindow.Control = Control;
-            }
+            var control = Control.RaiseOnPaintEditor(position.width - 8);
 
             if (control != null && control is System.Windows.Forms.Control) Control = control as System.Windows.Forms.Control;
             UnityEngine.GUILayout.EndScrollView();

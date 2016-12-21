@@ -11,6 +11,7 @@ namespace System.Drawing
         private static float _width { get; set; }
         private static float _nameWidth { get; set; }
         private static float _contentWidth { get; set; }
+        private static readonly string[] boolOnOff = { "On", "Off" };
 
         public static bool WinFormsCompatible { get; set; }
 
@@ -18,9 +19,9 @@ namespace System.Drawing
         {
             _width = width;
             _nameWidth = 160;
-            _contentWidth = width - _nameWidth + 8;
+            _contentWidth = width - _nameWidth;
 
-            UnityEngine.GUILayout.BeginVertical();
+            UnityEngine.GUILayout.BeginVertical("Box");
         }
         public static void BeginHorizontal()
         {
@@ -50,13 +51,16 @@ namespace System.Drawing
         {
             UnityEngine.GUILayout.BeginHorizontal();
             UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            var boolBuffer = UnityEngine.GUILayout.Toolbar(value ? 0 : 1, new string[] { "On", "Off" }, UnityEngine.GUILayout.Width(_contentWidth - 48)) == 0 ? true : false;
+            var boolBuffer = UnityEngine.GUILayout.Toolbar(value ? 0 : 1, boolOnOff, UnityEngine.GUILayout.Width(_contentWidth)) != 1;
             UnityEngine.GUILayout.EndHorizontal();
 
             return new EditorValue<bool>(boolBuffer, boolBuffer != value);
         }
         public static bool Button(string name, string text)
         {
+            if (name == null)
+                name = "null";
+
             UnityEngine.GUILayout.BeginHorizontal();
             UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
             var boolResult = UnityEngine.GUILayout.Button(text, UnityEngine.GUILayout.Width(_contentWidth));
@@ -170,7 +174,7 @@ namespace System.Drawing
                 }
 #if UNITY_EDITOR
                 else
-                    intBuffer[i] = UnityEditor.EditorGUILayout.IntField(value[i], UnityEngine.GUILayout.Width(_contentWidth / value.Length));
+                    intBuffer[i] = UnityEditor.EditorGUILayout.IntField(value[i], UnityEngine.GUILayout.Width(_contentWidth / value.Length - value.Length));
 #endif
                 if (intBuffer[i] != value[i])
                     changed = true;
@@ -230,7 +234,7 @@ namespace System.Drawing
             }
 #if UNITY_EDITOR
             else
-                floatBuffer = UnityEditor.EditorGUILayout.Slider(value, min, max, UnityEngine.GUILayout.Width(_contentWidth - 8));
+                floatBuffer = UnityEditor.EditorGUILayout.Slider(value, min, max, UnityEngine.GUILayout.Width(_contentWidth));
 #endif
             UnityEngine.GUILayout.EndHorizontal();
 

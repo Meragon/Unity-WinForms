@@ -37,6 +37,7 @@ namespace System.Windows.Forms
         private int _width;
 
         // Editor toggles.
+        private bool _toggleEditor = true;
         private bool _toggleFont;
         private bool _toggleControls;
         private bool _toggleSource;
@@ -474,166 +475,167 @@ namespace System.Windows.Forms
 
             Editor.BeginGroup(width - 24);
 
-            string title = Name;
-            if (string.IsNullOrEmpty(title))
-                title = GetType().ToString();
-
-            Editor.Header(title);
-
-            Editor.NewLine(2);
-
-            var editorAllowDrop = Editor.BooleanField("AllowDrop", this.AllowDrop);
-            if (editorAllowDrop.Changed) this.AllowDrop = editorAllowDrop;
-
-            var editorAlwaysFocused = Editor.BooleanField("AlwaysFocused", this.AlwaysFocused);
-            if (editorAlwaysFocused.Changed) this.AlwaysFocused = editorAlwaysFocused;
-
-            var editorAnchor = Editor.EnumField("Anchor", this.Anchor);
-            if (editorAnchor.Changed) this.Anchor = (AnchorStyles)editorAnchor.Value;
-
-            var editorAutoSize = Editor.BooleanField("AutoSize", this.AutoSize);
-            if (editorAutoSize.Changed) this.AutoSize = editorAutoSize;
-
-            Editor.ColorField("BackColor", this.BackColor, (c) => { this.BackColor = c; });
-
-            var editorBackgroundImageLayout = Editor.EnumField("BackgroundImageLayout", this.BackgroundImageLayout);
-            if (editorBackgroundImageLayout.Changed) this.BackgroundImageLayout = (ImageLayout)editorBackgroundImageLayout.Value;
-
-            Editor.Label("Batches", Batches);
-
-            var editorCanSelect = Editor.BooleanField("CanSelect", CanSelect);
-            if (editorCanSelect.Changed)
-                CanSelect = editorCanSelect.Value;
-
-            Editor.Label("ClientRectangle", this.ClientRectangle);
-            Editor.Label("Context", this.Context);
-
-            if (this.Controls != null && this.Controls.Count > 0)
+            _toggleEditor = Editor.Foldout("Control (" + GetType().Name + ")", _toggleEditor);
+            if (_toggleEditor)
             {
-                _toggleControls = Editor.Foldout("Controls (" + this.Controls.Count.ToString() + ")", _toggleControls);
-                if (_toggleControls)
+                var editorAllowDrop = Editor.BooleanField("AllowDrop", this.AllowDrop);
+                if (editorAllowDrop.Changed) this.AllowDrop = editorAllowDrop;
+
+                var editorAlwaysFocused = Editor.BooleanField("AlwaysFocused", this.AlwaysFocused);
+                if (editorAlwaysFocused.Changed) this.AlwaysFocused = editorAlwaysFocused;
+
+                var editorAnchor = Editor.EnumField("Anchor", this.Anchor);
+                if (editorAnchor.Changed) this.Anchor = (AnchorStyles)editorAnchor.Value;
+
+                var editorAutoSize = Editor.BooleanField("AutoSize", this.AutoSize);
+                if (editorAutoSize.Changed) this.AutoSize = editorAutoSize;
+
+                Editor.ColorField("BackColor", this.BackColor, (c) => { this.BackColor = c; });
+
+                var editorBackgroundImageLayout = Editor.EnumField("BackgroundImageLayout", this.BackgroundImageLayout);
+                if (editorBackgroundImageLayout.Changed) this.BackgroundImageLayout = (ImageLayout)editorBackgroundImageLayout.Value;
+
+                Editor.Label("Batches", Batches);
+
+                var editorCanSelect = Editor.BooleanField("CanSelect", CanSelect);
+                if (editorCanSelect.Changed)
+                    CanSelect = editorCanSelect.Value;
+
+                Editor.Label("ClientRectangle", this.ClientRectangle);
+                Editor.Label("Context", this.Context);
+
+                if (this.Controls != null && this.Controls.Count > 0)
                 {
-                    for (int i = 0; i < this.Controls.Count; i++)
+                    _toggleControls = Editor.Foldout("Controls (" + this.Controls.Count.ToString() + ")", _toggleControls);
+                    if (_toggleControls)
                     {
-                        Editor.BeginHorizontal();
-                        if (Editor.Button("...", 24))
-                            controlToSet = this.Controls[i];
-                        Editor.Label(this.Controls[i].GetType());
-                        Editor.Label(this.Controls[i].Name == null ? "null" : this.Controls[i].Name);
-                        Editor.EndHorizontal();
+                        Editor.BeginGroup(width - 32);
+                        for (int i = 0; i < this.Controls.Count; i++)
+                        {
+                            var childControl = this.Controls[i];
+                            if (Editor.Button(childControl.Name, childControl.GetType().Name))
+                                controlToSet = childControl;
+                        }
+                        Editor.EndGroup();
                     }
                 }
-            }
 
-            Editor.Label("DisplayRectangle", this.DisplayRectangle);
-            Editor.Label("Disposing", this.Disposing);
+                Editor.Label("DisplayRectangle", this.DisplayRectangle);
+                Editor.Label("Disposing", this.Disposing);
 
-            var editorEnabled = Editor.BooleanField("Enabled", this.Enabled);
-            if (editorEnabled.Changed) Enabled = editorEnabled;
+                var editorEnabled = Editor.BooleanField("Enabled", this.Enabled);
+                if (editorEnabled.Changed) Enabled = editorEnabled;
 
-            Editor.Label("Focused", this.Focused);
+                Editor.Label("Focused", this.Focused);
 
-            _toggleFont = Editor.Foldout("Font", _toggleFont);
-            if (_toggleFont)
-            {
-                int selectedFont = -1;
-                float size = 12;
-                if (this.Font != null)
-                    size = this.Font.Size;
-                System.Drawing.FontStyle style = System.Drawing.FontStyle.Regular;
-                if (this.Font != null)
-                    style = this.Font.Style;
-                List<string> fonts = new List<string>();
-                for (int i = 0; i < System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Count; i++)
+                _toggleFont = Editor.Foldout("Font", _toggleFont);
+                if (_toggleFont)
                 {
-                    fonts.Add(System.Windows.Forms.ApplicationBehaviour.Resources.Fonts[i].fontNames[0]);
-                    if (this.Font != null && this.Font.Name.ToLower() == System.Windows.Forms.ApplicationBehaviour.Resources.Fonts[i].fontNames[0].ToLower())
-                        selectedFont = i;
+                    int selectedFont = -1;
+                    float size = 12;
+                    if (this.Font != null)
+                        size = this.Font.Size;
+                    System.Drawing.FontStyle style = System.Drawing.FontStyle.Regular;
+                    if (this.Font != null)
+                        style = this.Font.Style;
+                    List<string> fonts = new List<string>();
+                    for (int i = 0; i < System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Count; i++)
+                    {
+                        fonts.Add(System.Windows.Forms.ApplicationBehaviour.Resources.Fonts[i].fontNames[0]);
+                        if (this.Font != null && this.Font.Name.ToLower() == System.Windows.Forms.ApplicationBehaviour.Resources.Fonts[i].fontNames[0].ToLower())
+                            selectedFont = i;
+                    }
+
+                    var editorFont = Editor.Popup("      Font", selectedFont, fonts.ToArray());
+                    if (editorFont.Changed)
+                        this.Font = new System.Drawing.Font(System.Windows.Forms.ApplicationBehaviour.Resources.Fonts[editorFont].fontNames[0], size);
+
+                    var editorFontSize = Editor.Slider("      Size", size, 8, 128);
+                    if (editorFontSize.Changed)
+                    {
+                        if (this.Font == null)
+                            this.Font = new System.Drawing.Font("Arial", editorFontSize);
+                        else
+                            this.Font = new System.Drawing.Font(this.Font.Name, editorFontSize);
+                    }
+
+                    var editorFontStyle = Editor.EnumField("      Style", style);
+                    if (editorFontStyle.Changed)
+                    {
+                        if (this.Font == null)
+                            this.Font = new System.Drawing.Font("Arial", editorFontSize, (System.Drawing.FontStyle)editorFontStyle.Value);
+                        else
+                            this.Font = new System.Drawing.Font(this.Font.Name, editorFontSize, (System.Drawing.FontStyle)editorFontStyle.Value);
+                    }
                 }
 
-                var editorFont = Editor.Popup("      Font", selectedFont, fonts.ToArray());
-                if (editorFont.Changed)
-                    this.Font = new System.Drawing.Font(System.Windows.Forms.ApplicationBehaviour.Resources.Fonts[editorFont].fontNames[0], size);
+                Editor.ColorField("ForeColor", this.ForeColor, (c) => { this.ForeColor = c; });
 
-                var editorFontSize = Editor.Slider("      Size", size, 8, 128);
-                if (editorFontSize.Changed)
+                var editorHeight = Editor.Slider("Height", this.Height, 0, 4096);
+                if (editorHeight.Changed) Height = (int)editorHeight.Value;
+
+                Editor.Label("Hovered", this.Hovered);
+
+                Editor.Label("IsDisposed", this.IsDisposed.ToString());
+
+                var editorLocation = Editor.IntField("Location", this.Location.X, this.Location.Y);
+                if (editorLocation.Changed) Location = new Point(editorLocation.Value[0], editorLocation.Value[1]);
+
+                var editorMaximumSize = Editor.IntField("MaximumSize", this.MaximumSize.Width, this.MaximumSize.Height);
+                if (editorMaximumSize.Changed) this.MaximumSize = new Drawing.Size(editorMaximumSize.Value[0], editorMaximumSize.Value[1]);
+
+                var editorMinimumSize = Editor.IntField("MinimumSize", this.MinimumSize.Width, this.MinimumSize.Height);
+                if (editorMinimumSize.Changed) this.MinimumSize = new Drawing.Size(editorMinimumSize.Value[0], editorMinimumSize.Value[1]);
+
+                var editorName = Editor.TextField("Name", Name ?? "");
+                if (editorName.Changed) this.Name = editorName;
+
+                Editor.Label("Offset", Offset);
+
+                var editorPadding = Editor.IntField("Padding", this.Padding.Left, this.Padding.Top, this.Padding.Right, this.Padding.Bottom);
+                if (editorPadding.Changed)
+                    Padding = new Forms.Padding(editorPadding.Value[0], editorPadding.Value[3], editorPadding.Value[2], editorPadding.Value[1]);
+
+                if (this.Parent != null)
                 {
-                    if (this.Font == null)
-                        this.Font = new System.Drawing.Font("Arial", editorFontSize);
-                    else
-                        this.Font = new System.Drawing.Font(this.Font.Name, editorFontSize);
+                    if (Editor.Button("Parent", this.Parent.GetType().Name))
+                        controlToSet = this.Parent;
                 }
+                else
+                    Editor.Label("Parent", "null");
 
-                var editorFontStyle = Editor.EnumField("      Style", style);
-                if (editorFontStyle.Changed)
-                {
-                    if (this.Font == null)
-                        this.Font = new System.Drawing.Font("Arial", editorFontSize, (System.Drawing.FontStyle)editorFontStyle.Value);
-                    else
-                        this.Font = new System.Drawing.Font(this.Font.Name, editorFontSize, (System.Drawing.FontStyle)editorFontStyle.Value);
-                }
+
+                var editorShadowBox = Editor.BooleanField("ShadowBox", this.ShadowBox);
+                if (editorShadowBox.Changed) ShadowBox = editorShadowBox;
+
+                var editorSize = Editor.IntField("Size", this.Size.Width, this.Size.Height);
+                if (editorSize.Changed) this.Size = new Drawing.Size(editorSize.Value[0], editorSize.Value[1]);
+
+                _toggleSource = Editor.Foldout("Source", _toggleSource);
+                if (_toggleSource) Editor.Label(this.Source);
+
+                var editorTabIndex = Editor.Slider("TabIndex", this.TabIndex, 0, 255);
+                if (editorTabIndex.Changed) this.TabIndex = (int)editorTabIndex.Value;
+
+                var editorText = Editor.TextField("Text", Text ?? "");
+                if (editorText.Changed) this.Text = editorText;
+
+                Editor.Label("Type", this.GetType());
+
+                var editorVisible = Editor.BooleanField("Visible", this.Visible);
+                if (editorVisible.Changed) this.Visible = editorVisible;
+
+                var editorWidth = Editor.Slider("Width", this.Width, 0, 4096);
+                if (editorWidth.Changed) this.Width = (int)editorWidth.Value;
+
+                Editor.NewLine(1);
+
+                if (Editor.Button("BringToFront()")) BringToFront();
+                if (Editor.Button("Dispose()")) Dispose();
+                if (Editor.Button("Focus()")) Focus();
+                if (Editor.Button("Refresh()")) Refresh();
+                if (Editor.Button("Select()")) Select();
             }
-
-            Editor.ColorField("ForeColor", this.ForeColor, (c) => { this.ForeColor = c; });
-
-            var editorHeight = Editor.Slider("Height", this.Height, 0, 4096);
-            if (editorHeight.Changed) Height = (int)editorHeight.Value;
-
-            Editor.Label("Hovered", this.Hovered);
-
-            Editor.Label("IsDisposed", this.IsDisposed.ToString());
-
-            var editorLocation = Editor.IntField("Location", this.Location.X, this.Location.Y);
-            if (editorLocation.Changed) Location = new Point(editorLocation.Value[0], editorLocation.Value[1]);
-
-            var editorMaximumSize = Editor.IntField("MaximumSize", this.MaximumSize.Width, this.MaximumSize.Height);
-            if (editorMaximumSize.Changed) this.MaximumSize = new Drawing.Size(editorMaximumSize.Value[0], editorMaximumSize.Value[1]);
-
-            var editorMinimumSize = Editor.IntField("MinimumSize", this.MinimumSize.Width, this.MinimumSize.Height);
-            if (editorMinimumSize.Changed) this.MinimumSize = new Drawing.Size(editorMinimumSize.Value[0], editorMinimumSize.Value[1]);
-
-            var editorName = Editor.TextField("Name", Name ?? "");
-            if (editorName.Changed) this.Name = editorName;
-
-            Editor.Label("Offset", Offset);
-
-            var editorPadding = Editor.IntField("Padding", this.Padding.Left, this.Padding.Top, this.Padding.Right, this.Padding.Bottom);
-            if (editorPadding.Changed)
-                Padding = new Forms.Padding(editorPadding.Value[0], editorPadding.Value[3], editorPadding.Value[2], editorPadding.Value[1]);
-
-            Editor.BeginHorizontal();
-            Editor.Label("Parent: ");
-            if (this.Parent != null)
-            {
-                if (Editor.Button(this.Parent.GetType().ToString()))
-                    controlToSet = this.Parent;
-            }
-            else
-                Editor.Label("null");
-            Editor.EndHorizontal();
-
-            var editorShadowBox = Editor.BooleanField("ShadowBox", this.ShadowBox);
-            if (editorShadowBox.Changed) ShadowBox = editorShadowBox;
-
-            var editorSize = Editor.IntField("Size", this.Size.Width, this.Size.Height);
-            if (editorSize.Changed) this.Size = new Drawing.Size(editorSize.Value[0], editorSize.Value[1]);
-
-            _toggleSource = Editor.Foldout("Source", _toggleSource);
-            if (_toggleSource) Editor.Label(this.Source);
-
-            var editorTabIndex = Editor.Slider("TabIndex", this.TabIndex, 0, 255);
-            if (editorTabIndex.Changed) this.TabIndex = (int)editorTabIndex.Value;
-
-            var editorText = Editor.TextField("Text", Text ?? "");
-            if (editorText.Changed) this.Text = editorText;
-
-            Editor.Label("Type", this.GetType());
-
-            var editorVisible = Editor.BooleanField("Visible", this.Visible);
-            if (editorVisible.Changed) this.Visible = editorVisible;
-
-            var editorWidth = Editor.Slider("Width", this.Width, 0, 4096);
-            if (editorWidth.Changed) this.Width = (int)editorWidth.Value;
 
             Editor.EndGroup();
 
