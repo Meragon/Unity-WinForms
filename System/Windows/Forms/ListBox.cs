@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Drawing;
@@ -28,7 +29,7 @@ namespace System.Windows.Forms
         private int _scrollHeight;
 
         public const int DefaultItemHeight = 20;
-
+        
         public Color BorderColor { get; set; }
         public Color DisabledColor { get; set; }
         public bool FixedHeight { get; set; }
@@ -96,6 +97,7 @@ namespace System.Windows.Forms
             ScrollHoveredColor = Color.FromArgb(136, 136, 136);
             SelectionColor = Color.FromArgb(187, 222, 251);
             SelectionDisabledColor = Color.FromArgb(101, 203, 255);
+            Size = new Size(120, 95);
             WrapText = true;
 
             Owner.UpClick += Application_UpClick;

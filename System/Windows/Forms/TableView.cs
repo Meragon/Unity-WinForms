@@ -328,7 +328,7 @@ namespace System.Windows.Forms
                 for (int i = 0; i < row.Items.Length; i++)
                 {
                     if (row.ItemsControls[i] != null) continue;
-
+                    
                     int controlColumn = i;
                     TextBox itemControl = new TextBox();
                     itemControl.BorderColor = Color.Transparent;
@@ -340,8 +340,9 @@ namespace System.Windows.Forms
                     if (row.Items[i] != null)
                         itemControl.Text = row.Items[i].ToString();
 
-                    row.ItemsControls.items[i] = itemControl;
+                    row.ItemsControls[i] = itemControl;
                 }
+
         }
         internal void UpdateRows()
         {

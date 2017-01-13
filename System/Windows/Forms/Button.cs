@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Drawing;
@@ -14,8 +15,7 @@ namespace System.Windows.Forms
         private Color _normalColor;
 
         private bool _toggleEditor = true;
-
-        public new Color BackColor { get; set; }
+        
         public virtual DialogResult DialogResult
         {
             get { return dialogResult; }

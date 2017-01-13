@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Drawing;
@@ -12,7 +13,6 @@ namespace System.Windows.Forms
 #if UNITY_EDITOR
         private bool _toggleEditor = true;
 #endif
-
         public ContentAlignment TextAlign { get; set; }
 
         public Label()

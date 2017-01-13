@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Drawing;
@@ -11,7 +12,7 @@ namespace System.Windows.Forms
         private bool _shouldFocus;
         private bool _hovered;
         private string _text;
-
+        
         public Color BorderColor { get; set; }
         public Color BorderHoverColor { get; set; }
         public bool Multiline { get; set; }

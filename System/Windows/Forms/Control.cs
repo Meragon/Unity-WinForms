@@ -41,7 +41,7 @@ namespace System.Windows.Forms
         private bool _toggleFont;
         private bool _toggleControls;
         private bool _toggleSource;
-
+        
         public bool AllowDrop { get; set; }
         public bool AlwaysFocused { get; set; }
         public virtual AnchorStyles Anchor { get; set; }
@@ -295,12 +295,7 @@ namespace System.Windows.Forms
             Disposed(this, null);
             _isDisposed = true;
         }
-        public DragDropEffects DoDragDrop(object data, DragDropEffects allowedEffects)
-        {
-            Application.DoDragDrop(data, allowedEffects);
-            return DragDropEffects.None; // TODO: ?
-        }
-        public DragDropEffects DoDragDrop(object data, DragDropEffects allowedEffects, DragDropRenderHandler render)
+        public DragDropEffects DoDragDrop(object data, DragDropEffects allowedEffects, DragDropRenderHandler render = null)
         {
             Application.DoDragDrop(data, allowedEffects, render);
             return DragDropEffects.None; // TODO: ?

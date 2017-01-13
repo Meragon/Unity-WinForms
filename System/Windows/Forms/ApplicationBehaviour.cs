@@ -27,8 +27,7 @@ namespace System.Windows.Forms
         }
         internal static Texture2D DefaultSpriteSmoothLine { get; private set; }
         public static AppResources Resources { get; private set; }
-
-        public Material LineMaterial;
+        
         public AppResources _Resources;
         public static bool ShowControlProperties { get; set; }
 
@@ -39,20 +38,6 @@ namespace System.Windows.Forms
 
         private void Awake()
         {
-            if (LineMaterial != null)
-                System.Drawing.Graphics.DefaultMaterial = LineMaterial;
-            else
-            {
-                System.Drawing.Graphics.DefaultMaterial = new Material("Shader \"Lines/Colored Blended\" {" +
-                    "SubShader { Pass { " +
-                    "    Blend SrcAlpha OneMinusSrcAlpha " +
-                    "    ZWrite Off Cull Off Fog { Mode Off } " +
-                    "    BindChannels {" +
-                    "      Bind \"vertex\", vertex Bind \"color\", color }" +
-                    "} } }");
-                System.Drawing.Graphics.DefaultMaterial.hideFlags = HideFlags.HideAndDontSave;
-                System.Drawing.Graphics.DefaultMaterial.shader.hideFlags = HideFlags.HideAndDontSave;
-            }
             Resources = _Resources;
 
             _lastWidth = UnityEngine.Screen.width;

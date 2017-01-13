@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
@@ -13,7 +14,7 @@ namespace System.Windows.Forms
         private float repeatCooldownCurrent = 0;
         private float repeatCooldownMin = .1f;
         private float repeatStartCooldown = .4f;
-
+        
         public float CooldownBetweenClicks
         {
             get { return repeatCooldownMin; }

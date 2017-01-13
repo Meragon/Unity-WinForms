@@ -13,9 +13,11 @@ namespace System.Windows.Forms
         internal int index;
         internal TreeNode parent;
         internal TreeView treeView;
-        
+
         private bool expanded;
         private int imageIndex = -1;
+        private int imageIndex_collapsed = -1;
+        private int imageIndex_expanded = -1;
         private bool visible = true;
 
         public static readonly Color DEFAULT_FORE_COLOR = Color.FromArgb(42, 42, 42);
@@ -34,7 +36,24 @@ namespace System.Windows.Forms
         }
         public Color ForeColor { get; set; }
         public Color ImageColor { get; set; }
-        public int ImageIndex { get { return imageIndex; } set { imageIndex = value; } }
+        public int ImageIndex
+        {
+            get
+            {
+                if (expanded)
+                {
+                    if (imageIndex_expanded >= 0)
+                        return imageIndex_expanded;
+                }
+                else if (imageIndex_collapsed >= 0)
+                    return imageIndex_collapsed;
+
+                return imageIndex;
+            }
+            set { imageIndex = value; }
+        }
+        public int ImageIndex_Collapsed { get { return imageIndex_collapsed; } set { imageIndex_collapsed = value; } }
+        public int ImageIndex_Expanded { get { return imageIndex_expanded; } set { imageIndex_expanded = value; } }
         public int Index { get { return index; } }
         public bool IsExpanded { get { return expanded; } internal set { expanded = value; } }
         public bool IsSelected { get { return TreeView.SelectedNode == this; } }

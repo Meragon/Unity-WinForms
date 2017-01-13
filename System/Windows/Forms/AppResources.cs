@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 
+using Image = UnityEngine.Texture2D;
+
 namespace System.Windows.Forms
 {
     [Serializable]
@@ -18,67 +20,73 @@ namespace System.Windows.Forms
         public struct ReservedResources
         {
             [Tooltip("Form resize icon")]
-            public Texture2D ArrowDown;
+            public Image ArrowDown;
 
             [Tooltip("Form resize icon, MonthCalendar, TabControl")]
-            public Texture2D ArrowLeft;
+            public Image ArrowLeft;
 
             [Tooltip("Form resize icon, MonthCalendar, TabControl")]
-            public Texture2D ArrowRight;
+            public Image ArrowRight;
 
             [Tooltip("Form resize icon")]
-            public Texture2D ArrowUp;
+            public Image ArrowUp;
 
-            public Texture2D Circle;
+            public Image Circle;
 
             [Tooltip("Checkbox, ToolStripItem")]
-            public Texture2D Checked;
+            public Image Checked;
 
             [Tooltip("Form close button")]
-            public Texture2D Close;
+            public Image Close;
 
             public CursorImages Cursors;
 
             [Tooltip("ComboBox, VScrollBar")]
-            public Texture2D CurvedArrowDown;
+            public Image CurvedArrowDown;
 
             [Tooltip("HScrollBar")]
-            public Texture2D CurvedArrowLeft;
+            public Image CurvedArrowLeft;
 
             [Tooltip("HScrollBar")]
-            public Texture2D CurvedArrowRight;
+            public Image CurvedArrowRight;
 
             [Tooltip("VScrollBar")]
-            public Texture2D CurvedArrowUp;
+            public Image CurvedArrowUp;
 
             [Tooltip("ToolStripDropDown")]
-            public Texture2D DropDownRightArrow;
+            public Image DropDownRightArrow;
 
             [Tooltip("Form")]
-            public Texture2D FormResize;
+            public Image FormResize;
 
             [Tooltip("NumericUpDown")]
-            public Texture2D NumericDown;
+            public Image NumericDown;
 
             [Tooltip("NumericUpDown")]
-            public Texture2D NumericUp;
+            public Image NumericUp;
+
+            [Tooltip("Tree")]
+            public Image TreeNodeCollapsed;
+
+            [Tooltip("Tree")]
+            public Image TreeNodeExpanded;
         }
 
         [Serializable]
         public struct CursorImages
         {
             [Tooltip("Leave this field empty if you don't want to use your own cursor.")]
-            public Texture2D Default;
+            public Image Default;
 
-            public Texture2D Hand;
-            public Texture2D Help;
-            public Texture2D HSplit;
-            public Texture2D SizeAll;
-            public Texture2D SizeNESW;
-            public Texture2D SizeNS;
-            public Texture2D SizeNWSE;
-            public Texture2D SizeWE;
-            public Texture2D VSplit;
+            public Image Hand;
+            public Image Help;
+            public Image HSplit;
+            public Image SizeAll;
+            public Image SizeNESW;
+            public Image SizeNS;
+            public Image SizeNWSE;
+            public Image SizeWE;
+            public Image VSplit;
         }
     }
 }

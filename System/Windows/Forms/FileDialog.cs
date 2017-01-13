@@ -500,7 +500,7 @@ namespace System.Windows.Forms
 
                 currentPath = path.Replace("\\", "/");
 
-                var files = System.IO.Directory.GetFiles(currentPath, _owner.currentFilter).Select(f => f.Substring(currentPath.Length)).ToArray();
+                var files = System.IO.Directory.GetFiles(currentPath, "*.*").Where(f => _owner.currentFilter.Contains(System.IO.Path.GetExtension(f).ToLower())).Select(f => f.Substring(currentPath.Length)).ToArray();
                 var dirs = System.IO.Directory.GetDirectories(currentPath).Select(f => f.Substring(currentPath.Length)).ToArray();
 
                 currentFiles = new FileInfo[dirs.Length + files.Length];

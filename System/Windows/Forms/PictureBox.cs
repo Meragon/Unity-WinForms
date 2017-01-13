@@ -20,6 +20,7 @@ namespace System.Windows.Forms
             ImageBackColor = Color.Transparent;
             ImageColor = Color.White;
             ImageLayout = Forms.ImageLayout.Center;
+            Size = new Size(100, 50);
         }
 
         protected override void OnPaint(PaintEventArgs e)

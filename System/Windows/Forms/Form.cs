@@ -16,7 +16,7 @@ namespace System.Windows.Forms
         private MenuStrip _mainMenuStrip;
         private static Point _nextLocation = new Point(128, 64);
         private bool _windowMove = false;
-        private Point _windowMoveDelta;
+        private Point _windowMove_StartPosition;
 
         private bool resizeActive;
         private ControlResizeTypes resizeType;
@@ -206,11 +206,12 @@ namespace System.Windows.Forms
         private void Owner_UpdateEvent()
         {
             #region Resize
-            int estimatedWidth = 0;
-            int estimatedHeight = 0;
 
             if (resizeType != ControlResizeTypes.None && Resizable)
             {
+                int estimatedWidth = 0;
+                int estimatedHeight = 0;
+
                 switch (resizeType)
                 {
                     case ControlResizeTypes.Right:
@@ -296,7 +297,7 @@ namespace System.Windows.Forms
             if (dialog && _dialogCallback != null)
                 _dialogCallback.Invoke(this, this.DialogResult);
         }
-        public ControlResizeTypes GetResizeAt(Point location)
+        public virtual ControlResizeTypes GetResizeAt(Point location)
         {
             if (!Resizable || ResizeIcon) return ControlResizeTypes.None;
 
@@ -336,7 +337,7 @@ namespace System.Windows.Forms
             resizeType = resize;
             _resizeDelta = MousePosition;
             _resizeOriginal = Size;
-            _resizePosition = PointToScreen(Point.Zero);
+            _resizePosition = Location;
 
             switch (resize)
             {
@@ -420,7 +421,7 @@ namespace System.Windows.Forms
                     if (Movable)
                         if (e.Location.Y < HeaderHeight)
                         {
-                            _windowMoveDelta = e.Location;
+                            _windowMove_StartPosition = e.Location;
                             _windowMove = true;
                         }
                 }
@@ -430,7 +431,12 @@ namespace System.Windows.Forms
         {
             base.OnMouseMove(e);
             if (_windowMove)
-                Location = PointToScreen(e.Location) - _windowMoveDelta;
+            {
+                if (Parent == null)
+                    Location = PointToScreen(e.Location) - _windowMove_StartPosition;
+                else
+                    Location = Parent.PointToClient(PointToScreen(e.Location) - _windowMove_StartPosition);
+            }
             else
                 _resizeShow = GetResizeAt(e.Location);
         }

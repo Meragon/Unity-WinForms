@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Drawing;
@@ -21,7 +22,7 @@ namespace System.Windows.Forms
         private int _maxDropDownItems = 8;
         private int _selectedIndex = -1;
         private bool _shouldFocus;
-
+        
         public AutoCompleteMode AutoCompleteMode { get; set; }
         public AutoCompleteSource AutoCompleteSource { get; set; }
         public Color BorderColor { get; set; }
@@ -178,16 +179,19 @@ namespace System.Windows.Forms
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            bool down = e.Delta < 0;
-            if (down)
+            if (Focused)
             {
-                if (_selectedIndex + 1 < _items.Count)
-                    SelectedIndex++;
-            }
-            else
-            {
-                if (_selectedIndex > 0)
-                    SelectedIndex--;
+                bool down = e.Delta < 0;
+                if (down)
+                {
+                    if (_selectedIndex + 1 < _items.Count)
+                        SelectedIndex++;
+                }
+                else
+                {
+                    if (_selectedIndex > 0)
+                        SelectedIndex--;
+                }
             }
         }
         protected override void OnPaint(PaintEventArgs e)

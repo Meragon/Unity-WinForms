@@ -690,13 +690,8 @@ namespace System.Windows.Forms
 
             UpdateEvent();
         }
-
-        internal static void DoDragDrop(object data, DragDropEffects effect)
-        {
-            _dragData = data;
-            _dragControlEffects = effect;
-        }
-        internal static void DoDragDrop(object data, DragDropEffects effect, DragDropRenderHandler render)
+        
+        internal static void DoDragDrop(object data, DragDropEffects effect, DragDropRenderHandler render = null)
         {
             _dragData = data;
             _dragControlEffects = effect;

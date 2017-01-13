@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Drawing;
@@ -10,7 +11,7 @@ namespace System.Windows.Forms
     public class ColorPicker : Button
     {
         private ColorPickerForm _currentForm;
-
+        
         public Color Color { get; set; }
 
         public ColorPicker()

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Drawing;
@@ -64,6 +65,7 @@ namespace System.Windows.Forms
             this.ScrollSpeed = 2;
             this.SelectionColor = Color.FromArgb(187, 222, 251);
             this.SelectionHoverColor = Color.FromArgb(221, 238, 253);
+            this.Size = new Size(121, 97);
             this.SmoothScrolling = true;
 
             _nodes = new TreeNodeCollection(root);
@@ -81,7 +83,7 @@ namespace System.Windows.Forms
             {
                 if (scrollIndex > SelectedNode.Bounds.Y)
                 {
-                    
+
                     scrollIndex = SelectedNode.Bounds.Y;
                     _UpdateScrollList();
                 }
@@ -150,27 +152,65 @@ namespace System.Windows.Forms
         }
         private void _OnDrawNode(object sender, DrawTreeNodeEventArgs e)
         {
-            // Node drawing.
-            e.Graphics.FillRectangle(e.Node.BackColor, e.Node.Bounds.X, e.Node.Bounds.Y, e.Node.Bounds.Width, e.Node.Bounds.Height);
-            if (e.Node.IsSelected || e.Node == _hoveredNode)
-                e.Graphics.FillRectangle((e.Node.IsSelected ? SelectionColor : SelectionHoverColor), UseNodeBoundsForSelection ? e.Node.Bounds.X : 0, e.Node.Bounds.Y - (int)scrollIndex, Width, ItemHeight);
+            var node = e.Node;
+            var nodeY = node.Bounds.Y - scrollIndex; // TODO: to node.Bounds.Y
 
-            bool hasImage = false;
-            int imageWidth = 0;
-            if (e.Node.ImageIndex > -1)
+            // Node drawing.
+            e.Graphics.FillRectangle(node.BackColor, node.Bounds.X, nodeY, node.Bounds.Width, node.Bounds.Height);
+            if (node.IsSelected || node == _hoveredNode)
+                e.Graphics.FillRectangle((node.IsSelected ? SelectionColor : SelectionHoverColor), UseNodeBoundsForSelection ? node.Bounds.X : 0, nodeY, Width, ItemHeight);
+            
+            int xOffset = node.Bounds.X;
+
+            // Draw collapsed/expanded arrow.
+            if (node.Nodes.Count > 0)
             {
-                var image = ImageList.Images[e.Node.ImageIndex];
-                if (image != null && image.uTexture != null)
+                UnityEngine.Texture2D arrowTexture = null;
+                if (node.IsExpanded)
                 {
-                    e.Graphics.DrawTexture(image.uTexture, e.Node.Bounds.X, e.Node.Bounds.Y + e.Node.Bounds.Height / 2 - image.Height / 2 - (int)scrollIndex, image.Width, image.Height, e.Node.ImageColor);
-                    hasImage = true;
-                    imageWidth = image.Width;
+                    if (node.ImageIndex_Expanded > -1)
+                    {
+                        var img = ImageList.Images[node.ImageIndex_Expanded];
+                        if (img != null)
+                            arrowTexture = img.uTexture;
+                    }
+                    else
+                        arrowTexture = ApplicationBehaviour.Resources.Images.TreeNodeExpanded;
+                }
+                else
+                {
+                    if (node.ImageIndex_Collapsed > -1)
+                    {
+                        var img = ImageList.Images[node.ImageIndex_Collapsed];
+                        if (img != null)
+                            arrowTexture = img.uTexture;
+                    }
+                    else
+                        arrowTexture = ApplicationBehaviour.Resources.Images.TreeNodeCollapsed;
+                }
+
+                if (arrowTexture != null)
+                {
+                    e.Graphics.DrawTexture(arrowTexture, xOffset, nodeY + node.Bounds.Height / 2 - arrowTexture.height / 2, arrowTexture.width, arrowTexture.height);
+                    xOffset += arrowTexture.width;
                 }
             }
 
-            string stringToDraw = e.Node.Text;
-            if (stringToDraw == null && e.Node.Tag != null) stringToDraw = e.Node.Tag.ToString();
-            e.Graphics.DrawString(stringToDraw, Font, e.Node.ForeColor, e.Node.Bounds.X + (hasImage ? imageWidth + 2 : 0), e.Node.Bounds.Y - (int)scrollIndex - 2, (WrapText ? Width : Width * 16), e.Bounds.Height + 4, ContentAlignment.MiddleLeft);
+            // Draw image.
+            if (node.ImageIndex > -1)
+            {
+                var image = ImageList.Images[node.ImageIndex];
+                if (image != null && image.uTexture != null)
+                {
+                    e.Graphics.DrawTexture(image.uTexture, xOffset, nodeY + node.Bounds.Height / 2 - image.Height / 2, image.Width, image.Height, node.ImageColor);
+                    xOffset += image.Width + 2;
+                }
+            }
+
+            // Draw text.
+            string stringToDraw = node.Text;
+            if (stringToDraw == null && node.Tag != null) stringToDraw = node.Tag.ToString();
+            e.Graphics.DrawString(stringToDraw, Font, node.ForeColor, xOffset, nodeY - 2, (WrapText ? Width : Width * 16), e.Bounds.Height + 4, ContentAlignment.MiddleLeft);
             // End of drawing.
 
             DrawNode(this, e);
@@ -474,7 +514,7 @@ namespace System.Windows.Forms
 
         internal void EnsureVisible(TreeNode node)
         {
-            var nodeIsInScrollList =scrollNodeList.Find(x => x == node);
+            var nodeIsInScrollList = scrollNodeList.Find(x => x == node);
             if (nodeIsInScrollList != null) return;
 
             var nodeIndex = _nodeList.FindIndex(x => x == node);
@@ -494,7 +534,10 @@ namespace System.Windows.Forms
             {
                 var node = _nodeList[i];
                 string nodeText = node.Text;
-                if (nodeText.Length < text.Length) continue;
+                if (string.IsNullOrEmpty(nodeText) && node.Tag != null)
+                    nodeText = node.Tag.ToString();
+
+                if (nodeText == null || nodeText.Length < text.Length) continue;
 
                 string clippedNodeText = nodeText.Substring(0, text.Length);
                 if (caseSencitive == false) clippedNodeText = clippedNodeText.ToLower();
