@@ -229,6 +229,7 @@ namespace System.Windows.Forms
             g.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
             for (int i = 0; i < _visibleItems && i + ScrollIndex < Items.Count; i++)
             {
+                var item = Items[i + ScrollIndex];
                 bool itemDisabled = Items.IsDisabled(i + ScrollIndex);
                 bool itemSelected = (i + _scrollIndex) == SelectedIndex;
                 bool itemHovered = i == _hoveredItem;
@@ -242,7 +243,10 @@ namespace System.Windows.Forms
                     g.FillRectangle(itemBackColor, 0, i * ItemHeight, Width, ItemHeight);
                 }
 
-                g.DrawString(Items[i + ScrollIndex].ToString(), Font, itemDisabled ? DisabledColor : ForeColor, 4, i * ItemHeight, WrapText ? Width : Width * 5, ItemHeight);
+                var itemText = "";
+                if (item != null)
+                    itemText = item.ToString();
+                g.DrawString(itemText, Font, itemDisabled ? DisabledColor : ForeColor, 4, i * ItemHeight, WrapText ? Width : Width * 5, ItemHeight);
             }
 
             _scrollVisible = false;

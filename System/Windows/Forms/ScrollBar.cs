@@ -108,6 +108,7 @@ namespace System.Windows.Forms
             Controls.Add(subtractButton);
 
             Owner.UpClick += Owner_UpClick;
+            Owner.UpdateEvent += Owner_UpdateEvent;
         }
 
         private void DoScroll(ScrollEventType type)
@@ -161,6 +162,42 @@ namespace System.Windows.Forms
 
             scrollDraging = false;
             scrollCanDrag = false;
+        }
+        private void Owner_UpdateEvent()
+        {
+            var mclient = PointToClient(MousePosition);
+
+            // TODO: move back to OnMouseMove.
+            if (scrollCanDrag && mclient.Distance(scrollDragStartLocation) > 2)
+            {
+                scrollCanDrag = false;
+                scrollDraging = true;
+            }
+
+            if (scrollDraging)
+            {
+                int sX = scrollRect.X;
+                int sY = scrollRect.Y;
+                if (scrollOrientation == ScrollOrientation.HorizontalScroll)
+                {
+                    sX = mclient.X - scrollDragRectOffset.X;
+                    if (sX < subtractButton.Location.X + subtractButton.Width)
+                        sX = subtractButton.Location.X + subtractButton.Width;
+                    if (sX + scrollRect.Width > addButton.Location.X)
+                        sX = addButton.Location.X - scrollRect.Width;
+                }
+                else
+                {
+                    sY = mclient.Y - scrollDragRectOffset.Y;
+                    if (sY < subtractButton.Location.Y + subtractButton.Height)
+                        sY = subtractButton.Location.Y + subtractButton.Height;
+                    if (sY + scrollRect.Height > addButton.Location.Y)
+                        sY = addButton.Location.Y - scrollRect.Height;
+                }
+                scrollRect = new Rectangle(sX, sY, scrollRect.Width, scrollRect.Height);
+
+                UpdateValueAtScrollRect();
+            }
         }
         private void UpdateValueAtScrollRect()
         {
@@ -265,6 +302,7 @@ namespace System.Windows.Forms
         public override void Dispose()
         {
             Owner.UpClick -= Owner_UpClick;
+            Owner.UpdateEvent -= Owner_UpdateEvent;
 
             base.Dispose();
         }
@@ -282,41 +320,6 @@ namespace System.Windows.Forms
             {
                 scrollCanDrag = false;
                 scrollDraging = false;
-            }
-        }
-        protected override void OnMouseMove(MouseEventArgs e)
-        {
-            base.OnMouseMove(e);
-
-            if (scrollCanDrag && e.Location.Distance(scrollDragStartLocation) > 2)
-            {
-                scrollCanDrag = false;
-                scrollDraging = true;
-            }
-
-            if (scrollDraging)
-            {
-                int sX = scrollRect.X;
-                int sY = scrollRect.Y;
-                if (scrollOrientation == ScrollOrientation.HorizontalScroll)
-                {
-                    sX = e.Location.X - scrollDragRectOffset.X;
-                    if (sX < subtractButton.Location.X + subtractButton.Width)
-                        sX = subtractButton.Location.X + subtractButton.Width;
-                    if (sX + scrollRect.Width > addButton.Location.X)
-                        sX = addButton.Location.X - scrollRect.Width;
-                }
-                else
-                {
-                    sY = e.Location.Y - scrollDragRectOffset.Y;
-                    if (sY < subtractButton.Location.Y + subtractButton.Height)
-                        sY = subtractButton.Location.Y + subtractButton.Height;
-                    if (sY + scrollRect.Height > addButton.Location.Y)
-                        sY = addButton.Location.Y - scrollRect.Height;
-                }
-                scrollRect = new Rectangle(sX, sY, scrollRect.Width, scrollRect.Height);
-
-                UpdateValueAtScrollRect();
             }
         }
         protected override void OnMouseUp(MouseEventArgs e)

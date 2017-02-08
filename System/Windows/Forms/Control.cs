@@ -399,7 +399,7 @@ namespace System.Windows.Forms
         }
         protected virtual void OnLocationChanged(EventArgs e)
         {
-
+            LocationChanged(this, EventArgs.Empty);
         }
         protected virtual void OnKeyDown(KeyEventArgs e)
         {
@@ -803,6 +803,7 @@ namespace System.Windows.Forms
         public event EventHandler Click = delegate { };
         public new event EventHandler Disposed = delegate { };
         public event EventHandler GotFocus = delegate { };
+        public event EventHandler LocationChanged = delegate { };
         public event EventHandler LostFocus = delegate { };
         public event KeyEventHandler KeyDown = delegate { };
         public event KeyEventHandler KeyUp = delegate { };

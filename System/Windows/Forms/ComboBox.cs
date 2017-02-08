@@ -22,7 +22,7 @@ namespace System.Windows.Forms
         private int _maxDropDownItems = 8;
         private int _selectedIndex = -1;
         private bool _shouldFocus;
-        
+
         public AutoCompleteMode AutoCompleteMode { get; set; }
         public AutoCompleteSource AutoCompleteSource { get; set; }
         public Color BorderColor { get; set; }
@@ -45,9 +45,12 @@ namespace System.Windows.Forms
                 _selectedIndex = value;
                 if (_selectedIndex > -1)
                 {
-                    //SelectedItem = _items[_selectedIndex];
-                    SelectedText = SelectedItem.ToString();
-                    _filter = SelectedItem.ToString();
+                    var sItem = SelectedItem;
+                    if (sItem != null)
+                    {
+                        SelectedText = sItem.ToString();
+                        _filter = sItem.ToString();
+                    }
                 }
                 else
                 {
@@ -70,11 +73,20 @@ namespace System.Windows.Forms
                 SelectedText = "";
                 for (int i = 0; i < Items.Count; i++)
                 {
-                    if (value == Items[i])
+                    var item = Items[i];
+                    if (value == item)
                     {
                         _selectedIndex = i;
-                        _filter = Items[i].ToString();
-                        SelectedText = Items[i].ToString();
+                        if (item != null)
+                        {
+                            _filter = item.ToString();
+                            SelectedText = item.ToString();
+                        }
+                        else
+                        {
+                            _filter = "";
+                            SelectedText = "";
+                        }
                         SelectedIndexChanged(this, null);
                         break;
                     }
@@ -339,11 +351,15 @@ namespace System.Windows.Forms
                 {
                     if (_listBox != null)
                     {
+                        var listSelectedItem = _listBox.SelectedItem;
                         for (int i = 0; i < Items.Count; i++)
-                            if (Items[i] == _listBox.SelectedItem)
+                            if (Items[i] == listSelectedItem)
                             {
-                                _filter = _listBox.SelectedItem.ToString();
-                                SelectedItem = _listBox.SelectedItem;
+                                if (listSelectedItem != null)
+                                    _filter = listSelectedItem.ToString();
+                                else
+                                    _filter = "";
+                                SelectedItem = listSelectedItem;
                                 break;
                             }
                         //SelectedIndex = _listBox.SelectedIndex;
