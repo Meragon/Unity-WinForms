@@ -14,6 +14,11 @@ namespace System.Windows.Forms
             Visible = false;
         }
 
+        /// <summary>
+        /// null, MousePosition
+        /// </summary>
+        /// <param name="control"></param>
+        /// <param name="position"></param>
         public void Show(Control control, Point position)
         {
             if (control == null)

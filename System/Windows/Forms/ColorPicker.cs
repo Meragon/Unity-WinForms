@@ -439,6 +439,9 @@ namespace System.Windows.Forms
 
             void Application_UpClick(object sender, MouseEventArgs e)
             {
+                if (_mouseDown)
+                    UpdateValues();
+
                 _mouseDown = false;
             }
 
@@ -462,6 +465,26 @@ namespace System.Windows.Forms
                     }
                     _image.Apply();
                 }
+            }
+            private void UpdateValues()
+            {
+                var mLoc = PointToClient(MousePosition);
+
+                float mX = mLoc.X;
+                float mY = mLoc.Y;
+
+                if (mX < 0) mX = 0;
+                else if (mX > Width) mX = Width;
+
+                if (mY < 0) mY = 0;
+                else if (mY > Height) mY = Height;
+
+                Brightness = (float)(Height - mY) / Height;
+                Saturation = (float)mX / Width;
+                if (Brightness < 0) Brightness = 0;
+                if (Brightness > 1) Brightness = 1;
+                if (Saturation < 0) Saturation = 0;
+                if (Saturation > 1) Saturation = 1;
             }
 
             public void SetHue(float value)
@@ -494,12 +517,7 @@ namespace System.Windows.Forms
             }
             protected override void OnMouseUp(MouseEventArgs e)
             {
-                Brightness = (float)(Height - e.Y) / Height;
-                Saturation = (float)e.X / Width;
-                if (Brightness < 0) Brightness = 0;
-                if (Brightness > 1) Brightness = 1;
-                if (Saturation < 0) Saturation = 0;
-                if (Saturation > 1) Saturation = 1;
+                UpdateValues();
                 _mouseDown = false;
             }
             protected override void OnPaint(PaintEventArgs e)
@@ -624,8 +642,12 @@ namespace System.Windows.Forms
                 get { return _alpha; }
                 set
                 {
-                    _alpha = value;
-                    AlphaChanged(this, null);
+                    var changed = _alpha != value;
+                    if (changed)
+                    {
+                        _alpha = value;
+                        AlphaChanged(this, null);
+                    }
                 }
             }
 
@@ -651,6 +673,17 @@ namespace System.Windows.Forms
 
             void Application_UpClick(object sender, MouseEventArgs e)
             {
+                if (_mouseDown)
+                {
+                    var mX = PointToClient(MousePosition).X;
+
+                    float _Alpha = 0;
+                    if (mX < 0) _Alpha = 0;
+                    else if (mX > Width) _Alpha = 1;
+                    else _Alpha = (float)mX / Width;
+
+                    Alpha = _Alpha;
+                }
                 _mouseDown = false;
             }
 

@@ -8,11 +8,15 @@ namespace System.Windows.Forms
 {
     public abstract class FileDialog : Form
     {
+        protected static Size savedFormSize = new Size(540, 320);
+
         public static Bitmap FolderNavBack { get; set; }
         public static Bitmap FolderNavRefresh { get; set; }
         public static Bitmap FolderNavUp { get; set; }
 
         internal FileRender fileRender;
+
+        private bool handleFormSize;
 
         protected Button buttonOk;
         protected Button buttonCancel;
@@ -52,8 +56,11 @@ namespace System.Windows.Forms
             MinimumSize = new Drawing.Size(240, 240);
             Padding = new Padding(12, 12, 12, 12);
             ResizeIcon = true;
-            Size = new Drawing.Size(540, 320);
             Text = "File Dialog";
+
+            handleFormSize = false;
+            Size = savedFormSize;
+            handleFormSize = true;
 
             #region Button Back.
             buttonBack = new Button();
@@ -204,6 +211,7 @@ namespace System.Windows.Forms
 
             fileRender.filesTree.NodeMouseClick += filesTree_NodeMouseClick;
 
+            this.AcceptButton = buttonOk;
             this.Shown += FileDialog_Shown;
         }
 
@@ -259,6 +267,13 @@ namespace System.Windows.Forms
         {
             base.OnPaint(e);
             e.Graphics.DrawLine(new Pen(BorderColor), 1, HeaderHeight, Width - 1, HeaderHeight);
+        }
+        protected override void OnResize(Point delta)
+        {
+            base.OnResize(delta);
+
+            if (handleFormSize)
+                savedFormSize = Size;
         }
 
         protected void OpenFile()

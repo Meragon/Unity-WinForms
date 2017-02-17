@@ -204,9 +204,11 @@ namespace System.Windows.Forms
         {
             ShadowHandler = (g) =>
             {
-                g.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), -3, 0, Width + 6, Height + 3);
-                g.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), -2, 0, Width + 4, Height + 2);
-                g.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(12, 64, 64, 64)), -1, 0, Width + 2, Height + 1);
+                var loc = PointToScreen(Point.Zero);
+                var color = Color.FromArgb(12, 64, 64, 64);
+                g.Graphics.FillRectangle(color, loc.X - 3, loc.Y, Width + 6, Height + 3);
+                g.Graphics.FillRectangle(color, loc.X - 2, loc.Y, Width + 4, Height + 2);
+                g.Graphics.FillRectangle(color, loc.X - 1, loc.Y, Width + 2, Height + 1);
             };
         }
     }

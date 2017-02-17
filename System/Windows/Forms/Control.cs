@@ -612,6 +612,11 @@ namespace System.Windows.Forms
                 var editorTabIndex = Editor.Slider("TabIndex", this.TabIndex, 0, 255);
                 if (editorTabIndex.Changed) this.TabIndex = (int)editorTabIndex.Value;
 
+                string tagText = "null";
+                if (Tag != null)
+                    tagText = string.Format("[{0}] {1}", Tag.GetType().Name, Tag.ToString());
+                Editor.Label("Tag", tagText);
+
                 var editorText = Editor.TextField("Text", Text ?? "");
                 if (editorText.Changed) this.Text = editorText;
 
@@ -737,8 +742,9 @@ namespace System.Windows.Forms
             {
                 if (ShadowHandler == null)
                 {
-                    int shX = e.ClipRectangle.X + 6;
-                    int shY = e.ClipRectangle.Y + 6;
+                    var psLoc = PointToScreen(Point.Zero);
+                    int shX = psLoc.X + 6;
+                    int shY = psLoc.Y + 6;
                     var shadowColor = Color.FromArgb(12, 64, 64, 64);
                     e.Graphics.FillRectangle(shadowColor, shX + 6, shY + 6, Width - 12, Height - 12);
                     e.Graphics.FillRectangle(shadowColor, shX + 5, shY + 5, Width - 10, Height - 10);
@@ -879,6 +885,10 @@ namespace System.Windows.Forms
             public Control Find(Predicate<Control> match)
             {
                 return _items.Find(match);
+            }
+            public List<Control> FindAll(Predicate<Control> match)
+            {
+                return _items.FindAll(match);
             }
             public int FindIndex(Predicate<Control> match)
             {

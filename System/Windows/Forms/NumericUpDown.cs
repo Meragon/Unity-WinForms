@@ -187,7 +187,7 @@ namespace System.Windows.Forms
                 {
                     if (_shouldFocus) e.Graphics.FocusNext();
 
-                    valueText = g.DrawTextField(valueText, Font, new SolidBrush(ForeColor), Padding.Left - 2, 0, Width + textPaddingRight + 4, Height, TextAlign);
+                    valueText = g.DrawTextField(valueText, Font, ForeColor, Padding.Left - 2, 0, Width + textPaddingRight + 4, Height, TextAlign);
 
                     if (_shouldFocus)
                     {
@@ -201,7 +201,7 @@ namespace System.Windows.Forms
             else
             {
                 g.FillRectangle(DisabledColor, 0, 0, Width, Height);
-                g.DrawString(Value.ToString(), Font, Brushes.Black, Padding.Left, 0, Width + textPaddingRight, Height, TextAlign);
+                g.DrawString(Value.ToString(), Font, Color.Black, Padding.Left, 0, Width + textPaddingRight, Height, TextAlign);
             }
         }
         public void ShowButtons()

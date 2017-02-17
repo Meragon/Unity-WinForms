@@ -11,11 +11,12 @@ namespace System.Windows.Forms
     public class Button : Control, IButtonControl
     {
         internal ColorF currentBackColor;
+        private Pen borderPen;
         private DialogResult dialogResult;
         private Color _normalColor;
 
         private bool _toggleEditor = true;
-        
+
         public virtual DialogResult DialogResult
         {
             get { return dialogResult; }
@@ -30,7 +31,7 @@ namespace System.Windows.Forms
         public Bitmap Image { get; set; }
         public Bitmap ImageHover { get; set; }
         public Color ImageColor { get; set; }
-        public Color? ImageHoverColor { get; set; }
+        public Color ImageHoverColor { get; set; }
         public ContentAlignment TextAlign { get; set; }
 
         public Button()
@@ -46,10 +47,12 @@ namespace System.Windows.Forms
             Font = new Drawing.Font("Arial", 12);
             ForeColor = Color.FromArgb(64, 64, 64);
             ImageColor = Color.White;
+            ImageHoverColor = Color.White;
             HoverColor = Color.FromArgb(223, 238, 252);
             TextAlign = ContentAlignment.MiddleCenter;
             Size = new Drawing.Size(75, 23);
 
+            borderPen = new Pen(BorderColor);
             currentBackColor = BackColor;
         }
 
@@ -95,20 +98,20 @@ namespace System.Windows.Forms
             else
                 currentBackColor = MathHelper.ColorLerp(currentBackColor, DisableColor, 5);
 
-            g.FillRectangle(new SolidBrush(currentBackColor), 0, 0, Width, Height);
+            g.FillRectangle(currentBackColor, 0, 0, Width, Height);
 
             // Border.
             if (Enabled == false)
-                g.DrawRectangle(new Pen(BorderDisableColor), 0, 0, Width, Height);
+                borderPen.Color = BorderDisableColor;
             else if (Hovered)
-                g.DrawRectangle(new Pen(BorderHoverColor), 0, 0, Width, Height);
+                borderPen.Color = BorderHoverColor;
             else if (Focused)
-                g.DrawRectangle(new Pen(BorderSelectColor), 0, 0, Width, Height);
+                borderPen.Color = BorderSelectColor;
             else
-                g.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
+                borderPen.Color = BorderColor;
 
-            SolidBrush textBrush = new SolidBrush(ForeColor);
-            if (!Enabled) textBrush.Color = ForeColor + Color.FromArgb(0, 128, 128, 128);
+            g.DrawRectangle(borderPen, 0, 0, Width, Height);
+            
             if (Image != null && Image.uTexture != null)
             {
                 var imageToPaint = Image;
@@ -117,17 +120,20 @@ namespace System.Windows.Forms
                 {
                     if (ImageHover != null)
                         imageToPaint = ImageHover;
-                    if (ImageHoverColor != null)
-                        imageColorToPaint = ImageHoverColor.Value;
+                    imageColorToPaint = ImageHoverColor;
                 }
                 switch (BackgroundImageLayout)
                 {
                     default:
                     case ImageLayout.None:
-                        g.DrawTexture(imageToPaint, 0, 0, Image.Width, Image.Height, imageColorToPaint);
+                        g.DrawTexture(imageToPaint, 0, 0, imageToPaint.Width, imageToPaint.Height, imageColorToPaint);
                         break;
                     case ImageLayout.Center:
-                        g.DrawTexture(imageToPaint, Width / 2 - Image.Width / 2, Height / 2 - Image.Height / 2, Image.Width, Image.Height, imageColorToPaint);
+                        g.DrawTexture(imageToPaint, 
+                            Width / 2 - imageToPaint.Width / 2, 
+                            Height / 2 - imageToPaint.Height / 2, 
+                            imageToPaint.Width, 
+                            imageToPaint.Height, imageColorToPaint);
                         break;
                     case ImageLayout.Stretch:
                         g.DrawTexture(imageToPaint, 0, 0, Width, Height, imageColorToPaint);
@@ -137,7 +143,9 @@ namespace System.Windows.Forms
                         break;
                 }
             }
-            g.DrawString(Text, Font, textBrush,
+            var textColor = ForeColor;
+            if (Enabled == false) textColor = ForeColor + Color.FromArgb(0, 128, 128, 128);
+            g.DrawString(Text, Font, textColor,
                     Padding.Left,
                     Padding.Top,
                     Width - Padding.Left - Padding.Right,

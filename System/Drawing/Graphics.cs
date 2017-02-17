@@ -202,56 +202,36 @@ namespace System.Drawing
             }
 
             GUI.color = pen.Color.ToUColor();
-            if (!_group)
+            
+            switch (pen.DashStyle)
             {
-                Point c_position = Point.Empty;
-                if (Control != null)
-                {
-                    Control.Batches++;
-                    c_position = Control.PointToScreen(Point.Zero);
-                }
+                case Drawing2D.DashStyle.Solid:
+                    if (Control != null) Control.Batches++;
+                    GUI.DrawTexture(new Rect(x, y, width, height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                    break;
+                case Drawing2D.DashStyle.Dash:
+                    float dash_step = pen.Width * 6;
+                    if (y1 == y2)
+                        for (float i = 0; i < width; i += dash_step)
+                        {
+                            float dash_width = dash_step - 2;
+                            if (i + dash_width > width)
+                                dash_width = width - i;
+                            if (Control != null) Control.Batches++;
+                            GUI.DrawTexture(new Rect(x + i, y, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                        }
 
-                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                    if (x1 == x2)
+                        for (float i = 0; i < height; i += dash_step)
+                        {
+                            float dash_height = dash_step - 2;
+                            if (i + dash_height > height)
+                                dash_height = height - i;
+                            if (Control != null) Control.Batches++;
+                            GUI.DrawTexture(new Rect(x + width - pen.Width, y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                        }
+                    break;
             }
-            else
-            {
-                Point c_position = Point.Empty;
-                if (Control != null)
-                    c_position = Control.PointToScreen(Point.Zero);
-                var g_position = _groupControlLast.PointToScreen(Point.Zero);
-                var position = c_position - g_position + new PointF(x, y);
-
-                switch (pen.DashStyle)
-                {
-                    case Drawing2D.DashStyle.Solid:
-                        if (Control != null) Control.Batches++;
-                        GUI.DrawTexture(new Rect(position.X, position.Y, width, height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                        break;
-                    case Drawing2D.DashStyle.Dash:
-                        float dash_step = pen.Width * 6;
-                        if (y1 == y2)
-                            for (float i = 0; i < width; i += dash_step)
-                            {
-                                float dash_width = dash_step - 2;
-                                if (i + dash_width > width)
-                                    dash_width = width - i;
-                                if (Control != null) Control.Batches++;
-                                GUI.DrawTexture(new Rect(position.X + i, position.Y, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                            }
-
-                        if (x1 == x2)
-                            for (float i = 0; i < height; i += dash_step)
-                            {
-                                float dash_height = dash_step - 2;
-                                if (i + dash_height > height)
-                                    dash_height = height - i;
-                                if (Control != null) Control.Batches++;
-                                GUI.DrawTexture(new Rect(position.X + width - pen.Width, position.Y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                            }
-                        break;
-                }
-            }
-
         }
         public void DrawMesh(Mesh mesh, Point position, Quaternion rotation, Material mat)
         {
@@ -373,149 +353,56 @@ namespace System.Drawing
             if (pen.Color.A <= 0 || pen.Width <= 0) return;
             GUI.color = pen.Color.ToUColor();
 
-            /*if (Control.Batched)
+            switch (pen.DashStyle)
             {
-                GUI.color = UnityEngine.Color.white;
-                GUI.DrawTexture(new Rect(x, y, width, height), Control.BatchedTexture);
-                return;
-            }*/
-
-            if (!_group)
-            {
-                Point c_position = Point.Empty;
-                if (Control != null)
-                {
-                    c_position = Control.PointToScreen(Point.Zero);
-                    Control.Batches += 2;
-                }
-                // Top.
-                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                // Right.
-                GUI.DrawTexture(new Rect(c_position.X + x + width - pen.Width, c_position.Y + y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-
-                FillRate += width * pen.Width + pen.Width * (height - pen.Width * 2);
-
-                // Bottom.
-                if (height > 1)
-                {
+                case Drawing2D.DashStyle.Solid:
                     if (Control != null)
-                        Control.Batches++;
-                    GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y + height - pen.Width, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                    FillRate += width * pen.Width;
-                }
-                // Left.
-                if (width > 1)
-                {
-                    if (Control != null)
-                        Control.Batches++;
-                    GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                    FillRate += pen.Width * (height - pen.Width * 2);
-                }
-            }
-            else
-            {
-                Point c_position = Point.Empty;
-                if (Control != null)
-                    c_position = Control.PointToScreen(Point.Zero);
-                var g_position = _groupControlLast.PointToScreen(Point.Zero);
-                var position = c_position - g_position + new PointF(x, y);
+                        Control.Batches += 2;
 
-                switch (pen.DashStyle)
-                {
-                    case Drawing2D.DashStyle.Solid:
-                        /*if (width == 0 || height == 0) return;
-                        if (width < 0 || height < 0)
-                        {
-                            if (width < 0)
-                            {
-                                x += width;
-                                width *= -1;
-                            }
-                            if (height < 0)
-                            {
-                                y += height;
-                                height *= -1;
-                            }
-                        }
+                    GUI.DrawTexture(new Rect(x, y, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                    GUI.DrawTexture(new Rect(x + width - pen.Width, y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                    FillRate += width * pen.Width + pen.Width * (height - pen.Width * 2);
+                    if (height > 1)
+                    {
+                        if (Control != null)
+                            Control.Batches++;
+                        GUI.DrawTexture(new Rect(x, y + height - pen.Width, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                        FillRate += width * pen.Width + pen.Width;
+                    }
+                    if (width > 1)
+                    {
+                        if (Control != null)
+                            Control.Batches++;
+                        GUI.DrawTexture(new Rect(x, y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
+                        FillRate += pen.Width * (height - pen.Width * 2);
+                    }
 
-
-                        //Application.Log(width.ToString() + " " + height.ToString());
-                        //return;
-
-                        // Batching
-                        UnityEngine.Texture2D tex = new Texture2D((int)width, (int)height);
-                        for (int i = 0; i < tex.height; i++)
-                            for (int k = 0; k < tex.width; k++)
-                                tex.SetPixel(k, i, new UnityEngine.Color(1, 1, 1, 0));
-
-                        var ucolor = pen.Color.ToUColor();
-                        for (int i = 0; i < tex.width; i++)
-                        {
-                            for (int k = 0; k < pen.Width && k < tex.height; k++)
-                                tex.SetPixel(i, k, ucolor);
-                            for (int k = tex.height - 1; k > 0 && k > tex.height - 1 - pen.Width; k--)
-                                tex.SetPixel(i, k, ucolor);
-                        }
-
-                        for (int i = 0; i < tex.height; i++)
-                        {
-                            for (int k = 0; k < pen.Width && k < tex.width; k++)
-                                tex.SetPixel(k, i, ucolor);
-                            for (int k = tex.width - 1; k > 0 && k > tex.width - 1 - pen.Width; k--)
-                                tex.SetPixel(k, i, ucolor);
-                        }
-
-                        tex.Apply();
-                        Control.BatchedTexture = tex;*/
-
+                    break;
+                case Drawing2D.DashStyle.Dash:
+                    float dash_step = pen.Width * 6;
+                    for (float i = 0; i < width; i += dash_step)
+                    {
+                        float dash_width = dash_step - 2;
+                        if (i + dash_width > width)
+                            dash_width = width - i;
                         if (Control != null)
                             Control.Batches += 2;
-
-                        GUI.DrawTexture(new Rect(position.X, position.Y, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                        GUI.DrawTexture(new Rect(position.X + width - pen.Width, position.Y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                        FillRate += width * pen.Width + pen.Width * (height - pen.Width * 2);
-                        if (height > 1)
-                        {
-                            if (Control != null)
-                                Control.Batches++;
-                            GUI.DrawTexture(new Rect(position.X, position.Y + height - pen.Width, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                            FillRate += width * pen.Width + pen.Width;
-                        }
-                        if (width > 1)
-                        {
-                            if (Control != null)
-                                Control.Batches++;
-                            GUI.DrawTexture(new Rect(position.X, position.Y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                            FillRate += pen.Width * (height - pen.Width * 2);
-                        }
-
-                        break;
-                    case Drawing2D.DashStyle.Dash:
-                        float dash_step = pen.Width * 6;
-                        for (float i = 0; i < width; i += dash_step)
-                        {
-                            float dash_width = dash_step - 2;
-                            if (i + dash_width > width)
-                                dash_width = width - i;
-                            if (Control != null)
-                                Control.Batches += 2;
-                            GUI.DrawTexture(new Rect(position.X + i, position.Y, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Top.
-                            GUI.DrawTexture(new Rect(position.X + i, position.Y + height - pen.Width, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Bottom.
-                            FillRate += dash_width * pen.Width * 2;
-                        }
-                        for (float i = 0; i < height; i += dash_step)
-                        {
-                            float dash_height = dash_step - 2;
-                            if (i + dash_height > height)
-                                dash_height = height - i;
-                            if (Control != null)
-                                Control.Batches += 2;
-                            GUI.DrawTexture(new Rect(position.X + width - pen.Width, position.Y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Right.
-                            GUI.DrawTexture(new Rect(position.X, position.Y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Left.
-                            FillRate += pen.Width * dash_height * 2;
-                        }
-                        break;
-                }
+                        GUI.DrawTexture(new Rect(x + i, y, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Top.
+                        GUI.DrawTexture(new Rect(x + i, y + height - pen.Width, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Bottom.
+                        FillRate += dash_width * pen.Width * 2;
+                    }
+                    for (float i = 0; i < height; i += dash_step)
+                    {
+                        float dash_height = dash_step - 2;
+                        if (i + dash_height > height)
+                            dash_height = height - i;
+                        if (Control != null)
+                            Control.Batches += 2;
+                        GUI.DrawTexture(new Rect(x + width - pen.Width, y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Right.
+                        GUI.DrawTexture(new Rect(x, y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Left.
+                        FillRate += pen.Width * dash_height * 2;
+                    }
+                    break;
             }
         }
         public void DrawString(string s, Font font, SolidBrush brush, PointF point)
@@ -590,24 +477,7 @@ namespace System.Drawing
 
             int guiSkinFontSizeBuffer = GUI_SetLabelFont(font);
             GUI.color = color.ToUColor();
-
-            if (!_group)
-            {
-                Point c_position = Point.Empty;
-                if (Control != null)
-                    c_position = Control.PointToScreen(Point.Zero);
-                GUI.Label(new Rect(c_position.X + x, c_position.Y + y, width, height), s);
-            }
-            else
-            {
-                //Point c_position = Point.Empty;
-                //if (Control != null)
-                //  c_position = Control.PointToScreen(Point.Zero);
-                //var g_position = _groupControlLast.PointToScreen(Point.Zero);
-                //var position = c_position - g_position + new PointF(x, y);
-
-                GUI.Label(new Rect(x, y, width, height), s);
-            }
+            GUI.Label(new Rect(x, y, width, height), s);
 
             GUI.skin.label.fontSize = guiSkinFontSizeBuffer;
         }
@@ -737,7 +607,7 @@ namespace System.Drawing
         {
             return DrawTextField(s, font, brush, layoutRectangle.X, layoutRectangle.Y, layoutRectangle.Width, layoutRectangle.Height, alignment);
         }
-        public string DrawTextField(string s, Font font, SolidBrush brush, float x, float y, float width, float height, HorizontalAlignment alignment)
+        public string DrawTextField(string s, Font font, Color color, float x, float y, float width, float height, HorizontalAlignment alignment)
         {
             if (Control == null) return s;
             if (s == null) s = "";
@@ -787,7 +657,7 @@ namespace System.Drawing
                 GUI.skin.textField.fontSize = 12;
             }
 
-            GUI.color = brush.Color.ToUColor();
+            GUI.color = color.ToUColor();
             GUI.skin.textField.hover.background = null;
             GUI.skin.textField.active.background = null;
             GUI.skin.textField.focused.background = null;
@@ -806,6 +676,10 @@ namespace System.Drawing
 
                 return GUI.TextField(new Rect(position.X, position.Y, width, height), s);
             }
+        }
+        public string DrawTextField(string s, Font font, SolidBrush brush, float x, float y, float width, float height, HorizontalAlignment alignment)
+        {
+            return DrawTextField(s, font, brush.Color, x, y, width, height, alignment);
         }
         public void DrawTexture(Texture texture, RectangleF layoutRectangle)
         {
@@ -883,18 +757,7 @@ namespace System.Drawing
             FillRate += width * height;
 
             GUI.color = Color.White.ToUColor();
-            if (!_group)
-            {
-                var c_position = Control.PointToScreen(Point.Zero);
-                UnityEngine.Graphics.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), texture, mat);
-            }
-            else
-            {
-                var c_position = Control.PointToScreen(Point.Zero);
-                var g_position = _groupControlLast.PointToScreen(Point.Zero);
-
-                UnityEngine.Graphics.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), texture, mat);
-            }
+            UnityEngine.Graphics.DrawTexture(new Rect(x, y, width, height), texture, mat);
         }
         public void FillEllipse(SolidBrush brush, float x, float y, float width, float height)
         {
@@ -957,31 +820,10 @@ namespace System.Drawing
 
             if (Control != null)
                 Control.Batches += 1;
-
             FillRate += width * height;
 
             GUI.color = color.ToUColor();
-            if (!_group)
-            {
-                Point c_position = Point.Empty;
-                if (Control != null)
-                    c_position = Control.PointToScreen(Point.Zero);
-
-                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-            }
-            else
-            {
-                Point c_position = Point.Empty;
-                if (Control != null)
-                    c_position = Control.PointToScreen(Point.Zero);
-                var g_position = _groupControlLast.PointToScreen(Point.Zero);
-
-                x += c_position.X - g_position.X;
-                y += c_position.Y - g_position.Y;
-
-                GUI.DrawTexture(new Rect(x, y, width, height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                //UnityEngine.Graphics.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), System.Windows.Forms.Application.DefaultSprite, new Rect(), 0, 0, 0, 0, brush.Color.ToUColor(), DefaultMaterial);
-            }
+            GUI.DrawTexture(new Rect(x, y, width, height), ApplicationBehaviour.DefaultSprite);
         }
         public void FillQuad(Color color, PointF[] points)
         {
