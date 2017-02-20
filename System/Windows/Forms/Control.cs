@@ -9,6 +9,8 @@ namespace System.Windows.Forms
     [Serializable]
     public class Control : Component, IDisposable
     {
+        protected static Color defaultShadowColor = Color.FromArgb(12, 64, 64, 64);
+
         public static Application DefaultController { get; set; }
         public static Font DefaultFont = new Font("Arial", 12);
         public static Point MousePosition
@@ -16,7 +18,7 @@ namespace System.Windows.Forms
             get
             {
                 return new Point(
-                    (int)(UnityEngine.Input.mousePosition.x / Application.ScaleX), 
+                    (int)(UnityEngine.Input.mousePosition.x / Application.ScaleX),
                     (int)((UnityEngine.Screen.height - UnityEngine.Input.mousePosition.y) / Application.ScaleY));
             }
         }
@@ -41,7 +43,7 @@ namespace System.Windows.Forms
         private bool _toggleFont;
         private bool _toggleControls;
         private bool _toggleSource;
-        
+
         public bool AllowDrop { get; set; }
         public bool AlwaysFocused { get; set; }
         public virtual AnchorStyles Anchor { get; set; }
@@ -52,7 +54,6 @@ namespace System.Windows.Forms
         public virtual bool AutoSize { get; set; }
         public Color BackColor { get; set; }
         public virtual ImageLayout BackgroundImageLayout { get; set; }
-        internal bool Batched { get; set; } // For testing.
         public int Batches { get; internal set; }
         public Rectangle Bounds
         {
@@ -94,7 +95,7 @@ namespace System.Windows.Forms
             {
                 var delta = new Point(0, _height - value);
                 _height = value;
-                OnResize(delta);
+                RaiseOnResize(delta);
             }
         }
         public bool Hovered { get { return hovered; } }
@@ -135,7 +136,7 @@ namespace System.Windows.Forms
                 _width = value.Width;
                 _height = value.Height;
 
-                OnResize(new Point(widthBuffer - value.Width, heightBuffer - value.Height));
+                RaiseOnResize(new Point(widthBuffer - value.Width, heightBuffer - value.Height));
             }
         }
         public bool ShadowBox { get; set; }
@@ -164,7 +165,7 @@ namespace System.Windows.Forms
             {
                 var delta = new Point(_width - value, 0);
                 _width = value;
-                OnResize(delta);
+                RaiseOnResize(delta);
             }
         }
 
@@ -216,7 +217,7 @@ namespace System.Windows.Forms
                     delta = new Point(delta.X, 0);
 
                 if ((an_left && an_right) || (an_top && an_bottom))
-                    OnResize(delta);
+                    RaiseOnResize(delta);
             }
         }
 
@@ -643,11 +644,8 @@ namespace System.Windows.Forms
         }
         protected virtual void OnResize(Point delta)
         {
-            if (delta != Point.Zero)
-                if (Controls != null)
-                    for (int i = 0; i < Controls.Count; i++)
-                        Controls[i]._parent_Resize(delta);
-            Resize(this, null);
+            
+            
         }
         protected virtual void OnTextChanged(EventArgs e)
         {
@@ -742,18 +740,21 @@ namespace System.Windows.Forms
             {
                 if (ShadowHandler == null)
                 {
-                    var psLoc = PointToScreen(Point.Zero);
-                    int shX = psLoc.X + 6;
-                    int shY = psLoc.Y + 6;
-                    var shadowColor = Color.FromArgb(12, 64, 64, 64);
-                    e.Graphics.FillRectangle(shadowColor, shX + 6, shY + 6, Width - 12, Height - 12);
-                    e.Graphics.FillRectangle(shadowColor, shX + 5, shY + 5, Width - 10, Height - 10);
-                    e.Graphics.FillRectangle(shadowColor, shX + 4, shY + 4, Width - 8, Height - 8);
-                    e.Graphics.FillRectangle(shadowColor, shX + 3, shY + 3, Width - 6, Height - 6);
-                    e.Graphics.FillRectangle(shadowColor, shX + 2, shY + 2, Width - 4, Height - 4);
+                    ShadowHandler = (pArgs) =>
+                    {
+                        var psLoc = PointToScreen(Point.Zero);
+                        int shX = psLoc.X + 6;
+                        int shY = psLoc.Y + 6;
+                        var shadowColor = defaultShadowColor;
+                        pArgs.Graphics.FillRectangle(shadowColor, shX + 6, shY + 6, Width - 12, Height - 12);
+                        pArgs.Graphics.FillRectangle(shadowColor, shX + 5, shY + 5, Width - 10, Height - 10);
+                        pArgs.Graphics.FillRectangle(shadowColor, shX + 4, shY + 4, Width - 8, Height - 8);
+                        pArgs.Graphics.FillRectangle(shadowColor, shX + 3, shY + 3, Width - 6, Height - 6);
+                        pArgs.Graphics.FillRectangle(shadowColor, shX + 2, shY + 2, Width - 4, Height - 4);
+                    };
                 }
-                else
-                    ShadowHandler.Invoke(e);
+
+                ShadowHandler.Invoke(e);
             }
 
             if (AutoGroup)
@@ -793,7 +794,6 @@ namespace System.Windows.Forms
             OnLatePaint(e);
             if (AutoGroup)
                 e.Graphics.GroupEnd();
-            Batched = true;
 
             e.Graphics.Control = null;
         }
@@ -803,7 +803,13 @@ namespace System.Windows.Forms
         }
         internal void RaiseOnResize(Point delta)
         {
+            if (delta != Point.Zero)
+                if (Controls != null)
+                    for (int i = 0; i < Controls.Count; i++)
+                        Controls[i]._parent_Resize(delta);
+
             OnResize(delta);
+            Resize(this, null);
         }
 
         public event EventHandler Click = delegate { };

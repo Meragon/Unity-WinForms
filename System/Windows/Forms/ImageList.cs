@@ -10,13 +10,13 @@ namespace System.Windows.Forms
 {
     public sealed class ImageList
     {
-        private ImageList.ImageCollection _images = new ImageCollection();
+        private readonly ImageList.ImageCollection _images = new ImageCollection();
 
         public ImageList.ImageCollection Images { get { return _images; } }
 
         public sealed class ImageCollection : IList, ICollection, IEnumerable
         {
-            private List<ImageInfo> _items = new List<ImageInfo>();
+            private readonly List<ImageInfo> _items = new List<ImageInfo>();
 
             public int Count { get { return _items.Count; } }
             public bool Empty { get { return _items.Count == 0; } }

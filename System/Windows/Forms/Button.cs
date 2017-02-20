@@ -11,9 +11,8 @@ namespace System.Windows.Forms
     public class Button : Control, IButtonControl
     {
         internal ColorF currentBackColor;
-        private Pen borderPen;
+        private readonly Pen borderPen;
         private DialogResult dialogResult;
-        private Color _normalColor;
 
         private bool _toggleEditor = true;
 

@@ -34,6 +34,10 @@ namespace System.Drawing
         {
             UnityEngine.GUILayout.BeginVertical();
         }
+        public static void BeginVertical(string style)
+        {
+            UnityEngine.GUILayout.BeginVertical(style);
+        }
         public static void EndGroup()
         {
             UnityEngine.GUILayout.EndVertical();

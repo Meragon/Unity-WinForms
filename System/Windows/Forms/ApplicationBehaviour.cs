@@ -14,18 +14,16 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (_defaultSprite == null)
-                {
-                    _defaultSprite = new Texture2D(32, 32);
-                    for (int i = 0; i < _defaultSprite.height; i++)
-                        for (int k = 0; k < _defaultSprite.width; k++)
-                            _defaultSprite.SetPixel(k, i, Color.white);
-                    _defaultSprite.Apply();
-                }
+                if (_defaultSprite != null) return _defaultSprite;
+
+                _defaultSprite = new Texture2D(32, 32);
+                for (int i = 0; i < _defaultSprite.height; i++)
+                for (int k = 0; k < _defaultSprite.width; k++)
+                    _defaultSprite.SetPixel(k, i, Color.white);
+                _defaultSprite.Apply();
                 return _defaultSprite;
             }
         }
-        internal static Texture2D DefaultSpriteSmoothLine { get; private set; }
         public static AppResources Resources { get; private set; }
         
         public AppResources _Resources;
@@ -75,8 +73,7 @@ namespace System.Windows.Forms
         {
             if (_paused == false)
             {
-                var mousePosition = new System.Drawing.PointF(Input.mousePosition.x, UnityEngine.Screen.height - Input.mousePosition.y);
-                _controller.ProccessMouse(mousePosition);
+                _controller.ProccessMouse(Input.mousePosition.x, UnityEngine.Screen.height - Input.mousePosition.y);
                 _controller.ProccessKeys();
             }
 

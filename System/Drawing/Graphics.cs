@@ -202,7 +202,7 @@ namespace System.Drawing
             }
 
             GUI.color = pen.Color.ToUColor();
-            
+
             switch (pen.DashStyle)
             {
                 case Drawing2D.DashStyle.Solid:
@@ -707,47 +707,16 @@ namespace System.Drawing
             FillRate += width * height;
 
             GUI.color = color.ToUColor();
-            if (!_group)
+
+            if (angle != 0)
             {
-                if (Control != null)
-                {
-                    var c_position = Control.PointToScreen(Point.Zero);
-
-                    x += c_position.X;
-                    y += c_position.Y;
-                }
-
-                if (angle != 0)
-                {
-                    Matrix4x4 matrixBackup = GUI.matrix;
-                    GUIUtility.RotateAroundPivot(angle, new Vector2(x + pivot.X, y + pivot.Y));
-                    GUI.DrawTexture(new Rect(x, y, width, height), texture);
-                    GUI.matrix = matrixBackup;
-                }
-                else
-                    GUI.DrawTexture(new Rect(x, y, width, height), texture);
+                Matrix4x4 matrixBackup = GUI.matrix;
+                GUIUtility.RotateAroundPivot(angle, new Vector2(x + pivot.X, y + pivot.Y));
+                GUI.DrawTexture(new Rect(x, y, width, height), texture);
+                GUI.matrix = matrixBackup;
             }
             else
-            {
-                if (Control != null)
-                {
-                    var c_position = Control.PointToScreen(Point.Zero);
-                    var g_position = _groupControlLast.PointToScreen(Point.Zero);
-
-                    x += c_position.X - g_position.X;
-                    y += c_position.Y - g_position.Y;
-                }
-
-                if (angle != 0)
-                {
-                    Matrix4x4 matrixBackup = GUI.matrix;
-                    GUIUtility.RotateAroundPivot(angle, new Vector2(x + pivot.X, y + pivot.Y));
-                    GUI.DrawTexture(new Rect(x, y, width, height), texture);
-                    GUI.matrix = matrixBackup;
-                }
-                else
-                    GUI.DrawTexture(new Rect(x, y, width, height), texture);
-            }
+                GUI.DrawTexture(new Rect(x, y, width, height), texture);
         }
         public void DrawTexture(Texture texture, float x, float y, float width, float height, Material mat)
         {

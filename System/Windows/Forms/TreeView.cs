@@ -420,7 +420,7 @@ namespace System.Windows.Forms
                     _filter = "";
             }
 
-            e.Graphics.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
+            e.Graphics.FillRectangle(BackColor, 0, 0, Width, Height);
 
             for (int i = 0; i < scrollNodeList.Count; i++)
             {

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using Color = UnityEngine.Color;
 
 namespace System.Windows.Forms
 {
@@ -18,8 +20,9 @@ namespace System.Windows.Forms
         private static MouseButtons _mouseButton = 0;
         private static Control _mouseLastClickControl;
         private static float _mouseWheelDelta;
-        private static System.Drawing.PointF _mouseMovePosition;
-        private System.Drawing.PointF _mousePosition;
+        private static bool mousePositionChanged;
+        private float mousePositionX;
+        private float mousePositionY;
         private readonly PaintEventArgs _paintEventArgs;
         private static float _scaleX = 1f;
         private static float _scaleY = 1f;
@@ -245,7 +248,7 @@ namespace System.Windows.Forms
             if (ignore_rect || contains)
             {
                 var client_mpos = control.PointToClient(mousePosition);
-                if (_mouseMovePosition != mousePosition)
+                if (mousePositionChanged)
                 {
                     MouseEventArgs m_args = new MouseEventArgs(MouseButtons.None, 0, (int)client_mpos.X, (int)client_mpos.Y, 0);
                     control.RaiseOnMouseMove(m_args);
@@ -348,23 +351,29 @@ namespace System.Windows.Forms
             _paintEventArgs.Graphics.FillRate = 0;
 
             for (int i = 0; i < Forms.Count; i++)
-                if (Forms[i].Visible)
-                    Forms[i].RaiseOnPaint(_paintEventArgs);
+            {
+                var form = Forms[i];
+                if (form.Visible) form.RaiseOnPaint(_paintEventArgs);
+            }
 
             for (int i = 0; i < ModalForms.Count; i++)
-                if (ModalForms[i].Visible)
-                    ModalForms[i].RaiseOnPaint(_paintEventArgs);
+            {
+                var form = ModalForms[i];
+                if (form.Visible) form.RaiseOnPaint(_paintEventArgs);
+            }
 
             for (int i = 0; i < Contexts.Count; i++)
-                if (Contexts[i].Visible)
-                    Contexts[i].RaiseOnPaint(_paintEventArgs);
+            {
+                var context = Contexts[i];
+                if (context.Visible) context.RaiseOnPaint(_paintEventArgs);
+            }
 
             FillRate = _paintEventArgs.Graphics.FillRate;
 
             if (_dragRender != null && _dragndrop)
             {
-                System.Drawing.Graphics g = new System.Drawing.Graphics();
-                Control _dragRenderControl = new Control();
+                var g = new System.Drawing.Graphics();
+                var _dragRenderControl = new Control();
                 g.Control = _dragRenderControl;
                 _dragRender.Invoke(g);
                 _dragRenderControl.Dispose();
@@ -424,7 +433,7 @@ namespace System.Windows.Forms
                 if (Control.lastSelected != null && Control.lastSelected.IsDisposed == false)
                 {
                     var keyControl = Control.lastSelected;
-                    var parentForm = GetRootControl(Control.lastSelected) as Form;
+                    var parentForm = GetParentForm(Control.lastSelected);
                     if (parentForm != null && parentForm.KeyPreview)
                         keyControl = parentForm;
 
@@ -460,16 +469,23 @@ namespace System.Windows.Forms
                     _currentKeyDown = args.KeyCode;
             }
         }
-        public void ProccessMouse(System.Drawing.PointF mousePosition)
+        public void ProccessMouse(float mouseX, float mouseY)
         {
             if (ScaleX != 1f || ScaleY != 1f)
-                mousePosition = new Drawing.PointF(mousePosition.X / ScaleX, mousePosition.Y / ScaleY);
+            {
+                mouseX /= ScaleX;
+                mouseY /= ScaleY;
+            }
 
             _mouseEvent = MouseEvents.None;
             _mouseButton = MouseButtons.None;
-            if (_mousePosition != mousePosition)
+
+            mousePositionChanged = mousePositionX != mouseX || mousePositionY != mouseY;
+            if (mousePositionChanged)
                 updateHoveredControl = true;
-            _mousePosition = mousePosition;
+
+            mousePositionX = mouseX;
+            mousePositionY = mouseY;
 
             #region Set events.
 
@@ -553,43 +569,39 @@ namespace System.Windows.Forms
             //if (_mouseLastClickControl != null && _mouseEvent == MouseEvents.None && _mouseMovePosition != mousePosition)
             //    _ProcessControl(mousePosition, _mouseLastClickControl, true);
 
-            if (_mouseEvent != MouseEvents.None || _mouseMovePosition != mousePosition)
+            if (_mouseEvent == MouseEvents.None && !mousePositionChanged) return;
+
+            // Dispose context first.
+            for (int i = 0; i < Contexts.Count; i++)
             {
-                // Dispose context first.
-                for (int i = 0; i < Contexts.Count; i++)
-                {
-                    if (Contexts[i].Context)
-                    {
-                        var contextControl = Contexts[i];
-                        if (Contains(contextControl, hoveredControl) == false)
-                        {
-                            if (_mouseEvent == MouseEvents.Down)
-                            {
-                                contextControl.Dispose();
-                                i--;
-                            }
-                            continue;
-                        }
-                    }
-                }
+                if (!Contexts[i].Context) continue;
 
-                if (hoveredControl == null && _mouseEvent == MouseEvents.Up)
-                {
-                    _dragndrop = false;
-                    _dragData = null;
-                }
+                var contextControl = Contexts[i];
+                if (Contains(contextControl, hoveredControl)) continue;
+                if (_mouseEvent != MouseEvents.Down) continue;
 
-                if (hoveredControl != null)
-                    _ProcessControl(_mousePosition, hoveredControl, false);
-
-                if (_mouseEvent == MouseEvents.Down)
-                    DownClick(hoveredControl, new MouseEventArgs(_mouseButton, 1, (int)mousePosition.X, (int)mousePosition.Y, 0));
-
-                if (_mouseEvent == MouseEvents.Up)
-                    UpClick(hoveredControl, new MouseEventArgs(_mouseButton, 1, (int)mousePosition.X, (int)mousePosition.Y, 0));
+                contextControl.Dispose();
+                i--;
             }
 
-            _mouseMovePosition = mousePosition;
+            if (hoveredControl == null && _mouseEvent == MouseEvents.Up)
+            {
+                _dragndrop = false;
+                _dragData = null;
+            }
+
+            if (hoveredControl != null)
+                _ProcessControl(new PointF(mouseX, mouseY), hoveredControl, false);
+
+            if (_mouseEvent == MouseEvents.Down)
+                DownClick(hoveredControl, new MouseEventArgs(_mouseButton, 1, (int)mouseX, (int)mouseY, 0));
+
+            if (_mouseEvent == MouseEvents.Up)
+                UpClick(hoveredControl, new MouseEventArgs(_mouseButton, 1, (int)mouseX, (int)mouseY, 0));
+        }
+        public void ProccessMouse(System.Drawing.PointF mousePosition)
+        {
+            ProccessMouse(mousePosition.X, mousePosition.Y);
         }
         public void RaiseMouseEvent(MouseEvents mEv, MouseEventArgs mArgs)
         {
@@ -697,6 +709,14 @@ namespace System.Windows.Forms
             _dragControlEffects = effect;
             _dragRender = render;
         }
+        public static Form GetParentForm(Control control)
+        {
+            if (control == null) return null;
+            var form = control.Parent as Form;
+            if (form != null) return form;
+
+            return GetParentForm(control.Parent);
+        }
         public static Control GetRootControl(Control control)
         {
             if (control == null) return null;
@@ -717,50 +737,48 @@ namespace System.Windows.Forms
         public static void NextTabControl(Control control)
         {
             var controlForm = GetRootControl(control) as Form;
-            if (controlForm != null && controlForm.Controls.Count > 0)
+            if (controlForm == null || controlForm.Controls.Count <= 0) return;
+
+            var formControls = new List<Control>();
+            _FillListWithVisibleControls(controlForm, formControls);
+
+            var possibleControls = formControls.FindAll(x => x.IsDisposed == false && x.CanSelect);
+            if (possibleControls.Find(x => x.TabIndex > 0) != null)
             {
-                List<Control> formControls = new List<Control>();
-                _FillListWithVisibleControls(controlForm, formControls);
-
-                List<Control> possibleControls = formControls.FindAll(x => x.IsDisposed == false && x.CanSelect);
-                if (possibleControls.Find(x => x.TabIndex > 0) != null)
-                {
-                    possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
-                    //possibleControls.Reverse();
-                }
-                if (possibleControls.Count == 0) return;
-
-                int controlIndex = possibleControls.FindIndex(x => x == control);
-
-                var nextControlIndex = controlIndex + 1;
-                if (nextControlIndex >= possibleControls.Count)
-                    nextControlIndex = 0;
-                possibleControls[nextControlIndex].Focus();
+                possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
+                //possibleControls.Reverse();
             }
+            if (possibleControls.Count == 0) return;
+
+            int controlIndex = possibleControls.FindIndex(x => x == control);
+
+            var nextControlIndex = controlIndex + 1;
+            if (nextControlIndex >= possibleControls.Count)
+                nextControlIndex = 0;
+            possibleControls[nextControlIndex].Focus();
         }
         public static void PrevTabControl(Control control)
         {
             var controlForm = GetRootControl(control) as Form;
-            if (controlForm != null && controlForm.Controls.Count > 0)
+            if (controlForm == null || controlForm.Controls.Count <= 0) return;
+
+            var formControls = new List<Control>();
+            _FillListWithVisibleControls(controlForm, formControls);
+
+            var possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.CanSelect);
+            if (possibleControls.Find(x => x.TabIndex > 0) != null)
             {
-                List<Control> formControls = new List<Control>();
-                _FillListWithVisibleControls(controlForm, formControls);
-
-                List<Control> possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.CanSelect);
-                if (possibleControls.Find(x => x.TabIndex > 0) != null)
-                {
-                    possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
-                    //possibleControls.Reverse();
-                }
-                if (possibleControls.Count == 0) return;
-
-                int controlIndex = possibleControls.FindIndex(x => x == control);
-
-                var nextControlIndex = controlIndex - 1;
-                if (nextControlIndex < 0)
-                    nextControlIndex = possibleControls.Count - 1;
-                possibleControls[nextControlIndex].Focus();
+                possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
+                //possibleControls.Reverse();
             }
+            if (possibleControls.Count == 0) return;
+
+            int controlIndex = possibleControls.FindIndex(x => x == control);
+
+            var nextControlIndex = controlIndex - 1;
+            if (nextControlIndex < 0)
+                nextControlIndex = possibleControls.Count - 1;
+            possibleControls[nextControlIndex].Focus();
         }
         public static bool RegisterHotKey(Control hWnd, int id, UnityEngine.EventModifiers modifier, UnityEngine.KeyCode key)
         {

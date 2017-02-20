@@ -10,11 +10,12 @@ namespace System.Windows.Forms
     [Serializable]
     public class Form : ContainerControl, IResizableControl
     {
-        private Pen _borderPen;
+        protected readonly Pen borderPen;
+
         private Button _closeButton;
         private Action<Form, DialogResult> _dialogCallback;
         private MenuStrip _mainMenuStrip;
-        private static Point _nextLocation = new Point(128, 64);
+        private static Point nextLocation = new Point(128, 64);
         private bool _windowMove = false;
         private Point _windowMove_StartPosition;
 
@@ -36,14 +37,8 @@ namespace System.Windows.Forms
         public IButtonControl AcceptButton { get; set; }
         public Color BorderColor
         {
-            get { return _borderPen.Color; }
-            set
-            {
-                if (_borderPen == null)
-                    _borderPen = new Pen(value);
-                else
-                    _borderPen.Color = value;
-            }
+            get { return borderPen.Color; }
+            set { borderPen.Color = value; }
         }
         public Button CloseButton { get { return _closeButton; } }
         public bool ControlBox
@@ -110,10 +105,10 @@ namespace System.Windows.Forms
             set
             {
                 base.Size = value;
-                if (_nextLocation.X + value.Width > Screen.PrimaryScreen.WorkingArea.Width - 32)
-                    _nextLocation = new Point(64, _nextLocation.Y);
-                if (_nextLocation.Y + value.Height > Screen.PrimaryScreen.WorkingArea.Height - 32)
-                    _nextLocation = new Point(_nextLocation.X, 32);
+                if (nextLocation.X + value.Width > Screen.PrimaryScreen.WorkingArea.Width - 32)
+                    nextLocation = new Point(64, nextLocation.Y);
+                if (nextLocation.Y + value.Height > Screen.PrimaryScreen.WorkingArea.Height - 32)
+                    nextLocation = new Point(nextLocation.X, 32);
             }
         }
         public override string Text { get; set; }
@@ -129,15 +124,16 @@ namespace System.Windows.Forms
 
         public Form()
         {
+            borderPen = new Pen(Color.White);
+
             HeaderHeight = 24;
             HeaderPadding = new Padding(32, 0, 32, 0);
 
             BackColor = Color.FromArgb(238, 238, 242);
             BorderColor = Color.FromArgb(204, 206, 219);
-            //BorderColor = Color.FromArgb(155, 159, 185);
             CanSelect = true;
             Font = new Font("Arial", 14);
-            Location = _nextLocation;
+            Location = nextLocation;
             HeaderColor = Color.FromArgb(238, 238, 242);
             HeaderFont = Font;
             HeaderTextColor = Color.FromArgb(64, 64, 64);
@@ -153,11 +149,11 @@ namespace System.Windows.Forms
             Owner.UpClick += _Application_UpClick;
             Owner.UpdateEvent += Owner_UpdateEvent;
 
-            _nextLocation = new Point(_nextLocation.X + 26, _nextLocation.Y + 26);
-            if (_nextLocation.X + Width > Screen.PrimaryScreen.WorkingArea.Width - 32)
-                _nextLocation = new Point(32, _nextLocation.Y);
-            if (_nextLocation.Y + Height > Screen.PrimaryScreen.WorkingArea.Height - 32)
-                _nextLocation = new Point(_nextLocation.X, 32);
+            nextLocation = new Point(nextLocation.X + 26, nextLocation.Y + 26);
+            if (nextLocation.X + Width > Screen.PrimaryScreen.WorkingArea.Width - 32)
+                nextLocation = new Point(32, nextLocation.Y);
+            if (nextLocation.Y + Height > Screen.PrimaryScreen.WorkingArea.Height - 32)
+                nextLocation = new Point(nextLocation.X, 32);
         }
 
         private void _Application_UpClick(object sender, MouseEventArgs e)
@@ -188,6 +184,8 @@ namespace System.Windows.Forms
             CloseButton.BorderColor = System.Drawing.Color.Transparent;
             CloseButton.Size = new System.Drawing.Size(24, 16);
             CloseButton.ForeColor = System.Drawing.Color.FromArgb(64, 64, 64);
+            CloseButton.ImageColor = Color.FromArgb(64, 64, 64);
+            CloseButton.ImageHoverColor = Color.FromArgb(128, 128, 128);
 
             CloseButton.BringToFront();
             CloseButton.Click += (o, e) => { Close(); };
@@ -299,7 +297,7 @@ namespace System.Windows.Forms
         }
         public virtual ControlResizeTypes GetResizeAt(Point location)
         {
-            if (!Resizable || ResizeIcon) return ControlResizeTypes.None;
+            if (!Resizable) return ControlResizeTypes.None;
 
             var r_type = ControlResizeTypes.None;
 
@@ -442,7 +440,7 @@ namespace System.Windows.Forms
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            Graphics g = e.Graphics;
+            var g = e.Graphics;
 
             g.FillRectangle(HeaderColor, 0, 0, Width, HeaderHeight);
             g.DrawString(Text, HeaderFont, HeaderTextColor, HeaderPadding.Left, HeaderPadding.Top, Width - HeaderPadding.Right - HeaderPadding.Left, HeaderHeight - HeaderPadding.Bottom - HeaderPadding.Top, HeaderTextAlign);
@@ -495,7 +493,7 @@ namespace System.Windows.Forms
         {
             base.OnLatePaint(e);
 
-            e.Graphics.DrawRectangle(_borderPen, 0, 0, Width, Height);
+            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
     }
 

@@ -109,22 +109,21 @@ namespace System.Windows.Forms
                     loc = new Point(loc.X, Screen.PrimaryScreen.WorkingArea.Height - (int)size.Height - 2);
 
                 int shadowAlpha = 12 - 255 + (int)_alphaF;
-                var shadowBrush = new SolidBrush(Color.FromArgb(shadowAlpha, 64, 64, 64));
+                var shadowColor = Color.FromArgb(shadowAlpha, 64, 64, 64);
 
                 int stringHeight = (int)size.Height;
 
-                e.Graphics.FillRectangle(shadowBrush, loc.X + 1, loc.Y + 1, size.Width + 3, stringHeight + 3);
-                e.Graphics.FillRectangle(shadowBrush, loc.X + 2, loc.Y + 2, size.Width + 1, stringHeight + 1);
-                e.Graphics.FillRectangle(shadowBrush, loc.X + 3, loc.Y + 3, size.Width - 1, stringHeight - 1);
-
-                var fillBrush = new SolidBrush(Color.FromArgb((int)_alphaF, _instance.BackColor));
+                e.Graphics.FillRectangle(shadowColor, loc.X + 1, loc.Y + 1, size.Width + 3, stringHeight + 3);
+                e.Graphics.FillRectangle(shadowColor, loc.X + 2, loc.Y + 2, size.Width + 1, stringHeight + 1);
+                e.Graphics.FillRectangle(shadowColor, loc.X + 3, loc.Y + 3, size.Width - 1, stringHeight - 1);
+                
                 var borderColor = Color.FromArgb((int)_alphaF, _instance.BorderColor);
                 var textColor = Color.FromArgb((int)_alphaF, _instance.ForeColor);
                 var textFont = _instance.Font;
 
-                e.Graphics.FillRectangle(fillBrush, loc.X, loc.Y, size.Width, stringHeight);
+                e.Graphics.FillRectangle(Color.FromArgb((int)_alphaF, _instance.BackColor), loc.X, loc.Y, size.Width, stringHeight);
                 e.Graphics.DrawRectangle(new Pen(borderColor), loc.X, loc.Y, size.Width, stringHeight);
-                e.Graphics.DrawString(_instance._text, textFont, new SolidBrush(textColor), 
+                e.Graphics.DrawString(_instance._text, textFont, textColor, 
                     loc.X + _instance.Padding.Left, 
                     loc.Y + _instance.Padding.Top, 
                     size.Width - _instance.Padding.Bottom, 
