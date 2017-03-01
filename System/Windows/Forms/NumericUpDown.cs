@@ -55,15 +55,9 @@ namespace System.Windows.Forms
                 _value = value;
                 valueText = value.ToString();
                 if (changed)
-                {
                     ValueChanged(this, null);
-                    if (ValueChangedCallback != null)
-                        ValueChangedCallback.Invoke(ValueChangedCallbackInfo);
-                }
             }
         }
-        public CallbackDelegate ValueChangedCallback { get; set; }
-        public object ValueChangedCallbackInfo { get; set; }
 
         public NumericUpDown() : this(true)
         {
@@ -114,27 +108,19 @@ namespace System.Windows.Forms
                 Controls.Add(ButtonDecrease);
             }
 
-            Resize += _UpdateButtonsLocation;
-            LostFocus += (s, a) => { _ConfirmValue(); };
+            Resize += UpdateButtonsLocation;
+            LostFocus += (s, a) => { ConfirmValue(); };
         }
 
-        private void _ConfirmValue()
+        public event EventHandler ValueChanged = delegate { };
+
+        protected void ConfirmValue()
         {
             decimal value = Value;
             if (decimal.TryParse(valueText, out value))
                 if (Value != value)
                     Value = value;
         }
-        private void _UpdateButtonsLocation(object sender, EventArgs e)
-        {
-            if (ButtonIncrease != null)
-                ButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
-            if (ButtonDecrease != null)
-                ButtonDecrease.Location = new Point(Width - 16, Height / 2);
-        }
-
-        public event EventHandler ValueChanged = delegate { };
-        
         public void HideButtons()
         {
             ButtonIncrease.Visible = false;
@@ -151,7 +137,7 @@ namespace System.Windows.Forms
             base.OnKeyPress(e);
 
             if (e.KeyCode == UnityEngine.KeyCode.Return)
-                _ConfirmValue();
+                ConfirmValue();
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
@@ -187,7 +173,12 @@ namespace System.Windows.Forms
             ButtonIncrease.Visible = true;
             ButtonDecrease.Visible = true;
         }
-
-        public delegate void CallbackDelegate(object data);
+        protected void UpdateButtonsLocation(object sender, EventArgs e)
+        {
+            if (ButtonIncrease != null)
+                ButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
+            if (ButtonDecrease != null)
+                ButtonDecrease.Location = new Point(Width - 16, Height / 2);
+        }
     }
 }

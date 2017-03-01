@@ -456,7 +456,7 @@ namespace System.Windows.Forms
 
                     for (int k = 0; k < _image.Height; k++)
                     {
-                        luminosity = (float)k / _image.Height;
+                        luminosity = 1f - (float)k / _image.Height;
 
                         // HSL to RGB convertion.
                         Color pixelColor = Color.FromHsb(hue, saturation, luminosity);

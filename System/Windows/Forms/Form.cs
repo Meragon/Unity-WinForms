@@ -350,13 +350,13 @@ namespace System.Windows.Forms
                     break;
             }
         }
-        public void Show(bool shouldFocus = true)
+        public void Show(bool fShouldFocus = true)
         {
             Visible = true;
             int self = Owner.Forms.FindIndex(x => x == this);
             if (self == -1)
                 Owner.Forms.Add(this);
-            if (shouldFocus)
+            if (fShouldFocus)
             {
                 Focus();
                 _SelectFirstControl();
