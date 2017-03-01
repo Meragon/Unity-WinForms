@@ -10,6 +10,7 @@ namespace System.Windows.Forms
 {
     public class ColorPicker : Button
     {
+        private readonly Pen _borderPen;
         private ColorPickerForm _currentForm;
         
         public Color Color { get; set; }
@@ -18,6 +19,8 @@ namespace System.Windows.Forms
         {
             Color = Color.White;
             Size = new Size(128, 20);
+
+            _borderPen = new Pen(BorderColor);
         }
 
         protected override void OnMouseClick(MouseEventArgs e)
@@ -41,15 +44,16 @@ namespace System.Windows.Forms
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(255, Color)), 0, 0, Width, Height - 3);
-
             float alphaWidth = (float)Width * ((float)Color.A / 255);
-            e.Graphics.FillRectangle(new SolidBrush(Color.Black), 0, Height - 3, Width, 3);
-            e.Graphics.FillRectangle(new SolidBrush(Color.White), 0, Height - 3, alphaWidth, 3);
 
             var borderColor = BorderColor;
             if (Hovered) borderColor = BorderHoverColor;
-            e.Graphics.DrawRectangle(new Pen(borderColor), 0, 0, Width, Height);
+            _borderPen.Color = borderColor;
+
+            e.Graphics.FillRectangle(Color.FromArgb(255, Color), 0, 0, Width, Height - 3);
+            e.Graphics.FillRectangle(Color.Black, 0, Height - 3, Width, 3);
+            e.Graphics.FillRectangle(Color.White, 0, Height - 3, alphaWidth, 3);
+            e.Graphics.DrawRectangle(_borderPen, 0, 0, Width, Height);
         }
 
         public event EventHandler ColorChanged = delegate { };
@@ -61,29 +65,29 @@ namespace System.Windows.Forms
 
         private Color _color;
 
-        private AlphaPicker _alphaPicker;
-        private BrightnessSaturationPicker _bsPicker;
-        private HuePicker _huePicker;
+        private readonly AlphaPicker _alphaPicker;
+        private readonly BrightnessSaturationPicker _bsPicker;
+        private readonly HuePicker _huePicker;
 
-        private Label _hLabel;
-        private Label _sLabel;
-        private Label _lLabel;
+        private readonly Label _hLabel;
+        private readonly Label _sLabel;
+        private readonly Label _lLabel;
 
-        private Label _rLabel;
-        private Label _gLabel;
-        private Label _bLabel;
+        private readonly Label _rLabel;
+        private readonly Label _gLabel;
+        private readonly Label _bLabel;
 
-        private Label _aLabel;
+        private readonly Label _aLabel;
 
-        private NumericUpDown _hNumeric;
-        private NumericUpDown _sNumeric;
-        private NumericUpDown _lNumeric;
+        private readonly NumericUpDown _hNumeric;
+        private readonly NumericUpDown _sNumeric;
+        private readonly NumericUpDown _lNumeric;
 
-        private NumericUpDown _rNumeric;
-        private NumericUpDown _gNumeric;
-        private NumericUpDown _bNumeric;
+        private readonly NumericUpDown _rNumeric;
+        private readonly NumericUpDown _gNumeric;
+        private readonly NumericUpDown _bNumeric;
 
-        private NumericUpDown _aNumeric;
+        private readonly NumericUpDown _aNumeric;
 
         public Color Color
         {
@@ -235,13 +239,13 @@ namespace System.Windows.Forms
             Controls.Add(_aNumeric);
         }
 
-        void _bsPicker_BrightnessChanged(object sender, EventArgs e)
+        private void _bsPicker_BrightnessChanged(object sender, EventArgs e)
         {
             _lNumeric.ValueChanged -= _lNumeric_ValueChanged;
             _lNumeric.Value = (int)(_bsPicker.Brightness * 255);
             _lNumeric.ValueChanged += _lNumeric_ValueChanged;
 
-            Color rgbColor = GetColorFromHSL(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
+            Color rgbColor = Color.FromHsb(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
 
             _rNumeric.ValueChanged -= _rNumeric_ValueChanged;
             _rNumeric.Value = rgbColor.R;
@@ -256,13 +260,13 @@ namespace System.Windows.Forms
             _color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), rgbColor);
             ColorChanged(this, null);
         }
-        void _bsPicker_SaturationChanged(object sender, EventArgs e)
+        private void _bsPicker_SaturationChanged(object sender, EventArgs e)
         {
             _sNumeric.ValueChanged -= _sNumeric_ValueChanged;
             _sNumeric.Value = (int)(_bsPicker.Saturation * 255);
             _sNumeric.ValueChanged += _sNumeric_ValueChanged;
 
-            Color rgbColor = GetColorFromHSL(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
+            Color rgbColor = Color.FromHsb(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
 
             _rNumeric.ValueChanged -= _rNumeric_ValueChanged;
             _rNumeric.Value = rgbColor.R;
@@ -277,7 +281,7 @@ namespace System.Windows.Forms
             _color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), rgbColor); ;
             ColorChanged(this, null);
         }
-        void _huePicker_HueChanged(object sender, EventArgs e)
+        private void _huePicker_HueChanged(object sender, EventArgs e)
         {
             _bsPicker.SetHue(_huePicker.Hue);
 
@@ -285,7 +289,7 @@ namespace System.Windows.Forms
             _hNumeric.Value = (int)(_huePicker.Hue * 255);
             _hNumeric.ValueChanged += _hNumeric_ValueChanged;
 
-            Color rgbColor = GetColorFromHSL(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
+            Color rgbColor = Color.FromHsb(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
 
             _rNumeric.ValueChanged -= _rNumeric_ValueChanged;
             _rNumeric.Value = rgbColor.R;
@@ -327,7 +331,7 @@ namespace System.Windows.Forms
             UpdateControlsFromRGB();
         }
 
-        void _alphaPicker_AlphaChanged(object sender, EventArgs e)
+        private void _alphaPicker_AlphaChanged(object sender, EventArgs e)
         {
             _aNumeric.ValueChanged -= _aNumeric_ValueChanged;
             _aNumeric.Value = (int)(_alphaPicker.Alpha * 255);
@@ -345,7 +349,6 @@ namespace System.Windows.Forms
             _color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), Color);
             ColorChanged(this, null);
         }
-
         private void UpdateControlsFromRGB()
         {
             Color rgbColor = Color.FromArgb(Convert.ToInt32(_rNumeric.Value), Convert.ToInt32(_gNumeric.Value), Convert.ToInt32(_bNumeric.Value));
@@ -386,10 +389,6 @@ namespace System.Windows.Forms
             _color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), rgbColor);
             ColorChanged(this, null);
         }
-        private void UpdateBSTexture()
-        {
-
-        }
 
         protected override void OnKeyUp(KeyEventArgs e)
         {
@@ -403,7 +402,7 @@ namespace System.Windows.Forms
         private class BrightnessSaturationPicker : Button
         {
             private float _brightness;
-            private UnityEngine.Texture2D _image;
+            private readonly Bitmap _image;
             private float _hueValue;
             private bool _mouseDown;
             private float _saturation;
@@ -431,7 +430,7 @@ namespace System.Windows.Forms
             {
                 Size = new Size(w, h);
 
-                _image = new UnityEngine.Texture2D(w, h);
+                _image = new Bitmap(w, h);
                 _UpdateImage();
 
                 Owner.UpClick += Application_UpClick;
@@ -451,17 +450,17 @@ namespace System.Windows.Forms
                 double saturation = 0f;
                 double luminosity = 1f;
 
-                for (int i = 0; i < _image.width; i++)
+                for (int i = 0; i < _image.Width; i++)
                 {
-                    saturation = ((float)i / _image.width);
+                    saturation = ((float)i / _image.Width);
 
-                    for (int k = 0; k < _image.height; k++)
+                    for (int k = 0; k < _image.Height; k++)
                     {
-                        luminosity = (float)k / _image.height;
+                        luminosity = (float)k / _image.Height;
 
                         // HSL to RGB convertion.
-                        Color pixelColor = GetColorFromHSL(hue, saturation, luminosity);
-                        _image.SetPixel(i, k, pixelColor.ToUColor());
+                        Color pixelColor = Color.FromHsb(hue, saturation, luminosity);
+                        _image.SetPixel(i, k, pixelColor);
                     }
                     _image.Apply();
                 }
@@ -538,9 +537,8 @@ namespace System.Windows.Forms
 
         private class HuePicker : Button
         {
-            private UnityEngine.Texture2D _image;
+            private readonly Bitmap _image;
             private float _hue;
-            private bool _mouseDown;
 
             public float Hue
             {
@@ -557,64 +555,34 @@ namespace System.Windows.Forms
             {
                 Size = new Size(w, h);
 
-                _image = new UnityEngine.Texture2D(w, h);
+                _image = new Bitmap(w, h);
                 _UpdateImage();
-
-                Owner.UpClick += Application_UpClick;
             }
-
-            void Application_UpClick(object sender, MouseEventArgs e)
-            {
-                _mouseDown = false;
-            }
-
             private void _UpdateImage()
             {
                 double hue = 0f;
                 double saturation = .9f;
                 double luminosity = .5f;
 
-                for (int i = 0; i < _image.width; i++)
+                for (int i = 0; i < _image.Width; i++)
                 {
-                    for (int k = 0; k < _image.height; k++)
+                    for (int k = 0; k < _image.Height; k++)
                     {
-                        hue = (float)(_image.height - k - 1) / _image.height;
+                        hue = (float)(_image.Height - k - 1) / _image.Height;
 
                         // HSL to RGB convertion.
-                        Color pixelColor = GetColorFromHSL(hue, saturation, luminosity);
-                        _image.SetPixel(i, k, pixelColor.ToUColor());
+                        var pixelColor = Color.FromHsb(hue, saturation, luminosity);
+                        _image.SetPixel(i, k, pixelColor);
                     }
                     _image.Apply();
                 }
             }
-
-            public override void Dispose()
-            {
-                Owner.UpClick -= Application_UpClick;
-                base.Dispose();
-            }
-            protected override void OnMouseDown(MouseEventArgs e)
-            {
-                if (e.Button == MouseButtons.Left)
-                    _mouseDown = true;
-            }
-            protected override void OnMouseMove(MouseEventArgs e)
-            {
-                // Pretty slow.
-
-                /*if (_mouseDown)
-                {
-                    Hue = (float)e.Y / Height;
-                    if (Hue < 0) Hue = 0;
-                    if (Hue > 1) Hue = 1;
-                }*/
-            }
+            
             protected override void OnMouseUp(MouseEventArgs e)
             {
                 Hue = (float)e.Y / Height;
                 if (Hue < 0) Hue = 0;
                 if (Hue > 1) Hue = 1;
-                _mouseDown = false;
             }
             protected override void OnPaint(PaintEventArgs e)
             {
@@ -634,7 +602,9 @@ namespace System.Windows.Forms
         private class AlphaPicker : Button
         {
             private float _alpha;
-            private UnityEngine.Texture2D _image;
+            private readonly Pen _borderPen;
+            private readonly Pen _cursorPen;
+            private readonly Bitmap _image;
             private bool _mouseDown;
 
             public float Alpha
@@ -656,42 +626,19 @@ namespace System.Windows.Forms
                 Alpha = 1;
                 Size = new Size(w, h);
 
-                _image = new UnityEngine.Texture2D(w, h);
+                _borderPen = new Pen(BorderColor);
+                _cursorPen = new Pen(Color.White);
+                _image = new Bitmap(w, h);
                 for (int i = 0; i < w; i++)
                 {
                     int rgb = (int)(((float)i / w) * 255);
-                    Color currentColor = Color.FromArgb(rgb, rgb, rgb);
+                    var currentColor = Color.FromArgb(rgb, rgb, rgb);
                     for (int k = 0; k < h; k++)
-                    {
-                        _image.SetPixel(i, k, currentColor.ToUColor());
-                    }
+                        _image.SetPixel(i, k, currentColor);
                 }
                 _image.Apply();
-
-                Owner.UpClick += Application_UpClick;
             }
-
-            void Application_UpClick(object sender, MouseEventArgs e)
-            {
-                if (_mouseDown)
-                {
-                    var mX = PointToClient(MousePosition).X;
-
-                    float _Alpha = 0;
-                    if (mX < 0) _Alpha = 0;
-                    else if (mX > Width) _Alpha = 1;
-                    else _Alpha = (float)mX / Width;
-
-                    Alpha = _Alpha;
-                }
-                _mouseDown = false;
-            }
-
-            public override void Dispose()
-            {
-                Owner.UpClick -= Application_UpClick;
-                base.Dispose();
-            }
+            
             protected override void OnMouseDown(MouseEventArgs e)
             {
                 if (e.Button == MouseButtons.Left)
@@ -699,82 +646,39 @@ namespace System.Windows.Forms
             }
             protected override void OnMouseMove(MouseEventArgs e)
             {
-                if (_mouseDown)
-                {
-                    Alpha = (float)e.X / Width;
-                    if (Alpha < 0) Alpha = 0;
-                    if (Alpha > 1) Alpha = 1;
-                }
+                if (!_mouseDown) return;
+
+                Alpha = (float)e.X / Width;
+                if (Alpha < 0) Alpha = 0;
+                if (Alpha > 1) Alpha = 1;
             }
             protected override void OnMouseUp(MouseEventArgs e)
             {
-                Alpha = (float)e.X / Width;
+                var mclient = PointToClient(MousePosition);
+                var x = mclient.X;
+                if (x <= 0) x = 0;
+                if (x > Width) x = Width;
+                
+                Alpha = (float)x / Width;
                 if (Alpha < 0) Alpha = 0;
                 if (Alpha > 1) Alpha = 1;
                 _mouseDown = false;
             }
             protected override void OnPaint(PaintEventArgs e)
             {
+                var borderColor = BorderColor;
+                if (Hovered) borderColor = BorderHoverColor;
+
+                _borderPen.Color = borderColor;
+
                 if (_image != null)
                     e.Graphics.DrawTexture(_image, 0, 0, Width, Height);
 
-                e.Graphics.DrawLine(new Pen(Color.White), Alpha * Width, 0, Alpha * Width, Height);
-
-                var borderColor = BorderColor;
-                if (Hovered) borderColor = BorderHoverColor;
-                e.Graphics.DrawRectangle(new Pen(borderColor), 0, 0, Width, Height);
+                e.Graphics.DrawLine(_cursorPen, Alpha * Width, 0, Alpha * Width, Height);
+                e.Graphics.DrawRectangle(_borderPen, 0, 0, Width, Height);
             }
 
             public event EventHandler AlphaChanged = delegate { };
-        }
-
-        public static Color GetColorFromHSL(double hue, double saturation, double luminosity)
-        {
-            double r = 0, g = 0, b = 0;
-            if (luminosity != 0)
-            {
-                if (saturation == 0)
-                    r = g = b = luminosity;
-                else
-                {
-                    double temp2 = _GetTemp2(hue, saturation, luminosity);
-                    double temp1 = 2.0f * luminosity - temp2;
-
-                    r = _GetColorComponent(temp1, temp2, hue + 1.0f / 3.0f);
-                    g = _GetColorComponent(temp1, temp2, hue);
-                    b = _GetColorComponent(temp1, temp2, hue - 1.0f / 3.0f);
-                }
-            }
-            return Color.FromArgb((int)(255 * r), (int)(255 * g), (int)(255 * b));
-        }
-        private static double _GetColorComponent(double temp1, double temp2, double temp3)
-        {
-            temp3 = _MoveIntoRange(temp3);
-            if (temp3 < 1.0f / 6.0f)
-                return temp1 + (temp2 - temp1) * 6.0f * temp3;
-            else if (temp3 < 0.5f)
-                return temp2;
-            else if (temp3 < 2.0f / 3.0f)
-                return temp1 + ((temp2 - temp1) * ((2.0f / 3.0f) - temp3) * 6.0f);
-            else
-                return temp1;
-        }
-        private static double _GetTemp2(double h, double s, double l)
-        {
-            double temp2;
-            if (l < 0.5f)
-                temp2 = l * (1.0f + s);
-            else
-                temp2 = l + s - (l * s);
-            return temp2;
-        }
-        private static double _MoveIntoRange(double temp3)
-        {
-            if (temp3 < 0.0f)
-                temp3 += 1.0f;
-            else if (temp3 > 1.0f)
-                temp3 -= 1.0f;
-            return temp3;
         }
     }
 }

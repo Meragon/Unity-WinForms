@@ -35,6 +35,7 @@ namespace System.Windows.Forms
         internal bool hovered;
         internal bool mouseEntered;
         private Control _parent;
+        internal bool shouldFocus;
         private bool _visible;
         private int _width;
 
@@ -44,7 +45,7 @@ namespace System.Windows.Forms
         private bool _toggleControls;
         private bool _toggleSource;
 
-        public bool AllowDrop { get; set; }
+        public virtual bool AllowDrop { get; set; }
         public bool AlwaysFocused { get; set; }
         public virtual AnchorStyles Anchor { get; set; }
         /// <summary>
@@ -315,6 +316,8 @@ namespace System.Windows.Forms
 
             var form = this as Form ?? Application.GetRootControl(this) as Form;
             if (form != null) form.BringToFront();
+
+            shouldFocus = true;
 
             GotFocus(this, EventArgs.Empty);
         }

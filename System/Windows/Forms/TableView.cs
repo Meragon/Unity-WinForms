@@ -71,6 +71,16 @@ namespace System.Windows.Forms
 
         private void CreateTopLeftButton()
         {
+            if (rowHeadersHidden)
+            {
+                if (topLeftButton != null && topLeftButton.IsDisposed == false)
+                {
+                    topLeftButton.Dispose();
+                    topLeftButton = null;
+                }
+                return;
+            }
+
             if (topLeftButton == null)
             {
                 topLeftButton = new TableColumnButton(this, ColumnsStyle);
@@ -226,15 +236,14 @@ namespace System.Windows.Forms
                 int cX = Padding.Left;
 
                 var row = Rows[i];
-                if (rowHeadersHidden == false)
-                {
-                    row.control.Location = new Point(cX, cY);
-                    row.control.Text = (i + 1).ToString();
-                    if (topLeftButton != null)
-                        row.control.Width = topLeftButton.Width;
 
+                row.control.Location = new Point(cX, cY);
+                row.control.Text = (i + 1).ToString();
+                if (topLeftButton != null)
+                    row.control.Width = topLeftButton.Width;
+
+                if (rowHeadersHidden == false)
                     cX += row.control.Width + CellPadding;
-                }
 
                 for (int k = 0; k < row.ItemsControls.Length; k++)
                 {
@@ -328,7 +337,7 @@ namespace System.Windows.Forms
                 for (int i = 0; i < row.Items.Length; i++)
                 {
                     if (row.ItemsControls[i] != null) continue;
-                    
+
                     int controlColumn = i;
                     TextBox itemControl = new TextBox();
                     itemControl.BorderColor = Color.Transparent;
@@ -374,6 +383,9 @@ namespace System.Windows.Forms
             Editor.NewLine(1);
             Editor.Label("columnHeadersHidden", columnHeadersHidden);
             Editor.Label("rowHeadersHidden", rowHeadersHidden);
+
+            Editor.Label("HScroll", hScroll);
+            Editor.Label("VScroll", vScroll);
 #endif
 
             return control;

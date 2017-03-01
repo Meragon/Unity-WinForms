@@ -295,33 +295,33 @@ namespace System.Windows.Forms
             if (dialog && _dialogCallback != null)
                 _dialogCallback.Invoke(this, this.DialogResult);
         }
-        public virtual ControlResizeTypes GetResizeAt(Point location)
+        public virtual ControlResizeTypes GetResizeAt(Point mclient)
         {
             if (!Resizable) return ControlResizeTypes.None;
 
             var r_type = ControlResizeTypes.None;
 
             // Left side.
-            if (location.X < _resizeOffset)
+            if (mclient.X < _resizeOffset)
             {
                 r_type = ControlResizeTypes.Left;
-                if (location.Y < _resizeOffset)
+                if (mclient.Y < _resizeOffset)
                     r_type = ControlResizeTypes.LeftUp;
-                else if (location.Y > Height - _resizeOffset)
+                else if (mclient.Y > Height - _resizeOffset)
                     r_type = ControlResizeTypes.LeftDown;
             }
-            else if (location.X > Width - _resizeOffset)
+            else if (mclient.X > Width - _resizeOffset)
             {
                 // Right side.
                 r_type = ControlResizeTypes.Right;
-                if (location.Y < _resizeOffset)
+                if (mclient.Y < _resizeOffset)
                     r_type = ControlResizeTypes.RightUp;
-                else if (location.Y > Height - _resizeOffset)
+                else if (mclient.Y > Height - _resizeOffset)
                     r_type = ControlResizeTypes.RightDown;
             }
-            else if (location.Y < _resizeOffset)
+            else if (mclient.Y < _resizeOffset)
                 r_type = ControlResizeTypes.Up;
-            else if (location.Y > Height - _resizeOffset)
+            else if (mclient.Y > Height - _resizeOffset)
                 r_type = ControlResizeTypes.Down;
 
             return r_type;

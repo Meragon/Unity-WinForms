@@ -11,7 +11,6 @@ namespace System.Windows.Forms
     {
         private decimal _minimum;
         private decimal _maximum;
-        private bool _shouldFocus;
         private decimal _value;
 
         protected string valueText = "0";
@@ -68,7 +67,7 @@ namespace System.Windows.Forms
 
         public NumericUpDown() : this(true)
         {
-            
+
         }
         public NumericUpDown(bool initButtons)
         {
@@ -135,12 +134,7 @@ namespace System.Windows.Forms
         }
 
         public event EventHandler ValueChanged = delegate { };
-
-        public override void Focus()
-        {
-            base.Focus();
-            _shouldFocus = true;
-        }
+        
         public void HideButtons()
         {
             ButtonIncrease.Visible = false;
@@ -161,48 +155,32 @@ namespace System.Windows.Forms
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            if (Focused)
-            {
-                if (e.Delta < 0)
-                    Value--;
-                if (e.Delta > 0)
-                    Value++;
-            }
+            if (!Focused) return;
+
+            if (e.Delta < 0)
+                Value -= Increment;
+            if (e.Delta > 0)
+                Value += Increment;
         }
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
 
-            Graphics g = e.Graphics;
+            var g = e.Graphics;
 
             int textPaddingRight = 0;
             if (ButtonIncrease != null && ButtonIncrease.Visible)
                 textPaddingRight = -16;
 
-            if (Enabled)
-            {
-                g.FillRectangle(BackColor, 0, 0, Width, Height);
+            var backColor = Enabled ? BackColor : DisabledColor;
+            var foreColor = Enabled ? ForeColor : Color.Black;
 
-                if (Focused)
-                {
-                    if (_shouldFocus) e.Graphics.FocusNext();
+            g.FillRectangle(backColor, 0, 0, Width, Height);
 
-                    valueText = g.DrawTextField(valueText, Font, ForeColor, Padding.Left - 2, 0, Width + textPaddingRight + 4, Height, TextAlign);
-
-                    if (_shouldFocus)
-                    {
-                        e.Graphics.Focus();
-                        _shouldFocus = false;
-                    }
-                }
-                else
-                    g.DrawString(valueText, Font, ForeColor, Padding.Left, 0, Width + textPaddingRight, Height, TextAlign);
-            }
+            if (Focused)
+                valueText = g.DrawTextField(valueText, Font, foreColor, Padding.Left - 2, 0, Width + textPaddingRight + 4, Height, TextAlign);
             else
-            {
-                g.FillRectangle(DisabledColor, 0, 0, Width, Height);
-                g.DrawString(Value.ToString(), Font, Color.Black, Padding.Left, 0, Width + textPaddingRight, Height, TextAlign);
-            }
+                g.DrawString(valueText, Font, foreColor, Padding.Left, 0, Width + textPaddingRight, Height, TextAlign);
         }
         public void ShowButtons()
         {
