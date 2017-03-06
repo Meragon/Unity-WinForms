@@ -346,14 +346,17 @@ namespace System.Windows.Forms
         public void Show(bool fShouldFocus = true)
         {
             Visible = true;
+
             int self = Owner.Forms.FindIndex(x => x == this);
             if (self == -1)
                 Owner.Forms.Add(this);
+
             if (fShouldFocus)
             {
                 Focus();
                 _SelectFirstControl();
             }
+
             Shown(this, null);
         }
         public DialogResult ShowDialog(Action<Form, DialogResult> onClosed = null)
@@ -362,14 +365,15 @@ namespace System.Windows.Forms
             _dialogCallback = onClosed;
 
             Visible = true;
+
             int self = Owner.ModalForms.FindIndex(x => x == this);
             if (self == -1)
-            {
                 Owner.ModalForms.Add(this);
-                Shown(this, null);
-            }
+
             Focus();
             _SelectFirstControl();
+
+            Shown(this, null);
 
             return this.DialogResult;
         }

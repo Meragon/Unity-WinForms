@@ -237,6 +237,7 @@ namespace System.Windows.Forms
             }
 
             fileRenderer.SetDirectory(fileRenderer.currentPath);
+            fileRenderer.filesTree.Focus();
 
         }
         protected virtual void filesTree_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -262,17 +263,20 @@ namespace System.Windows.Forms
         protected override void OnKeyPress(KeyEventArgs e)
         {
             base.OnKeyPress(e);
-            if (e.KeyCode == UnityEngine.KeyCode.Escape)
+            if (e.KeyCode == KeyCode.Escape)
             {
                 DialogResult = DialogResult.Cancel;
                 Close();
             }
 
+            // Next folder.
+            if (e.KeyCode == KeyCode.Return)
+                fileRenderer.Next();
+
             // Refresh directory.
             if (e.KeyCode == KeyCode.F5)
                 ButtonRefresh();
-
-            // Not gonna work in editor mode.
+            
             if (e.Modifiers == EventModifiers.Alt)
             {
                 switch (e.KeyCode)
@@ -506,7 +510,23 @@ namespace System.Windows.Forms
             }
             void filesTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
             {
-                var fInfo = (FileInfo)e.Node.Tag;
+                Next();
+            }
+
+            public bool Back()
+            {
+                if (prevPathes.Count == 0) return false;
+
+                currentPath = prevPathes.Last();
+                prevPathes.RemoveAt(prevPathes.Count - 1);
+                SetDirectory(currentPath);
+                return true;
+            }
+            public void Next()
+            {
+                if (filesTree.SelectedNode == null) return;
+
+                var fInfo = (FileInfo)filesTree.SelectedNode.Tag;
                 if (fInfo.IsDirectory)
                 {
                     prevPathes.Add(currentPath);
@@ -518,16 +538,6 @@ namespace System.Windows.Forms
                 {
                     OnFileOpen(fInfo);
                 }
-            }
-
-            public bool Back()
-            {
-                if (prevPathes.Count == 0) return false;
-
-                currentPath = prevPathes.Last();
-                prevPathes.RemoveAt(prevPathes.Count - 1);
-                SetDirectory(currentPath);
-                return true;
             }
             public void SetDirectory(string path)
             {
