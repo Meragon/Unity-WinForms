@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
+using UnityEngine;
+using Color = System.Drawing.Color;
+using FontStyle = System.Drawing.FontStyle;
 
 namespace System.Windows.Forms
 {
@@ -14,26 +17,16 @@ namespace System.Windows.Forms
         public static Bitmap FolderNavRefresh { get; set; }
         public static Bitmap FolderNavUp { get; set; }
 
-        internal FileRender fileRender;
+        internal FileRenderer fileRenderer;
 
-        private bool handleFormSize;
+        private readonly bool handleFormSize;
 
         protected Button buttonOk;
         protected Button buttonCancel;
         protected Button buttonBack;
         protected Button buttonUp;
         protected Button buttonRefresh;
-
-        protected TextBox textBoxPath;
-        protected Label labelFilename;
-        protected TextBox textBoxFilename;
         protected ComboBox comboFilter;
-
-        public string FileName { get; set; }
-        public string Filter { get; set; }
-        public Bitmap ImageFile { get; set; }
-        public Bitmap ImageFolder { get; set; }
-
         protected string currentFilter
         {
             get
@@ -44,16 +37,24 @@ namespace System.Windows.Forms
                 return fs[comboFilter.SelectedIndex * 2 + 1];
             }
         }
+        protected Label labelFilename;
+        protected TextBox textBoxPath;
+        protected TextBox textBoxFilename;
 
-        public FileDialog()
+        public string FileName { get; set; }
+        public string Filter { get; set; }
+        public Bitmap ImageFile { get; set; }
+        public Bitmap ImageFolder { get; set; }
+
+        protected FileDialog()
         {
 #if !UNITY_STANDALONE && !UNITY_ANDROID
             throw new NotSupportedException();
 #endif
             BackColor = Color.White;
-            HeaderTextAlign = ContentAlignment.MiddleCenter;
             Filter = "All files|*.*";
             MinimumSize = new Drawing.Size(240, 240);
+            KeyPreview = true;
             Padding = new Padding(12, 12, 12, 12);
             ResizeIcon = true;
             Text = "File Dialog";
@@ -73,15 +74,11 @@ namespace System.Windows.Forms
             buttonBack.BorderColor = Color.Transparent;
             buttonBack.Size = new Size(22, 22);
             if (buttonBack.Image == null) buttonBack.Text = "◀";
-            buttonBack.Click += (sender, args) =>
-            {
-                buttonBack.Enabled = fileRender.Back() && fileRender.prevPathes.Count > 0;
-                textBoxPath.Text = fileRender.currentPath;
-            };
+            buttonBack.Click += (sender, args) => ButtonBack();
             Controls.Add(buttonBack);
 
             ToolTip buttonBackTooltip = new ToolTip();
-            buttonBackTooltip.SetToolTip(buttonBack, "Back");
+            buttonBackTooltip.SetToolTip(buttonBack, "Back (ALT + Left Arrow)");
             #endregion;
 
             #region Button Up.
@@ -94,37 +91,33 @@ namespace System.Windows.Forms
             buttonUp.BorderColor = Color.Transparent;
             buttonUp.Size = new Drawing.Size(22, 22);
             if (buttonUp.Image == null) buttonUp.Text = "▲";
-            buttonUp.Click += (sender, args) =>
-            {
-                fileRender.Up();
-            };
+            buttonUp.Click += (sender, args) => ButtonUp();
             Controls.Add(buttonUp);
 
             ToolTip buttonUpTooltip = new ToolTip();
-            buttonUpTooltip.SetToolTip(buttonUp, "Up");
+            buttonUpTooltip.SetToolTip(buttonUp, "Up (ALT + Up Arrow)");
             #endregion
 
             #region Button Refresh.
             buttonRefresh = new Button();
             buttonRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             buttonRefresh.Image = FolderNavRefresh;
+            buttonRefresh.ImageColor = Color.FromArgb(64, 64, 64);
+            buttonRefresh.ImageHoverColor = buttonRefresh.ImageColor;
             buttonRefresh.BackColor = Color.Transparent;
             buttonRefresh.BorderColor = Color.Transparent;
             buttonRefresh.Size = new Size(22, 22);
             buttonRefresh.Location = new Point(Width - Padding.Right - buttonRefresh.Width, buttonUp.Location.Y);
-            buttonRefresh.Click += (sender, args) =>
-            {
-                fileRender.SetDirectory(fileRender.currentPath);
-            };
+            buttonRefresh.Click += (sender, args) => ButtonRefresh();
             if (buttonRefresh.Image == null) buttonRefresh.Text = "R";
             Controls.Add(buttonRefresh);
 
             ToolTip buttonRefreshTooltip = new ToolTip();
-            buttonRefreshTooltip.SetToolTip(buttonRefresh, "Refresh");
+            buttonRefreshTooltip.SetToolTip(buttonRefresh, "Refresh (F5)");
             #endregion
 
             #region Textbox Path.
-            textBoxPath = new TextBox();
+            textBoxPath = new PathTextBox();
             textBoxPath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             textBoxPath.Font = new Drawing.Font("Arial", 14);
             textBoxPath.Location = new Point(buttonUp.Location.X + buttonUp.Width + 8, buttonUp.Location.Y);
@@ -181,40 +174,53 @@ namespace System.Windows.Forms
             #endregion
 
             #region File Render.
-            fileRender = new FileRender(this);
-            fileRender.Anchor = AnchorStyles.All;
-            fileRender.Location = new Point(Padding.Left, buttonBack.Location.Y + buttonBack.Height + 8);
-            fileRender.Name = "fileRender";
-            fileRender.Size = new Drawing.Size(Width - Padding.Left - Padding.Right, textBoxFilename.Location.Y - buttonBack.Location.Y - buttonBack.Height - 16);
-            fileRender.OnDirectoryChanged += () =>
+            fileRenderer = new FileRenderer(this);
+            fileRenderer.Anchor = AnchorStyles.All;
+            fileRenderer.Location = new Point(Padding.Left, buttonBack.Location.Y + buttonBack.Height + 8);
+            fileRenderer.Name = "fileRenderer";
+            fileRenderer.Size = new Drawing.Size(Width - Padding.Left - Padding.Right, textBoxFilename.Location.Y - buttonBack.Location.Y - buttonBack.Height - 16);
+            fileRenderer.OnDirectoryChanged += () =>
             {
-                if (fileRender.prevPathes.Count > 0)
+                if (fileRenderer.prevPathes.Count > 0)
                     buttonBack.Enabled = true;
-                textBoxPath.Text = fileRender.currentPath;
+                textBoxPath.Text = fileRenderer.currentPath;
             };
-            fileRender.OnSelectedFileChanged += (file) =>
+            fileRenderer.OnSelectedFileChanged += (file) =>
             {
                 textBoxFilename.Text = file.ToString();
             };
-            fileRender.OnFileOpen += (file) =>
+            fileRenderer.OnFileOpen += (file) =>
             {
                 OpenFile();
             };
-            Controls.Add(fileRender);
+            Controls.Add(fileRenderer);
             #endregion
 
-            textBoxPath.Text = fileRender.currentPath;
+            textBoxPath.Text = fileRenderer.currentPath;
             textBoxPath.TextChanged += (sender, args) =>
             {
-                fileRender.SetDirectory(textBoxPath.Text);
+                fileRenderer.SetDirectory(textBoxPath.Text);
             };
 
-            fileRender.filesTree.NodeMouseClick += filesTree_NodeMouseClick;
+            fileRenderer.filesTree.NodeMouseClick += filesTree_NodeMouseClick;
 
             this.AcceptButton = buttonOk;
             this.Shown += FileDialog_Shown;
         }
 
+        protected virtual void ButtonBack()
+        {
+            buttonBack.Enabled = fileRenderer.Back() && fileRenderer.prevPathes.Count > 0;
+            textBoxPath.Text = fileRenderer.currentPath;
+        }
+        protected virtual void ButtonUp()
+        {
+            fileRenderer.Up();
+        }
+        protected virtual void ButtonRefresh()
+        {
+            fileRenderer.SetDirectory(fileRenderer.currentPath);
+        }
         private void FileDialog_Shown(object sender, EventArgs e)
         {
             var fs = Filter.Split('|');
@@ -226,11 +232,11 @@ namespace System.Windows.Forms
                 comboFilter.SelectedIndex = 0;
                 comboFilter.SelectedIndexChanged += (s, a) =>
                 {
-                    fileRender.SetDirectory(fileRender.currentPath);
+                    fileRenderer.SetDirectory(fileRenderer.currentPath);
                 };
             }
 
-            fileRender.SetDirectory(fileRender.currentPath);
+            fileRenderer.SetDirectory(fileRenderer.currentPath);
 
         }
         protected virtual void filesTree_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -247,13 +253,12 @@ namespace System.Windows.Forms
                 contextMenu.Items.Add(itemSep);
 
                 ToolStripMenuItem itemProperties = new ToolStripMenuItem("Properties");
-                itemProperties.Click += (sender2, args) => { new FormFileInfo(fileRender.currentPath + "/" + textBoxFilename.Text).Show(); };
+                itemProperties.Click += (sender2, args) => { new FormFileInfo(fileRenderer.currentPath + "/" + textBoxFilename.Text).Show(); };
                 contextMenu.Items.Add(itemProperties);
 
                 contextMenu.Show(null, MousePosition);
             }
         }
-
         protected override void OnKeyPress(KeyEventArgs e)
         {
             base.OnKeyPress(e);
@@ -262,11 +267,26 @@ namespace System.Windows.Forms
                 DialogResult = DialogResult.Cancel;
                 Close();
             }
+
+            // Refresh directory.
+            if (e.KeyCode == KeyCode.F5)
+                ButtonRefresh();
+
+            // Not gonna work in editor mode.
+            if (e.Modifiers == EventModifiers.Alt)
+            {
+                switch (e.KeyCode)
+                {
+                    case KeyCode.LeftArrow: ButtonBack(); break;
+                    case KeyCode.UpArrow: ButtonUp(); break;
+                }
+            }
         }
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
-            e.Graphics.DrawLine(new Pen(BorderColor), 1, HeaderHeight, Width - 1, HeaderHeight);
+
+            e.Graphics.DrawLine(borderPen, 1, HeaderHeight, Width - 1, HeaderHeight);
         }
         protected override void OnResize(Point delta)
         {
@@ -275,17 +295,19 @@ namespace System.Windows.Forms
             if (handleFormSize)
                 savedFormSize = Size;
         }
-
         protected void OpenFile()
         {
-            FileName = fileRender.currentPath + "/" + textBoxFilename.Text;
+            FileName = fileRenderer.currentPath + "/" + textBoxFilename.Text;
             DialogResult = Forms.DialogResult.OK;
             Close();
         }
 
-        internal class FileRender : Control
+        #region classes
+
+        internal class FileRenderer : Control
         {
-            private FileDialog _owner;
+            private readonly FileDialog _owner;
+            private string fromFolder;
 
             public string currentPath;
             public List<string> prevPathes;
@@ -293,7 +315,7 @@ namespace System.Windows.Forms
             private FileInfo[] currentFiles;
             internal TreeView filesTree;
 
-            public FileRender(FileDialog owner)
+            public FileRenderer(FileDialog owner)
             {
                 _owner = owner;
 
@@ -515,7 +537,6 @@ namespace System.Windows.Forms
 
                 currentPath = path.Replace("\\", "/");
 
-
                 string[] files = null;
                 if (_owner.currentFilter == "*.*")
                     files = System.IO.Directory.GetFiles(currentPath, "*.*").Select(f => f.Substring(currentPath.Length)).ToArray();
@@ -539,18 +560,20 @@ namespace System.Windows.Forms
                 filesTree.Nodes.Clear();
                 for (int i = 0; i < currentFiles.Length; i++)
                 {
-                    TreeNode fileNode = new TreeNode(currentFiles[i].ToString());
-                    fileNode.Tag = currentFiles[i];
-                    if (currentFiles[i].IsDirectory)
-                        fileNode.ImageIndex = 0;
-                    else
-                        fileNode.ImageIndex = 1;
+                    var file = currentFiles[i];
+                    var fileNode = new TreeNode(file.ToString());
+                    fileNode.Tag = file;
+                    fileNode.ImageIndex = file.IsDirectory ? 0 : 1;
 
                     filesTree.Nodes.Add(fileNode);
+                    if (fileNode.Text == fromFolder)
+                        filesTree.SelectedNode = fileNode;
                 }
                 filesTree.ExpandAll();
 
                 OnDirectoryChanged();
+
+                fromFolder = null;
 #endif
             }
             public void Up()
@@ -560,6 +583,7 @@ namespace System.Windows.Forms
                 if (parent.Exists == false) return;
 
                 prevPathes.Add(currentPath);
+                fromFolder = System.IO.Path.GetFileName(currentPath);
                 SetDirectory(parent.FullName);
 #endif
             }
@@ -626,5 +650,47 @@ namespace System.Windows.Forms
 #endif
             }
         }
+
+        internal class PathTextBox : TextBox
+        {
+            private string path = "";
+            private string text;
+
+            public PathTextBox()
+            {
+                Padding = new Padding(8, 0, 8, 0);
+            }
+
+            public override string Text
+            {
+                get { return text; }
+                set
+                {
+                    var changed = text != value;
+                    text = value;
+                    if (text == null)
+                        text = "";
+
+                    if (changed)
+                        OnTextChanged(EventArgs.Empty);
+
+                    path = value.Replace("/", " ▶ ").Replace(":", "");
+                }
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                var temp = text;
+                if (Focused == false)
+                    text = path;
+
+                base.OnPaint(e);
+
+                if (Focused == false)
+                    text = temp;
+            }
+        }
+
+        #endregion
     }
 }

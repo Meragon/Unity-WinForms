@@ -9,7 +9,7 @@ namespace System.Windows.Forms
     {
         public SaveFileDialog()
         {
-            Text = "Save file";
+            Text = "Save as";
 
             buttonOk.Text = "Save";
         }

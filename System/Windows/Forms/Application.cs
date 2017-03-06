@@ -298,6 +298,35 @@ namespace System.Windows.Forms
                 control.RaiseOnMouseLeave(null);
             return false;
         }
+        private void RaiseKeyEvent(KeyEventArgs args, Control keyControl)
+        {
+            switch (Event.current.type)
+            {
+                case EventType.KeyDown:
+                    // Tab switching through controls.
+                    if (TabSwitching && Event.current.keyCode == KeyCode.Tab)
+                    {
+                        if (Event.current.modifiers == EventModifiers.None)
+                            NextTabControl(Control.lastSelected);
+                        else if (Event.current.modifiers == EventModifiers.Shift)
+                            PrevTabControl(Control.lastSelected);
+                        break;
+                    }
+
+                    if (_currentKeyDown == KeyCode.None || _currentKeyDown != args.KeyCode)
+                        keyControl.RaiseOnKeyDown(args);
+
+                    keyControl.RaiseOnKeyPress(args);
+
+                    break;
+                case EventType.KeyUp:
+                    _currentKeyDown = KeyCode.None;
+                    keyControl.RaiseOnKeyUp(args);
+                    break;
+                case EventType.Layout:
+                    break;
+            }
+        }
         private static Keys _UKeyToKey(UnityEngine.KeyCode ukey)
         {
             Keys key = Keys.None;
@@ -435,34 +464,9 @@ namespace System.Windows.Forms
                     var keyControl = Control.lastSelected;
                     var parentForm = GetParentForm(Control.lastSelected);
                     if (parentForm != null && parentForm.KeyPreview)
-                        keyControl = parentForm;
+                        RaiseKeyEvent(args, parentForm); // Raise key event if keyPreview is used.
 
-                    switch (Event.current.type)
-                    {
-                        case EventType.KeyDown:
-                            // Tab switching through controls.
-                            if (TabSwitching && Event.current.keyCode == KeyCode.Tab)
-                            {
-                                if (Event.current.modifiers == EventModifiers.None)
-                                    NextTabControl(Control.lastSelected);
-                                else if (Event.current.modifiers == EventModifiers.Shift)
-                                    PrevTabControl(Control.lastSelected);
-                                break;
-                            }
-
-                            if (_currentKeyDown == KeyCode.None || _currentKeyDown != args.KeyCode)
-                                keyControl.RaiseOnKeyDown(args);
-
-                            keyControl.RaiseOnKeyPress(args);
-
-                            break;
-                        case EventType.KeyUp:
-                            _currentKeyDown = KeyCode.None;
-                            keyControl.RaiseOnKeyUp(args);
-                            break;
-                        case EventType.Layout:
-                            break;
-                    }
+                    RaiseKeyEvent(args, keyControl);
                 }
 
                 if (Event.current.type == EventType.keyDown)

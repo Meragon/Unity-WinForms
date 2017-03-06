@@ -18,15 +18,12 @@ namespace System.Windows.Forms
         private static Point nextLocation = new Point(128, 64);
         private bool _windowMove = false;
         private Point _windowMove_StartPosition;
-
-        private bool resizeActive;
+        
         private ControlResizeTypes resizeType;
         private Size _resizeOriginal;
         private Point _resizePosition;
         private Point _resizeDelta;
         private const int _resizeOffset = 8;
-        private ControlResizeTypes _resizeShow;
-        private float _resizeAlpha;
         protected Button resizeButton;
         private bool resizeIcon;
         private bool _toggleEditor = true;
@@ -162,8 +159,6 @@ namespace System.Windows.Forms
             resizeType = ControlResizeTypes.None;
             if (Application.activeResizeControl == this)
                 Application.activeResizeControl = null;
-
-            resizeActive = false;
         }
         private void _MakeButtonClose()
         {
@@ -340,12 +335,10 @@ namespace System.Windows.Forms
             switch (resize)
             {
                 case ControlResizeTypes.None:
-                    resizeActive = false;
                     Application.activeResizeControl = null;
                     break;
 
                 default:
-                    resizeActive = true;
                     Application.activeResizeControl = this;
                     break;
             }
@@ -436,7 +429,7 @@ namespace System.Windows.Forms
                     Location = Parent.PointToClient(PointToScreen(e.Location) - _windowMove_StartPosition);
             }
             else
-                _resizeShow = GetResizeAt(e.Location);
+                GetResizeAt(e.Location);
         }
         protected override void OnPaint(PaintEventArgs e)
         {

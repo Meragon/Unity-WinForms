@@ -9,7 +9,7 @@ namespace System.Windows.Forms
     {
         public OpenFileDialog()
         {
-            Text = "Open file";
+            Text = "Open";
 
             buttonOk.Text = "Open";
         }

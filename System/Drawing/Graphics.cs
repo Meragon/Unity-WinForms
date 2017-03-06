@@ -759,6 +759,10 @@ namespace System.Drawing
         {
             FillRectangle(brush.Color, x, y, width, height);
         }
+        public void FillRectangle(Color color, Rectangle rect)
+        {
+            FillRectangle(color, rect.X, rect.Y, rect.Width, rect.Height);
+        }
         public void FillRectangle(Color color, float x, float y, float width, float height)
         {
             if (NoFill) return;

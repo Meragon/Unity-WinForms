@@ -51,7 +51,7 @@ namespace System.Windows.Forms
                 }
                 Items[i].ForeColor = Color.FromArgb(64, 64, 64);
                 Items[i].HoverColor = Color.FromArgb(160, 210, 222, 245);
-                Items[i].TextAlign.LineAlignment = StringAlignment.Center;
+                Items[i].TextAlign = ContentAlignment.MiddleLeft;
                 switch (Orientation)
                 {
                     case Forms.Orientation.Horizontal:

@@ -15,7 +15,6 @@ namespace System.Windows.Forms
 #endif
 
         private string _filter = String.Empty;
-        private ComboBox.ObjectCollection _items;
         private bool _hovered;
         private ListBox _listBox;
         private bool _listBoxOpened;
@@ -29,7 +28,7 @@ namespace System.Windows.Forms
         public Color BorderColorDisabled { get; set; }
         public Color BorderColorHovered { get; set; }
         public ComboBoxStyle DropDownStyle { get; set; }
-        public ComboBox.ObjectCollection Items { get { return _items; } }
+        public ComboBox.ObjectCollection Items { get; private set; }
         public Color HoverColor { get; set; }
         public int MaxDropDownItems
         {
@@ -98,7 +97,7 @@ namespace System.Windows.Forms
 
         public ComboBox()
         {
-            _items = new ObjectCollection(this);
+            Items = new ObjectCollection(this);
 
             AutoCompleteMode = Forms.AutoCompleteMode.None;
             AutoCompleteSource = Forms.AutoCompleteSource.None;
@@ -136,7 +135,7 @@ namespace System.Windows.Forms
                             _listBox.SelectedIndex++;
                             SelectedIndex = Items.FindIndex(x => x == _listBox.SelectedItem);
                         }
-                        else if (_selectedIndex + 1 < _items.Count)
+                        else if (_selectedIndex + 1 < Items.Count)
                             SelectedIndex++;
                     }
                     break;
@@ -196,7 +195,7 @@ namespace System.Windows.Forms
                 bool down = e.Delta < 0;
                 if (down)
                 {
-                    if (_selectedIndex + 1 < _items.Count)
+                    if (_selectedIndex + 1 < Items.Count)
                         SelectedIndex++;
                 }
                 else
@@ -311,6 +310,7 @@ namespace System.Windows.Forms
                 _listBox.Context = true;
                 _listBox.Width = Width;
                 _listBox.Height = _listBox.ItemHeight * (Items.Count > MaxDropDownItems ? MaxDropDownItems : Items.Count);
+                _listBox.WrapText = false;
                 if (_listBox.Height < _listBox.ItemHeight) _listBox.Height = _listBox.ItemHeight;
                 bool selectedIndexChanged = false;
                 for (int i = 0; i < Items.Count; i++)

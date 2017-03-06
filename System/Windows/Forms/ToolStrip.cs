@@ -43,11 +43,12 @@ namespace System.Windows.Forms
         void Application_UpClick(object sender, EventArgs e)
         {
             bool reset = true;
-            if (sender != null && sender is ToolStrip)
+            var toolStrip = sender as ToolStrip;
+            if (toolStrip != null)
             {
-                if ((sender as ToolStrip).OwnerItem != null)
+                if (toolStrip.OwnerItem != null)
                 {
-                    var parent = (sender as ToolStrip).OwnerItem.Parent;
+                    var parent = toolStrip.OwnerItem.Parent;
                     while (true)
                     {
                         if (parent == null) break;
@@ -173,7 +174,7 @@ namespace System.Windows.Forms
                     y += _items[i].Height;
             }
 
-            p_args.Graphics.DrawRectangle(new Drawing.Pen(BorderColor), 0, 0, Width, Height);
+            p_args.Graphics.DrawRectangle(BorderColor, 0, 0, Width, Height);
         }
         protected override object OnPaintEditor(float width)
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 
@@ -8,8 +9,8 @@ namespace System.Windows.Forms
 {
     public class ToolStripItemCollection : IEnumerator<ToolStripItem>, IEnumerable<ToolStripItem>
     {
-        private List<ToolStripItem> _items = new List<ToolStripItem>();
-        private ToolStrip _owner;
+        private readonly List<ToolStripItem> _items = new List<ToolStripItem>();
+        private readonly ToolStrip _owner;
 
         public ToolStripItemCollection(ToolStrip owner, ToolStripItem[] value)
         {
@@ -25,7 +26,7 @@ namespace System.Windows.Forms
             item.Parent = _owner;
             item.Owner = _owner;
             if (_owner != null && _owner.Orientation == Orientation.Horizontal)
-                item.TextAlign.Alignment = Drawing.StringAlignment.Center;
+                item.TextAlign = ContentAlignment.MiddleCenter;
         }
 
         public ToolStripItem Add(string text)

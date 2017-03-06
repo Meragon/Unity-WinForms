@@ -159,7 +159,7 @@ namespace System.Windows.Forms
             e.Graphics.FillRectangle(node.BackColor, node.Bounds.X, nodeY, node.Bounds.Width, node.Bounds.Height);
             if (node.IsSelected || node == _hoveredNode)
                 e.Graphics.FillRectangle((node.IsSelected ? SelectionColor : SelectionHoverColor), UseNodeBoundsForSelection ? node.Bounds.X : 0, nodeY, Width, ItemHeight);
-            
+
             int xOffset = node.Bounds.X;
 
             // Draw collapsed/expanded arrow.
@@ -487,8 +487,8 @@ namespace System.Windows.Forms
             if (wrapTextBuffer.Changed)
                 WrapText = wrapTextBuffer.Value;
 
-            if (Editor.Button("Refresh"))
-                Refresh();
+            Editor.Label("HoveredNode", _hoveredNode);
+            Editor.Label("SelectedNode", SelectedNode);
 
             return control;
         }

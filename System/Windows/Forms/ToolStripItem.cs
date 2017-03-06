@@ -33,13 +33,13 @@ namespace System.Windows.Forms
         public virtual bool Selected { get; internal set; }
         public Size Size { get { return new Size(Width, Height); } set { Width = value.Width; Height = value.Height; } }
         public virtual string Text { get; set; }
-        public virtual StringFormat TextAlign { get; set; }
+        public virtual ContentAlignment TextAlign { get; set; }
         public bool Visible { get; set; }
         public int Width { get; set; }
 
         public event EventHandler Click = delegate { };
 
-        public ToolStripItem()
+        protected ToolStripItem()
         {
             Enabled = true;
             ForeColor = Color.FromArgb(64, 64, 64);
@@ -49,18 +49,11 @@ namespace System.Windows.Forms
             Name = "toolStripItem";
             Padding = new Forms.Padding(8, 0, 8, 0);
             Size = new Drawing.Size(160, 24);
-            TextAlign = new StringFormat() { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Near };
+            TextAlign = ContentAlignment.MiddleLeft;
         }
-        public ToolStripItem(string text)
+        protected ToolStripItem(string text) : this()
         {
-            Enabled = true;
-            ForeColor = Color.FromArgb(64, 64, 64);
-            HoverColor = Color.FromArgb(64, 200, 200, 200);
-            HoverPadding = new Rectangle(2, 2, -4, -4);
-            Name = "toolStripItem";
-            Padding = new Forms.Padding(8, 0, 8, 0);
             Text = text;
-            TextAlign = new StringFormat() { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Near };
         }
 
         protected virtual void OnMouseDown(MouseEventArgs e)
@@ -93,26 +86,32 @@ namespace System.Windows.Forms
         protected virtual void OnPaint(PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            g.FillRectangle(new SolidBrush(BackColor), e.ClipRectangle);
+
+            var ex = e.ClipRectangle.X;
+            var ey = e.ClipRectangle.Y;
+            var ew = e.ClipRectangle.Width;
+            var eh = e.ClipRectangle.Height;
+
+            g.FillRectangle(BackColor, ex, ey, ew, eh);
             if (Image != null)
-                g.DrawTexture(Image, e.ClipRectangle.X + 6, e.ClipRectangle.Y + 4, 12, 12, ImageColor);
+                g.DrawTexture(Image, ex + 6, ey + 4, 12, 12, ImageColor);
             if (Enabled)
             {
                 if (!Selected)
                 {
                     if (_hovered)
                     {
-                        g.FillRectangle(new SolidBrush(HoverColor), e.ClipRectangle + HoverPadding);
+                        g.FillRectangle(HoverColor, e.ClipRectangle + HoverPadding);
                         g.DrawRectangle(new Pen(HoverColor - Color.FromArgb(0, 64, 64, 64)), e.ClipRectangle + HoverPadding);
                     }
                 }
                 else
                 {
                     if (Owner.Orientation == Orientation.Horizontal)
-                        g.FillRectangle(new SolidBrush(Color.FromArgb(246, 246, 246)), e.ClipRectangle);
+                        g.FillRectangle(Color.FromArgb(246, 246, 246), e.ClipRectangle);
                     else
                     {
-                        g.FillRectangle(new SolidBrush(HoverColor), e.ClipRectangle + HoverPadding);
+                        g.FillRectangle(HoverColor, e.ClipRectangle + HoverPadding);
                         g.DrawRectangle(new Pen(HoverColor - Color.FromArgb(0, 64, 64, 64)), e.ClipRectangle + HoverPadding);
                     }
                 }
@@ -122,9 +121,9 @@ namespace System.Windows.Forms
             if (Selected && Enabled) textColor = Color.FromArgb(64, 64, 64);
 
             if (Parent.Orientation == Orientation.Horizontal)
-                g.DrawString(Text, Font, new SolidBrush(textColor), e.ClipRectangle, TextAlign);
+                g.DrawString(Text, Font, textColor, ex, ey, ew, eh, TextAlign);
             else
-                g.DrawString(Text, Font, new SolidBrush(textColor), e.ClipRectangle + new Rectangle(32, 0, 0, 0), TextAlign);
+                g.DrawString(Text, Font, textColor, ex + 32, ey, ew, eh, TextAlign);
             if (!Selected)
                 g.DrawRectangle(new Pen(BackColor), e.ClipRectangle);
         }
@@ -196,13 +195,11 @@ namespace System.Windows.Forms
     }
     public class ToolStripDropDownItem : ToolStripItem
     {
-        private ToolStripItemCollection _dropDownItems;
+        private readonly ToolStripItemCollection _dropDownItems;
         private ToolStrip _dropDownToolStrip;
         private bool _pressed;
-        private float _wait;
 
         protected ToolStripDropDownItem()
-            : base()
         {
             _dropDownItems = new ToolStripItemCollection(Parent, null);
 
@@ -307,20 +304,6 @@ namespace System.Windows.Forms
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            /*if (Enabled && DropDownItems.Count > 0 && Hovered && _pressed == false && _wait < 1f)
-            {
-                _wait += UnityEngine.Time.deltaTime;
-                if (_wait >= 1f)
-                {
-                    _wait = 0;
-                    if (OwnerItem is ToolStripDropDownItem)
-                    {
-                        
-                    }
-                    this.RaiseOnMouseUp(new MouseEventArgs(MouseButtons.Left, 1, 0, 0, 0));
-                }
-            }*/
-
             base.OnPaint(e);
             if (_dropDownItems.Count > 0 && Parent.Orientation == Orientation.Vertical)
             {
@@ -334,6 +317,9 @@ namespace System.Windows.Forms
     }
     public class ToolStripSeparator : ToolStripItem
     {
+        protected Pen borderColor = new Pen(Color.FromArgb(215, 215, 215));
+        protected Pen borderColor2 = new Pen(Color.White);
+
         public ToolStripSeparator()
         {
             JustVisual = true;
@@ -343,8 +329,14 @@ namespace System.Windows.Forms
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
-            e.Graphics.DrawLine(new Pen(Color.FromArgb(215, 215, 215)), e.ClipRectangle.X + 32, e.ClipRectangle.Y, e.ClipRectangle.X + e.ClipRectangle.Width - 8, e.ClipRectangle.Y);
-            e.Graphics.DrawLine(new Pen(Color.White), e.ClipRectangle.X + 32, e.ClipRectangle.Y + 1, e.ClipRectangle.X + e.ClipRectangle.Width - 8, e.ClipRectangle.Y + 1);
+
+            var ex = e.ClipRectangle.X + 32;
+            var ey = e.ClipRectangle.Y;
+            var ex2 = ex + e.ClipRectangle.Width - 8;
+            var ey2 = e.ClipRectangle.Y + 1;
+
+            e.Graphics.DrawLine(borderColor, ex, ey, ex2, ey);
+            e.Graphics.DrawLine(borderColor2, ex, ey2, ex2, ey2);
         }
     }
 
@@ -356,11 +348,9 @@ namespace System.Windows.Forms
         public string ShortcutKeys { get; set; } // TODO: enum (flag).
 
         public ToolStripMenuItem()
-            : base()
         {
         }
         public ToolStripMenuItem(string text)
-            : base()
         {
             Text = text;
         }
@@ -374,7 +364,7 @@ namespace System.Windows.Forms
                 int rectWH = e.ClipRectangle.Height - 8;
                 int checkedWH = e.ClipRectangle.Height - 12;
 
-                e.Graphics.FillRectangle(new SolidBrush(HoverColor), e.ClipRectangle.X + 4, e.ClipRectangle.Y + 4, rectWH, rectWH);
+                e.Graphics.FillRectangle(HoverColor, e.ClipRectangle.X + 4, e.ClipRectangle.Y + 4, rectWH, rectWH);
                 e.Graphics.DrawRectangle(new Pen(HoverColor - Color.FromArgb(0, 64, 64, 64)), e.ClipRectangle.X + 4, e.ClipRectangle.Y + 4, rectWH, rectWH);
                 e.Graphics.DrawTexture(ApplicationBehaviour.Resources.Images.Checked, e.ClipRectangle.X + 6, e.ClipRectangle.Y + 6, checkedWH, checkedWH);
             }

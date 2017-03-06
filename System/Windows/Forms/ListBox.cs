@@ -226,7 +226,7 @@ namespace System.Windows.Forms
             var g = e.Graphics;
 
             // Paint list.
-            g.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
+            g.FillRectangle(BackColor, 0, 0, Width, Height);
             for (int i = 0; i < _visibleItems && i + ScrollIndex < Items.Count; i++)
             {
                 var item = Items[i + ScrollIndex];
