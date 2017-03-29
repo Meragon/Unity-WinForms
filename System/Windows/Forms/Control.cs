@@ -776,15 +776,16 @@ namespace System.Windows.Forms
             if (Controls != null)
                 for (int i = 0; i < Controls.Count; i++)
                 {
-                    if (Application.ControlIsVisible(Controls[i]) == false) continue;
+                    var childControl = Controls[i];
+                    if (Application.ControlIsVisible(childControl) == false) continue;
 
-                    var currentAbspos = Controls[i].PointToScreen(System.Drawing.Point.Zero);
-                    if (currentAbspos.X + Controls[i].Width < 0 || currentAbspos.X > Screen.PrimaryScreen.WorkingArea.Width ||
-                    currentAbspos.Y + Controls[i].Height < 0 || currentAbspos.Y > Screen.PrimaryScreen.WorkingArea.Height)
+                    var currentAbspos = childControl.PointToScreen(Point.Zero);
+                    if (currentAbspos.X + childControl.Width < 0 || currentAbspos.X > Screen.PrimaryScreen.WorkingArea.Width ||
+                    currentAbspos.Y + childControl.Height < 0 || currentAbspos.Y > Screen.PrimaryScreen.WorkingArea.Height)
                         continue;
 
-                    e.Graphics.Control = Controls[i];
-                    Controls[i].RaiseOnPaint(e);
+                    e.Graphics.Control = childControl;
+                    childControl.RaiseOnPaint(e);
                 }
             e.Graphics.Control = this;
             if (Application.Debug)

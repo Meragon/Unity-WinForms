@@ -12,27 +12,37 @@ namespace System.Drawing
             if (string.IsNullOrEmpty(htmlColor)) return Color.Empty;
 
             Color result = Color.Empty;
-            if (htmlColor[0] == '#' && (htmlColor.Length == 7 || htmlColor.Length == 4))
+            if (htmlColor[0] == '#')
+                htmlColor = htmlColor.Substring(1);
+
+            switch (htmlColor.Length)
             {
-                if (htmlColor.Length == 7)
-                {
-                    result = Color.FromArgb(
-                        Convert.ToInt32(htmlColor.Substring(1, 2), 16),
-                        Convert.ToInt32(htmlColor.Substring(3, 2), 16),
-                        Convert.ToInt32(htmlColor.Substring(5, 2), 16)
-                        );
-                }
-                else
-                {
-                    string halfRed = char.ToString(htmlColor[1]);
-                    string halfGreen = char.ToString(htmlColor[2]);
-                    string halfBlue = char.ToString(htmlColor[3]);
+                case 3: // half.
+                    string halfRed = char.ToString(htmlColor[0]);
+                    string halfGreen = char.ToString(htmlColor[1]);
+                    string halfBlue = char.ToString(htmlColor[2]);
                     int red = Convert.ToInt32(halfRed + halfRed, 16);
                     int green = Convert.ToInt32(halfGreen + halfGreen, 16);
                     int blue = Convert.ToInt32(halfBlue + halfBlue, 16);
                     result = Color.FromArgb(red, green, blue);
-                }
+                    break;
+                case 6: // rgb.
+                    result = Color.FromArgb(
+                    Convert.ToInt32(htmlColor.Substring(0, 2), 16),
+                    Convert.ToInt32(htmlColor.Substring(2, 2), 16),
+                    Convert.ToInt32(htmlColor.Substring(4, 2), 16)
+                    );
+                    break;
+                case 8: // argb.
+                    result = Color.FromArgb(
+                    Convert.ToInt32(htmlColor.Substring(0, 2), 16),
+                    Convert.ToInt32(htmlColor.Substring(2, 2), 16),
+                    Convert.ToInt32(htmlColor.Substring(4, 2), 16),
+                    Convert.ToInt32(htmlColor.Substring(6, 2), 16)
+                    );
+                    break;
             }
+
             return result;
         }
         public static Color FromOle(int oleColor)
@@ -45,7 +55,7 @@ namespace System.Drawing
         }
         public static string ToHtml(Color c)
         {
-            throw new NotImplementedException();
+            return string.Concat("#", c.A.ToString("X2"), c.R.ToString("X2"), c.G.ToString("X2"), c.B.ToString("X2"));
         }
         public static int ToOle(Color c)
         {

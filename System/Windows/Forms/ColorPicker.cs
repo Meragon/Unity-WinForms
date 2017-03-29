@@ -38,7 +38,7 @@ namespace System.Windows.Forms
                 {
                     _currentForm = null;
                 };
-                _currentForm.Show();
+                _currentForm.ShowDialog();
             }
             _currentForm.BringToFront();
         }
@@ -68,14 +68,6 @@ namespace System.Windows.Forms
         private readonly AlphaPicker _alphaPicker;
         private readonly BrightnessSaturationPicker _bsPicker;
         private readonly HuePicker _huePicker;
-
-        private readonly Label _hLabel;
-        private readonly Label _sLabel;
-        private readonly Label _lLabel;
-
-        private readonly Label _rLabel;
-        private readonly Label _gLabel;
-        private readonly Label _bLabel;
 
         private readonly Label _aLabel;
 
@@ -139,38 +131,38 @@ namespace System.Windows.Forms
 
             Controls.Add(_huePicker);
 
-            _hLabel = new Label();
-            _hLabel.Text = "H:";
-            _hLabel.Location = new Point(_bsPicker.Location.X, _bsPicker.Location.Y + _bsPicker.Height + 8);
-            _sLabel = new Label();
-            _sLabel.Text = "S:";
-            _sLabel.Location = new Point(_hLabel.Location.X, _hLabel.Location.Y + 22);
-            _lLabel = new Label();
-            _lLabel.Text = "L:";
-            _lLabel.Location = new Point(_hLabel.Location.X, _sLabel.Location.Y + 22);
+            var hLabel = new Label();
+            hLabel.Text = "H:";
+            hLabel.Location = new Point(_bsPicker.Location.X, _bsPicker.Location.Y + _bsPicker.Height + 8);
+            var sLabel = new Label();
+            sLabel.Text = "S:";
+            sLabel.Location = new Point(hLabel.Location.X, hLabel.Location.Y + 22);
+            var lLabel = new Label();
+            lLabel.Text = "L:";
+            lLabel.Location = new Point(hLabel.Location.X, sLabel.Location.Y + 22);
 
-            Controls.Add(_hLabel);
-            Controls.Add(_sLabel);
-            Controls.Add(_lLabel);
+            Controls.Add(hLabel);
+            Controls.Add(sLabel);
+            Controls.Add(lLabel);
 
             _hNumeric = new NumericUpDown();
             _hNumeric.Minimum = 0;
             _hNumeric.Maximum = 360;
-            _hNumeric.Location = new Point(_hLabel.Location.X + 24, _hLabel.Location.Y);
+            _hNumeric.Location = new Point(hLabel.Location.X + 24, hLabel.Location.Y);
             _hNumeric.Size = new Drawing.Size(50, 20);
             _hNumeric.ValueChanged += _hNumeric_ValueChanged;
             _hNumeric.TextAlign = HorizontalAlignment.Center;
             _sNumeric = new NumericUpDown();
             _sNumeric.Minimum = 0;
             _sNumeric.Maximum = 255;
-            _sNumeric.Location = new Point(_sLabel.Location.X + 24, _sLabel.Location.Y);
+            _sNumeric.Location = new Point(sLabel.Location.X + 24, sLabel.Location.Y);
             _sNumeric.Size = new Drawing.Size(50, 20);
             _sNumeric.ValueChanged += _sNumeric_ValueChanged;
             _sNumeric.TextAlign = HorizontalAlignment.Center;
             _lNumeric = new NumericUpDown();
             _lNumeric.Minimum = 0;
             _lNumeric.Maximum = 255;
-            _lNumeric.Location = new Point(_lLabel.Location.X + 24, _lLabel.Location.Y);
+            _lNumeric.Location = new Point(lLabel.Location.X + 24, lLabel.Location.Y);
             _lNumeric.Size = new Drawing.Size(50, 20);
             _lNumeric.ValueChanged += _lNumeric_ValueChanged;
             _lNumeric.TextAlign = HorizontalAlignment.Center;
@@ -179,38 +171,38 @@ namespace System.Windows.Forms
             Controls.Add(_sNumeric);
             Controls.Add(_lNumeric);
 
-            _rLabel = new Label();
-            _rLabel.Text = "R:";
-            _rLabel.Location = new Point(_hNumeric.Location.X + _hNumeric.Width + 8, _hLabel.Location.Y);
-            _gLabel = new Label();
-            _gLabel.Text = "G:";
-            _gLabel.Location = new Point(_rLabel.Location.X, _sLabel.Location.Y);
-            _bLabel = new Label();
-            _bLabel.Text = "B:";
-            _bLabel.Location = new Point(_rLabel.Location.X, _lLabel.Location.Y);
+            var rLabel = new Label();
+            rLabel.Text = "R:";
+            rLabel.Location = new Point(_hNumeric.Location.X + _hNumeric.Width + 8, hLabel.Location.Y);
+            var gLabel = new Label();
+            gLabel.Text = "G:";
+            gLabel.Location = new Point(rLabel.Location.X, sLabel.Location.Y);
+            var bLabel = new Label();
+            bLabel.Text = "B:";
+            bLabel.Location = new Point(rLabel.Location.X, lLabel.Location.Y);
 
-            Controls.Add(_rLabel);
-            Controls.Add(_gLabel);
-            Controls.Add(_bLabel);
+            Controls.Add(rLabel);
+            Controls.Add(gLabel);
+            Controls.Add(bLabel);
 
             _rNumeric = new NumericUpDown();
             _rNumeric.Minimum = 0;
             _rNumeric.Maximum = 255;
-            _rNumeric.Location = new Point(_rLabel.Location.X + 24, _rLabel.Location.Y);
+            _rNumeric.Location = new Point(rLabel.Location.X + 24, rLabel.Location.Y);
             _rNumeric.Size = new Size(50, 20);
             _rNumeric.TextAlign = HorizontalAlignment.Center;
             _rNumeric.ValueChanged += _rNumeric_ValueChanged;
             _gNumeric = new NumericUpDown();
             _gNumeric.Minimum = 0;
             _gNumeric.Maximum = 255;
-            _gNumeric.Location = new Point(_gLabel.Location.X + 24, _gLabel.Location.Y);
+            _gNumeric.Location = new Point(gLabel.Location.X + 24, gLabel.Location.Y);
             _gNumeric.Size = new Drawing.Size(50, 20);
             _gNumeric.TextAlign = HorizontalAlignment.Center;
             _gNumeric.ValueChanged += _gNumeric_ValueChanged;
             _bNumeric = new NumericUpDown();
             _bNumeric.Minimum = 0;
             _bNumeric.Maximum = 255;
-            _bNumeric.Location = new Point(_bLabel.Location.X + 24, _bLabel.Location.Y);
+            _bNumeric.Location = new Point(bLabel.Location.X + 24, bLabel.Location.Y);
             _bNumeric.Size = new Drawing.Size(50, 20);
             _bNumeric.TextAlign = HorizontalAlignment.Center;
             _bNumeric.ValueChanged += _bNumeric_ValueChanged;
@@ -219,11 +211,11 @@ namespace System.Windows.Forms
             Controls.Add(_gNumeric);
             Controls.Add(_bNumeric);
 
-            _alphaPicker = new AlphaPicker(_lNumeric.Location.X + _lNumeric.Width - _lLabel.Location.X, 20);
-            _alphaPicker.Location = new Point(_lLabel.Location.X, _lLabel.Location.Y + 26);
+            _alphaPicker = new AlphaPicker(_lNumeric.Location.X + _lNumeric.Width - lLabel.Location.X, 20);
+            _alphaPicker.Location = new Point(lLabel.Location.X, lLabel.Location.Y + 26);
             _alphaPicker.AlphaChanged += _alphaPicker_AlphaChanged;
             _aLabel = new Label();
-            _aLabel.Location = new Point(_bLabel.Location.X, _alphaPicker.Location.Y);
+            _aLabel.Location = new Point(bLabel.Location.X, _alphaPicker.Location.Y);
             _aLabel.Text = "A:";
             _aNumeric = new NumericUpDown();
             _aNumeric.Minimum = 0;
@@ -568,7 +560,7 @@ namespace System.Windows.Forms
                 {
                     for (int k = 0; k < _image.Height; k++)
                     {
-                        hue = (float)(_image.Height - k - 1) / _image.Height;
+                        hue = (float)k / _image.Height;
 
                         // HSL to RGB convertion.
                         var pixelColor = Color.FromHsb(hue, saturation, luminosity);

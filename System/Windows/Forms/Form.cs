@@ -198,7 +198,7 @@ namespace System.Windows.Forms
         }
         private void Owner_UpdateEvent()
         {
-            #region Resize
+            #region ResizeComponent
 
             if (resizeType != ControlResizeTypes.None && Resizable)
             {

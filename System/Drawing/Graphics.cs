@@ -12,6 +12,7 @@ namespace System.Drawing
         private bool _group { get { return _groupControls.Count > 0; } }
         private Control _groupControlLast { get { return _groupControls[_groupControls.Count - 1]; } }
         private readonly List<Control> _groupControls = new List<Control>();
+        private static readonly PointF _linePivot = new PointF();
 
         public static UnityEngine.Material DefaultMaterial { get; set; }
         public static bool GL_Lines { get; set; }
@@ -134,14 +135,15 @@ namespace System.Drawing
             if (GL_Lines)
             {
                 GL.PushMatrix();
-                if (DefaultMaterial != null)
-                    DefaultMaterial.SetPass(0);
-                GL.LoadOrtho();
+                //if (DefaultMaterial != null)
+                //  DefaultMaterial.SetPass(0);
+                //GL.LoadOrtho();
 
                 GL.Begin(GL.LINES);
                 GL.Color(pen.Color.ToUColor());
 
                 // TODO: switch (pen.DashStyle) { ... }
+                var loc = Control.PointToScreen(Point.Empty);
 
                 GL.Vertex3(x1, y1, 0);
                 GL.Vertex3(x2, y2, 0);
@@ -164,7 +166,7 @@ namespace System.Drawing
                 float yDiff = y2 - y1;
                 var angle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
 
-                DrawTexture(System.Windows.Forms.ApplicationBehaviour.Resources.Images.Circle, x1, y1, (float)Math.Sqrt(xDiff * xDiff + yDiff * yDiff), pen.Width, pen.Color, (float)angle, new PointF());
+                DrawTexture(ApplicationBehaviour.Resources.Images.Circle, x1, y1, (float)Math.Sqrt(xDiff * xDiff + yDiff * yDiff), pen.Width, pen.Color, (float)angle, _linePivot);
                 return;
             }
 
@@ -697,12 +699,16 @@ namespace System.Drawing
         }
         public void DrawTexture(Texture texture, float x, float y, float width, float height, Material mat)
         {
+            DrawTexture(texture, x, y, width, height, Color.White, mat);
+        }
+        public void DrawTexture(Texture texture, float x, float y, float width, float height, Color color, Material mat)
+        {
             if (Control == null) return;
 
             Control.Batches++;
             FillRate += width * height;
 
-            GUI.color = Color.White.ToUColor();
+            mat.color = color.ToUColor();
             UnityEngine.Graphics.DrawTexture(new Rect(x, y, width, height), texture, mat);
         }
         public void FillEllipse(SolidBrush brush, float x, float y, float width, float height)
