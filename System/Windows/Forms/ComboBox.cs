@@ -26,7 +26,7 @@ namespace System.Windows.Forms
         private ListBox listBox;
         private bool listBoxOpened;
         private int _maxDropDownItems = 8;
-        private int _selectedIndex = -1;
+        private int selectedIndex = -1;
 
         public AutoCompleteMode AutoCompleteMode { get; set; }
         public AutoCompleteSource AutoCompleteSource { get; set; }
@@ -64,26 +64,16 @@ namespace System.Windows.Forms
         }
         public override int SelectedIndex
         {
-            get { return _selectedIndex; }
+            get { return selectedIndex; }
             set
             {
-                //if (value == _selectedIndex) return;
-                _selectedIndex = value;
-                if (_selectedIndex > -1)
-                {
-                    var sItem = SelectedItem;
-                    if (sItem != null)
-                    {
-                        SelectedText = sItem.ToString();
-                        filter = sItem.ToString();
-                    }
-                }
-                else
-                {
-                    SelectedText = "";
-                    filter = String.Empty;
-                }
-                SelectedIndexChanged(this, null);
+                if (selectedIndex == value) return;
+
+                selectedIndex = value;
+                UpdateText();
+
+                OnSelectedItemChanged(EventArgs.Empty);
+                OnSelectedIndexChanged(EventArgs.Empty);
             }
         }
         public object SelectedItem
@@ -94,32 +84,8 @@ namespace System.Windows.Forms
                     return Items[SelectedIndex];
                 return null;
             }
-            set
-            {
-                SelectedText = "";
-                for (int i = 0; i < Items.Count; i++)
-                {
-                    var item = Items[i];
-                    if (value == item)
-                    {
-                        _selectedIndex = i;
-                        if (item != null)
-                        {
-                            filter = item.ToString();
-                            SelectedText = item.ToString();
-                        }
-                        else
-                        {
-                            filter = "";
-                            SelectedText = "";
-                        }
-                        SelectedIndexChanged(this, null);
-                        break;
-                    }
-                }
-            }
+            set { SelectedIndex = Items.IndexOf(value); }
         }
-        public string SelectedText { get; set; }
         public bool WrapText { get; set; }
 
         public ComboBox()
@@ -144,6 +110,15 @@ namespace System.Windows.Forms
 
         public event EventHandler SelectedIndexChanged = delegate { };
 
+        internal override bool FocusInternal()
+        {
+            var res = base.FocusInternal();
+
+            filter = Text;
+
+            return res;
+        }
+
         protected override void OnKeyPress(KeyEventArgs e)
         {
             base.OnKeyDown(e);
@@ -151,20 +126,20 @@ namespace System.Windows.Forms
             {
                 case UnityEngine.KeyCode.DownArrow:
                     {
-                        if (Items.IsDisabled(_selectedIndex + 1))
+                        if (Items.IsDisabled(selectedIndex + 1))
                             break;
                         if (listBox != null)
                         {
                             listBox.SelectedIndex++;
                             SelectedIndex = Items.FindIndex(x => x == listBox.SelectedItem);
                         }
-                        else if (_selectedIndex + 1 < Items.Count)
+                        else if (selectedIndex + 1 < Items.Count)
                             SelectedIndex++;
                     }
                     break;
                 case UnityEngine.KeyCode.UpArrow:
                     {
-                        if (Items.IsDisabled(_selectedIndex - 1))
+                        if (Items.IsDisabled(selectedIndex - 1))
                             break;
 
                         if (listBox != null)
@@ -174,7 +149,7 @@ namespace System.Windows.Forms
                                 listBox.SelectedIndex = 0;
                             SelectedIndex = Items.FindIndex(x => x == listBox.SelectedItem);
                         }
-                        else if (_selectedIndex > 0)
+                        else if (selectedIndex > 0)
                             SelectedIndex--;
                     }
                     break;
@@ -186,7 +161,7 @@ namespace System.Windows.Forms
                     }
                     break;
             }
-            if (listBox != null)
+            if (listBox != null && DropDownStyle == ComboBoxStyle.DropDownList)
             {
                 if (listBox.ScrollIndex < 0)
                     listBox.ScrollIndex = 0;
@@ -230,12 +205,12 @@ namespace System.Windows.Forms
                 bool down = e.Delta < 0;
                 if (down)
                 {
-                    if (_selectedIndex + 1 < Items.Count)
+                    if (selectedIndex + 1 < Items.Count)
                         SelectedIndex++;
                 }
                 else
                 {
-                    if (_selectedIndex > 0)
+                    if (selectedIndex > 0)
                         SelectedIndex--;
                 }
             }
@@ -300,7 +275,7 @@ namespace System.Windows.Forms
                         filter = filterBuffer;
                     }
                     else
-                        g.DrawString(filter, Font, ForeColor, 5, 0, Width - downButtonWidth, Height);
+                        g.DrawString(Text, Font, ForeColor, 5, 0, Width - downButtonWidth, Height);
 
                     if (Hovered)
                     {
@@ -322,7 +297,7 @@ namespace System.Windows.Forms
                     }
                     break;
                 case ComboBoxStyle.DropDownList:
-                    g.DrawString(SelectedText, Font, ForeColor, 5, 0, Width - downButtonWidth, Height);
+                    g.DrawString(Text, Font, ForeColor, 5, 0, Width - downButtonWidth, Height);
                     break;
             }
 
@@ -344,10 +319,18 @@ namespace System.Windows.Forms
                     Editor.Label(i.ToString(), Items[i].ToString());
             Editor.Label("SelectedIndex", SelectedIndex);
             Editor.Label("SelectedItem", SelectedItem);
-            Editor.Label("SelectedText", SelectedText);
+            Editor.Label("Text", Text);
 #endif
 
             return component;
+        }
+        protected override void OnSelectedIndexChanged(EventArgs e)
+        {
+            SelectedIndexChanged(this, e);
+        }
+        protected virtual void OnSelectedItemChanged(EventArgs e)
+        {
+            
         }
 
         private void ApplySelectedItem()
@@ -462,6 +445,19 @@ namespace System.Windows.Forms
                 case ComboBoxStyle.DropDownList:
                     break;
             }
+        }
+        private void UpdateText()
+        {
+            string text = null;
+
+            if (SelectedIndex != -1)
+            {
+                var item = SelectedItem;
+                if (item != null)
+                    text = item.ToString();
+            }
+
+            Text = text;
         }
 
         public class ObjectCollection : IList
