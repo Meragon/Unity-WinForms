@@ -8,7 +8,8 @@ namespace System.Windows.Forms
 {
     public class MonthCalendar : Control
     {
-        private List<Control> _daysControls = new List<Control>();
+        private readonly Pen borderPen = new Pen(Color.Black);
+        private readonly List<Control> _daysControls = new List<Control>();
         private string[] _daysShort;
         private DayOfWeek _firstDayOfWeek;
         private string[] _months;
@@ -19,7 +20,11 @@ namespace System.Windows.Forms
 
         private Button todayButton;
 
-        public Color BorderColor { get; set; }
+        public Color BorderColor
+        {
+            get { return borderPen.Color; }
+            set { borderPen.Color = value; }
+        }
         public int CellWidth { get; set; }
         public string[] DaysShort
         {
@@ -154,6 +159,8 @@ namespace System.Windows.Forms
         {
             _selectedDate = date;
 
+            // TODO: update only if month & year are changed.
+
             for (int i = 0; i < _daysControls.Count; i++)
                 _daysControls[i].Dispose();
             _daysControls.Clear();
@@ -240,7 +247,7 @@ namespace System.Windows.Forms
             if (ShowToday)
                 e.Graphics.DrawRectangle(new Pen(Color.FromArgb(0, 102, 204)), CellWidth * 1, 141, CellWidth - 2, 13);
 
-            e.Graphics.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
+            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
         public override void Refresh()
         {

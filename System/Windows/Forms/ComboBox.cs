@@ -5,6 +5,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Drawing;
+using UnityEngine;
+using Color = System.Drawing.Color;
+using Editor = System.Drawing.Editor;
 
 namespace System.Windows.Forms
 {
@@ -14,22 +17,46 @@ namespace System.Windows.Forms
         private bool _toggleItems;
 #endif
 
-        private string _filter = String.Empty;
-        private bool _hovered;
-        private ListBox _listBox;
-        private bool _listBoxOpened;
+        private readonly Pen downButtonBorderPen = new Pen(Color.Transparent);
+        private const int downButtonWidth = 17;
+        private ComboBoxStyle dropDownStyle;
+        private bool keyFlag;
+        private string filter = string.Empty;
+        private int itemHeight = 15;
+        private ListBox listBox;
+        private bool listBoxOpened;
         private int _maxDropDownItems = 8;
         private int _selectedIndex = -1;
-        private bool _shouldFocus;
 
         public AutoCompleteMode AutoCompleteMode { get; set; }
         public AutoCompleteSource AutoCompleteSource { get; set; }
+        public Color BackColorDropDownList { get; set; }
         public Color BorderColor { get; set; }
         public Color BorderColorDisabled { get; set; }
         public Color BorderColorHovered { get; set; }
-        public ComboBoxStyle DropDownStyle { get; set; }
+        public Color DisabledColor { get; set; }
+        public ComboBoxStyle DropDownStyle
+        {
+            get { return dropDownStyle; }
+            set
+            {
+                dropDownStyle = value;
+                UpdateComboBoxDDStyle();
+            }
+        }
+        public int ItemHeight
+        {
+            get { return itemHeight; }
+            set
+            {
+                if (value < 1)
+                    throw new ArgumentOutOfRangeException("itemHeight");
+                itemHeight = value;
+            }
+        }
         public ComboBox.ObjectCollection Items { get; private set; }
         public Color HoverColor { get; set; }
+        public Color HoverColorDropDownList { get; set; }
         public int MaxDropDownItems
         {
             get { return _maxDropDownItems; }
@@ -48,13 +75,13 @@ namespace System.Windows.Forms
                     if (sItem != null)
                     {
                         SelectedText = sItem.ToString();
-                        _filter = sItem.ToString();
+                        filter = sItem.ToString();
                     }
                 }
                 else
                 {
                     SelectedText = "";
-                    _filter = String.Empty;
+                    filter = String.Empty;
                 }
                 SelectedIndexChanged(this, null);
             }
@@ -78,12 +105,12 @@ namespace System.Windows.Forms
                         _selectedIndex = i;
                         if (item != null)
                         {
-                            _filter = item.ToString();
+                            filter = item.ToString();
                             SelectedText = item.ToString();
                         }
                         else
                         {
-                            _filter = "";
+                            filter = "";
                             SelectedText = "";
                         }
                         SelectedIndexChanged(this, null);
@@ -99,28 +126,24 @@ namespace System.Windows.Forms
         {
             Items = new ObjectCollection(this);
 
-            AutoCompleteMode = Forms.AutoCompleteMode.None;
-            AutoCompleteSource = Forms.AutoCompleteSource.None;
-            BackColor = Color.FromArgb(234, 234, 234);
-            CanSelect = true;
-            DropDownStyle = ComboBoxStyle.DropDownList;
-
+            AutoCompleteMode = AutoCompleteMode.None;
+            AutoCompleteSource = AutoCompleteSource.None;
+            BackColor = Color.White;
+            BackColorDropDownList = Color.FromArgb(235, 235, 235);
             BorderColor = Color.DarkGray;
             BorderColorDisabled = Color.FromArgb(217, 217, 217);
             BorderColorHovered = Color.FromArgb(126, 180, 234);
-            HoverColor = Color.FromArgb(221, 237, 252);
-
-            Padding = new Forms.Padding(4, 0, 4, 0);
-            Size = new Size(121, 22);
+            CanSelect = true;
+            DisabledColor = Color.FromArgb(239, 239, 239);
+            DropDownStyle = ComboBoxStyle.DropDown;
+            HoverColor = Color.White;
+            HoverColorDropDownList = Color.FromArgb(227, 240, 252);
+            Padding = new Padding(4, 0, 4, 0);
+            Size = new Size(121, 21);
         }
 
         public event EventHandler SelectedIndexChanged = delegate { };
 
-        public override void Focus()
-        {
-            base.Focus();
-            _shouldFocus = true;
-        }
         protected override void OnKeyPress(KeyEventArgs e)
         {
             base.OnKeyDown(e);
@@ -130,10 +153,10 @@ namespace System.Windows.Forms
                     {
                         if (Items.IsDisabled(_selectedIndex + 1))
                             break;
-                        if (_listBox != null)
+                        if (listBox != null)
                         {
-                            _listBox.SelectedIndex++;
-                            SelectedIndex = Items.FindIndex(x => x == _listBox.SelectedItem);
+                            listBox.SelectedIndex++;
+                            SelectedIndex = Items.FindIndex(x => x == listBox.SelectedItem);
                         }
                         else if (_selectedIndex + 1 < Items.Count)
                             SelectedIndex++;
@@ -144,25 +167,45 @@ namespace System.Windows.Forms
                         if (Items.IsDisabled(_selectedIndex - 1))
                             break;
 
-                        if (_listBox != null)
+                        if (listBox != null)
                         {
-                            _listBox.SelectedIndex--;
-                            if (_listBox.SelectedIndex < 0 && _listBox.Items.Count > 0)
-                                _listBox.SelectedIndex = 0;
-                            SelectedIndex = Items.FindIndex(x => x == _listBox.SelectedItem);
+                            listBox.SelectedIndex--;
+                            if (listBox.SelectedIndex < 0 && listBox.Items.Count > 0)
+                                listBox.SelectedIndex = 0;
+                            SelectedIndex = Items.FindIndex(x => x == listBox.SelectedItem);
                         }
                         else if (_selectedIndex > 0)
                             SelectedIndex--;
                     }
                     break;
                 case UnityEngine.KeyCode.Return:
-                    if (_listBox != null && !_listBox.Disposing && !_listBox.IsDisposed)
-                        _listBox.SelectItem(SelectedIndex);
+                    if (listBox != null && !listBox.Disposing && !listBox.IsDisposed)
+                    {
+                        listBox.SelectItem(listBox.SelectedIndex);
+                        ApplySelectedItem();
+                    }
                     break;
             }
-            if (_listBox != null)
-                if (_listBox.ScrollIndex < 0)
-                    _listBox.ScrollIndex = 0;
+            if (listBox != null)
+            {
+                if (listBox.ScrollIndex < 0)
+                    listBox.ScrollIndex = 0;
+
+                if (keyFlag == true)
+                {
+                    keyFlag = false;
+                    filter = "";
+                }
+
+                char c = KeyHelper.GetLastInputChar();
+                if (char.IsLetterOrDigit(c) || char.IsPunctuation(c))
+                {
+                    filter += c;
+                    var itemIndex = listBox.FindItemIndex(x => x != null && x.ToString().Contains(filter));
+                    if (itemIndex > -1)
+                        listBox.SelectItem(itemIndex);
+                }
+            }
         }
         protected override void OnKeyUp(KeyEventArgs e)
         {
@@ -175,18 +218,10 @@ namespace System.Windows.Forms
             base.OnMouseDown(e);
             Focus();
             if (DropDownStyle == ComboBoxStyle.DropDownList || e.X >= Width - 16)
-                _CreateListBox(String.Empty);
-        }
-        protected override void OnMouseEnter(EventArgs e)
-        {
-            base.OnMouseEnter(e);
-            _hovered = true;
-
-        }
-        protected override void OnMouseLeave(EventArgs e)
-        {
-            base.OnMouseLeave(e);
-            _hovered = false;
+            {
+                keyFlag = true;
+                CreateListBox(String.Empty);
+            }
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
@@ -211,64 +246,88 @@ namespace System.Windows.Forms
 
             var g = e.Graphics;
 
+            #region get colors.
+            var backColor = BackColor;
+            var borderColor = BorderColor;
+            var arrowColor = Color.FromArgb(96, 96, 96);
             if (Enabled)
             {
-                //g.DrawLine(new Pen(Color.FromArgb(240, 240, 240)), 1, 1, Width - 2, 1);
-                if (DropDownStyle == ComboBoxStyle.DropDownList)
-                    g.FillRectangle(new SolidBrush(_hovered || Focused ? Color.FromArgb(226, 239, 252) : BackColor), 0, 0, Width, Height);
-                else
+                switch (DropDownStyle)
                 {
-                    g.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
-
-                    var mloc = PointToClient(MousePosition);
-                    if (DropDownStyle == ComboBoxStyle.DropDownList || new Rectangle(Width - 16, 0, 16, Height).Contains(mloc))
-                    {
-                        g.FillRectangle(new SolidBrush(HoverColor), Width - 16, 0, 16, Height);
-                        g.DrawLine(new Pen(BorderColorHovered), Width - 17, 1, Width - 17, Height - 1);
-                    }
-                }
-            }
-            else
-                g.FillRectangle(new SolidBrush(Color.FromArgb(239, 239, 239)), 0, 0, Width, Height);
-            if (DropDownStyle == ComboBoxStyle.DropDownList || !Enabled)
-                g.DrawString(SelectedText, Font, new SolidBrush(Enabled ? ForeColor : Color.Gray), Padding.Left, Padding.Top, (WrapText ? Width : Width * 5) - Padding.Left - Padding.Right - 16, Height - Padding.Bottom - Padding.Top); // 16 - arrow width.
-            else
-            {
-                if (Focused)
-                {
-                    if (_shouldFocus)
-                        e.Graphics.FocusNext();
-
-                    var _filterBuffer = g.DrawTextField(_filter, Font, new SolidBrush(ForeColor), 4, 0, Width - 8 - 16, Height, HorizontalAlignment.Left);
-                    if (_filterBuffer != _filter)
-                    {
-                        if (_listBox != null && !_listBox.IsDisposed && !_listBox.Disposing)
+                    case ComboBoxStyle.DropDown:
+                        if (Focused || Hovered)
                         {
-                            _listBox.Dispose();
-                            _listBox = null;
-                            _listBoxOpened = false;
+                            backColor = HoverColor;
+                            borderColor = BorderColorHovered;
                         }
-                        _CreateListBox(_filterBuffer);
-                    }
-                    _filter = _filterBuffer;
+                        break;
+                    case ComboBoxStyle.DropDownList:
+                        backColor = Focused || Hovered ? HoverColorDropDownList : BackColorDropDownList;
+                        break;
                 }
-                else
-                    g.DrawString(_filter, Font, new SolidBrush(ForeColor), 4, 0, (WrapText ? Width : Width * 5) - 8 - 16, Height, HorizontalAlignment.Left);
 
-                if (_shouldFocus)
-                {
-                    e.Graphics.Focus();
-                    _shouldFocus = false;
-                }
+                if (Focused || Hovered)
+                    borderColor = BorderColorHovered;
             }
-            if (Enabled)
-                g.DrawTexture(ApplicationBehaviour.Resources.Images.CurvedArrowDown, Width - 16 - 1, Height / 2 - 8, 16, 16, Color.FromArgb(64, 64, 64));
-            //else
-            //    g.DrawTexture(Application.Resources.ComboBoxArrow, Width - 16, Height / 2 - 8, 16, 16, Color.White);
-            if (Enabled)
-                g.DrawRectangle(_hovered || Focused ? new Pen(BorderColorHovered) : new Pen(BorderColor), 0, 0, Width, Height);
             else
-                g.DrawRectangle(new Pen(BorderColorDisabled), 0, 0, Width, Height);
+            {
+                backColor = DisabledColor;
+                borderColor = BorderColorDisabled;
+            }
+
+            #endregion
+
+            g.FillRectangle(backColor, 0, 0, Width, Height);
+
+            switch (DropDownStyle)
+            {
+                case ComboBoxStyle.DropDown:
+
+                    if (Focused && Enabled)
+                    {
+                        var filterBuffer = g.DrawTextField(filter, Font, ForeColor, 2, 0, Width - downButtonWidth, Height,
+                            HorizontalAlignment.Left);
+                        if (filterBuffer != filter)
+                        {
+                            if (listBox != null && !listBox.IsDisposed && !listBox.Disposing)
+                            {
+                                listBox.Dispose();
+                                listBox = null;
+                                listBoxOpened = false;
+                            }
+                            CreateListBox(filterBuffer);
+                        }
+                        filter = filterBuffer;
+                    }
+                    else
+                        g.DrawString(filter, Font, ForeColor, 5, 0, Width - downButtonWidth, Height);
+
+                    if (Hovered)
+                    {
+                        var bRect = GetButtonRect();
+                        var mclient = PointToClient(MousePosition);
+                        var downButtonBackColor = backColor;
+
+                        if (bRect.Contains(mclient))
+                        {
+                            arrowColor = Color.Black;
+                            downButtonBackColor = HoverColorDropDownList;
+                            downButtonBorderPen.Color = BorderColorHovered;
+                        }
+                        else
+                            downButtonBorderPen.Color = Color.Transparent;
+
+                        g.FillRectangle(downButtonBackColor, bRect);
+                        g.DrawLine(downButtonBorderPen, bRect.X, bRect.Y, bRect.X, bRect.Y + bRect.Height);
+                    }
+                    break;
+                case ComboBoxStyle.DropDownList:
+                    g.DrawString(SelectedText, Font, ForeColor, 5, 0, Width - downButtonWidth, Height);
+                    break;
+            }
+
+            g.DrawTexture(ApplicationBehaviour.Resources.Images.CurvedArrowDown, Width - 16 - 1, Height / 2 - 8, 16, 16, arrowColor);
+            g.DrawRectangle(borderColor, 0, 0, Width, Height);
         }
         protected override object OnPaintEditor(float width)
         {
@@ -291,111 +350,134 @@ namespace System.Windows.Forms
             return component;
         }
 
-        private void _CreateListBox(string filter)
+        private void ApplySelectedItem()
         {
-            if (_listBox != null)
+            if (listBox == null) return;
+            var listSelectedItem = listBox.SelectedItem;
+            for (int i = 0; i < Items.Count; i++)
+                if (Items[i] == listSelectedItem)
+                {
+                    filter = listSelectedItem != null ? listSelectedItem.ToString() : "";
+                    SelectedItem = listSelectedItem;
+                    break;
+                }
+            listBox.Dispose();
+            listBox = null;
+        }
+        private void CreateListBox(string listFilter)
+        {
+            if (listBox != null)
             {
-                _listBox = null;
+                listBox = null;
                 return;
             }
-            if (!_listBoxOpened)
+
+            if (!listBoxOpened)
             {
-                _listBox = new ListBox();
-                //listBox.scrollDirection = 1;
-                //listBox.ItemWidth = Width;
-                //listBox.ItemHeight = 20;
-                _listBox.FixedHeight = true;
-                _listBox.Font = Font;
-                _listBox.BringToFront();
-                _listBox.Context = true;
-                _listBox.Width = Width;
-                _listBox.Height = _listBox.ItemHeight * (Items.Count > MaxDropDownItems ? MaxDropDownItems : Items.Count);
-                _listBox.WrapText = false;
-                if (_listBox.Height < _listBox.ItemHeight) _listBox.Height = _listBox.ItemHeight;
+                listBox = new ListBox();
+                listBox.Font = Font;
+                listBox.Context = true;
+                listBox.Width = Width;
+                listBox.ItemHeight = ItemHeight;
+                listBox.Height = listBox.ItemHeight * (Items.Count > MaxDropDownItems ? MaxDropDownItems : Items.Count);
+                listBox.WrapText = false;
+                listBox.ShadowBox = true;
+                listBox.BorderColor = listBox.BorderSelectColor;
+                if (listBox.Height < listBox.ItemHeight) listBox.Height = listBox.ItemHeight;
+
                 bool selectedIndexChanged = false;
                 for (int i = 0; i < Items.Count; i++)
                 {
                     var item = Items[i];
-                    if (DropDownStyle == ComboBoxStyle.DropDownList || String.IsNullOrEmpty(filter))
-                        _listBox.Items.Add(item);
+                    if (DropDownStyle == ComboBoxStyle.DropDownList || String.IsNullOrEmpty(listFilter))
+                        listBox.Items.Add(item);
                     else
                     {
                         var itemString = item.ToString();
-                        if (itemString.ToLower().Contains(filter.ToLower()))
-                        {
-                            _listBox.Items.Add(item);
-                            if (itemString == filter)
-                            {
-                                _listBox.SelectedIndex = i;
-                                selectedIndexChanged = true;
-                            }
-                        }
+                        if (!itemString.ToLower().Contains(listFilter.ToLower())) continue;
+
+                        listBox.Items.Add(item);
+                        if (itemString != listFilter) continue;
+
+                        listBox.SelectedIndex = i;
+                        selectedIndexChanged = true;
                     }
                 }
                 for (int i = 0; i < Items.Count; i++)
                     if (Items.IsDisabled(i))
-                    {
-                        _listBox.Items.Disable(i);
-                        //Application.Log(i);
-                    }
+                        listBox.Items.Disable(i);
+                    
                 if (selectedIndexChanged == false)
                 {
-                    if (SelectedIndex > -1)
-                        _listBox.ScrollIndex = SelectedIndex;
-                    _listBox.SelectedIndex = SelectedIndex;
+                    listBox.SelectedIndex = SelectedIndex;
+                    listBox.EnsureVisible();
                 }
 
                 var gpoint = PointToScreen(Point.Zero);
-                _listBox.Location = gpoint + new Point(0, Height);
-                _listBox.SelectedValueChanged += (object sender, EventArgs args) =>
-                {
-                    if (_listBox != null)
-                    {
-                        var listSelectedItem = _listBox.SelectedItem;
-                        for (int i = 0; i < Items.Count; i++)
-                            if (Items[i] == listSelectedItem)
-                            {
-                                if (listSelectedItem != null)
-                                    _filter = listSelectedItem.ToString();
-                                else
-                                    _filter = "";
-                                SelectedItem = listSelectedItem;
-                                break;
-                            }
-                        //SelectedIndex = _listBox.SelectedIndex;
-                        _listBox.Dispose();
-                        _listBox = null;
-                    }
-                };
-                _listBox.OnDisposing += (object sender, EventArgs args) =>
-                {
-                    var clientRect = new System.Drawing.Rectangle(0, 0, Width, Height);
-                    var contains = clientRect.Contains(PointToClient(MousePosition));
-                    if (!contains)
-                        _listBoxOpened = false;
-                    else
-                        _listBoxOpened = !_listBoxOpened;
-                    _listBox = null;
-                };
+                listBox.Location = gpoint + new Point(0, Height);
+                listBox.MouseUp += ListBoxOnMouseUp;
+                listBox.KeyDown += ListBoxOnKeyDown;
+                listBox.OnDisposing += ListBoxOnOnDisposing;
             }
             else
-                _listBoxOpened = false;
+                listBoxOpened = false;
+        }
+        private Rectangle GetButtonRect()
+        {
+            return new Rectangle(Width - downButtonWidth, 1, downButtonWidth, Height - 2);
+        }
+        private void ListBoxOnMouseUp(object sender, MouseEventArgs mouseEventArgs)
+        {
+            if (mouseEventArgs.Button != MouseButtons.Left) return;
+
+            ApplySelectedItem();
+        }
+        private void ListBoxOnKeyDown(object sender, KeyEventArgs keyEventArgs)
+        {
+            if (keyEventArgs.KeyCode != KeyCode.Return && keyEventArgs.KeyCode != KeyCode.Space) return;
+
+            ApplySelectedItem();
+        }
+        private void ListBoxOnOnDisposing(object sender, EventArgs eventArgs)
+        {
+            var clientRect = new System.Drawing.Rectangle(0, 0, Width, Height);
+            var contains = clientRect.Contains(PointToClient(MousePosition));
+            if (!contains)
+                listBoxOpened = false;
+            else
+                listBoxOpened = !listBoxOpened;
+
+            listBox.MouseUp -= ListBoxOnMouseUp;
+            listBox.KeyDown -= ListBoxOnKeyDown;
+            listBox.OnDisposing -= ListBoxOnOnDisposing;
+
+            listBox = null;
+        }
+        private void UpdateComboBoxDDStyle()
+        {
+            switch (DropDownStyle)
+            {
+                case ComboBoxStyle.DropDown:
+                    break;
+                case ComboBoxStyle.DropDownList:
+                    break;
+            }
         }
 
-        public class ObjectCollection : IList, ICollection, IEnumerable
+        public class ObjectCollection : IList
         {
-            private List<int> _disabledItems;
-            private List<object> _items;
+            private readonly List<int> disabledItems;
+            private readonly List<object> items;
             private ComboBox _owner;
 
             public ObjectCollection(ComboBox owner)
             {
                 _owner = owner;
-                _disabledItems = new List<int>();
-                _items = new List<object>();
+                disabledItems = new List<int>();
+                items = new List<object>();
             }
 
-            public int Count { get { return _items.Count; } }
+            public int Count { get { return items.Count; } }
             public bool IsFixedSize
             {
                 get { return false; }
@@ -412,80 +494,80 @@ namespace System.Windows.Forms
 
             public virtual object this[int index]
             {
-                get { return _items[index]; }
-                set { _items[index] = value; }
+                get { return items[index]; }
+                set { items[index] = value; }
             }
 
             public int Add(object item)
             {
-                _items.Add(item);
-                return _items.Count - 1;
+                items.Add(item);
+                return items.Count - 1;
             }
-            public void AddRange(object[] items)
+            public void AddRange(object[] array)
             {
-                _items.AddRange(items);
+                items.AddRange(array);
             }
             public void Clear()
             {
-                _items.Clear();
+                items.Clear();
             }
             public bool Contains(object value)
             {
-                return _items.Contains(value);
+                return items.Contains(value);
             }
             public void CopyTo(Array array, int index)
             {
-                _items.CopyTo((object[])array, index);
+                items.CopyTo((object[])array, index);
             }
             public void CopyTo(object[] destination, int arrayIndex)
             {
-                _items.CopyTo(destination, arrayIndex);
+                items.CopyTo(destination, arrayIndex);
             }
             public void Disable(int itemIndex)
             {
-                if (!_disabledItems.Contains(itemIndex))
-                    _disabledItems.Add(itemIndex);
+                if (!disabledItems.Contains(itemIndex))
+                    disabledItems.Add(itemIndex);
             }
             public void Enable(int itemIndex)
             {
-                for (int i = 0; i < _disabledItems.Count; i++)
-                    if (itemIndex == _disabledItems[i])
+                for (int i = 0; i < disabledItems.Count; i++)
+                    if (itemIndex == disabledItems[i])
                     {
-                        _disabledItems.RemoveAt(i);
+                        disabledItems.RemoveAt(i);
                         break;
                     }
             }
             public object Find(Predicate<object> match)
             {
-                return _items.Find(match);
+                return items.Find(match);
             }
             public int FindIndex(Predicate<object> match)
             {
-                return _items.FindIndex(match);
+                return items.FindIndex(match);
             }
             public IEnumerator GetEnumerator()
             {
-                return _items.GetEnumerator();
+                return items.GetEnumerator();
             }
             public int IndexOf(object value)
             {
-                return _items.IndexOf(value);
+                return items.IndexOf(value);
             }
             public void Insert(int index, object item)
             {
-                _items.Insert(index, item);
+                items.Insert(index, item);
             }
             public bool IsDisabled(int itemIndex)
             {
-                return _disabledItems.FindIndex(x => x == itemIndex) != -1;
+                return disabledItems.FindIndex(x => x == itemIndex) != -1;
             }
             public void Remove(object value)
             {
-                _items.Remove(value);
+                items.Remove(value);
             }
             public void RemoveAt(int index)
             {
-                _items.RemoveAt(index);
+                items.RemoveAt(index);
             }
         }
     }

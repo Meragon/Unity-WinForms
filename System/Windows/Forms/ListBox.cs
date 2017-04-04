@@ -5,61 +5,126 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Drawing;
+using UnityEngine;
+using Color = System.Drawing.Color;
 
 
 namespace System.Windows.Forms
 {
     public class ListBox : ListControl
     {
-        private bool _drag;
-        private object _dragItem;
-        private Point _dragPosition;
-        private ListBox.ObjectCollection _items;
-        private int _hoveredItem = -1;
-        private int _visibleItems = 0;
-        private int _selectedIndex = -1;
-        private bool _scroll;
-        private bool _scrollVisible = false;
-        private int _scrollStartY;
-        internal int _scrollIndex;
-        private bool _scrollHover;
-        private int _scrollX;
-        private int _scrollY;
-        private int _scrollWidth = 8;
-        private int _scrollHeight;
+#if UNITY_EDITOR
+        private bool _toggleEditor;
+#endif
 
-        public const int DefaultItemHeight = 20;
-        
-        public Color BorderColor { get; set; }
-        public Color DisabledColor { get; set; }
-        public bool FixedHeight { get; set; }
-        public virtual int ItemHeight { get; set; }
-        public ListBox.ObjectCollection Items { get { return _items; } }
-        public Color HoverColor { get; set; }
-        internal int ScrollIndex
+        private Color borderCurrentColor;
+        private Color borderColor;
+        private Color borderSelectColor;
+        private int borderOffset = 2;
+        private readonly Pen borderPen = new Pen(Color.Black);
+        private BorderStyle borderStyle = BorderStyle.Fixed3D;
+        private int hoveredItem = -1;
+        private bool integralHeight = true;
+        private bool integralHeightAdjust = true;
+        private int itemHeight = DefaultItemHeight;
+        private readonly ObjectCollection items;
+        private string keyFilter = "";
+        private ApplicationBehaviour.invokeAction keyFilterIA;
+        private float keyFilterResetTime = 3;
+        private int visibleItemsCount = 0;
+        private bool scrollAlwaysVisible;
+        private int selectedIndex = -1;
+        private readonly VScrollBar vScroll;
+
+        public const int DefaultItemHeight = 13;
+
+        public Color BorderColor
         {
-            get { return _scrollIndex; }
+            get { return borderColor; }
             set
             {
-                if (value + _visibleItems < Items.Count)
-                    _scrollIndex = value;
-                else
-                    _scrollIndex = Items.Count - _visibleItems;
-                if (_scrollIndex < 0)
-                    _scrollIndex = 0;
+                borderColor = value;
+                UpdateBorderPen();
             }
         }
-        public Color ScrollColor { get; set; }
-        public Color ScrollHoveredColor { get; set; }
-        public override int SelectedIndex
+        public Color BorderSelectColor
         {
-            get { return _selectedIndex; }
+            get { return borderSelectColor; }
             set
             {
-                if (value < -1 || value >= _items.Count) return;
+                borderSelectColor = value;
+                UpdateBorderPen();
+            }
+        }
+        public BorderStyle BorderStyle
+        {
+            get { return borderStyle; }
+            set
+            {
+                borderStyle = value;
 
-                bool changed = _selectedIndex != value && value != -1;
-                _selectedIndex = value;
+                UpdateBorder();
+            }
+        }
+        public Color DisabledColor { get; set; }
+        public Color HoverColor { get; set; }
+        public bool IntegralHeight
+        {
+            get { return integralHeight; }
+            set
+            {
+                integralHeight = value;
+                if (integralHeight)
+                {
+                    integralHeightAdjust = true;
+                    AdjustHeight();
+                }
+            }
+        }
+        public virtual int ItemHeight
+        {
+            get { return itemHeight; }
+            set
+            {
+                itemHeight = value;
+                RefreshItems();
+            }
+        }
+        public ObjectCollection Items { get { return items; } }
+        public int PreferredHeight
+        {
+            get
+            {
+                int height = 0;
+                var itemsCount = Items.Count;
+                if (itemsCount == 0) itemsCount = 1;
+                height = ItemHeight * itemsCount + borderOffset * 2;
+                return height;
+            }
+        }
+        public bool ScrollAlwaysVisible
+        {
+            get { return scrollAlwaysVisible; }
+            set
+            {
+                scrollAlwaysVisible = value;
+                RefreshItems();
+            }
+        }
+        internal int ScrollIndex
+        {
+            get { return vScroll.Value; }
+            set { vScroll.Value = value; }
+        }
+        public override int SelectedIndex
+        {
+            get { return selectedIndex; }
+            set
+            {
+                if (value < -1 || value >= items.Count) return;
+
+                bool changed = selectedIndex != value && value != -1;
+                selectedIndex = value;
                 if (changed) OnSelectedIndexChanged(EventArgs.Empty);
             }
         }
@@ -80,144 +145,133 @@ namespace System.Windows.Forms
                     }
             }
         }
-        public Color SelectionColor { get; set; }
+        public Color SelectionBackColor { get; set; }
         public Color SelectionDisabledColor { get; set; }
+        public Color SelectionForeColor { get; set; }
         public bool WrapText { get; set; }
 
         public ListBox()
         {
-            _items = new ObjectCollection(this);
+            items = new ObjectCollection(this);
 
             BackColor = Color.White;
-            BorderColor = Color.DarkGray;
+            BorderColor = Color.FromArgb(130, 135, 144);
+            BorderSelectColor = Color.FromArgb(126, 180, 234);
+            CanSelect = true;
             DisabledColor = Color.Gray;
-            ItemHeight = DefaultItemHeight;
             HoverColor = Color.FromArgb(221, 238, 253);
-            ScrollColor = Color.FromArgb(222, 222, 230);
-            ScrollHoveredColor = Color.FromArgb(136, 136, 136);
-            SelectionColor = Color.FromArgb(187, 222, 251);
+            SelectionBackColor = Color.FromArgb(51, 153, 255);
             SelectionDisabledColor = Color.FromArgb(101, 203, 255);
+            SelectionForeColor = Color.White;
             Size = new Size(120, 95);
             WrapText = true;
 
-            Owner.UpClick += Application_UpClick;
+            vScroll = new VScrollBar();
+            vScroll.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
+            vScroll.Location = new Point(Width - vScroll.Width, 0);
+            vScroll.Height = Height;
+            vScroll.Visible = false;
+            Controls.Add(vScroll);
+
+            UpdateBorder();
+            UpdateBorderPen();
         }
 
-        private void Application_UpClick(object sender, MouseEventArgs e)
+        private void ResetItemHeight()
         {
-            _scroll = false;
-            _drag = false;
+            itemHeight = DefaultItemHeight;
+        }
+        private void ResetKeyFilter()
+        {
+            keyFilter = "";
+            keyFilterIA = null;
         }
 
-        protected override void OnMouseDown(MouseEventArgs e)
+        protected override void OnKeyPress(KeyEventArgs e)
         {
-            base.OnMouseDown(e);
-            var mclient = PointToClient(MousePosition);
-            Rectangle _scrollRect = new Rectangle(Width - _scrollWidth, _scrollY, _scrollWidth, _scrollHeight);
-            if (_scrollRect.Contains(mclient))
+            switch (e.KeyCode)
             {
-                _scroll = true;
-                _scrollStartY = mclient.Y - _scrollY;
-                return;
-            }
-            else
-                _scroll = false;
-
-            for (int i = 0; i < Items.Count; i++)
-            {
-                var item_rect = new Rectangle(0, i * ItemHeight, Width, ItemHeight);
-                if (item_rect.Contains(mclient))
-                {
-                    if (Items.IsDisabled(i + ScrollIndex)) break;
-
-                    _drag = true;
-                    _dragItem = Items[i + ScrollIndex];
-                    _dragPosition = mclient;
+                case KeyCode.DownArrow:
+                case KeyCode.RightArrow:
+                    SelectItem(SelectedIndex + 1);
                     break;
-                }
+                case KeyCode.LeftArrow:
+                case KeyCode.UpArrow:
+                    SelectItem(SelectedIndex - 1);
+                    break;
+
+                case KeyCode.PageDown:
+                    SelectItem(SelectedIndex + visibleItemsCount - 1);
+                    break;
+                case KeyCode.PageUp:
+                    SelectItem(SelectedIndex - visibleItemsCount + 1);
+                    break;
+
+                case KeyCode.Home:
+                    SelectItem(0);
+                    break;
+                case KeyCode.End:
+                    SelectItem(Items.Count - 1);
+                    break;
+
+                default:
+
+                    // Key filter.
+                    char c = KeyHelper.GetLastInputChar();
+                    if (char.IsLetterOrDigit(c) || char.IsPunctuation(c))
+                    {
+                        keyFilter += char.ToLower(c);
+                        var itemIndex = FindItemIndex(x => x != null && x.ToString().ToLower().StartsWith(keyFilter));
+                        SelectItem(itemIndex);
+
+                        if (keyFilterIA == null)
+                            keyFilterIA = Owner.Behaviour.Invoke(ResetKeyFilter, keyFilterResetTime);
+                        keyFilterIA.Seconds = keyFilterResetTime;
+                    }
+                    break;
             }
+        }
+        protected override void OnLatePaint(PaintEventArgs e)
+        {
+            base.OnLatePaint(e);
+
+            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+        }
+        protected override void OnLostFocus(EventArgs e)
+        {
+            base.OnLostFocus(e);
+
+            UpdateBorderPen();
         }
         protected override void OnMouseHover(EventArgs e)
         {
             base.OnMouseHover(e);
             var mclient = PointToClient(MousePosition);
-            Rectangle _scrollRect = new Rectangle(Width - _scrollWidth, _scrollY, _scrollWidth, _scrollHeight);
-            if (_scrollRect.Contains(mclient))
-                _scrollHover = true;
-            else
-                _scrollHover = false;
-            
-            for (int i = 0; i < Items.Count; i++)
-            {
-                var item_rect = new Rectangle(0, i * ItemHeight, Width, ItemHeight);
-                if (item_rect.Contains(mclient))
-                {
-                    _hoveredItem = i;
-                    break;
-                }
-            }
+            var itemIndex = IndexAt(mclient);
+
+            hoveredItem = itemIndex;
         }
         protected override void OnMouseLeave(EventArgs e)
         {
             base.OnMouseLeave(e);
-            _hoveredItem = -1;
-            _scrollHover = false;
-        }
-        protected override void OnMouseMove(MouseEventArgs e)
-        {
-            base.OnMouseMove(e);
-            var mclient = PointToClient(MousePosition);
-            if (_scroll)
-            {
-                _scrollIndex = (mclient.Y - _scrollStartY) * Items.Count / Height;
-                _scrollIndex = _scrollIndex < 0 ? 0 : _scrollIndex;
-                _scrollIndex = _scrollIndex > Items.Count - _visibleItems ? Items.Count - _visibleItems : _scrollIndex;
-
-                _scrollY = _scrollIndex * Height / Items.Count;
-                Refresh();
-            }
-
-            if (_drag && _dragPosition.Distance(mclient) > 4)
-            {
-                Drag(_dragItem);
-                _drag = false;
-            }
+            hoveredItem = -1;
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             base.OnMouseWheel(e);
             ScrollIndex -= (int)e.Delta;
 
-            if (ScrollIndex + _visibleItems > Items.Count) ScrollIndex = Items.Count - _visibleItems;
+            if (ScrollIndex + visibleItemsCount > Items.Count) ScrollIndex = Items.Count - visibleItemsCount;
             if (ScrollIndex < 0) ScrollIndex = 0;
         }
         protected override void OnMouseUp(MouseEventArgs e)
         {
             base.OnMouseUp(e);
-            _drag = false;
 
             var mclient = PointToClient(MousePosition);
-            Rectangle _scrollRect = new Rectangle(Width - _scrollWidth, _scrollY, _scrollWidth, _scrollHeight);
-            if (_scrollRect.Contains(mclient))
-            {
-                _scroll = false;
-                return;
-            }
+            var itemIndex = IndexAt(mclient);
 
-            if (_scroll == false)
-                for (int i = 0; i < Items.Count; i++)
-                {
-                    var item_rect = new Rectangle(0, i * ItemHeight, Width, ItemHeight);
-                    if (item_rect.Contains(mclient))
-                    {
-                        if (Items.IsDisabled(i + ScrollIndex)) break;
-                        SelectedIndex = i + ScrollIndex;
-                        OnSelectedValueChanged(null);
-                        break;
-                    }
-                }
-
-            _scroll = false;
+            SelectItem(itemIndex);
         }
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -225,90 +279,219 @@ namespace System.Windows.Forms
 
             var g = e.Graphics;
 
+            const int itemTextVerticalPadding = -3;
+
             // Paint list.
             g.FillRectangle(BackColor, 0, 0, Width, Height);
-            for (int i = 0; i < _visibleItems && i + ScrollIndex < Items.Count; i++)
+            for (int i = 0; i < visibleItemsCount && i + ScrollIndex < Items.Count; i++)
             {
-                var item = Items[i + ScrollIndex];
-                bool itemDisabled = Items.IsDisabled(i + ScrollIndex);
-                bool itemSelected = (i + _scrollIndex) == SelectedIndex;
-                bool itemHovered = i == _hoveredItem;
+                var itemIndex = i + ScrollIndex;
+                if (itemIndex < 0) continue;
+
+                var item = Items[itemIndex];
+                var itemY = borderOffset + i * ItemHeight;
+                var itemW = WrapText ? Width : Width * 5;
+                bool itemDisabled = Items.IsDisabled(itemIndex);
+                bool itemSelected = itemIndex == SelectedIndex;
+                bool itemHovered = itemIndex == hoveredItem;
+                var itemForeColor = ForeColor;
+
+                if (itemDisabled)
+                    itemForeColor = DisabledColor;
+                else if (itemSelected)
+                    itemForeColor = SelectionForeColor;
+
                 if (itemSelected || itemHovered)
                 {
-                    Color itemBackColor = HoverColor;
+                    var itemBackColor = HoverColor;
                     if (itemDisabled)
                         itemBackColor = SelectionDisabledColor;
                     else if (itemSelected)
-                        itemBackColor = SelectionColor;
-                    g.FillRectangle(itemBackColor, 0, i * ItemHeight, Width, ItemHeight);
+                        itemBackColor = SelectionBackColor;
+
+                    var fillWidth = Width;
+                    if (vScroll.Visible)
+                        fillWidth = vScroll.Location.X - borderOffset;
+
+                    g.FillRectangle(itemBackColor, borderOffset, itemY, fillWidth, ItemHeight);
                 }
 
                 var itemText = "";
                 if (item != null)
                     itemText = item.ToString();
-                g.DrawString(itemText, Font, itemDisabled ? DisabledColor : ForeColor, 4, i * ItemHeight, WrapText ? Width : Width * 5, ItemHeight);
+
+                g.DrawString(
+                    itemText,
+                    Font,
+                    itemForeColor,
+                    borderOffset + 2,
+                    itemY + itemTextVerticalPadding,
+                    itemW,
+                    ItemHeight - itemTextVerticalPadding * 2,
+                    ContentAlignment.MiddleLeft);
             }
+        }
+        protected override object OnPaintEditor(float width)
+        {
+            var control = base.OnPaintEditor(width);
 
-            _scrollVisible = false;
-            if (Items.Count > _visibleItems)
-                _scrollVisible = true;
+#if UNITY_EDITOR
 
-            // Paint scroll.
-            if (_scrollVisible && Items.Count > 0)
+            Editor.BeginGroup(width - 24);
+            Editor.BeginVertical();
+
+            _toggleEditor = Editor.Foldout("ListBox", _toggleEditor);
+            if (_toggleEditor)
             {
-                _scrollX = Width - _scrollWidth;
-                _scrollY = ScrollIndex * Height / Items.Count;
-                _scrollHeight = (int)((float)(_visibleItems * Height) / Items.Count);
-                if (_scrollHeight < 4)
-                    _scrollHeight = 4;
-                Color _scrollColor = ScrollColor;
-                if (_scrollHover || _scroll) _scrollColor = ScrollHoveredColor;
-                g.FillRectangle(_scrollColor, _scrollX, _scrollY, _scrollWidth, _scrollHeight);
+                Editor.Label("hoveredItem", hoveredItem);
+                Editor.Label("ItemHeight", ItemHeight);
+                Editor.Label("PreferredHeight", PreferredHeight);
+                Editor.Label("SelectedIndex", SelectedIndex);
+                Editor.Label("ScrollIndex", ScrollIndex);
+                Editor.Label("visibleItemsCount", visibleItemsCount);
+
+                if (Editor.Button("AddItem"))
+                {
+                    Items.Add(Items.Count - 1);
+                }
+                if (Editor.Button("RemoveSelectedItem") && SelectedIndex != -1)
+                {
+                    var itemIndex = SelectedIndex;
+                    SelectedIndex = -1;
+                    Items.RemoveAt(itemIndex);
+                }
             }
+
+            Editor.EndVertical();
+            Editor.EndGroup();
+#endif
+
+            return control;
         }
         protected override void OnResize(Point delta)
         {
             base.OnResize(delta);
 
-            _visibleItems = Height / ItemHeight;
+            if (IntegralHeight && integralHeightAdjust)
+                AdjustHeight();
+
+            RefreshItems();
         }
         protected override void OnSelectedIndexChanged(EventArgs e)
         {
-            base.OnSelectedIndexChanged(e);
-
             SelectedIndexChanged(this, e);
         }
-        protected override void OnLatePaint(PaintEventArgs e)
+
+        public void AdjustHeight()
         {
-            base.OnLatePaint(e);
-            e.Graphics.DrawRectangle(Context ? new Pen(Color.FromArgb(126, 180, 234)) : new Pen(BorderColor), 0, 0, Width, Height);
+            integralHeightAdjust = false;
+            Height = (int)(Math.Ceiling((float)Height / ItemHeight) * ItemHeight) + borderOffset * 2;
+            integralHeightAdjust = true;
+        }
+        public void EnsureVisible()
+        {
+            if (SelectedIndex < ScrollIndex)
+                ScrollIndex = SelectedIndex;
+
+            if (SelectedIndex > ScrollIndex + visibleItemsCount - 1)
+                ScrollIndex = SelectedIndex - visibleItemsCount + 1;
+
+            if (ScrollIndex < 0)
+                ScrollIndex = 0;
         }
 
+        internal int FindItemIndex(Predicate<object> match)
+        {
+            for (int i = 0; i < Items.Count; i++)
+            {
+                var item = Items[i];
+                if (match(item)) return i;
+            }
+            return -1;
+        }
+        internal override bool FocusInternal()
+        {
+            var result = base.FocusInternal();
+            UpdateBorderPen();
+            return result;
+        }
+        internal int IndexAt(Point mclient)
+        {
+            return ScrollIndex + (int)((mclient.Y - borderOffset) / ItemHeight);
+        }
         internal void SelectItem(int index)
         {
+            if (index < 0 && Items.Count == 0) return;
+
+            if (index < 0) index = 0;
+            if (index >= Items.Count) index = Items.Count - 1;
+
             SelectedIndex = index;
-            OnSelectedValueChanged(null);
+            EnsureVisible();
+            OnSelectedValueChanged(EventArgs.Empty);
+        }
+        internal void RefreshItems()
+        {
+            visibleItemsCount = (int)Math.Ceiling((float)(Height - borderOffset * 2) / ItemHeight);
+
+            if (vScroll != null)
+            {
+                vScroll.Maximum = Items.Count + 2; // ?
+                vScroll.Visible = ScrollAlwaysVisible || Height < PreferredHeight;
+            }
+        }
+        internal void UpdateBorder()
+        {
+            switch (borderStyle)
+            {
+                case BorderStyle.None:
+                    borderOffset = 0;
+                    borderPen.Width = 0;
+                    vScroll.Location = new Point(Width - vScroll.Width, 0);
+                    vScroll.Height = Height;
+                    break;
+                case BorderStyle.FixedSingle:
+                case BorderStyle.Fixed3D:
+                    borderOffset = 2;
+                    borderPen.Width = 1;
+                    vScroll.Location = new Point(Width - vScroll.Width - borderOffset, borderOffset);
+                    vScroll.Height = Height - borderOffset * 2;
+                    break;
+            }
+        }
+        internal void UpdateBorderPen()
+        {
+            borderCurrentColor = BorderColor;
+            if (Focused || Context)
+                borderCurrentColor = BorderSelectColor;
+
+            borderPen.Color = borderCurrentColor;
         }
 
-        public event ListBox.DragHandler Drag = delegate { };
         public event EventHandler SelectedIndexChanged = delegate { };
 
-        public delegate void DragHandler(object item);
-
-        public class ObjectCollection : IList, ICollection, IEnumerable
+        public class ObjectCollection : IList
         {
-            private List<int> _disabledItems;
-            private List<object> _items;
-            private ListBox _owner;
+            private readonly List<int> disabledItems = new List<int>();
+            private readonly List<object> items = new List<object>();
+            private readonly ListBox owner;
 
             public ObjectCollection(ListBox owner)
             {
-                _owner = owner;
-                _disabledItems = new List<int>();
-                _items = new List<object>();
+                this.owner = owner;
+            }
+            public ObjectCollection(ListBox owner, ObjectCollection value)
+            {
+                this.owner = owner;
+                this.AddRange(value);
+            }
+            public ObjectCollection(ListBox owner, object[] value)
+            {
+                this.owner = owner;
+                this.AddRange(value);
             }
 
-            public int Count { get { return _items.Count; } }
+            public int Count { get { return items.Count; } }
             public bool IsFixedSize
             {
                 get { return false; }
@@ -325,91 +508,91 @@ namespace System.Windows.Forms
 
             public virtual object this[int index]
             {
-                get { return _items[index]; }
-                set { _items[index] = value; }
+                get { return items[index]; }
+                set { items[index] = value; }
             }
 
-            private void _UpdateOwnerHeight()
+            private int AddInternal(object item)
             {
-                _owner._visibleItems = _owner.Height / _owner.ItemHeight;
-                if (_owner.FixedHeight) return;
-                int cnt = _owner._visibleItems;
-                if (_items.Count < cnt)
-                    cnt = _items.Count;
-                if (_owner.Context)
-                    _owner.Height = (_owner.ItemHeight * cnt);
+                items.Add(item);
+                owner.RefreshItems();
+
+                return items.Count - 1;
             }
 
             public int Add(object item)
             {
-                _items.Add(item);
-                _UpdateOwnerHeight();
-                return _items.Count - 1;
+                var index = AddInternal(item);
+                return index;
             }
-            public void AddRange(object[] items)
+            public void AddRange(ObjectCollection value)
             {
-                _items.AddRange(items);
-                _UpdateOwnerHeight();
+                for (int i = 0; i < value.Count; i++)
+                    AddInternal(value[i]);
+            }
+            public void AddRange(object[] array)
+            {
+                for (int i = 0; i < array.Length; i++)
+                    AddInternal(array[i]);
             }
             public void Clear()
             {
-                _disabledItems.Clear();
-                _items.Clear();
-                _UpdateOwnerHeight();
-                _owner.ScrollIndex = 0;
-                _owner._selectedIndex = -1;
+                disabledItems.Clear();
+                items.Clear();
+                owner.ScrollIndex = 0;
+                owner.selectedIndex = -1;
             }
             public bool Contains(object value)
             {
-                return _items.Contains(value);
+                return items.Contains(value);
             }
             public void CopyTo(Array array, int index)
             {
-                _items.CopyTo((object[])array, index);
+                items.CopyTo((object[])array, index);
             }
             public void CopyTo(object[] destination, int arrayIndex)
             {
-                _items.CopyTo(destination, arrayIndex);
+                items.CopyTo(destination, arrayIndex);
             }
             public void Disable(int itemIndex)
             {
-                if (!_disabledItems.Contains(itemIndex))
-                    _disabledItems.Add(itemIndex);
+                if (!disabledItems.Contains(itemIndex))
+                    disabledItems.Add(itemIndex);
             }
             public void Enable(int itemIndex)
             {
-                for (int i = 0; i < _disabledItems.Count; i++)
-                    if (itemIndex == _disabledItems[i])
+                for (int i = 0; i < disabledItems.Count; i++)
+                    if (itemIndex == disabledItems[i])
                     {
-                        _disabledItems.RemoveAt(i);
+                        disabledItems.RemoveAt(i);
                         break;
                     }
             }
             public IEnumerator GetEnumerator()
             {
-                return _items.GetEnumerator();
+                return items.GetEnumerator();
             }
             public int IndexOf(object value)
             {
-                return _items.IndexOf(value);
+                return items.IndexOf(value);
             }
             public void Insert(int index, object item)
             {
-                _items.Insert(index, item);
+                items.Insert(index, item);
             }
             public bool IsDisabled(int itemIndex)
             {
-                return _disabledItems.FindIndex(x => x == itemIndex) != -1;
+                return disabledItems.FindIndex(x => x == itemIndex) != -1;
             }
             public void Remove(object value)
             {
-                _items.Remove(value);
-                _UpdateOwnerHeight();
+                items.Remove(value);
+                owner.RefreshItems();
             }
             public void RemoveAt(int index)
             {
-                _items.RemoveAt(index);
-                _UpdateOwnerHeight();
+                items.RemoveAt(index);
+                owner.RefreshItems();
             }
         }
     }

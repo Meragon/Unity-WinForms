@@ -9,10 +9,14 @@ namespace System.Windows.Forms
 {
     public abstract class ScrollBar : Control
     {
+#if UNITY_EDITOR
+        private bool _toggleEditor;
+#endif
+
         private int largeChange = 10;
         private int maximum = 100;
         private int minimum = 0;
-        private int minScrollSize = 17;
+        private readonly int minScrollSize = 17;
         private bool scrollCanDrag;
         private ColorF scrollCurrentColor;
         private Color scrollDestinationColor;
@@ -72,7 +76,7 @@ namespace System.Windows.Forms
             }
         }
 
-        public ScrollBar()
+        protected ScrollBar()
         {
             BackColor = Color.FromArgb(240, 240, 240);
             ScrollColor = Color.FromArgb(205, 205, 205);
@@ -88,6 +92,7 @@ namespace System.Windows.Forms
             addButton = new RepeatButton();
             addButton.CanSelect = false;
             addButton.BorderHoverColor = borderHoverColor;
+            addButton.BorderDisableColor = borderColor;
             addButton.HoverColor = backHoverColor;
             addButton.ImageColor = imageColor;
             addButton.ImageHoverColor = imageHoverColor;
@@ -99,6 +104,7 @@ namespace System.Windows.Forms
             subtractButton = new RepeatButton();
             subtractButton.CanSelect = false;
             subtractButton.BorderHoverColor = borderHoverColor;
+            subtractButton.BorderDisableColor = borderColor;
             subtractButton.HoverColor = backHoverColor;
             subtractButton.ImageColor = imageColor;
             subtractButton.ImageHoverColor = imageHoverColor;
@@ -211,20 +217,36 @@ namespace System.Windows.Forms
             float barSize = minScrollSize;
             if (largeChange > 0)
                 barSize = (float)scrollLength / ((float)valueRange / largeChange);
+            if (barSize >= scrollLength)
+                barSize = scrollLength - 7;
             if (barSize < minScrollSize)
                 barSize = minScrollSize;
 
             scrollLength -= barSize; // Addjusted range for scroll bar, depending on size.
+            var valueDl = (int)scrollLength + minimum;
+            if (valueDl == 0) return;
 
             if (scrollOrientation == ScrollOrientation.HorizontalScroll)
-                value = (int)(((valueRange - largeChange + 1) * (scrollRect.X - subtractButton.Location.X - subtractButton.Width)) / scrollLength + minimum);
+                value = (int)(((valueRange - largeChange + 1) * (scrollRect.X - subtractButton.Location.X - subtractButton.Width)) / valueDl);
             else
-                value = (int)(((valueRange - largeChange + 1) * (scrollRect.Y - subtractButton.Location.Y - subtractButton.Height)) / scrollLength + minimum);
+                value = (int)(((valueRange - largeChange + 1) * (scrollRect.Y - subtractButton.Location.Y - subtractButton.Height)) / valueDl);
+            value = MathHelper.Clamp(value, minimum, maximum);
             OnValueChanged(EventArgs.Empty);
         }
         protected void UpdateScrollRect()
         {
             // WIN_API Random calculations.
+
+            if (largeChange > maximum)
+            {
+                scrollRect = new Rectangle();
+                addButton.Enabled = false;
+                subtractButton.Enabled = false;
+                return;
+            }
+
+            addButton.Enabled = true;
+            subtractButton.Enabled = true;
 
             float sx = 0;
             float sy = 0;
@@ -242,6 +264,8 @@ namespace System.Windows.Forms
             float barSize = minScrollSize;
             if (largeChange > 0)
                 barSize = (float)scrollLength / ((float)valueRange / largeChange);
+            if (barSize >= scrollLength)
+                barSize = scrollLength - 7;
             if (barSize < minScrollSize)
                 barSize = minScrollSize;
             /*
@@ -256,7 +280,7 @@ namespace System.Windows.Forms
                 largeChange = 100; // 
                 estimatedScrollWidth = 100 / ((400 - 0) / 100) = 100 / (4) = 25;
             */
-            scrollLength -= barSize; // Addjusted range for scroll bar, depending on size.
+            scrollLength -= barSize; // Adjusted range for scroll bar, depending on size.
 
             float valueK = (float)(Value - minimum) / (valueRange - largeChange + 1);
             float scrollPos = scrollLength * valueK;
@@ -399,30 +423,38 @@ namespace System.Windows.Forms
         {
             var component = base.OnPaintEditor(width);
 #if UNITY_EDITOR
-            Editor.NewLine(1);
-            Editor.Label("\tScrollBar");
+            Editor.BeginGroup(width - 24);
+            Editor.BeginVertical();
 
-            var editorLargeChange = Editor.IntField("LargeChange", LargeChange);
-            if (editorLargeChange.Changed)
-                LargeChange = editorLargeChange.Value[0];
+            _toggleEditor = Editor.Foldout("ScrollBar", _toggleEditor);
+            if (_toggleEditor)
+            {
+                var editorLargeChange = Editor.IntField("LargeChange", LargeChange);
+                if (editorLargeChange.Changed)
+                    LargeChange = editorLargeChange.Value[0];
 
-            var editorMaximum = Editor.IntField("Maximum", Maximum);
-            if (editorMaximum.Changed)
-                Maximum = editorMaximum.Value[0];
+                var editorMaximum = Editor.IntField("Maximum", Maximum);
+                if (editorMaximum.Changed)
+                    Maximum = editorMaximum.Value[0];
 
-            var editorMinimum = Editor.IntField("Minimum", Minimum);
-            if (editorMinimum.Changed)
-                Minimum = editorMinimum.Value[0];
+                var editorMinimum = Editor.IntField("Minimum", Minimum);
+                if (editorMinimum.Changed)
+                    Minimum = editorMinimum.Value[0];
 
-            Editor.ColorField("ScrollColor", ScrollColor, (c) => { ScrollColor = c; });
+                Editor.ColorField("ScrollColor", ScrollColor, (c) => { ScrollColor = c; });
+                Editor.Label("scrollRect", scrollRect);
 
-            var editorSmallChange = Editor.IntField("SmallChange", SmallChange);
-            if (editorSmallChange.Changed)
-                SmallChange = editorSmallChange.Value[0];
+                var editorSmallChange = Editor.IntField("SmallChange", SmallChange);
+                if (editorSmallChange.Changed)
+                    SmallChange = editorSmallChange.Value[0];
 
-            var editorValue = Editor.IntField("Value", Value);
-            if (editorValue.Changed)
-                Value = editorValue.Value[0];
+                var editorValue = Editor.IntField("Value", Value);
+                if (editorValue.Changed)
+                    Value = editorValue.Value[0];
+            }
+
+            Editor.EndVertical();
+            Editor.EndGroup();
 #endif
             return component;
         }

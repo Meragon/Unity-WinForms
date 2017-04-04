@@ -18,17 +18,18 @@ namespace System.Windows.Forms
 
                 _defaultSprite = new Texture2D(32, 32);
                 for (int i = 0; i < _defaultSprite.height; i++)
-                for (int k = 0; k < _defaultSprite.width; k++)
-                    _defaultSprite.SetPixel(k, i, Color.white);
+                    for (int k = 0; k < _defaultSprite.width; k++)
+                        _defaultSprite.SetPixel(k, i, Color.white);
                 _defaultSprite.Apply();
                 return _defaultSprite;
             }
         }
         public static AppResources Resources { get; private set; }
-        
+
         public AppResources _Resources;
         public static bool ShowControlProperties { get; set; }
 
+        private List<invokeAction> actions = new List<invokeAction>();
         private Application _controller;
         private float _lastWidth;
         private float _lastHeight;
@@ -41,7 +42,7 @@ namespace System.Windows.Forms
             _lastWidth = UnityEngine.Screen.width;
             _lastHeight = UnityEngine.Screen.height;
 
-            _controller = new Application();
+            _controller = new Application(this);
             _controller.UpdatePaintClipRect();
             Control.DefaultController = _controller;
         }
@@ -62,6 +63,17 @@ namespace System.Windows.Forms
             _lastHeight = UnityEngine.Screen.height;
 
             _controller.Update();
+
+            for (int i = 0; i < actions.Count; i++)
+            {
+                var a = actions[i];
+                a.Seconds -= Time.deltaTime;
+                if (a.Seconds > 0) continue;
+                
+                a.Action();
+                actions.RemoveAt(i);
+                i--;
+            }
         }
         private void OnApplicationFocus(bool focusStatus)
         {
@@ -78,6 +90,26 @@ namespace System.Windows.Forms
             }
 
             _controller.Draw();
+        }
+
+        internal invokeAction Invoke(Action a, float seconds)
+        {
+            if (a == null) return null;
+
+            var ia = new invokeAction()
+            {
+                Action = a,
+                Seconds = seconds
+            };
+
+            actions.Add(ia);
+            return ia;
+        }
+
+        internal class invokeAction
+        {
+            public Action Action { get; set; }
+            public float Seconds { get; set; }
         }
     }
 }

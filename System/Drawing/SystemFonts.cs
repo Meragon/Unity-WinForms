@@ -7,6 +7,8 @@ namespace System.Drawing
 {
     public sealed class SystemFonts
     {
-        public static Font DefaultFont { get { return new Font("Arial", 12); } }
+        private static readonly Font defaultFont = new Font("Arial", 12);
+
+        public static Font DefaultFont { get { return defaultFont; } }
     }
 }

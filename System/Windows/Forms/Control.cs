@@ -12,7 +12,6 @@ namespace System.Windows.Forms
         protected static Color defaultShadowColor = Color.FromArgb(12, 64, 64, 64);
 
         public static Application DefaultController { get; set; }
-        public static Font DefaultFont = new Font("Arial", 12);
         public static Point MousePosition
         {
             get
@@ -232,7 +231,7 @@ namespace System.Windows.Forms
             Anchor = AnchorStyles.Left | AnchorStyles.Top;
             Controls = new ControlCollection(this);
             Enabled = true;
-            Font = DefaultFont;
+            Font = SystemFonts.DefaultFont;
             ForeColor = Color.Black;
             TabIndex = -1;
             AutoGroup = true;
@@ -310,16 +309,9 @@ namespace System.Windows.Forms
                 _FocusParent(self.Parent);
             }
         }
-        public virtual void Focus()
+        public bool Focus()
         {
-            Select();
-
-            var form = this as Form ?? Application.GetRootControl(this) as Form;
-            if (form != null) form.BringToFront();
-
-            shouldFocus = true;
-
-            GotFocus(this, EventArgs.Empty);
+            return FocusInternal();
         }
         public void Invalidate()
         {
@@ -366,7 +358,7 @@ namespace System.Windows.Forms
             if (lastSelected != null && lastSelected.AlwaysFocused == false)
             {
                 lastSelected.selected = false;
-                lastSelected.LostFocus(lastSelected, EventArgs.Empty);
+                lastSelected.InvokeLostFocus(lastSelected, EventArgs.Empty);
             }
 
             selected = true;
@@ -377,6 +369,12 @@ namespace System.Windows.Forms
             // dunno.
         }
 
+        protected void InvokeLostFocus(Control toInvoke, EventArgs e)
+        {
+            if (toInvoke == null)
+                return;
+            toInvoke.OnLostFocus(e);
+        }
         protected virtual void OnClick(EventArgs e)
         {
             Click(this, e);
@@ -397,14 +395,6 @@ namespace System.Windows.Forms
         {
 
         }
-        protected virtual void OnLatePaint(PaintEventArgs e)
-        {
-
-        }
-        protected virtual void OnLocationChanged(EventArgs e)
-        {
-            LocationChanged(this, EventArgs.Empty);
-        }
         protected virtual void OnKeyDown(KeyEventArgs e)
         {
 
@@ -416,6 +406,18 @@ namespace System.Windows.Forms
         protected virtual void OnKeyUp(KeyEventArgs e)
         {
 
+        }
+        protected virtual void OnLatePaint(PaintEventArgs e)
+        {
+
+        }
+        protected virtual void OnLocationChanged(EventArgs e)
+        {
+            LocationChanged(this, EventArgs.Empty);
+        }
+        protected virtual void OnLostFocus(EventArgs e)
+        {
+            LostFocus(this, e);
         }
         protected virtual void OnMouseClick(MouseEventArgs e)
         {
@@ -666,6 +668,18 @@ namespace System.Windows.Forms
                 cur = cur.Parent;
 
             return (Form)cur;
+        }
+        internal virtual bool FocusInternal()
+        {
+            Select();
+
+            var form = this as Form ?? Application.GetRootControl(this) as Form;
+            if (form != null) form.BringToFront();
+
+            shouldFocus = true;
+
+            GotFocus(this, EventArgs.Empty);
+            return true; // TODO: CanFocus.
         }
         internal void RaiseOnDragDrop(DragEventArgs drgevent)
         {

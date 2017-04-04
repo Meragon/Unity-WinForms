@@ -13,9 +13,7 @@ namespace System.Windows.Forms
         private TreeNode _dragNode;
         private Point _dragPosition;
         private string _filter;
-        private ImageList _imageList;
         private TreeNode _hoveredNode;
-        private TreeNodeCollection _nodes;
         private List<TreeNode> _nodeList;
         private float _resetFilterTime;
         private bool _scrollVisible = false;
@@ -32,12 +30,12 @@ namespace System.Windows.Forms
 
         internal TreeNode root;
 
-        private DrawTreeNodeEventHandler onDrawNode;
+        private readonly DrawTreeNodeEventHandler onDrawNode;
 
         public Color BorderColor { get; set; }
-        public ImageList ImageList { get { return _imageList; } set { _imageList = value; } }
+        public ImageList ImageList { get; set; }
         public int ItemHeight { get; set; }
-        public TreeNodeCollection Nodes { get { return _nodes; } private set { _nodes = value; } }
+        public TreeNodeCollection Nodes { get; private set; }
         public Color ScrollBarColor { get; set; }
         public float ScrollIndex { get { return scrollIndex; } internal set { scrollIndex = value; } }
         public Color ScrollBarHoverColor { get; set; }
@@ -68,7 +66,7 @@ namespace System.Windows.Forms
             this.Size = new Size(121, 97);
             this.SmoothScrolling = true;
 
-            _nodes = new TreeNodeCollection(root);
+            Nodes = new TreeNodeCollection(root);
             _nodeList = new List<TreeNode>();
             scrollNodeList = new List<TreeNode>();
 

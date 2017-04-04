@@ -8,7 +8,6 @@ namespace System.Windows.Forms
 {
     public abstract class ListControl : Control
     {
-        public object DataSource { get; set; }
         public abstract int SelectedIndex { get; set; }
         public object SelectedValue { get; set; }
 
@@ -16,11 +15,11 @@ namespace System.Windows.Forms
 
         protected virtual void OnSelectedIndexChanged(EventArgs e)
         {
-
+            OnSelectedValueChanged(EventArgs.Empty);    
         }
         protected virtual void OnSelectedValueChanged(EventArgs e)
         {
-            SelectedValueChanged(this, null);
+            SelectedValueChanged(this, EventArgs.Empty);
         }
     }
 }

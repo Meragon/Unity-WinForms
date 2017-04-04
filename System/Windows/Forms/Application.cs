@@ -37,6 +37,7 @@ namespace System.Windows.Forms
         internal Control hoveredControl;
         internal readonly List<Form> ModalForms = new List<Form>();
 
+        public ApplicationBehaviour Behaviour { get; private set; }
         public static bool Debug { get; set; }
         public static float DeltaTime { get { return UnityEngine.Time.deltaTime; } }
         public float FillRate { get; set; }
@@ -359,8 +360,9 @@ namespace System.Windows.Forms
             _paintEventArgs.ClipRectangle = new Drawing.Rectangle(0, 0, Screen.PrimaryScreen.WorkingArea.Width, Screen.PrimaryScreen.WorkingArea.Height);
         }
 
-        public Application()
+        public Application(ApplicationBehaviour behaviour)
         {
+            Behaviour = behaviour;
             TabSwitching = true;
 
             _paintEventArgs = new PaintEventArgs();

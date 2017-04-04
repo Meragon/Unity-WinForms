@@ -43,7 +43,6 @@ namespace System.Windows.Forms
             BorderSelectColor = Color.FromArgb(51, 153, 255);
             CanSelect = true;
             DisableColor = Color.FromArgb(239, 239, 239);
-            Font = new Drawing.Font("Arial", 12);
             ForeColor = Color.FromArgb(64, 64, 64);
             ImageColor = Color.White;
             ImageHoverColor = Color.White;
