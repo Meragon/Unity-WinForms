@@ -16,6 +16,7 @@ namespace System.Windows.Forms
             owner = form;
 
             Anchor = AnchorStyles.BottomRight;
+            CanSelect = false;
             Image = img;
             ImageColor = Color.White;
             ImageHoverColor = Color.FromArgb(0, 122, 204);

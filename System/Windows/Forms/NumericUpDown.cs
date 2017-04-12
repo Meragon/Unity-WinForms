@@ -9,10 +9,14 @@ namespace System.Windows.Forms
 {
     public class NumericUpDown : Control
     {
+#if UNITY_EDITOR
+        private bool _toggleEditor;
+#endif
+
         private decimal _minimum;
         private decimal _maximum;
-        private decimal _value;
 
+        protected decimal value;
         protected string valueText = "0";
 
         public Button ButtonIncrease { get; private set; }
@@ -28,8 +32,8 @@ namespace System.Windows.Forms
             {
                 if (value < _minimum) _minimum = value;
                 _maximum = value;
-                if (_value < _minimum) _value = _minimum;
-                if (_value > _maximum) _value = _maximum;
+                if (this.value < _minimum) this.value = _minimum;
+                if (this.value > _maximum) this.value = _maximum;
             }
         }
         public decimal Minimum
@@ -39,20 +43,20 @@ namespace System.Windows.Forms
             {
                 if (value > _maximum) _maximum = value;
                 _minimum = value;
-                if (_value < _minimum) _value = _minimum;
-                if (_value > _maximum) _value = _maximum;
+                if (this.value < _minimum) this.value = _minimum;
+                if (this.value > _maximum) this.value = _maximum;
             }
         }
         public HorizontalAlignment TextAlign { get; set; }
         public decimal Value
         {
-            get { return _value; }
+            get { return value; }
             set
             {
                 if (value > Maximum) value = Maximum;
                 if (value < Minimum) value = Minimum;
-                bool changed = _value != value;
-                _value = value;
+                bool changed = this.value != value;
+                this.value = value;
                 valueText = value.ToString();
                 if (changed)
                     ValueChanged(this, null);
@@ -168,6 +172,45 @@ namespace System.Windows.Forms
             else
                 g.DrawString(valueText, Font, foreColor, Padding.Left, 0, Width + textPaddingRight, Height, TextAlign);
         }
+        protected override object OnPaintEditor(float width)
+        {
+            var component = base.OnPaintEditor(width);
+
+#if UNITY_EDITOR
+            Editor.BeginGroup(width - 24);
+            Editor.BeginVertical();
+
+            _toggleEditor = Editor.Foldout("NumericUpDown", _toggleEditor);
+            if (_toggleEditor)
+            {
+                var editorIncrement = Editor.Slider("Increment", (float)Increment, 0, 255);
+                if (editorIncrement.Changed)
+                    Increment = (decimal)editorIncrement.Value;
+
+                float editorMinValue = short.MinValue;
+                float editorMaxValue = short.MaxValue;
+                if ((float)Maximum > editorMaxValue) editorMaxValue = (float)Maximum;
+                if ((float)Minimum < editorMinValue) editorMinValue = (float)Minimum;
+
+                var editorMaximum = Editor.Slider("Maximum", (float)Maximum, editorMinValue, editorMaxValue);
+                if (editorMaximum.Changed)
+                    Maximum = (decimal)editorMaximum.Value;
+
+                var editorMinimum = Editor.Slider("Minimum", (float)Minimum, editorMinValue, editorMaxValue);
+                if (editorMinimum.Changed)
+                    Minimum = (decimal)editorMinimum.Value;
+
+                var editorValue = Editor.Slider("Value", (float)Value, (float)Minimum, (float)Maximum);
+                if (editorValue.Changed)
+                    Value = (decimal)editorValue.Value;
+            }
+            Editor.EndVertical();
+            Editor.EndGroup();
+#endif
+
+            return component;
+        }
+
         public void ShowButtons()
         {
             ButtonIncrease.Visible = true;

@@ -19,5 +19,7 @@ namespace System.Drawing
         {
             return new Bitmap(original);
         }
+
+        public abstract void Apply();
     }
 }

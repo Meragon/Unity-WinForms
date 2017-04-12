@@ -117,7 +117,7 @@ namespace System.Windows.Forms
             Owner.UpdateEvent += Owner_UpdateEvent;
         }
 
-        private void DoScroll(ScrollEventType type)
+        internal void DoScroll(ScrollEventType type)
         {
             int newValue = value;
             int oldValue = value;

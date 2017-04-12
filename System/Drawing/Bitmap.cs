@@ -34,7 +34,7 @@ namespace System.Drawing
             uTexture = new UnityEngine.Texture2D(width, height);
         }
 
-        public void Apply()
+        public override void Apply()
         {
             uTexture.Apply();
         }

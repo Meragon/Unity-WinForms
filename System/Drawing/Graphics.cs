@@ -781,6 +781,10 @@ namespace System.Drawing
             GUI.color = color.ToUColor();
             GUI.DrawTexture(new Rect(x, y, width, height), ApplicationBehaviour.DefaultSprite);
         }
+        public void FillRectangle(Color color, float x, float y, float width, float height, Material mat)
+        {
+            DrawTexture(ApplicationBehaviour.DefaultSprite, x, y, width, height, color, mat);
+        }
         public void FillQuad(Color color, PointF[] points)
         {
             if (points == null || points.Length != 4) return;

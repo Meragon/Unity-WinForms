@@ -44,6 +44,8 @@ namespace System.Windows.Forms
         private VScrollBar vScroll;
         private bool vScrollHidden;
 
+        protected int topLeftButtonWidth = 40;
+
         public int ColumnsDefaultWidth = 100;
 
         public Color BorderColor { get; set; }
@@ -85,7 +87,7 @@ namespace System.Windows.Forms
             {
                 topLeftButton = new TableColumnButton(this, ColumnsStyle);
                 topLeftButton.Name = "topLeftButton";
-                topLeftButton.Size = new Size(40, 20);
+                topLeftButton.Size = new Size(topLeftButtonWidth, 20);
                 Controls.Add(topLeftButton);
             }
 
@@ -238,7 +240,7 @@ namespace System.Windows.Forms
                 var row = Rows[i];
 
                 row.control.Location = new Point(cX, cY);
-                row.control.Text = (i + 1).ToString();
+                row.UpdateHeaderText();
                 if (topLeftButton != null)
                     row.control.Width = topLeftButton.Width;
 
@@ -301,9 +303,9 @@ namespace System.Windows.Forms
                 var rButton = new TableRowButton(ColumnsStyle);
                 rButton.row = row;
                 rButton.Size = new Size(40, row.Height);
-                rButton.Text = Rows.Count.ToString();
 
                 row.control = rButton;
+                row.UpdateHeaderText();
                 Controls.Add(rButton);
             }
 
@@ -747,6 +749,7 @@ namespace System.Windows.Forms
         internal Button control;
         internal TableRowCollection owner;
 
+        public string CustomHeaderText { get; set; }
         public int Index { get { return owner.FindIndex(this); } }
         public object[] Items { get; internal set; }
         public TableRowControlsCollection ItemsControls { get; internal set; }
@@ -779,6 +782,18 @@ namespace System.Windows.Forms
                     Array.Copy(Items, 0, newItems, 0, Items.Length);
                 Items = newItems;
             }
+        }
+        internal string GetHeaderText()
+        {
+            if (string.IsNullOrEmpty(CustomHeaderText) == false) return CustomHeaderText;
+            if (control == null) return null;
+
+            return (Index + 1).ToString();
+        }
+        internal void UpdateHeaderText()
+        {
+            if (control == null) return;
+            control.Text = GetHeaderText();
         }
 
         public class TableRowControlsCollection

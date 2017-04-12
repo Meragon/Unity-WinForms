@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using UnityEngine;
 
 namespace System.Drawing
 {
@@ -35,6 +36,10 @@ namespace System.Drawing
             UnityEngine.GUILayout.BeginVertical();
         }
         public static void BeginVertical(string style)
+        {
+            UnityEngine.GUILayout.BeginVertical(style);
+        }
+        public static void BeginVertical(GUIStyle style)
         {
             UnityEngine.GUILayout.BeginVertical(style);
         }
