@@ -22,12 +22,10 @@ namespace System.Windows.Forms
             }
         }
 
-#if UNITY_EDITOR
         private bool _toggleEditor = true;
         private bool _toggleFont;
         private bool _toggleControls;
         private bool _toggleSource;
-#endif
 
         private bool _uwfContext;
         private ControlCollection _controls;
