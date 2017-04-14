@@ -82,9 +82,9 @@ namespace System.Windows.Forms
 
             g.DrawRectangle(_borderPen, 0, 0, Width, Height);
         }
-        protected override object OnPaintEditor(float width)
+        protected override object UWF_OnPaintEditor(float width)
         {
-            var control = base.OnPaintEditor(width);
+            var control = base.UWF_OnPaintEditor(width);
 
 #if UNITY_EDITOR
 

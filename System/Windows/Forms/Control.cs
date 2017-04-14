@@ -22,39 +22,31 @@ namespace System.Windows.Forms
             }
         }
 
-        private bool _context;
-        private Control.ControlCollection _controls;
-        private bool _disposing;
-        internal bool selected = false;
-        internal static Control lastSelected;
-        //internal static Control lastSelected;
-        private Point _location = new Point();
-        private int _height;
-        private bool _isDisposed;
-        internal bool hovered;
-        internal bool mouseEntered;
-        private Control _parent;
-        internal bool shouldFocus;
-        private bool _visible;
-        private int _width;
-
-        // Editor toggles.
+#if UNITY_EDITOR
         private bool _toggleEditor = true;
         private bool _toggleFont;
         private bool _toggleControls;
         private bool _toggleSource;
+#endif
+
+        private bool _uwfContext;
+        private ControlCollection _controls;
+        internal bool selected;
+        internal static Control lastSelected;
+        private Point _location;
+        private int _height;
+        internal bool hovered;
+        internal bool mouseEntered;
+        internal bool shouldFocus;
+        private bool _visible;
+        private int _width;
 
         public virtual bool AllowDrop { get; set; }
         public bool AlwaysFocused { get; set; }
         public virtual AnchorStyles Anchor { get; set; }
-        /// <summary>
-        /// GUI.BeingGroup(...) & GUI.EndGroup().
-        /// </summary>
-        public bool AutoGroup { get; set; }
         public virtual bool AutoSize { get; set; }
         public Color BackColor { get; set; }
         public virtual ImageLayout BackgroundImageLayout { get; set; }
-        public int Batches { get; internal set; }
         public Rectangle Bounds
         {
             get { return new Rectangle(Location.X, Location.Y, Width, Height); }
@@ -66,24 +58,9 @@ namespace System.Windows.Forms
         }
         public bool CanSelect { get; set; }
         public Rectangle ClientRectangle { get { return new Rectangle(0, 0, Width, Height); } }
-        public virtual bool Context // Close on click control. TODO: make it obsolete, find other way.
-        {
-            get { return _context; }
-            set
-            {
-                if (_context != value)
-                {
-                    _context = value;
-                    if (_context)
-                        Owner.Contexts.Add(this);
-                    else
-                        Owner.Contexts.Remove(this);
-                }
-            }
-        }
-        public Control.ControlCollection Controls { get { return _controls; } set { _controls = value; } }
+        public ControlCollection Controls { get { return _controls; } set { _controls = value; } }
         public virtual Rectangle DisplayRectangle { get { return ClientRectangle; } }
-        public bool Disposing { get { return _disposing; } }
+        public bool Disposing { get; private set; }
         public bool Enabled { get; set; }
         public bool Focused { get { return selected; } }
         public virtual Font Font { get; set; }
@@ -99,7 +76,7 @@ namespace System.Windows.Forms
             }
         }
         public bool Hovered { get { return hovered; } }
-        public bool IsDisposed { get { return _isDisposed; } }
+        public bool IsDisposed { get; private set; }
         public int Left
         {
             get { return this.Location.X; }
@@ -117,11 +94,8 @@ namespace System.Windows.Forms
         public virtual Size MaximumSize { get; set; }
         public virtual Size MinimumSize { get; set; }
         public string Name { get; set; }
-        internal Point Offset { get; set; }
-        public Application Owner { get; internal set; }
         public Padding Padding { get; set; }
-        public Control Parent { get { return _parent; } set { _parent = value; } }
-        public bool PreventChildDisposing { get; set; }
+        public Control Parent { get; set; }
         public Size Size
         {
             get
@@ -139,9 +113,8 @@ namespace System.Windows.Forms
                 RaiseOnResize(new Point(widthBuffer - value.Width, heightBuffer - value.Height));
             }
         }
-        public bool ShadowBox { get; set; }
-        public DrawHandler ShadowHandler { get; set; }
         public int TabIndex { get; set; }
+        public bool TabStop { get; set; }
         public object Tag { get; set; }
         public virtual string Text { get; set; }
         public int Top
@@ -169,9 +142,55 @@ namespace System.Windows.Forms
             }
         }
 
-        internal string Source { get; set; }
+        public Application UWF_AppOwner { get; internal set; }
+        public bool UWF_AutoGroup { get; set; } // GUI.BeingGroup(...) & GUI.EndGroup()
+        public int UWF_Batches { get; internal set; }
+        public virtual bool UWF_Context // Close on click control.
+        {
+            get { return _uwfContext; }
+            set
+            {
+                if (_uwfContext != value)
+                {
+                    _uwfContext = value;
+                    if (_uwfContext)
+                        UWF_AppOwner.Contexts.Add(this);
+                    else
+                        UWF_AppOwner.Contexts.Remove(this);
+                }
+            }
+        }
+        public bool UWF_PreventChildDisposing { get; set; }
+        public bool UWF_ShadowBox { get; set; }
+        public DrawHandler UWF_ShadowHandler { get; set; }
 
-        private void _parent_Resize(Point delta)
+        internal Point UWF_Offset { get; set; }
+        internal string UWF_Source { get; set; }
+
+        public Control()
+        {
+            if (Parent != null && Parent.UWF_AppOwner != null)
+                Parent.UWF_AppOwner.Run(this);
+            else if (DefaultController != null)
+                DefaultController.Run(this);
+
+            Anchor = AnchorStyles.Left | AnchorStyles.Top;
+            Controls = new ControlCollection(this);
+            Enabled = true;
+            Font = SystemFonts.DefaultFont;
+            ForeColor = Color.Black;
+            TabIndex = -1;
+            TabStop = true;
+            UWF_AutoGroup = true;
+            _visible = true;
+
+#if UNITY_EDITOR
+            var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
+            UWF_Source = stackTrace;
+#endif
+        }
+
+        private void ParentResized(Point delta)
         {
             bool an_right = (Anchor & AnchorStyles.Right) == AnchorStyles.Right;
             bool an_bottom = (Anchor & AnchorStyles.Bottom) == AnchorStyles.Bottom;
@@ -221,28 +240,6 @@ namespace System.Windows.Forms
             }
         }
 
-        public Control()
-        {
-            if (Parent != null && Parent.Owner != null)
-                Parent.Owner.Run(this);
-            else if (DefaultController != null)
-                DefaultController.Run(this);
-
-            Anchor = AnchorStyles.Left | AnchorStyles.Top;
-            Controls = new ControlCollection(this);
-            Enabled = true;
-            Font = SystemFonts.DefaultFont;
-            ForeColor = Color.Black;
-            TabIndex = -1;
-            AutoGroup = true;
-            _visible = true;
-
-#if UNITY_EDITOR
-            var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
-            Source = stackTrace;
-#endif
-        }
-
         public void BringToFront()
         {
             if (AlwaysFocused) return;
@@ -256,26 +253,26 @@ namespace System.Windows.Forms
             var form = this as Form ?? Application.GetRootControl(this) as Form;
             if (form != null)
             {
-                if (this.Owner.Forms.Contains(form))
+                if (this.UWF_AppOwner.Forms.Contains(form))
                 {
-                    this.Owner.Forms.Remove(form);
-                    this.Owner.Forms.Add(form);
+                    this.UWF_AppOwner.Forms.Remove(form);
+                    this.UWF_AppOwner.Forms.Add(form);
                 }
                 else if (form.IsModal)
                 {
-                    this.Owner.ModalForms.Remove(form);
-                    this.Owner.ModalForms.Add(form);
+                    this.UWF_AppOwner.ModalForms.Remove(form);
+                    this.UWF_AppOwner.ModalForms.Add(form);
                 }
             }
         }
         public new virtual void Dispose()
         {
-            if (_isDisposed) return;
+            if (IsDisposed) return;
 
-            _disposing = true;
+            Disposing = true;
             OnDisposing(this, EventArgs.Empty);
 
-            if (PreventChildDisposing == false)
+            if (UWF_PreventChildDisposing == false)
             {
                 for (; Controls.Count > 0;)
                     Controls[0].Dispose();
@@ -290,24 +287,16 @@ namespace System.Windows.Forms
                     Parent.Controls.RemoveAt(self);
             }
 
-            if (Context)
-                Owner.Contexts.Remove(this);
+            if (UWF_Context)
+                UWF_AppOwner.Contexts.Remove(this);
 
             Disposed(this, null);
-            _isDisposed = true;
+            IsDisposed = true;
         }
         public DragDropEffects DoDragDrop(object data, DragDropEffects allowedEffects, DragDropRenderHandler render = null)
         {
             Application.DoDragDrop(data, allowedEffects, render);
             return DragDropEffects.None; // TODO: ?
-        }
-        private static void _FocusParent(Control self)
-        {
-            if (self.Parent != null)
-            {
-                self.Parent.selected = true;
-                _FocusParent(self.Parent);
-            }
         }
         public bool Focus()
         {
@@ -330,8 +319,8 @@ namespace System.Windows.Forms
             if (Parent != null)
                 p = Parent.PointToClient(p);
 
-            p.X -= Location.X + Offset.X;
-            p.Y -= Location.Y + Offset.Y;
+            p.X -= Location.X + UWF_Offset.X;
+            p.Y -= Location.Y + UWF_Offset.Y;
             return p;
         }
         public Point PointToScreen(Point p)
@@ -339,13 +328,13 @@ namespace System.Windows.Forms
             if (Parent != null)
                 p = Parent.PointToScreen(p);
 
-            p.X += Location.X + Offset.X;
-            p.Y += Location.Y + Offset.Y;
+            p.X += Location.X + UWF_Offset.X;
+            p.Y += Location.Y + UWF_Offset.Y;
             return p;
         }
         public virtual void Refresh()
         {
-            // In da future: batch stuff through this (like OnResized -> Refresh).
+            
         }
         public void ResumeLayout()
         {
@@ -369,6 +358,11 @@ namespace System.Windows.Forms
             // dunno.
         }
 
+        protected void InvokeGotFocus(Control toInvoke, EventArgs e)
+        {
+            if (toInvoke == null) return;
+            toInvoke.OnGotFocus(e);
+        }
         protected void InvokeLostFocus(Control toInvoke, EventArgs e)
         {
             if (toInvoke == null)
@@ -394,6 +388,13 @@ namespace System.Windows.Forms
         protected virtual void OnDragLeave(EventArgs e)
         {
 
+        }
+        protected virtual void OnGotFocus(EventArgs e)
+        {
+            if (Parent != null)
+                Parent.UWF_ChildGotFocus(this);
+
+            GotFocus(this, e);
         }
         protected virtual void OnKeyDown(KeyEventArgs e)
         {
@@ -470,7 +471,23 @@ namespace System.Windows.Forms
         {
 
         }
-        protected virtual object OnPaintEditor(float width)
+        protected virtual void OnResize(Point delta)
+        {
+
+
+        }
+        protected virtual void OnTextChanged(EventArgs e)
+        {
+            TextChanged(this, e);
+        }
+
+        protected virtual void UWF_ChildGotFocus(Control child)
+        {
+            if (Parent == null) return;
+
+            Parent.UWF_ChildGotFocus(child);
+        }
+        protected virtual object UWF_OnPaintEditor(float width)
         {
             System.Windows.Forms.Control controlToSet = null;
 
@@ -496,14 +513,13 @@ namespace System.Windows.Forms
                 var editorBackgroundImageLayout = Editor.EnumField("BackgroundImageLayout", this.BackgroundImageLayout);
                 if (editorBackgroundImageLayout.Changed) this.BackgroundImageLayout = (ImageLayout)editorBackgroundImageLayout.Value;
 
-                Editor.Label("Batches", Batches);
+                Editor.Label("UWF_Batches", UWF_Batches);
 
                 var editorCanSelect = Editor.BooleanField("CanSelect", CanSelect);
                 if (editorCanSelect.Changed)
                     CanSelect = editorCanSelect.Value;
 
                 Editor.Label("ClientRectangle", this.ClientRectangle);
-                Editor.Label("Context", this.Context);
 
                 if (this.Controls != null && this.Controls.Count > 0)
                 {
@@ -591,8 +607,6 @@ namespace System.Windows.Forms
                 var editorName = Editor.TextField("Name", Name ?? "");
                 if (editorName.Changed) this.Name = editorName;
 
-                Editor.Label("Offset", Offset);
-
                 var editorPadding = Editor.IntField("Padding", this.Padding.Left, this.Padding.Top, this.Padding.Right, this.Padding.Bottom);
                 if (editorPadding.Changed)
                     Padding = new Forms.Padding(editorPadding.Value[0], editorPadding.Value[3], editorPadding.Value[2], editorPadding.Value[1]);
@@ -605,16 +619,9 @@ namespace System.Windows.Forms
                 else
                     Editor.Label("Parent", "null");
 
-
-                var editorShadowBox = Editor.BooleanField("ShadowBox", this.ShadowBox);
-                if (editorShadowBox.Changed) ShadowBox = editorShadowBox;
-
                 var editorSize = Editor.IntField("Size", this.Size.Width, this.Size.Height);
                 if (editorSize.Changed) this.Size = new Drawing.Size(editorSize.Value[0], editorSize.Value[1]);
-
-                _toggleSource = Editor.Foldout("Source", _toggleSource);
-                if (_toggleSource) Editor.Label(this.Source);
-
+                
                 var editorTabIndex = Editor.Slider("TabIndex", this.TabIndex, 0, 255);
                 if (editorTabIndex.Changed) this.TabIndex = (int)editorTabIndex.Value;
 
@@ -636,6 +643,17 @@ namespace System.Windows.Forms
 
                 Editor.NewLine(1);
 
+                Editor.Label("UWF_Context", this.UWF_Context);
+                Editor.Label("UWF_Offset", UWF_Offset);
+
+                var editorShadowBox = Editor.BooleanField("UWF_ShadowBox", this.UWF_ShadowBox);
+                if (editorShadowBox.Changed) UWF_ShadowBox = editorShadowBox;
+
+                _toggleSource = Editor.Foldout("UWF_Source", _toggleSource);
+                if (_toggleSource) Editor.Label(this.UWF_Source);
+
+                Editor.NewLine(1);
+
                 if (Editor.Button("BringToFront()")) BringToFront();
                 if (Editor.Button("Dispose()")) Dispose();
                 if (Editor.Button("Focus()")) Focus();
@@ -647,20 +665,7 @@ namespace System.Windows.Forms
 
             return controlToSet;
         }
-        protected virtual void OnResize(Point delta)
-        {
-            
-            
-        }
-        protected virtual void OnTextChanged(EventArgs e)
-        {
-            TextChanged(this, e);
-        }
 
-        internal void AddjustSizeToScreen(Size delta)
-        {
-            _parent_Resize(new Point(delta.Width, delta.Height));
-        }
         internal Form FindFormInternal()
         {
             Control cur = this;
@@ -678,7 +683,7 @@ namespace System.Windows.Forms
 
             shouldFocus = true;
 
-            GotFocus(this, EventArgs.Empty);
+            OnGotFocus(EventArgs.Empty);
             return true; // TODO: CanFocus.
         }
         internal void RaiseOnDragDrop(DragEventArgs drgevent)
@@ -727,7 +732,7 @@ namespace System.Windows.Forms
             OnMouseUp(e);
             MouseUp(this, e);
 
-            if (Owner != null && ApplicationBehaviour.ShowControlProperties && Application.ShowCallback != null)
+            if (UWF_AppOwner != null && ApplicationBehaviour.ShowControlProperties && Application.ShowCallback != null)
                 Application.ShowCallback.Invoke(this);
         }
         internal void RaiseOnMouseWheel(MouseEventArgs e)
@@ -751,13 +756,13 @@ namespace System.Windows.Forms
         internal void RaiseOnPaint(PaintEventArgs e)
         {
             e.Graphics.Control = this;
-            Batches = 0;
+            UWF_Batches = 0;
 
-            if (ShadowBox)
+            if (UWF_ShadowBox)
             {
-                if (ShadowHandler == null)
+                if (UWF_ShadowHandler == null)
                 {
-                    ShadowHandler = (pArgs) =>
+                    UWF_ShadowHandler = (pArgs) =>
                     {
                         var psLoc = PointToScreen(Point.Zero);
                         int shX = psLoc.X + 6;
@@ -771,10 +776,10 @@ namespace System.Windows.Forms
                     };
                 }
 
-                ShadowHandler.Invoke(e);
+                UWF_ShadowHandler.Invoke(e);
             }
 
-            if (AutoGroup)
+            if (UWF_AutoGroup)
             {
                 int gx = e.ClipRectangle.X;
                 int gy = e.ClipRectangle.Y;
@@ -810,24 +815,28 @@ namespace System.Windows.Forms
                 e.Graphics.DrawRectangle(Pens.DarkRed, 0, 0, Width, Height);
             }
             OnLatePaint(e);
-            if (AutoGroup)
+            if (UWF_AutoGroup)
                 e.Graphics.GroupEnd();
 
             e.Graphics.Control = null;
         }
         internal object RaiseOnPaintEditor(float width)
         {
-            return OnPaintEditor(width);
+            return UWF_OnPaintEditor(width);
         }
         internal void RaiseOnResize(Point delta)
         {
             if (delta != Point.Zero)
                 if (Controls != null)
                     for (int i = 0; i < Controls.Count; i++)
-                        Controls[i]._parent_Resize(delta);
+                        Controls[i].ParentResized(delta);
 
             OnResize(delta);
             Resize(this, null);
+        }
+        internal void UWF_AddjustSizeToScreen(Size delta)
+        {
+            ParentResized(new Point(delta.Width, delta.Height));
         }
 
         public event EventHandler Click = delegate { };

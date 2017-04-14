@@ -33,9 +33,9 @@ namespace System.Windows.Forms
             g.FillRectangle(BackColor, 0, 0, Width, Height);
             g.DrawString(Text, Font, ForeColor, Padding.Left, Padding.Top, Width - Padding.Right - Padding.Left, Height - Padding.Bottom - Padding.Top, TextAlign);
         }
-        protected override object OnPaintEditor(float width)
+        protected override object UWF_OnPaintEditor(float width)
         {
-            var control = base.OnPaintEditor(width);
+            var control = base.UWF_OnPaintEditor(width);
 
 #if UNITY_EDITOR
             Editor.BeginVertical();

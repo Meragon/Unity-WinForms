@@ -72,7 +72,7 @@ namespace System.Windows.Forms
 
             onDrawNode = _OnDrawNode;
 
-            Owner.UpClick += _Application_UpClick;
+            UWF_AppOwner.UpClick += _Application_UpClick;
         }
 
         private void _AddjustScrollIndexToSelectedNode()
@@ -296,7 +296,7 @@ namespace System.Windows.Forms
 
         public override void Dispose()
         {
-            Owner.UpClick -= _Application_UpClick;
+            UWF_AppOwner.UpClick -= _Application_UpClick;
 
             base.Dispose();
         }
@@ -446,9 +446,9 @@ namespace System.Windows.Forms
 
             e.Graphics.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
         }
-        protected override object OnPaintEditor(float width)
+        protected override object UWF_OnPaintEditor(float width)
         {
-            var control = base.OnPaintEditor(width);
+            var control = base.UWF_OnPaintEditor(width);
 
             Editor.NewLine(1);
             Editor.Label("   TreeView");

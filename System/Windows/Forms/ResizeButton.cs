@@ -26,7 +26,7 @@ namespace System.Windows.Forms
 
             this.ClearColor(Color.Transparent);
 
-            Owner.UpClick += Owner_UpClick;
+            UWF_AppOwner.UpClick += Owner_UpClick;
         }
 
         private void Owner_UpClick(object sender, MouseEventArgs e)
@@ -45,7 +45,7 @@ namespace System.Windows.Forms
         {
             base.Dispose();
 
-            Owner.UpClick -= Owner_UpClick;
+            UWF_AppOwner.UpClick -= Owner_UpClick;
         }
         protected override void OnMouseDown(MouseEventArgs e)
         {

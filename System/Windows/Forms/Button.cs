@@ -149,9 +149,9 @@ namespace System.Windows.Forms
                     Width - Padding.Left - Padding.Right,
                     Height - Padding.Top - Padding.Bottom, TextAlign);
         }
-        protected override object OnPaintEditor(float width)
+        protected override object UWF_OnPaintEditor(float width)
         {
-            var control = base.OnPaintEditor(width);
+            var control = base.UWF_OnPaintEditor(width);
 
             Editor.BeginVertical();
             Editor.NewLine(1);

@@ -21,7 +21,7 @@ namespace System.Windows.Forms
             BorderColor = Color.FromArgb(204, 206, 219);
             Orientation = Forms.Orientation.Vertical;
 
-            Owner.UpClick += Application_UpClick;
+            UWF_AppOwner.UpClick += Application_UpClick;
         }
         public ToolStrip(ToolStripItem[] items)
         {
@@ -32,7 +32,7 @@ namespace System.Windows.Forms
             BorderColor = Color.FromArgb(204, 206, 219);
             Orientation = Forms.Orientation.Vertical;
 
-            Owner.UpClick += Application_UpClick;
+            UWF_AppOwner.UpClick += Application_UpClick;
         }
 
         public Color BorderColor { get; set; }
@@ -73,7 +73,7 @@ namespace System.Windows.Forms
 
         public override void Dispose()
         {
-            Owner.DownClick -= Application_UpClick;
+            UWF_AppOwner.DownClick -= Application_UpClick;
             base.Dispose();
         }
         protected override void OnMouseHover(EventArgs e)
@@ -149,7 +149,7 @@ namespace System.Windows.Forms
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            if (OwnerItem != null && OwnerItem.Parent != null && OwnerItem.Parent.Orientation == Forms.Orientation.Horizontal && ShadowHandler == null)
+            if (OwnerItem != null && OwnerItem.Parent != null && OwnerItem.Parent.Orientation == Forms.Orientation.Horizontal && UWF_ShadowHandler == null)
             {
                 MakeShadow();
             }
@@ -176,9 +176,9 @@ namespace System.Windows.Forms
 
             p_args.Graphics.DrawRectangle(BorderColor, 0, 0, Width, Height);
         }
-        protected override object OnPaintEditor(float width)
+        protected override object UWF_OnPaintEditor(float width)
         {
-            var control = base.OnPaintEditor(width);
+            var control = base.UWF_OnPaintEditor(width);
 
 #if UNITY_EDITOR
             Editor.NewLine(1);
@@ -203,7 +203,7 @@ namespace System.Windows.Forms
         /// </summary>
         internal void MakeShadow()
         {
-            ShadowHandler = (g) =>
+            UWF_ShadowHandler = (g) =>
             {
                 var loc = PointToScreen(Point.Zero);
                 var color = Color.FromArgb(12, 64, 64, 64);

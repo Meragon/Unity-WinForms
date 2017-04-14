@@ -93,6 +93,41 @@ namespace System.Windows.Forms
 
             topLeftButton.Visible = !rowHeadersHidden && !columnHeadersHidden;
         }
+        private void EnsureVisibleChild(Control child)
+        {
+            bool horizontalScroll_Left = child.Location.X + child.UWF_Offset.X < 0;
+            bool horizontalScroll_Right = child.Location.X + child.UWF_Offset.X + child.Width > Width;
+            bool verticalScroll_Top = child.Location.Y + child.UWF_Offset.Y < 0;
+            bool verticalScroll_Bottom = child.Location.Y + child.UWF_Offset.Y + child.Height > Height;
+
+            if (hScroll != null && Width > 0 && (horizontalScroll_Left || horizontalScroll_Right))
+            {
+                var hRange = hScroll.Maximum - hScroll.Minimum;
+                int estimatedPos;
+                if (horizontalScroll_Right)
+                    estimatedPos = child.Location.X + child.Width - Width;
+                else
+                    estimatedPos = child.Location.X;
+
+                hScroll.Value = (int)((float)hRange * estimatedPos / maxScrollWidth);
+            }
+
+            if (vScroll != null && Height > 0 && (verticalScroll_Top || verticalScroll_Bottom))
+            {
+                var vRange = vScroll.Maximum - vScroll.Minimum;
+                int estimatedPos;
+                if (verticalScroll_Bottom)
+                {
+                    estimatedPos = child.Location.Y + child.Height - Height;
+                    if (hScroll != null)
+                        estimatedPos += hScroll.Height;
+                }
+                else
+                    estimatedPos = child.Location.Y;
+
+                vScroll.Value = (int)((float)vRange * estimatedPos / maxScrollHeight);
+            }
+        }
         private void HScroll_ValueChanged(object sender, EventArgs e)
         {
             int offsetX = -(int)((float)(maxScrollWidth * hScroll.Value) / 100);
@@ -101,18 +136,18 @@ namespace System.Windows.Forms
                 var c = Controls[i];
                 if (c is ScrollBar) continue;
 
-                c.Offset = new Point(offsetX, c.Offset.Y);
+                c.UWF_Offset = new Point(offsetX, c.UWF_Offset.Y);
             }
         }
         private void ResetHOffset()
         {
             for (int i = 0; i < Controls.Count; i++)
-                Controls[i].Offset = new Point(0, Controls[i].Offset.Y);
+                Controls[i].UWF_Offset = new Point(0, Controls[i].UWF_Offset.Y);
         }
         private void ResetVOffset()
         {
             for (int i = 0; i < Controls.Count; i++)
-                Controls[i].Offset = new Point(Controls[i].Offset.X, 0);
+                Controls[i].UWF_Offset = new Point(Controls[i].UWF_Offset.X, 0);
         }
         private void VScroll_ValueChanged(object sender, EventArgs e)
         {
@@ -122,7 +157,7 @@ namespace System.Windows.Forms
                 var c = Controls[i];
                 if (c is ScrollBar) continue;
 
-                c.Offset = new Point(c.Offset.X, offseY);
+                c.UWF_Offset = new Point(c.UWF_Offset.X, offseY);
             }
         }
         private void UpdateScrolls()
@@ -377,9 +412,9 @@ namespace System.Windows.Forms
         {
             e.Graphics.FillRectangle(BackColor, 0, 0, Width, Height);
         }
-        protected override object OnPaintEditor(float width)
+        protected override object UWF_OnPaintEditor(float width)
         {
-            var control = base.OnPaintEditor(width);
+            var control = base.UWF_OnPaintEditor(width);
 
 #if UNITY_EDITOR
             Editor.NewLine(1);
@@ -398,12 +433,11 @@ namespace System.Windows.Forms
 
             UpdateScrolls();
         }
-        public override void Refresh()
+        protected override void UWF_ChildGotFocus(Control child)
         {
-            base.Refresh();
+            base.UWF_ChildGotFocus(child);
 
-            AlignColumns();
-            AlignRows();
+            EnsureVisibleChild(child);
         }
 
         public void HideColumnHeaders()
@@ -425,6 +459,13 @@ namespace System.Windows.Forms
 
             if (hScroll != null) hScroll.Visible = !hScrollHidden;
             if (vScroll != null) vScroll.Visible = !vScrollHidden;
+        }
+        public override void Refresh()
+        {
+            base.Refresh();
+
+            AlignColumns();
+            AlignRows();
         }
         public void ShowColumnHeaders()
         {
@@ -537,9 +578,10 @@ namespace System.Windows.Forms
                 Padding = new Padding(8, 0, 8, 0);
                 ResizeWidth = 8;
                 Size = new Size(t.ColumnsDefaultWidth, 20);
+                TabStop = false;
                 TextAlign = ContentAlignment.MiddleLeft;
 
-                Owner.UpClick += Owner_UpClick;
+                UWF_AppOwner.UpClick += Owner_UpClick;
             }
 
             private ListSortDirection GetNextSortDirection()
@@ -570,7 +612,7 @@ namespace System.Windows.Forms
             {
                 base.Dispose();
 
-                Owner.UpClick -= Owner_UpClick;
+                UWF_AppOwner.UpClick -= Owner_UpClick;
             }
             protected override void OnMouseDown(MouseEventArgs e)
             {
@@ -704,8 +746,6 @@ namespace System.Windows.Forms
                     }
             }
 
-
-
             private enum resizeTypes : byte
             {
                 None,
@@ -728,6 +768,7 @@ namespace System.Windows.Forms
                 BorderSelectColor = style.BorderSelectColor;
                 Padding = new Padding(8, 0, 8, 0);
                 Size = new Size(100, 20);
+                TabStop = false;
                 TextAlign = ContentAlignment.MiddleRight;
             }
 

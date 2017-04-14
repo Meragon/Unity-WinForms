@@ -31,8 +31,8 @@ namespace System.Windows.Forms
 
         public RepeatButton()
         {
-            Owner.UpClick += Owner_UpClick;
-            Owner.UpdateEvent += Owner_UpdateEvent;
+            UWF_AppOwner.UpClick += Owner_UpClick;
+            UWF_AppOwner.UpdateEvent += Owner_UpdateEvent;
         }
 
         private void Owner_UpClick(object sender, MouseEventArgs e)
@@ -65,7 +65,7 @@ namespace System.Windows.Forms
 
         public override void Dispose()
         {
-            Owner.UpClick -= Owner_UpClick;
+            UWF_AppOwner.UpClick -= Owner_UpClick;
 
             base.Dispose();
         }

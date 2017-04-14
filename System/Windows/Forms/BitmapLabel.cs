@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
+using DiaLib.Blocks.Signal_Manipulation;
 using UnityEngine;
 using Color = System.Drawing.Color;
 
@@ -28,6 +29,7 @@ namespace System.Windows.Forms
             set
             {
                 bmText.Text = value;
+                Refresh();
             }
         }
 
@@ -41,7 +43,7 @@ namespace System.Windows.Forms
             AutoSize = true;
             Size = new Size(120, 20);
         }
-
+        
         public override void Refresh()
         {
             base.Refresh();
@@ -56,9 +58,9 @@ namespace System.Windows.Forms
             e.Graphics.FillRectangle(BackColor, 0, 0, Width, Height);
             e.Graphics.DrawTexture(bmText.uTexture, 0, 0, bmText.Width, bmText.Height, ForeColor);
         }
-        protected override object OnPaintEditor(float width)
+        protected override object UWF_OnPaintEditor(float width)
         {
-            var control = base.OnPaintEditor(width);
+            var control = base.UWF_OnPaintEditor(width);
 
             Editor.NewLine(1);
 

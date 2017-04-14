@@ -162,14 +162,14 @@ namespace System.Windows.Forms
         }
         internal void ResetSelected()
         {
-            if (Parent.Context && Owner.OwnerItem != null)
+            if (Parent.UWF_Context && Owner.OwnerItem != null)
             {
                 var parent = Owner.OwnerItem.Owner;
                 while (true)
                 {
                     if (parent == null) break;
 
-                    if (!parent.Context)
+                    if (!parent.UWF_Context)
                     {
                         parent.ResetSelected();
                         break;
@@ -240,10 +240,10 @@ namespace System.Windows.Forms
             if (!_pressed)
             {
                 _dropDownToolStrip = new ToolStrip();
-                _dropDownToolStrip.Context = true;
+                _dropDownToolStrip.UWF_Context = true;
                 _dropDownToolStrip.OwnerItem = this;
 
-                if (Parent.ShadowHandler != null)
+                if (Parent.UWF_ShadowHandler != null)
                     _dropDownToolStrip.MakeShadow();
 
                 int index = Parent.Items.IndexOf(this);
@@ -262,7 +262,7 @@ namespace System.Windows.Forms
                     _dropDownToolStrip.Items[i].OwnerItem = this;
                     _dropDownToolStrip.Items[i].Selected = false;
                 }
-                _dropDownToolStrip.ShadowBox = true;
+                _dropDownToolStrip.UWF_ShadowBox = true;
                 _dropDownToolStrip.Orientation = Orientation.Vertical;
                 int height = 0;
                 for (int i = 0; i < DropDownItems.Count; i++)

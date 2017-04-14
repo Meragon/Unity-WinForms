@@ -113,8 +113,8 @@ namespace System.Windows.Forms
             subtractButton.Click += (s, a) => { DoScroll(ScrollEventType.SmallDecrement); };
             Controls.Add(subtractButton);
 
-            Owner.UpClick += Owner_UpClick;
-            Owner.UpdateEvent += Owner_UpdateEvent;
+            UWF_AppOwner.UpClick += Owner_UpClick;
+            UWF_AppOwner.UpdateEvent += Owner_UpdateEvent;
         }
 
         internal void DoScroll(ScrollEventType type)
@@ -325,8 +325,8 @@ namespace System.Windows.Forms
 
         public override void Dispose()
         {
-            Owner.UpClick -= Owner_UpClick;
-            Owner.UpdateEvent -= Owner_UpdateEvent;
+            UWF_AppOwner.UpClick -= Owner_UpClick;
+            UWF_AppOwner.UpdateEvent -= Owner_UpdateEvent;
 
             base.Dispose();
         }
@@ -419,9 +419,9 @@ namespace System.Windows.Forms
             }
             e.Graphics.FillRectangle(scrollCurrentColor, scrollRect.X, scrollRect.Y, scrollRect.Width, scrollRect.Height);
         }
-        protected override object OnPaintEditor(float width)
+        protected override object UWF_OnPaintEditor(float width)
         {
-            var component = base.OnPaintEditor(width);
+            var component = base.UWF_OnPaintEditor(width);
 #if UNITY_EDITOR
             Editor.BeginGroup(width - 24);
             Editor.BeginVertical();

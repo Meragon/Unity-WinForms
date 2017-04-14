@@ -9,18 +9,17 @@ namespace System.Drawing
 {
     public class BitmapText : Image
     {
-        private readonly Dictionary<int, CharSettings> textSettings = new Dictionary<int, CharSettings>();
+        internal readonly Dictionary<int, BitmapChar> textSettings = new Dictionary<int, BitmapChar>();
         private readonly BitmapFont font;
 
         public float Scale { get; set; }
         public bool ShowRects { get; set; }
         public string Text { get; set; }
-        public Dictionary<int, CharSettings> TextSettings { get { return textSettings; } }
         public Size TextureSize
         {
             get
             {
-                float tW = 0;
+                int tW = 0;
                 float tH = 0;
 
                 float minOffset = 0;
@@ -32,7 +31,7 @@ namespace System.Drawing
                     var textC = font.textureList[Text[i]];
                     if (textC == null) continue;
 
-                    var cSettings = GetSettings(i);
+                    var cSettings = CharAt(i);
                     float _scale = cSettings.Scale;
 
                     float cOY = textC.OffsetY * _scale;
@@ -44,12 +43,14 @@ namespace System.Drawing
                     if (cBp > minBottomPart)
                         minBottomPart = cBp;
 
-                    tW += textC.Advance * _scale;
+                    tW += (int)(textC.Advance * _scale);
                 }
 
                 tH = minOffset + minBottomPart;
 
-                return new Size((int)tW, (int)tH);
+                if (tW != 0) tW += 1;
+
+                return new Size(tW, (int)tH);
             }
         }
 
@@ -63,6 +64,10 @@ namespace System.Drawing
         {
             var tSize = TextureSize;
             uTexture = new Bitmap(tSize.Width, tSize.Height);
+
+            if (tSize.Width == 0 || tSize.Height == 0)
+                return;
+            
 
             // Clear texture with transparent color.
             var uBackColor = Color.Transparent.ToUColor();
@@ -83,7 +88,7 @@ namespace System.Drawing
                 var textC = font.textureList[charItem];
                 if (textC == null) continue;
 
-                var charSettings = GetSettings(i);
+                var charSettings = CharAt(i);
                 var charScale = charSettings.Scale;
                 var charColor = charSettings.ForeColor;
 
@@ -125,6 +130,34 @@ namespace System.Drawing
 
             uTexture.Apply();
         }
+        public BitmapChar CharAt(int index)
+        {
+            if (textSettings.ContainsKey(index) == false)
+                textSettings.Add(index, new BitmapChar(Color, Scale));
+            var bc = textSettings[index];
+            bc.Char = Text[index];
+            return bc;
+        }
+        public int WidthAt(int index)
+        {
+            int tW = 0;
+            
+            for (int i = 0; i < Text.Length; i++)
+            {
+                if (i >= index) return tW;
+
+                if (font.textureList.ContainsKey(Text[i]) == false) continue;
+                var textC = font.textureList[Text[i]];
+                if (textC == null) continue;
+
+                var cSettings = CharAt(i);
+                float _scale = cSettings.Scale;
+                
+                tW += (int)(textC.Advance * _scale);
+            }
+
+            return tW;
+        }
 
         private float GetCursorY()
         {
@@ -135,7 +168,7 @@ namespace System.Drawing
                 var textC = font.textureList[Text[i]];
                 if (textC == null) continue;
 
-                var cSettings = GetSettings(i);
+                var cSettings = CharAt(i);
                 float _scale = cSettings.Scale;
                 float cOY = textC.OffsetY * _scale;
 
@@ -144,23 +177,18 @@ namespace System.Drawing
             }
             return cursor;
         }
-        private CharSettings GetSettings(int index)
-        {
-            if (textSettings.ContainsKey(index) == false)
-                return new CharSettings(Color, Scale);
-            return textSettings[index];
-        }
 
-        public class CharSettings
+        public class BitmapChar
         {
+            public char Char { get; set; }
             public Color ForeColor { get; set; }
             public float Scale { get; set; }
 
-            public CharSettings() : this(Color.Black, 1f)
+            public BitmapChar() : this(Color.Black, 1f)
             {
 
             }
-            public CharSettings(Color c, float scale)
+            public BitmapChar(Color c, float scale)
             {
                 this.ForeColor = c;
                 this.Scale = scale;

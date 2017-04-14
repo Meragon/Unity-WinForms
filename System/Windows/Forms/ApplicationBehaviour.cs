@@ -54,9 +54,9 @@ namespace System.Windows.Forms
                     (int)(_lastWidth - UnityEngine.Screen.width),
                     (int)(_lastHeight - UnityEngine.Screen.height));
                 for (int i = 0; i < _controller.ModalForms.Count; i++)
-                    _controller.ModalForms[i].AddjustSizeToScreen(deltaSize);
+                    _controller.ModalForms[i].UWF_AddjustSizeToScreen(deltaSize);
                 for (int i = 0; i < _controller.Forms.Count; i++)
-                    _controller.Forms[i].AddjustSizeToScreen(deltaSize);
+                    _controller.Forms[i].UWF_AddjustSizeToScreen(deltaSize);
                 _controller.UpdatePaintClipRect();
             }
             _lastWidth = UnityEngine.Screen.width;

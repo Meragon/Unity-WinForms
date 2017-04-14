@@ -59,21 +59,21 @@ namespace System.Windows.Forms
                 if (Controls[i].Visible == false) continue;
                 if (!init)
                 {
-                    _scrollMinX = Controls[i].Offset.X + Controls[i].Location.X;
-                    _scrollMaxX = Controls[i].Offset.X + Controls[i].Location.X + Controls[i].Width;
-                    _scrollMinY = Controls[i].Offset.Y + Controls[i].Location.Y;
-                    _scrollMaxY = Controls[i].Offset.Y + Controls[i].Location.Y + Controls[i].Height;
+                    _scrollMinX = Controls[i].UWF_Offset.X + Controls[i].Location.X;
+                    _scrollMaxX = Controls[i].UWF_Offset.X + Controls[i].Location.X + Controls[i].Width;
+                    _scrollMinY = Controls[i].UWF_Offset.Y + Controls[i].Location.Y;
+                    _scrollMaxY = Controls[i].UWF_Offset.Y + Controls[i].Location.Y + Controls[i].Height;
                     init = true;
                 }
 
-                if (Controls[i].Offset.X + Controls[i].Location.X < _scrollMinX)
-                    _scrollMinX = Controls[i].Offset.X + Controls[i].Location.X;
-                if (Controls[i].Offset.Y + Controls[i].Location.Y < _scrollMinY)
-                    _scrollMinY = Controls[i].Offset.Y + Controls[i].Location.Y;
-                if (Controls[i].Offset.X + Controls[i].Location.X + Controls[i].Width > _scrollMaxX)
-                    _scrollMaxX = Controls[i].Offset.X + Controls[i].Location.X + Controls[i].Width;
-                if (Controls[i].Offset.Y + Controls[i].Location.Y + Controls[i].Height > _scrollMaxY)
-                    _scrollMaxY = Controls[i].Offset.Y + Controls[i].Location.Y + Controls[i].Height;
+                if (Controls[i].UWF_Offset.X + Controls[i].Location.X < _scrollMinX)
+                    _scrollMinX = Controls[i].UWF_Offset.X + Controls[i].Location.X;
+                if (Controls[i].UWF_Offset.Y + Controls[i].Location.Y < _scrollMinY)
+                    _scrollMinY = Controls[i].UWF_Offset.Y + Controls[i].Location.Y;
+                if (Controls[i].UWF_Offset.X + Controls[i].Location.X + Controls[i].Width > _scrollMaxX)
+                    _scrollMaxX = Controls[i].UWF_Offset.X + Controls[i].Location.X + Controls[i].Width;
+                if (Controls[i].UWF_Offset.Y + Controls[i].Location.Y + Controls[i].Height > _scrollMaxY)
+                    _scrollMaxY = Controls[i].UWF_Offset.Y + Controls[i].Location.Y + Controls[i].Height;
             }
 
             _scrollRect = new Rectangle(_scrollMinX, _scrollMinY, _scrollMaxX - _scrollMinX, _scrollMaxY - _scrollMinY);
@@ -139,7 +139,7 @@ namespace System.Windows.Forms
         private void _SetOffset(Point offset)
         {
             for (int i = 0; i < Controls.Count; i++)
-                Controls[i].Offset = offset;
+                Controls[i].UWF_Offset = offset;
         }
     }
 }

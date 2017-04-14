@@ -85,7 +85,7 @@ namespace Views
                 GUILayout.EndHorizontal();
             }
             GUILayout.Space(24);
-            GUILayout.Label("Context");
+            GUILayout.Label("UWF_Context");
             for (int i = 0; i < System.Windows.Forms.Control.DefaultController.Contexts.Count; i++)
             {
                 string c_type = System.Windows.Forms.Control.DefaultController.Contexts[i].GetType().ToString().Replace("System.Windows.Forms", "SWF");

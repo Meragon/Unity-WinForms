@@ -304,9 +304,9 @@ namespace System.Windows.Forms
             g.DrawTexture(ApplicationBehaviour.Resources.Images.CurvedArrowDown, Width - 16 - 1, Height / 2 - 8, 16, 16, arrowColor);
             g.DrawRectangle(borderColor, 0, 0, Width, Height);
         }
-        protected override object OnPaintEditor(float width)
+        protected override object UWF_OnPaintEditor(float width)
         {
-            var component = base.OnPaintEditor(width);
+            var component = base.UWF_OnPaintEditor(width);
 
 #if UNITY_EDITOR
             Editor.NewLine(2);
@@ -359,12 +359,12 @@ namespace System.Windows.Forms
             {
                 listBox = new ListBox();
                 listBox.Font = Font;
-                listBox.Context = true;
+                listBox.UWF_Context = true;
                 listBox.Width = Width;
                 listBox.ItemHeight = ItemHeight;
                 listBox.Height = listBox.ItemHeight * (Items.Count > MaxDropDownItems ? MaxDropDownItems : Items.Count);
                 listBox.WrapText = false;
-                listBox.ShadowBox = true;
+                listBox.UWF_ShadowBox = true;
                 listBox.BorderColor = listBox.BorderSelectColor;
                 if (listBox.Height < listBox.ItemHeight) listBox.Height = listBox.ItemHeight;
 

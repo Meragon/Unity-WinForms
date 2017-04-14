@@ -118,12 +118,12 @@ namespace System.Windows.Forms
         internal static bool ControlIsVisible(Control control)
         {
             if (control.Visible == false) return false;
-            if (control.Location.X + control.Offset.X + control.Width < 0) return false;
-            if (control.Location.Y + control.Offset.Y + control.Height < 0) return false;
+            if (control.Location.X + control.UWF_Offset.X + control.Width < 0) return false;
+            if (control.Location.Y + control.UWF_Offset.Y + control.Height < 0) return false;
             if (control.Parent != null)
             {
-                if (control.Location.X + control.Offset.X > control.Parent.Width) return false;
-                if (control.Location.Y + control.Offset.Y > control.Parent.Height) return false;
+                if (control.Location.X + control.UWF_Offset.X > control.Parent.Width) return false;
+                if (control.Location.Y + control.UWF_Offset.Y > control.Parent.Height) return false;
             }
             return true;
         }
@@ -580,7 +580,7 @@ namespace System.Windows.Forms
             // Dispose context first.
             for (int i = 0; i < Contexts.Count; i++)
             {
-                if (!Contexts[i].Context) continue;
+                if (!Contexts[i].UWF_Context) continue;
 
                 var contextControl = Contexts[i];
                 if (Contains(contextControl, hoveredControl)) continue;
@@ -618,7 +618,7 @@ namespace System.Windows.Forms
         }
         public void Run(Control control)
         {
-            control.Owner = this;
+            control.UWF_AppOwner = this;
             //this.Controls.Add(control);
         }
         public void Update()
@@ -748,7 +748,7 @@ namespace System.Windows.Forms
             var formControls = new List<Control>();
             _FillListWithVisibleControls(controlForm, formControls);
 
-            var possibleControls = formControls.FindAll(x => x.IsDisposed == false && x.CanSelect);
+            var possibleControls = formControls.FindAll(x => x.IsDisposed == false && x.CanSelect && x.TabStop);
             if (possibleControls.Find(x => x.TabIndex > 0) != null)
             {
                 possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
@@ -771,7 +771,7 @@ namespace System.Windows.Forms
             var formControls = new List<Control>();
             _FillListWithVisibleControls(controlForm, formControls);
 
-            var possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.CanSelect);
+            var possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.CanSelect && x.TabStop);
             if (possibleControls.Find(x => x.TabIndex > 0) != null)
             {
                 possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));

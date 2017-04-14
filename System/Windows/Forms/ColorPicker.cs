@@ -425,7 +425,7 @@ namespace System.Windows.Forms
                 _image = new Bitmap(w, h);
                 _UpdateImage();
 
-                Owner.UpClick += Application_UpClick;
+                UWF_AppOwner.UpClick += Application_UpClick;
             }
 
             void Application_UpClick(object sender, MouseEventArgs e)
@@ -486,7 +486,7 @@ namespace System.Windows.Forms
 
             public override void Dispose()
             {
-                Owner.UpClick -= Application_UpClick;
+                UWF_AppOwner.UpClick -= Application_UpClick;
                 base.Dispose();
             }
             protected override void OnMouseDown(MouseEventArgs e)
