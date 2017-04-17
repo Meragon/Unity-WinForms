@@ -168,6 +168,7 @@ namespace System.Windows.Forms
             #region Combobox Filter.
             comboFilter = new ComboBox();
             comboFilter.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            comboFilter.DropDownStyle = ComboBoxStyle.DropDownList;
             comboFilter.Size = new Drawing.Size(buttonOk.Width + 8 + buttonCancel.Width, 22);
             comboFilter.Location = new Point(Width - Padding.Right - comboFilter.Width, textBoxFilename.Location.Y);
             Controls.Add(comboFilter);

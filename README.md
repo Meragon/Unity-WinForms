@@ -13,26 +13,37 @@ This is WinForms wrapper (including System.Drawing). Here you can create base co
 - NumericUpDown
 - TreeView;
 - PictureBox;
-- FileDialog;
+- OpenFileDialog & SaveFileDialog;
 - Form;
 - ToolStrip & MenuStrip;
 - TabControl;
 - GroupBox & Panel;
 - ColorPicker;
-- \* Accordion;
 - ToolTip;
 - MonthCalendar;
 - TableView;
 - HScrollBar & VScrollBar;
-
-\* - not really good.
+- BitmapLabel;
 
 ### Usage
 
 1. Attach ApplicationBehaviour script to GameObject;
 2. Add Arial font to resources;
 3. Add other fonts and icons; 
-4. Use keyword 'new' to create new Controls (don't need to use Application.Run); 
+4. Create Form control in your MonoBehaviour script;
+```sh
+public class GameGuiController : MonoBehaviour
+{
+	void Start()
+	{
+		var form = new Form();
+		form.Show();
+		
+		// Or show the message.
+		// 		MessageBox.Show("Hello World.");
+	}
+}
+```
 
 ### Screenshots
 ![scr1](http://i.imgur.com/LCQsFgv.png)
