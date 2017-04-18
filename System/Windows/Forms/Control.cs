@@ -21,7 +21,7 @@ namespace System.Windows.Forms
                     (int)((UnityEngine.Screen.height - UnityEngine.Input.mousePosition.y) / Application.ScaleY));
             }
         }
-
+        
         private bool _toggleEditor = true;
         private bool _toggleFont;
         private bool _toggleControls;
@@ -511,8 +511,6 @@ namespace System.Windows.Forms
                 var editorBackgroundImageLayout = Editor.EnumField("BackgroundImageLayout", this.BackgroundImageLayout);
                 if (editorBackgroundImageLayout.Changed) this.BackgroundImageLayout = (ImageLayout)editorBackgroundImageLayout.Value;
 
-                Editor.Label("UWF_Batches", UWF_Batches);
-
                 var editorCanSelect = Editor.BooleanField("CanSelect", CanSelect);
                 if (editorCanSelect.Changed)
                     CanSelect = editorCanSelect.Value;
@@ -641,6 +639,7 @@ namespace System.Windows.Forms
 
                 Editor.NewLine(1);
 
+                Editor.Label("UWF_Batches", UWF_Batches);
                 Editor.Label("UWF_Context", this.UWF_Context);
                 Editor.Label("UWF_Offset", UWF_Offset);
 

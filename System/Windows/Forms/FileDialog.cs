@@ -11,7 +11,7 @@ namespace System.Windows.Forms
 {
     public abstract class FileDialog : Form
     {
-        protected static Size savedFormSize = new Size(540, 320);
+        protected static Size savedFormSize = new Size(720, 400);
 
         public static Bitmap FolderNavBack { get; set; }
         public static Bitmap FolderNavRefresh { get; set; }
@@ -117,7 +117,7 @@ namespace System.Windows.Forms
             #endregion
 
             #region Textbox Path.
-            textBoxPath = new PathTextBox();
+            textBoxPath = new PathTextBox(this);
             textBoxPath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             textBoxPath.Font = new Drawing.Font("Arial", 14);
             textBoxPath.Location = new Point(buttonUp.Location.X + buttonUp.Width + 8, buttonUp.Location.Y);
@@ -277,7 +277,7 @@ namespace System.Windows.Forms
             // Refresh directory.
             if (e.KeyCode == KeyCode.F5)
                 ButtonRefresh();
-            
+
             if (e.Modifiers == EventModifiers.Alt)
             {
                 switch (e.KeyCode)
@@ -540,9 +540,12 @@ namespace System.Windows.Forms
                     OnFileOpen(fInfo);
                 }
             }
-            public void SetDirectory(string path)
+            public void SetDirectory(string path, bool addPrevPath = false)
             {
 #if UNITY_STANDALONE
+                if (addPrevPath)
+                    prevPathes.Add(currentPath);
+
                 if (path.Length <= 2) return;
                 if (System.IO.Directory.Exists(path) == false) return;
 
@@ -664,11 +667,13 @@ namespace System.Windows.Forms
 
         internal class PathTextBox : TextBox
         {
-            private string path = "";
+            private readonly FileDialog fileDialog;
             private string text;
+            private bool updateButtons;
 
-            public PathTextBox()
+            public PathTextBox(FileDialog owner)
             {
+                fileDialog = owner;
                 Padding = new Padding(8, 0, 8, 0);
             }
 
@@ -683,22 +688,146 @@ namespace System.Windows.Forms
                         text = "";
 
                     if (changed)
+                    {
+                        DisposeButtons();
+                        CreateButtons();
                         OnTextChanged(EventArgs.Empty);
-
-                    path = value.Replace("/", " ▶ ").Replace(":", "");
+                    }
                 }
             }
 
+            private void CreateButtons()
+            {
+#if UNITY_STANDALONE
+                var directories = new List<IO.DirectoryInfo>();
+                var currentPath = text;
+                var cdir = new IO.DirectoryInfo(currentPath);
+                directories.Add(cdir);
+
+                var count = 0;
+                while (count < 30)
+                {
+                    try
+                    {
+                        var dir = System.IO.Directory.GetParent(currentPath);
+                        if (dir == null) break;
+
+                        directories.Add(dir);
+                        currentPath = dir.FullName;
+                    }
+                    catch (Exception)
+                    {
+                        // Fix: nullreference?? (Directory.GetParent("C:\\")). 
+                    }
+
+                    count++;
+                }
+
+                var allowedWidth = Width;
+                float currentWidth = 0;
+                int currentIndex;
+                
+                for (currentIndex = 0; currentIndex < directories.Count; currentIndex++)
+                {
+                    var dir = directories[currentIndex];
+                    var estimatedWidth = System.Drawing.Graphics.MeasureStringSimple(dir.Name, SystemFonts.DefaultFont).Width + 15;
+
+                    currentWidth += estimatedWidth;
+                    if (currentWidth >= allowedWidth)
+                        break;
+
+                    var button = new pathButton(dir.FullName);
+                    button.Height = Height - 2;
+                    button.Width = (int)estimatedWidth;
+                    button.Text = dir.Name;
+                    button.Click += (sender, args) => fileDialog.fileRenderer.SetDirectory(button.Path, true);
+
+                    Controls.Add(button);
+                }
+
+                updateButtons = true;
+#endif
+            }
+            private void DisposeButtons()
+            {
+                for (int i = 0; i < Controls.Count; i++)
+                {
+                    var pb = Controls[i] as pathButton;
+                    if (pb == null) continue;
+
+                    pb.Dispose(); // TODO: cache + visible.
+                    i--;
+                }
+            }
+
+            protected override void OnGotFocus(EventArgs e)
+            {
+                base.OnGotFocus(e);
+                DisposeButtons();
+            }
+            protected override void OnLostFocus(EventArgs e)
+            {
+                base.OnLostFocus(e);
+                CreateButtons();
+            }
             protected override void OnPaint(PaintEventArgs e)
             {
+                if (updateButtons)
+                {
+                    for (int i = Controls.Count - 1, x = 0; i >= 0; i--)
+                    {
+                        var b = Controls[i] as pathButton;
+                        if (b == null) continue;
+
+                        b.Width = (int) e.Graphics.MeasureString(b.Text, b.Font).Width + 23; // padding + arrowButton.
+                        b.Location = new Point(x, 1);
+
+                        x += b.Width;
+                    }
+                    updateButtons = false;
+                }
+
+                // Write text to buffer.
                 var temp = text;
                 if (Focused == false)
-                    text = path;
+                    text = string.Empty;
 
                 base.OnPaint(e);
 
                 if (Focused == false)
-                    text = temp;
+                    text = temp; // Restore buffered text if needed.
+            }
+
+            private class pathButton : Button
+            {
+                public string Path { get; private set; }
+
+                public pathButton(string path)
+                {
+                    Path = path;
+
+                    BackColor = Color.Transparent;
+                    BorderColor = Color.Transparent;
+                    ForeColor = Color.FromArgb(47, 47, 47);
+                    HoverColor = Color.FromArgb(229, 243, 251);
+                    Padding = new Padding(4, 0, 4, 0);
+                    TextAlign = ContentAlignment.MiddleLeft;
+
+                    var arrowButton = new Button();
+                    arrowButton.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
+                    arrowButton.BackColor = BackColor;
+                    arrowButton.BorderColor = BorderColor;
+                    arrowButton.HoverColor = HoverColor;
+                    arrowButton.Width = 15;
+                    arrowButton.Height = Height;
+                    arrowButton.Location = new Point(Width - arrowButton.Width, 0);
+                    arrowButton.Text = "";
+                    arrowButton.Image = ApplicationBehaviour.Resources.Images.ArrowRight;
+                    arrowButton.ImageColor = Color.Gray;
+                    arrowButton.ImageHoverColor = Color.Gray;
+
+                    Controls.Add(arrowButton);
+                }
             }
         }
 
