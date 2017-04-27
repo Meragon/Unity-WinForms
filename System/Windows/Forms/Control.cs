@@ -9,7 +9,7 @@ namespace System.Windows.Forms
     [Serializable]
     public class Control : Component, IDisposable
     {
-        protected static Color defaultShadowColor = Color.FromArgb(12, 64, 64, 64);
+        protected static Color defaultShadowColor = Color.FromArgb(12, 0, 0, 0);
 
         public static Application DefaultController { get; set; }
         public static Point MousePosition
@@ -21,7 +21,7 @@ namespace System.Windows.Forms
                     (int)((UnityEngine.Screen.height - UnityEngine.Input.mousePosition.y) / Application.ScaleY));
             }
         }
-        
+
         private bool _toggleEditor = true;
         private bool _toggleFont;
         private bool _toggleControls;
@@ -125,8 +125,10 @@ namespace System.Windows.Forms
             get { return _visible; }
             set
             {
+                bool changed = _visible != value;
                 _visible = value;
-                VisibleChanged(this, new EventArgs());
+                if (changed)
+                    VisibleChanged(this, new EventArgs());
             }
         }
         public int Width
@@ -332,7 +334,7 @@ namespace System.Windows.Forms
         }
         public virtual void Refresh()
         {
-            
+
         }
         public void ResumeLayout()
         {
@@ -377,15 +379,15 @@ namespace System.Windows.Forms
         }
         protected virtual void OnDragDrop(DragEventArgs drgevent)
         {
-
+            DragDrop(this, drgevent);
         }
         protected virtual void OnDragEnter(DragEventArgs drgevent)
         {
-
+            DragEnter(this, drgevent);
         }
         protected virtual void OnDragLeave(EventArgs e)
         {
-
+            DragLeave(this, e);
         }
         protected virtual void OnGotFocus(EventArgs e)
         {
@@ -617,7 +619,7 @@ namespace System.Windows.Forms
 
                 var editorSize = Editor.IntField("Size", this.Size.Width, this.Size.Height);
                 if (editorSize.Changed) this.Size = new Drawing.Size(editorSize.Value[0], editorSize.Value[1]);
-                
+
                 var editorTabIndex = Editor.Slider("TabIndex", this.TabIndex, 0, 255);
                 if (editorTabIndex.Changed) this.TabIndex = (int)editorTabIndex.Value;
 
@@ -838,6 +840,9 @@ namespace System.Windows.Forms
 
         public event EventHandler Click = delegate { };
         public new event EventHandler Disposed = delegate { };
+        public event DragEventHandler DragDrop = delegate { };
+        public event DragEventHandler DragEnter = delegate { };
+        public event EventHandler DragLeave = delegate { };
         public event EventHandler GotFocus = delegate { };
         public event EventHandler LocationChanged = delegate { };
         public event EventHandler LostFocus = delegate { };

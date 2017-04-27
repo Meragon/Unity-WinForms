@@ -163,9 +163,6 @@ namespace System.Windows.Forms
             }
             if (listBox != null && DropDownStyle == ComboBoxStyle.DropDownList)
             {
-                if (listBox.ScrollIndex < 0)
-                    listBox.ScrollIndex = 0;
-
                 if (keyFlag == true)
                 {
                     keyFlag = false;

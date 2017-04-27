@@ -67,6 +67,7 @@ namespace System.Windows.Forms
             }
         }
         public Color DisabledColor { get; set; }
+        public virtual DrawMode DrawMode { get; set; }
         public Color HoverColor { get; set; }
         public bool IntegralHeight
         {
@@ -113,8 +114,8 @@ namespace System.Windows.Forms
         }
         internal int ScrollIndex
         {
-            get { return vScroll.Value; }
-            set { vScroll.Value = value; }
+            get { return vScroll.Value / ItemHeight; }
+            set { vScroll.Value = value * ItemHeight; }
         }
         public override int SelectedIndex
         {
@@ -159,10 +160,12 @@ namespace System.Windows.Forms
             BorderSelectColor = Color.FromArgb(126, 180, 234);
             CanSelect = true;
             DisabledColor = Color.Gray;
+            DrawMode = DrawMode.Normal;
+            DrawItem = InternalDrawItem;
             HoverColor = Color.FromArgb(221, 238, 253);
-            SelectionBackColor = Color.FromArgb(51, 153, 255);
+            SelectionBackColor = SystemColors.Highlight;
             SelectionDisabledColor = Color.FromArgb(101, 203, 255);
-            SelectionForeColor = Color.White;
+            SelectionForeColor = SystemColors.HighlightText;
             Size = new Size(120, 95);
             WrapText = true;
 
@@ -177,6 +180,17 @@ namespace System.Windows.Forms
             UpdateBorderPen();
         }
 
+        private void InternalDrawItem(object sender, DrawItemEventArgs e)
+        {
+            var item = Items[e.Index];
+            var itemText = "";
+            if (item != null)
+                itemText = item.ToString();
+
+            e.DrawBackground();
+            e.Graphics.DrawString(itemText, e.Font, e.ForeColor, e.Bounds.X, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height, ContentAlignment.MiddleLeft);
+            e.DrawFocusRectangle();
+        }
         private void ResetItemHeight()
         {
             itemHeight = DefaultItemHeight;
@@ -187,6 +201,11 @@ namespace System.Windows.Forms
             keyFilterIA = null;
         }
 
+        protected virtual void OnDrawItem(DrawItemEventArgs e)
+        {
+            if (DrawItem != null)
+                DrawItem(this, e);
+        }
         protected override void OnKeyPress(KeyEventArgs e)
         {
             switch (e.KeyCode)
@@ -259,10 +278,11 @@ namespace System.Windows.Forms
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             base.OnMouseWheel(e);
-            ScrollIndex -= (int)e.Delta;
 
-            if (ScrollIndex + visibleItemsCount > Items.Count) ScrollIndex = Items.Count - visibleItemsCount;
-            if (ScrollIndex < 0) ScrollIndex = 0;
+            if (e.Delta < 0)
+                vScroll.DoScroll(ScrollEventType.SmallIncrement);
+            else
+                vScroll.DoScroll(ScrollEventType.SmallDecrement);
         }
         protected override void OnMouseUp(MouseEventArgs e)
         {
@@ -301,34 +321,49 @@ namespace System.Windows.Forms
                 else if (itemSelected)
                     itemForeColor = SelectionForeColor;
 
+                var itemBackColor = Color.Transparent;
                 if (itemSelected || itemHovered)
                 {
-                    var itemBackColor = HoverColor;
+                    itemBackColor = HoverColor;
                     if (itemDisabled)
                         itemBackColor = SelectionDisabledColor;
                     else if (itemSelected)
                         itemBackColor = SelectionBackColor;
-
-                    var fillWidth = Width;
-                    if (vScroll.Visible)
-                        fillWidth = vScroll.Location.X - borderOffset;
-
-                    g.FillRectangle(itemBackColor, borderOffset, itemY, fillWidth, ItemHeight);
                 }
+
+                var fillWidth = Width;
+                if (vScroll.Visible)
+                    fillWidth = vScroll.Location.X - borderOffset;
 
                 var itemText = "";
                 if (item != null)
                     itemText = item.ToString();
 
-                g.DrawString(
-                    itemText,
-                    Font,
-                    itemForeColor,
-                    borderOffset + 2,
-                    itemY + itemTextVerticalPadding,
-                    itemW,
-                    ItemHeight - itemTextVerticalPadding * 2,
-                    ContentAlignment.MiddleLeft);
+                if (DrawMode == DrawMode.Normal)
+                {
+                    g.FillRectangle(itemBackColor, borderOffset, itemY, fillWidth, ItemHeight);
+                    g.DrawString(
+                        itemText,
+                        Font,
+                        itemForeColor,
+                        borderOffset + 2,
+                        itemY + itemTextVerticalPadding,
+                        itemW,
+                        ItemHeight - itemTextVerticalPadding * 2,
+                        ContentAlignment.MiddleLeft);
+                }
+                else
+                {
+                    var itemRect = new Rectangle(borderOffset + 2,
+                        itemY + itemTextVerticalPadding,
+                        fillWidth,
+                        ItemHeight);
+                    var state = DrawItemState.Default;
+                    if (itemSelected)
+                        state = DrawItemState.Selected;
+                    var args = new DrawItemEventArgs(g, Font, itemRect, itemIndex, state, itemForeColor, itemBackColor);
+                    OnDrawItem(args);
+                }
             }
         }
         protected override object UWF_OnPaintEditor(float width)
@@ -346,6 +381,7 @@ namespace System.Windows.Forms
                 Editor.Label("hoveredItem", hoveredItem);
                 Editor.Label("ItemHeight", ItemHeight);
                 Editor.Label("PreferredHeight", PreferredHeight);
+                Editor.ColorField("SelectionBackColor", SelectionBackColor, c => SelectionBackColor = c);
                 Editor.Label("SelectedIndex", SelectedIndex);
                 Editor.Label("ScrollIndex", ScrollIndex);
                 Editor.Label("visibleItemsCount", visibleItemsCount);
@@ -353,6 +389,10 @@ namespace System.Windows.Forms
                 if (Editor.Button("AddItem"))
                 {
                     Items.Add(Items.Count - 1);
+                }
+                if (Editor.Button("RefreshItems"))
+                {
+                    RefreshItems();
                 }
                 if (Editor.Button("RemoveSelectedItem") && SelectedIndex != -1)
                 {
@@ -436,7 +476,9 @@ namespace System.Windows.Forms
 
             if (vScroll != null)
             {
-                vScroll.Maximum = Items.Count + 2; // ?
+                vScroll.Maximum = Items.Count * ItemHeight;
+                vScroll.SmallChange = ItemHeight;
+                vScroll.LargeChange = Height;
                 vScroll.Visible = ScrollAlwaysVisible || Height < PreferredHeight;
             }
         }
@@ -469,6 +511,7 @@ namespace System.Windows.Forms
         }
 
         public event EventHandler SelectedIndexChanged = delegate { };
+        public event DrawItemEventHandler DrawItem;
 
         public class ObjectCollection : IList
         {

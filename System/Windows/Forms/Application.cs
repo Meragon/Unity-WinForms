@@ -251,10 +251,11 @@ namespace System.Windows.Forms
                 var client_mpos = control.PointToClient(mousePosition);
                 if (mousePositionChanged)
                 {
-                    MouseEventArgs m_args = new MouseEventArgs(MouseButtons.None, 0, (int)client_mpos.X, (int)client_mpos.Y, 0);
-                    control.RaiseOnMouseMove(m_args);
+                    var m_args = new MouseEventArgs(MouseButtons.None, 0, (int)client_mpos.X, (int)client_mpos.Y, 0);
                     if (_dragData != null)
                         _dragndrop = true;
+                    else
+                        control.RaiseOnMouseMove(m_args);
                 }
 
                 if (!contains && _mouseEvent != MouseEvents.Up)
@@ -304,6 +305,11 @@ namespace System.Windows.Forms
             switch (Event.current.type)
             {
                 case EventType.KeyDown:
+                    if (_currentKeyDown == KeyCode.None || _currentKeyDown != args.KeyCode)
+                        keyControl.RaiseOnKeyDown(args);
+
+                    keyControl.RaiseOnKeyPress(args);
+
                     // Tab switching through controls.
                     if (TabSwitching && Event.current.keyCode == KeyCode.Tab)
                     {
@@ -311,13 +317,7 @@ namespace System.Windows.Forms
                             NextTabControl(Control.lastSelected);
                         else if (Event.current.modifiers == EventModifiers.Shift)
                             PrevTabControl(Control.lastSelected);
-                        break;
                     }
-
-                    if (_currentKeyDown == KeyCode.None || _currentKeyDown != args.KeyCode)
-                        keyControl.RaiseOnKeyDown(args);
-
-                    keyControl.RaiseOnKeyPress(args);
 
                     break;
                 case EventType.KeyUp:
@@ -624,7 +624,7 @@ namespace System.Windows.Forms
         public void Update()
         {
             // Update hovered control.
-            if (hoveredControl != null)
+            if (hoveredControl != null && _dragndrop == false)
             {
                 var mclient = hoveredControl.PointToClient(Control.MousePosition);
                 var hargs = new MouseEventArgs(MouseButtons.None, 0, mclient.X, mclient.Y, 0);
@@ -641,6 +641,8 @@ namespace System.Windows.Forms
                     hoveredControl.hovered = false;
                     hoveredControl.mouseEntered = false;
                     hoveredControl.RaiseOnMouseLeave(new MouseEventArgs(MouseButtons.None, 0, 0, 0, 0));
+                    if (_dragndrop)
+                        hoveredControl.RaiseOnDragLeave(EventArgs.Empty);
                 }
                 if (controlAtMouse == null)
                     hoveredControl = null;
@@ -654,6 +656,8 @@ namespace System.Windows.Forms
                         controlAtMouse.hovered = true;
                         controlAtMouse.mouseEntered = true;
                         controlAtMouse.RaiseOnMouseEnter(new MouseEventArgs(MouseButtons.None, 0, mclient.X, mclient.Y, 0));
+                        if (_dragndrop)
+                            controlAtMouse.RaiseOnDragEnter(new DragEventArgs(new DataObject(_dragData), 0, mclient.X, mclient.Y, DragDropEffects.None, _dragControlEffects));
                     }
                 }
 

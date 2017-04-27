@@ -68,6 +68,10 @@ namespace System.Windows.Forms
             {
                 bool changed = this.value != value;
                 this.value = value;
+                if (this.value > Maximum)
+                    this.value = Maximum;
+                if (this.value < Minimum)
+                    this.value = Minimum;
                 if (changed)
                 {
                     UpdateScrollRect();

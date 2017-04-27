@@ -23,6 +23,10 @@ namespace System.Windows.Forms
             _borderPen = new Pen(BorderColor);
         }
 
+        protected virtual void OnColorChanged(object sender, EventArgs e)
+        {
+            ColorChanged(this, EventArgs.Empty);
+        }
         protected override void OnMouseClick(MouseEventArgs e)
         {
             if (_currentForm == null)
@@ -32,7 +36,7 @@ namespace System.Windows.Forms
                 _currentForm.ColorChanged += (object sender, EventArgs args) =>
                 {
                     Color = _currentForm.Color;
-                    ColorChanged(this, null);
+                    OnColorChanged(this, args);
                 };
                 _currentForm.OnDisposing += (object sender, EventArgs args) =>
                 {
@@ -110,7 +114,8 @@ namespace System.Windows.Forms
         {
             _owner = owner;
 
-            Size = new Size(188, 264);
+            BackColor = Color.White;
+            Size = new Size(188, 272);
             Location = new Point(
                 Screen.PrimaryScreen.WorkingArea.Width / 2 - Width / 2,
                 Screen.PrimaryScreen.WorkingArea.Height / 2 - Height / 2);
@@ -119,7 +124,7 @@ namespace System.Windows.Forms
             TopMost = true;
 
             _bsPicker = new BrightnessSaturationPicker(128, 128);
-            _bsPicker.Location = new Point(16, 24);
+            _bsPicker.Location = new Point(16, 32);
             _bsPicker.BrightnessChanged += _bsPicker_BrightnessChanged;
             _bsPicker.SaturationChanged += _bsPicker_SaturationChanged;
 
@@ -387,6 +392,12 @@ namespace System.Windows.Forms
             if (e.KeyCode == UnityEngine.KeyCode.Escape ||
                 (e.KeyCode == UnityEngine.KeyCode.W && e.Modifiers == UnityEngine.EventModifiers.Control))
                 Close();
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+
+            e.Graphics.DrawLine(borderPen, 1, HeaderHeight - 1, Width - 1, HeaderHeight - 1);
         }
 
         public event EventHandler ColorChanged = delegate { };
