@@ -244,7 +244,7 @@ namespace System.Windows.Forms
                         SelectItem(itemIndex);
 
                         if (keyFilterIA == null)
-                            keyFilterIA = UWF_AppOwner.Behaviour.Invoke(ResetKeyFilter, keyFilterResetTime);
+                            keyFilterIA = uwfAppOwner.Behaviour.Invoke(ResetKeyFilter, keyFilterResetTime);
                         keyFilterIA.Seconds = keyFilterResetTime;
                     }
                     break;
@@ -366,9 +366,9 @@ namespace System.Windows.Forms
                 }
             }
         }
-        protected override object UWF_OnPaintEditor(float width)
+        protected override object uwfOnPaintEditor(float width)
         {
-            var control = base.UWF_OnPaintEditor(width);
+            var control = base.uwfOnPaintEditor(width);
 
 #if UNITY_EDITOR
 
@@ -504,7 +504,7 @@ namespace System.Windows.Forms
         internal void UpdateBorderPen()
         {
             borderCurrentColor = BorderColor;
-            if (Focused || UWF_Context)
+            if (Focused || uwfContext)
                 borderCurrentColor = BorderSelectColor;
 
             borderPen.Color = borderCurrentColor;

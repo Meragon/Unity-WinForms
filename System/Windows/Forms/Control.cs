@@ -142,10 +142,10 @@ namespace System.Windows.Forms
             }
         }
 
-        public Application UWF_AppOwner { get; internal set; }
-        public bool UWF_AutoGroup { get; set; } // GUI.BeingGroup(...) & GUI.EndGroup()
-        public int UWF_Batches { get; internal set; }
-        public virtual bool UWF_Context // Close on click control.
+        public Application uwfAppOwner { get; internal set; }
+        public bool uwfAutoGroup { get; set; } // GUI.BeingGroup(...) & GUI.EndGroup()
+        public int uwfBatches { get; internal set; }
+        public virtual bool uwfContext // Close on click control.
         {
             get { return _uwfContext; }
             set
@@ -154,23 +154,23 @@ namespace System.Windows.Forms
                 {
                     _uwfContext = value;
                     if (_uwfContext)
-                        UWF_AppOwner.Contexts.Add(this);
+                        uwfAppOwner.Contexts.Add(this);
                     else
-                        UWF_AppOwner.Contexts.Remove(this);
+                        uwfAppOwner.Contexts.Remove(this);
                 }
             }
         }
-        public bool UWF_PreventChildDisposing { get; set; }
-        public bool UWF_ShadowBox { get; set; }
-        public DrawHandler UWF_ShadowHandler { get; set; }
+        public bool uwfPreventChildDisposing { get; set; }
+        public bool uwfShadowBox { get; set; }
+        public DrawHandler uwfShadowHandler { get; set; }
 
-        internal Point UWF_Offset { get; set; }
-        internal string UWF_Source { get; set; }
+        internal Point uwfOffset { get; set; }
+        internal string uwfSource { get; set; }
 
         public Control()
         {
-            if (Parent != null && Parent.UWF_AppOwner != null)
-                Parent.UWF_AppOwner.Run(this);
+            if (Parent != null && Parent.uwfAppOwner != null)
+                Parent.uwfAppOwner.Run(this);
             else if (DefaultController != null)
                 DefaultController.Run(this);
 
@@ -181,12 +181,12 @@ namespace System.Windows.Forms
             ForeColor = Color.Black;
             TabIndex = -1;
             TabStop = true;
-            UWF_AutoGroup = true;
+            uwfAutoGroup = true;
             _visible = true;
 
 #if UNITY_EDITOR
             var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
-            UWF_Source = stackTrace;
+            uwfSource = stackTrace;
 #endif
         }
 
@@ -253,15 +253,15 @@ namespace System.Windows.Forms
             var form = this as Form ?? Application.GetRootControl(this) as Form;
             if (form != null)
             {
-                if (this.UWF_AppOwner.Forms.Contains(form))
+                if (this.uwfAppOwner.Forms.Contains(form))
                 {
-                    this.UWF_AppOwner.Forms.Remove(form);
-                    this.UWF_AppOwner.Forms.Add(form);
+                    this.uwfAppOwner.Forms.Remove(form);
+                    this.uwfAppOwner.Forms.Add(form);
                 }
                 else if (form.IsModal)
                 {
-                    this.UWF_AppOwner.ModalForms.Remove(form);
-                    this.UWF_AppOwner.ModalForms.Add(form);
+                    this.uwfAppOwner.ModalForms.Remove(form);
+                    this.uwfAppOwner.ModalForms.Add(form);
                 }
             }
         }
@@ -272,7 +272,7 @@ namespace System.Windows.Forms
             Disposing = true;
             OnDisposing(this, EventArgs.Empty);
 
-            if (UWF_PreventChildDisposing == false)
+            if (uwfPreventChildDisposing == false)
             {
                 for (; Controls.Count > 0;)
                     Controls[0].Dispose();
@@ -287,8 +287,8 @@ namespace System.Windows.Forms
                     Parent.Controls.RemoveAt(self);
             }
 
-            if (UWF_Context)
-                UWF_AppOwner.Contexts.Remove(this);
+            if (uwfContext)
+                uwfAppOwner.Contexts.Remove(this);
 
             Disposed(this, null);
             IsDisposed = true;
@@ -319,8 +319,8 @@ namespace System.Windows.Forms
             if (Parent != null)
                 p = Parent.PointToClient(p);
 
-            p.X -= Location.X + UWF_Offset.X;
-            p.Y -= Location.Y + UWF_Offset.Y;
+            p.X -= Location.X + uwfOffset.X;
+            p.Y -= Location.Y + uwfOffset.Y;
             return p;
         }
         public Point PointToScreen(Point p)
@@ -328,8 +328,8 @@ namespace System.Windows.Forms
             if (Parent != null)
                 p = Parent.PointToScreen(p);
 
-            p.X += Location.X + UWF_Offset.X;
-            p.Y += Location.Y + UWF_Offset.Y;
+            p.X += Location.X + uwfOffset.X;
+            p.Y += Location.Y + uwfOffset.Y;
             return p;
         }
         public virtual void Refresh()
@@ -392,7 +392,7 @@ namespace System.Windows.Forms
         protected virtual void OnGotFocus(EventArgs e)
         {
             if (Parent != null)
-                Parent.UWF_ChildGotFocus(this);
+                Parent.uwfChildGotFocus(this);
 
             GotFocus(this, e);
         }
@@ -481,13 +481,13 @@ namespace System.Windows.Forms
             TextChanged(this, e);
         }
 
-        protected virtual void UWF_ChildGotFocus(Control child)
+        protected virtual void uwfChildGotFocus(Control child)
         {
             if (Parent == null) return;
 
-            Parent.UWF_ChildGotFocus(child);
+            Parent.uwfChildGotFocus(child);
         }
-        protected virtual object UWF_OnPaintEditor(float width)
+        protected virtual object uwfOnPaintEditor(float width)
         {
             System.Windows.Forms.Control controlToSet = null;
 
@@ -623,6 +623,10 @@ namespace System.Windows.Forms
                 var editorTabIndex = Editor.Slider("TabIndex", this.TabIndex, 0, 255);
                 if (editorTabIndex.Changed) this.TabIndex = (int)editorTabIndex.Value;
 
+                var editorTabStop = Editor.BooleanField("TabStop", TabStop);
+                if (editorTabStop.Changed)
+                    TabStop = editorTabStop.Value;
+
                 string tagText = "null";
                 if (Tag != null)
                     tagText = string.Format("[{0}] {1}", Tag.GetType().Name, Tag.ToString());
@@ -641,15 +645,15 @@ namespace System.Windows.Forms
 
                 Editor.NewLine(1);
 
-                Editor.Label("UWF_Batches", UWF_Batches);
-                Editor.Label("UWF_Context", this.UWF_Context);
-                Editor.Label("UWF_Offset", UWF_Offset);
+                Editor.Label("uwfBatches", uwfBatches);
+                Editor.Label("uwfContext", this.uwfContext);
+                Editor.Label("uwfOffset", uwfOffset);
 
-                var editorShadowBox = Editor.BooleanField("UWF_ShadowBox", this.UWF_ShadowBox);
-                if (editorShadowBox.Changed) UWF_ShadowBox = editorShadowBox;
+                var editorShadowBox = Editor.BooleanField("uwfShadowBox", this.uwfShadowBox);
+                if (editorShadowBox.Changed) uwfShadowBox = editorShadowBox;
 
-                _toggleSource = Editor.Foldout("UWF_Source", _toggleSource);
-                if (_toggleSource) Editor.Label(this.UWF_Source);
+                _toggleSource = Editor.Foldout("uwfSource", _toggleSource);
+                if (_toggleSource) Editor.Label(this.uwfSource);
 
                 Editor.NewLine(1);
 
@@ -731,7 +735,7 @@ namespace System.Windows.Forms
             OnMouseUp(e);
             MouseUp(this, e);
 
-            if (UWF_AppOwner != null && ApplicationBehaviour.ShowControlProperties && Application.ShowCallback != null)
+            if (uwfAppOwner != null && ApplicationBehaviour.ShowControlProperties && Application.ShowCallback != null)
                 Application.ShowCallback.Invoke(this);
         }
         internal void RaiseOnMouseWheel(MouseEventArgs e)
@@ -755,13 +759,13 @@ namespace System.Windows.Forms
         internal void RaiseOnPaint(PaintEventArgs e)
         {
             e.Graphics.Control = this;
-            UWF_Batches = 0;
+            uwfBatches = 0;
 
-            if (UWF_ShadowBox)
+            if (uwfShadowBox)
             {
-                if (UWF_ShadowHandler == null)
+                if (uwfShadowHandler == null)
                 {
-                    UWF_ShadowHandler = (pArgs) =>
+                    uwfShadowHandler = (pArgs) =>
                     {
                         var psLoc = PointToScreen(Point.Zero);
                         int shX = psLoc.X + 6;
@@ -775,10 +779,10 @@ namespace System.Windows.Forms
                     };
                 }
 
-                UWF_ShadowHandler.Invoke(e);
+                uwfShadowHandler.Invoke(e);
             }
 
-            if (UWF_AutoGroup)
+            if (uwfAutoGroup)
             {
                 int gx = e.ClipRectangle.X;
                 int gy = e.ClipRectangle.Y;
@@ -811,17 +815,20 @@ namespace System.Windows.Forms
                 e.Graphics.DrawString(GetType().Name, Font, Brushes.White, 3, 1, 256, 32);
                 e.Graphics.DrawString(GetType().Name, Font, Brushes.White, 5, 3, 256, 32);
                 e.Graphics.DrawString(GetType().Name, Font, Brushes.DarkRed, 4, 2, 256, 32);
-                e.Graphics.DrawRectangle(Pens.DarkRed, 0, 0, Width, Height);
+
+                var outlinePen = Pens.DarkRed;
+                if (Focused) outlinePen = new Pen(SystemColors.Highlight);
+                e.Graphics.DrawRectangle(outlinePen, 0, 0, Width, Height);
             }
             OnLatePaint(e);
-            if (UWF_AutoGroup)
+            if (uwfAutoGroup)
                 e.Graphics.GroupEnd();
 
             e.Graphics.Control = null;
         }
         internal object RaiseOnPaintEditor(float width)
         {
-            return UWF_OnPaintEditor(width);
+            return uwfOnPaintEditor(width);
         }
         internal void RaiseOnResize(Point delta)
         {
@@ -833,7 +840,7 @@ namespace System.Windows.Forms
             OnResize(delta);
             Resize(this, null);
         }
-        internal void UWF_AddjustSizeToScreen(Size delta)
+        internal void uwfAddjustSizeToScreen(Size delta)
         {
             ParentResized(new Point(delta.Width, delta.Height));
         }

@@ -12,8 +12,8 @@ namespace System.Windows.Forms
         public ContextMenuStrip()
         {
             BackColor = Color.FromArgb(246, 246, 246);
-            UWF_Context = true;
-            UWF_ShadowBox = true;
+            uwfContext = true;
+            uwfShadowBox = true;
         }
     }
 }

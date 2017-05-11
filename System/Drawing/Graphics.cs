@@ -25,7 +25,7 @@ namespace System.Drawing
         internal Rectangle Group { get; set; }
         internal void GroupBegin(Control groupControl)
         {
-            var c_position = Control.Location + Control.UWF_Offset;//Control.PointToScreen(Point.Zero);
+            var c_position = Control.Location + Control.uwfOffset;//Control.PointToScreen(Point.Zero);
             GUI.BeginGroup(new Rect((c_position.X + Group.X), (c_position.Y + Group.Y), Group.Width, Group.Height));
             _groupControls.Add(groupControl);
         }
@@ -160,7 +160,7 @@ namespace System.Drawing
 
             if (x1 != x2 && y1 != y2)
             {
-                Control.UWF_Batches++;
+                Control.uwfBatches++;
 
                 float xDiff = x2 - x1;
                 float yDiff = y2 - y1;
@@ -208,7 +208,7 @@ namespace System.Drawing
             switch (pen.DashStyle)
             {
                 case Drawing2D.DashStyle.Solid:
-                    if (Control != null) Control.UWF_Batches++;
+                    if (Control != null) Control.uwfBatches++;
                     GUI.DrawTexture(new Rect(x, y, width, height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                     break;
                 case Drawing2D.DashStyle.Dash:
@@ -219,7 +219,7 @@ namespace System.Drawing
                             float dash_width = dash_step - 2;
                             if (i + dash_width > width)
                                 dash_width = width - i;
-                            if (Control != null) Control.UWF_Batches++;
+                            if (Control != null) Control.uwfBatches++;
                             GUI.DrawTexture(new Rect(x + i, y, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                         }
 
@@ -229,7 +229,7 @@ namespace System.Drawing
                             float dash_height = dash_step - 2;
                             if (i + dash_height > height)
                                 dash_height = height - i;
-                            if (Control != null) Control.UWF_Batches++;
+                            if (Control != null) Control.uwfBatches++;
                             GUI.DrawTexture(new Rect(x + width - pen.Width, y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                         }
                     break;
@@ -349,7 +349,7 @@ namespace System.Drawing
             GUI.color = color.ToUColor();
 
             if (Control != null)
-                Control.UWF_Batches += 2;
+                Control.uwfBatches += 2;
 
             GUI.DrawTexture(new Rect(x, y, width, 1), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
             GUI.DrawTexture(new Rect(x + width - 1, y + 1, 1, height - 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
@@ -357,14 +357,14 @@ namespace System.Drawing
             if (height > 1)
             {
                 if (Control != null)
-                    Control.UWF_Batches++;
+                    Control.uwfBatches++;
                 GUI.DrawTexture(new Rect(x, y + height - 1, width, 1), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                 FillRate += width * 1 + 1;
             }
             if (width > 1)
             {
                 if (Control != null)
-                    Control.UWF_Batches++;
+                    Control.uwfBatches++;
                 GUI.DrawTexture(new Rect(x, y + 1, 1, height - 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                 FillRate += height - 2;
             }
@@ -387,7 +387,7 @@ namespace System.Drawing
             {
                 case Drawing2D.DashStyle.Solid:
                     if (Control != null)
-                        Control.UWF_Batches += 2;
+                        Control.uwfBatches += 2;
 
                     GUI.DrawTexture(new Rect(x, y, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                     GUI.DrawTexture(new Rect(x + width - pen.Width, y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
@@ -395,14 +395,14 @@ namespace System.Drawing
                     if (height > 1)
                     {
                         if (Control != null)
-                            Control.UWF_Batches++;
+                            Control.uwfBatches++;
                         GUI.DrawTexture(new Rect(x, y + height - pen.Width, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                         FillRate += width * pen.Width + pen.Width;
                     }
                     if (width > 1)
                     {
                         if (Control != null)
-                            Control.UWF_Batches++;
+                            Control.uwfBatches++;
                         GUI.DrawTexture(new Rect(x, y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
                         FillRate += pen.Width * (height - pen.Width * 2);
                     }
@@ -416,7 +416,7 @@ namespace System.Drawing
                         if (i + dash_width > width)
                             dash_width = width - i;
                         if (Control != null)
-                            Control.UWF_Batches += 2;
+                            Control.uwfBatches += 2;
                         GUI.DrawTexture(new Rect(x + i, y, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Top.
                         GUI.DrawTexture(new Rect(x + i, y + height - pen.Width, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Bottom.
                         FillRate += dash_width * pen.Width * 2;
@@ -427,7 +427,7 @@ namespace System.Drawing
                         if (i + dash_height > height)
                             dash_height = height - i;
                         if (Control != null)
-                            Control.UWF_Batches += 2;
+                            Control.uwfBatches += 2;
                         GUI.DrawTexture(new Rect(x + width - pen.Width, y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Right.
                         GUI.DrawTexture(new Rect(x, y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Left.
                         FillRate += pen.Width * dash_height * 2;
@@ -470,7 +470,7 @@ namespace System.Drawing
             if (string.IsNullOrEmpty(s)) return;
 
             if (Control != null)
-                Control.UWF_Batches += 1;
+                Control.uwfBatches += 1;
             FillRate += width * height;
 
             GUI.skin.label.alignment = TextAnchor.UpperLeft;
@@ -583,7 +583,7 @@ namespace System.Drawing
             if (Control == null) return s;
             if (s == null) s = "";
 
-            Control.UWF_Batches++;
+            Control.uwfBatches++;
 
             GUI.skin.textArea.alignment = TextAnchor.UpperLeft;
 
@@ -619,7 +619,7 @@ namespace System.Drawing
             if (Control == null) return s;
             if (s == null) s = "";
 
-            Control.UWF_Batches++;
+            Control.uwfBatches++;
 
             GUI.skin.textField.alignment = TextAnchor.UpperLeft;
             switch (alignment)
@@ -681,7 +681,7 @@ namespace System.Drawing
             if (texture == null) return;
 
             if (Control != null)
-                Control.UWF_Batches++;
+                Control.uwfBatches++;
 
             FillRate += width * height;
 
@@ -705,7 +705,7 @@ namespace System.Drawing
         {
             if (Control == null) return;
 
-            Control.UWF_Batches++;
+            Control.uwfBatches++;
             FillRate += width * height;
 
             mat.color = color.ToUColor();
@@ -775,7 +775,7 @@ namespace System.Drawing
             if (color.A <= 0) return;
 
             if (Control != null)
-                Control.UWF_Batches += 1;
+                Control.uwfBatches += 1;
             FillRate += width * height;
 
             GUI.color = color.ToUColor();

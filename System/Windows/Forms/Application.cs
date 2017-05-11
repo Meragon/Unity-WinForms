@@ -10,8 +10,8 @@ namespace System.Windows.Forms
 {
     public class Application
     {
-        private static bool _dragndrop;
-        private static object _dragData;
+        internal static bool _dragndrop;
+        internal static object _dragData;
         private static DragDropEffects _dragControlEffects;
         private static DragDropRenderHandler _dragRender;
         private static KeyCode _currentKeyDown = KeyCode.None;
@@ -118,12 +118,12 @@ namespace System.Windows.Forms
         internal static bool ControlIsVisible(Control control)
         {
             if (control.Visible == false) return false;
-            if (control.Location.X + control.UWF_Offset.X + control.Width < 0) return false;
-            if (control.Location.Y + control.UWF_Offset.Y + control.Height < 0) return false;
+            if (control.Location.X + control.uwfOffset.X + control.Width < 0) return false;
+            if (control.Location.Y + control.uwfOffset.Y + control.Height < 0) return false;
             if (control.Parent != null)
             {
-                if (control.Location.X + control.UWF_Offset.X > control.Parent.Width) return false;
-                if (control.Location.Y + control.UWF_Offset.Y > control.Parent.Height) return false;
+                if (control.Location.X + control.uwfOffset.X > control.Parent.Width) return false;
+                if (control.Location.Y + control.uwfOffset.Y > control.Parent.Height) return false;
             }
             return true;
         }
@@ -278,6 +278,7 @@ namespace System.Windows.Forms
                             }
                             _dragData = null;
                             _dragndrop = false;
+                            return true;
                         }
                         MouseEventArgs mu_args = new MouseEventArgs(_mouseButton, 1, (int)client_mpos.X, (int)client_mpos.Y, 0);
                         control.RaiseOnMouseUp(mu_args);
@@ -580,7 +581,7 @@ namespace System.Windows.Forms
             // Dispose context first.
             for (int i = 0; i < Contexts.Count; i++)
             {
-                if (!Contexts[i].UWF_Context) continue;
+                if (!Contexts[i].uwfContext) continue;
 
                 var contextControl = Contexts[i];
                 if (Contains(contextControl, hoveredControl)) continue;
@@ -618,7 +619,7 @@ namespace System.Windows.Forms
         }
         public void Run(Control control)
         {
-            control.UWF_AppOwner = this;
+            control.uwfAppOwner = this;
             //this.Controls.Add(control);
         }
         public void Update()
@@ -712,7 +713,7 @@ namespace System.Windows.Forms
 
             UpdateEvent();
         }
-        
+
         internal static void DoDragDrop(object data, DragDropEffects effect, DragDropRenderHandler render = null)
         {
             _dragData = data;
@@ -753,12 +754,9 @@ namespace System.Windows.Forms
             _FillListWithVisibleControls(controlForm, formControls);
 
             var possibleControls = formControls.FindAll(x => x.IsDisposed == false && x.CanSelect && x.TabStop);
-            if (possibleControls.Find(x => x.TabIndex > 0) != null)
-            {
-                possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
-                //possibleControls.Reverse();
-            }
             if (possibleControls.Count == 0) return;
+
+            possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
 
             int controlIndex = possibleControls.FindIndex(x => x == control);
 
@@ -776,12 +774,9 @@ namespace System.Windows.Forms
             _FillListWithVisibleControls(controlForm, formControls);
 
             var possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.CanSelect && x.TabStop);
-            if (possibleControls.Find(x => x.TabIndex > 0) != null)
-            {
-                possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
-                //possibleControls.Reverse();
-            }
             if (possibleControls.Count == 0) return;
+
+            possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
 
             int controlIndex = possibleControls.FindIndex(x => x == control);
 

@@ -58,9 +58,9 @@ namespace System.Windows.Forms
             e.Graphics.FillRectangle(BackColor, 0, 0, Width, Height);
             e.Graphics.DrawTexture(bmText.uTexture, 0, 0, bmText.Width, bmText.Height, ForeColor);
         }
-        protected override object UWF_OnPaintEditor(float width)
+        protected override object uwfOnPaintEditor(float width)
         {
-            var control = base.UWF_OnPaintEditor(width);
+            var control = base.uwfOnPaintEditor(width);
 
             Editor.NewLine(1);
 

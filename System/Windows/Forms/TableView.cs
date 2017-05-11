@@ -95,10 +95,10 @@ namespace System.Windows.Forms
         }
         private void EnsureVisibleChild(Control child)
         {
-            bool horizontalScroll_Left = child.Location.X + child.UWF_Offset.X < 0;
-            bool horizontalScroll_Right = child.Location.X + child.UWF_Offset.X + child.Width > Width;
-            bool verticalScroll_Top = child.Location.Y + child.UWF_Offset.Y < 0;
-            bool verticalScroll_Bottom = child.Location.Y + child.UWF_Offset.Y + child.Height > Height;
+            bool horizontalScroll_Left = child.Location.X + child.uwfOffset.X < 0;
+            bool horizontalScroll_Right = child.Location.X + child.uwfOffset.X + child.Width > Width;
+            bool verticalScroll_Top = child.Location.Y + child.uwfOffset.Y < 0;
+            bool verticalScroll_Bottom = child.Location.Y + child.uwfOffset.Y + child.Height > Height;
 
             if (hScroll != null && Width > 0 && (horizontalScroll_Left || horizontalScroll_Right))
             {
@@ -136,18 +136,18 @@ namespace System.Windows.Forms
                 var c = Controls[i];
                 if (c is ScrollBar) continue;
 
-                c.UWF_Offset = new Point(offsetX, c.UWF_Offset.Y);
+                c.uwfOffset = new Point(offsetX, c.uwfOffset.Y);
             }
         }
         private void ResetHOffset()
         {
             for (int i = 0; i < Controls.Count; i++)
-                Controls[i].UWF_Offset = new Point(0, Controls[i].UWF_Offset.Y);
+                Controls[i].uwfOffset = new Point(0, Controls[i].uwfOffset.Y);
         }
         private void ResetVOffset()
         {
             for (int i = 0; i < Controls.Count; i++)
-                Controls[i].UWF_Offset = new Point(Controls[i].UWF_Offset.X, 0);
+                Controls[i].uwfOffset = new Point(Controls[i].uwfOffset.X, 0);
         }
         private void VScroll_ValueChanged(object sender, EventArgs e)
         {
@@ -157,7 +157,7 @@ namespace System.Windows.Forms
                 var c = Controls[i];
                 if (c is ScrollBar) continue;
 
-                c.UWF_Offset = new Point(c.UWF_Offset.X, offseY);
+                c.uwfOffset = new Point(c.uwfOffset.X, offseY);
             }
         }
         private void UpdateScrolls()
@@ -412,9 +412,9 @@ namespace System.Windows.Forms
         {
             e.Graphics.FillRectangle(BackColor, 0, 0, Width, Height);
         }
-        protected override object UWF_OnPaintEditor(float width)
+        protected override object uwfOnPaintEditor(float width)
         {
-            var control = base.UWF_OnPaintEditor(width);
+            var control = base.uwfOnPaintEditor(width);
 
 #if UNITY_EDITOR
             Editor.NewLine(1);
@@ -433,9 +433,9 @@ namespace System.Windows.Forms
 
             UpdateScrolls();
         }
-        protected override void UWF_ChildGotFocus(Control child)
+        protected override void uwfChildGotFocus(Control child)
         {
-            base.UWF_ChildGotFocus(child);
+            base.uwfChildGotFocus(child);
 
             EnsureVisibleChild(child);
         }
@@ -581,7 +581,7 @@ namespace System.Windows.Forms
                 TabStop = false;
                 TextAlign = ContentAlignment.MiddleLeft;
 
-                UWF_AppOwner.UpClick += Owner_UpClick;
+                uwfAppOwner.UpClick += Owner_UpClick;
             }
 
             private ListSortDirection GetNextSortDirection()
@@ -612,7 +612,7 @@ namespace System.Windows.Forms
             {
                 base.Dispose();
 
-                UWF_AppOwner.UpClick -= Owner_UpClick;
+                uwfAppOwner.UpClick -= Owner_UpClick;
             }
             protected override void OnMouseDown(MouseEventArgs e)
             {

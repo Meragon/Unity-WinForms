@@ -172,9 +172,9 @@ namespace System.Windows.Forms
             else
                 g.DrawString(valueText, Font, foreColor, Padding.Left, 0, Width + textPaddingRight, Height, TextAlign);
         }
-        protected override object UWF_OnPaintEditor(float width)
+        protected override object uwfOnPaintEditor(float width)
         {
-            var component = base.UWF_OnPaintEditor(width);
+            var component = base.uwfOnPaintEditor(width);
 
 #if UNITY_EDITOR
             Editor.BeginGroup(width - 24);

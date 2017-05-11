@@ -67,7 +67,7 @@ namespace System.Windows.Forms
             }
         }
         public DialogResult DialogResult { get; set; }
-        public bool IsModal { get { return UWF_AppOwner.ModalForms.Contains(this); } }
+        public bool IsModal { get { return uwfAppOwner.ModalForms.Contains(this); } }
         public Color HeaderColor { get; set; }
         public Font HeaderFont { get; set; }
         public int HeaderHeight { get; set; }
@@ -115,7 +115,7 @@ namespace System.Windows.Forms
             set
             {
                 _topMost = value;
-                UWF_AppOwner.Forms.Sort();
+                uwfAppOwner.Forms.Sort();
             }
         }
 
@@ -139,12 +139,12 @@ namespace System.Windows.Forms
             MinimumSize = new Drawing.Size(128, 48);
             Movable = true;
             Resizable = true;
-            UWF_ShadowBox = true;
+            uwfShadowBox = true;
             Size = new Size(334, 260);
             Visible = false;
 
-            UWF_AppOwner.UpClick += _Application_UpClick;
-            UWF_AppOwner.UpdateEvent += Owner_UpdateEvent;
+            uwfAppOwner.UpClick += _Application_UpClick;
+            uwfAppOwner.UpdateEvent += Owner_UpdateEvent;
 
             nextLocation = new Point(nextLocation.X + 26, nextLocation.Y + 26);
             if (nextLocation.X + Width > Screen.PrimaryScreen.WorkingArea.Width - 32)
@@ -347,9 +347,9 @@ namespace System.Windows.Forms
         {
             Visible = true;
 
-            int self = UWF_AppOwner.Forms.FindIndex(x => x == this);
+            int self = uwfAppOwner.Forms.FindIndex(x => x == this);
             if (self == -1)
-                UWF_AppOwner.Forms.Add(this);
+                uwfAppOwner.Forms.Add(this);
 
             if (fShouldFocus)
             {
@@ -366,9 +366,9 @@ namespace System.Windows.Forms
 
             Visible = true;
 
-            int self = UWF_AppOwner.ModalForms.FindIndex(x => x == this);
+            int self = uwfAppOwner.ModalForms.FindIndex(x => x == this);
             if (self == -1)
-                UWF_AppOwner.ModalForms.Add(this);
+                uwfAppOwner.ModalForms.Add(this);
 
             Focus();
             _SelectFirstControl();
@@ -384,9 +384,9 @@ namespace System.Windows.Forms
         public override void Dispose()
         {
             if (IsModal == false)
-                UWF_AppOwner.Forms.Remove(this);
+                uwfAppOwner.Forms.Remove(this);
             else
-                UWF_AppOwner.ModalForms.Remove(this);
+                uwfAppOwner.ModalForms.Remove(this);
             base.Dispose();
         }
         protected virtual void OnClosed(EventArgs e)
@@ -443,9 +443,9 @@ namespace System.Windows.Forms
             g.DrawString(Text, HeaderFont, HeaderTextColor, HeaderPadding.Left, HeaderPadding.Top, Width - HeaderPadding.Right - HeaderPadding.Left, HeaderHeight - HeaderPadding.Bottom - HeaderPadding.Top, HeaderTextAlign);
             g.FillRectangle(BackColor, 0, HeaderHeight, Width, Height - HeaderHeight);
         }
-        protected override object UWF_OnPaintEditor(float width)
+        protected override object uwfOnPaintEditor(float width)
         {
-            var control = base.UWF_OnPaintEditor(width);
+            var control = base.uwfOnPaintEditor(width);
 
             Editor.BeginGroup(width - 24);
             Editor.BeginVertical();
