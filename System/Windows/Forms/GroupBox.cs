@@ -8,7 +8,13 @@ namespace System.Windows.Forms
 {
     public class GroupBox : Control
     {
-        public Color BorderColor { get; set; }
+        private Pen borderPen = new Pen(Color.Transparent);
+
+        public Color BorderColor
+        {
+            get { return borderPen.Color; }
+            set { borderPen.Color = value; }
+        }
 
         public GroupBox()
         {
@@ -21,7 +27,7 @@ namespace System.Windows.Forms
         protected override void OnLatePaint(PaintEventArgs e)
         {
             base.OnLatePaint(e);
-            e.Graphics.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
+            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -29,8 +35,8 @@ namespace System.Windows.Forms
 
             Graphics g = e.Graphics;
 
-            g.FillRectangle(new SolidBrush(BackColor), 0, 0, Width, Height);
-            g.DrawString(Text, Font, new SolidBrush(ForeColor), 8, 0, Width - 16, Height - 0);
+            g.uwfFillRectangle(BackColor, 0, 0, Width, Height);
+            g.uwfDrawString(Text, Font, ForeColor, 8, 0, Width - 16, Height - 0);
         }
     }
 }

@@ -46,7 +46,7 @@ namespace System.Windows.Forms
                 if (Items[i] is ToolStripDropDownItem)
                 {
                     var ddi = Items[i] as ToolStripDropDownItem;
-                    ddi.ArrowImage = ApplicationBehaviour.Resources.Images.DropDownRightArrow;
+                    ddi.ArrowImage = ApplicationBehaviour.GdiImages.DropDownRightArrow;
                     ddi.ArrowColor = Color.Black;
                 }
                 Items[i].ForeColor = Color.FromArgb(64, 64, 64);

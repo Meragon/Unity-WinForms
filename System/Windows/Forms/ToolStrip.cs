@@ -9,6 +9,7 @@ namespace System.Windows.Forms
     [Serializable]
     public class ToolStrip : ScrollableControl
     {
+        private SolidBrush brushBack = new SolidBrush(Color.Transparent);
         private ToolStripItemCollection _items;
         private PaintEventArgs p_args;
 
@@ -21,7 +22,7 @@ namespace System.Windows.Forms
             BorderColor = Color.FromArgb(204, 206, 219);
             Orientation = Forms.Orientation.Vertical;
 
-            UWF_AppOwner.UpClick += Application_UpClick;
+            uwfAppOwner.UpClick += Application_UpClick;
         }
         public ToolStrip(ToolStripItem[] items)
         {
@@ -32,9 +33,14 @@ namespace System.Windows.Forms
             BorderColor = Color.FromArgb(204, 206, 219);
             Orientation = Forms.Orientation.Vertical;
 
-            UWF_AppOwner.UpClick += Application_UpClick;
+            uwfAppOwner.UpClick += Application_UpClick;
         }
 
+        public override Color BackColor
+        {
+            get { return brushBack.Color; }
+            set { brushBack.Color = value; }
+        }
         public Color BorderColor { get; set; }
         public virtual ToolStripItemCollection Items { get { return _items; } }
         public Orientation Orientation { get; set; }
@@ -73,7 +79,7 @@ namespace System.Windows.Forms
 
         public override void Dispose()
         {
-            UWF_AppOwner.DownClick -= Application_UpClick;
+            uwfAppOwner.DownClick -= Application_UpClick;
             base.Dispose();
         }
         protected override void OnMouseHover(EventArgs e)
@@ -149,7 +155,7 @@ namespace System.Windows.Forms
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            if (OwnerItem != null && OwnerItem.Parent != null && OwnerItem.Parent.Orientation == Forms.Orientation.Horizontal && UWF_ShadowHandler == null)
+            if (OwnerItem != null && OwnerItem.Parent != null && OwnerItem.Parent.Orientation == Forms.Orientation.Horizontal && uwfShadowHandler == null)
             {
                 MakeShadow();
             }
@@ -158,27 +164,29 @@ namespace System.Windows.Forms
 
             p_args.Graphics = e.Graphics;
             p_args.ClipRectangle = e.ClipRectangle;
+            p_args.Graphics.FillRectangle(brushBack, 0, 0, Width, Height);
 
-            p_args.Graphics.FillRectangle(new Drawing.SolidBrush(BackColor), 0, 0, Width, Height);
             if (Orientation == Forms.Orientation.Vertical)
                 p_args.Graphics.DrawLine(new Drawing.Pen(Drawing.Color.FromArgb(215, 215, 215)), 24, 2, 24, Height - 2);
+
             for (int i = 0, x = Padding.Left, y = Padding.Top; i < _items.Count; i++)
             {
-                p_args.ClipRectangle = new Drawing.Rectangle(x, y, _items[i].Width, _items[i].Height);
-                _items[i].RaiseOnPaint(p_args);
+                var item = _items[i];
+                p_args.ClipRectangle = new Drawing.Rectangle(x, y, item.Width, item.Height);
+                item.RaiseOnPaint(p_args);
 
-                if (_items[i].JustVisual) continue;
+                if (item.JustVisual) continue;
                 if (Orientation == Forms.Orientation.Horizontal)
-                    x += _items[i].Width;
+                    x += item.Width;
                 if (Orientation == Forms.Orientation.Vertical)
-                    y += _items[i].Height;
+                    y += item.Height;
             }
 
-            p_args.Graphics.DrawRectangle(BorderColor, 0, 0, Width, Height);
+            p_args.Graphics.uwfDrawRectangle(BorderColor, 0, 0, Width, Height);
         }
-        protected override object UWF_OnPaintEditor(float width)
+        protected override object uwfOnPaintEditor(float width)
         {
-            var control = base.UWF_OnPaintEditor(width);
+            var control = base.uwfOnPaintEditor(width);
 
 #if UNITY_EDITOR
             Editor.NewLine(1);
@@ -203,13 +211,13 @@ namespace System.Windows.Forms
         /// </summary>
         internal void MakeShadow()
         {
-            UWF_ShadowHandler = (g) =>
+            uwfShadowHandler = (g) =>
             {
                 var loc = PointToScreen(Point.Zero);
                 var color = Color.FromArgb(12, 64, 64, 64);
-                g.Graphics.FillRectangle(color, loc.X - 3, loc.Y, Width + 6, Height + 3);
-                g.Graphics.FillRectangle(color, loc.X - 2, loc.Y, Width + 4, Height + 2);
-                g.Graphics.FillRectangle(color, loc.X - 1, loc.Y, Width + 2, Height + 1);
+                g.Graphics.uwfFillRectangle(color, loc.X - 3, loc.Y, Width + 6, Height + 3);
+                g.Graphics.uwfFillRectangle(color, loc.X - 2, loc.Y, Width + 4, Height + 2);
+                g.Graphics.uwfFillRectangle(color, loc.X - 1, loc.Y, Width + 2, Height + 1);
             };
         }
     }

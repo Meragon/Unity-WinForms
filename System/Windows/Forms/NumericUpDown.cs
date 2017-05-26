@@ -16,13 +16,18 @@ namespace System.Windows.Forms
         private decimal _minimum;
         private decimal _maximum;
 
+        protected Pen borderPen = new Pen(Color.Transparent);
         protected decimal value;
         protected string valueText = "0";
 
         public Button ButtonIncrease { get; private set; }
         public Button ButtonDecrease { get; private set; }
 
-        public Color BorderColor { get; set; }
+        public Color BorderColor
+        {
+            get { return borderPen.Color; }
+            set { borderPen.Color = value; }
+        }
         public Color DisabledColor { get; set; }
         public decimal Increment { get; set; }
         public decimal Maximum
@@ -92,7 +97,7 @@ namespace System.Windows.Forms
                 ButtonIncrease.BorderColor = Color.FromArgb(172, 172, 172);
                 ButtonIncrease.HoverColor = Color.FromArgb(228, 241, 252);
                 ButtonIncrease.BorderHoverColor = Color.FromArgb(126, 180, 234);
-                ButtonIncrease.Image = ApplicationBehaviour.Resources.Images.NumericUp;
+                ButtonIncrease.Image = ApplicationBehaviour.GdiImages.NumericUp;
                 ButtonIncrease.Click += delegate { if (Enabled) Value += Increment; };
 
                 ButtonDecrease = new RepeatButton();
@@ -105,7 +110,7 @@ namespace System.Windows.Forms
                 ButtonDecrease.BorderColor = Color.FromArgb(172, 172, 172);
                 ButtonDecrease.HoverColor = Color.FromArgb(228, 241, 252);
                 ButtonDecrease.BorderHoverColor = Color.FromArgb(126, 180, 234);
-                ButtonDecrease.Image = ApplicationBehaviour.Resources.Images.NumericDown;
+                ButtonDecrease.Image = ApplicationBehaviour.GdiImages.NumericDown;
                 ButtonDecrease.Click += delegate { if (Enabled) Value -= Increment; };
 
                 Controls.Add(ButtonIncrease);
@@ -134,7 +139,7 @@ namespace System.Windows.Forms
         {
             base.OnLatePaint(e);
 
-            e.Graphics.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
+            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
         protected override void OnKeyPress(KeyEventArgs e)
         {
@@ -165,16 +170,16 @@ namespace System.Windows.Forms
             var backColor = Enabled ? BackColor : DisabledColor;
             var foreColor = Enabled ? ForeColor : Color.Black;
 
-            g.FillRectangle(backColor, 0, 0, Width, Height);
+            g.uwfFillRectangle(backColor, 0, 0, Width, Height);
 
             if (Focused)
-                valueText = g.DrawTextField(valueText, Font, foreColor, Padding.Left - 2, 0, Width + textPaddingRight + 4, Height, TextAlign);
+                valueText = g.uwfDrawTextField(valueText, Font, foreColor, Padding.Left - 2, 0, Width + textPaddingRight + 4, Height, TextAlign);
             else
-                g.DrawString(valueText, Font, foreColor, Padding.Left, 0, Width + textPaddingRight, Height, TextAlign);
+                g.uwfDrawString(valueText, Font, foreColor, Padding.Left, 0, Width + textPaddingRight, Height, TextAlign);
         }
-        protected override object UWF_OnPaintEditor(float width)
+        protected override object uwfOnPaintEditor(float width)
         {
-            var component = base.UWF_OnPaintEditor(width);
+            var component = base.uwfOnPaintEditor(width);
 
 #if UNITY_EDITOR
             Editor.BeginGroup(width - 24);

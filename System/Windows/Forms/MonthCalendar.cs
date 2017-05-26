@@ -130,7 +130,7 @@ namespace System.Windows.Forms
             Value = DateTime.Now;
 
             Button prevMonthButton = new Button();
-            prevMonthButton.Image = ApplicationBehaviour.Resources.Images.ArrowLeft;
+            prevMonthButton.Image = ApplicationBehaviour.GdiImages.ArrowLeft;
             prevMonthButton.ImageColor = Color.FromArgb(48, 48, 48);
             prevMonthButton.Size = new Size(16, 16);
             prevMonthButton.Location = new Point(4, 8);
@@ -142,7 +142,7 @@ namespace System.Windows.Forms
 
             Button nextMonthButton = new Button();
             nextMonthButton.Anchor = AnchorStyles.Right;
-            nextMonthButton.Image = ApplicationBehaviour.Resources.Images.ArrowRight;
+            nextMonthButton.Image = ApplicationBehaviour.GdiImages.ArrowRight;
             nextMonthButton.ImageColor = Color.FromArgb(48, 48, 48);
             nextMonthButton.Size = new Size(16, 16);
             nextMonthButton.Location = new Point(Width - nextMonthButton.Width - 4, 8);
@@ -238,11 +238,11 @@ namespace System.Windows.Forms
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            e.Graphics.FillRectangle(BackColor, 0, 0, Width, Height);
+            e.Graphics.uwfFillRectangle(BackColor, 0, 0, Width, Height);
 
             // Header.
-            e.Graphics.FillRectangle(TitleBackColor, 0, 0, Width, 32);
-            e.Graphics.DrawString(_months[_selectedDate.Month - 1] + " " + _selectedDate.Year.ToString(), Font, TitleForeColor, 0, 0, Width, 32, ContentAlignment.MiddleCenter);
+            e.Graphics.uwfFillRectangle(TitleBackColor, 0, 0, Width, 32);
+            e.Graphics.uwfDrawString(_months[_selectedDate.Month - 1] + " " + _selectedDate.Year.ToString(), Font, TitleForeColor, 0, 0, Width, 32, ContentAlignment.MiddleCenter);
 
             if (ShowToday)
                 e.Graphics.DrawRectangle(new Pen(Color.FromArgb(0, 102, 204)), CellWidth * 1, 141, CellWidth - 2, 13);

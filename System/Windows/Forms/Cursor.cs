@@ -45,9 +45,9 @@ namespace System.Windows.Forms
             {
                 bool cursorVisible = true;
                 if (CurrentSystem != null)
-                    cursorVisible = currentSystem.image.uTexture == null;
+                    cursorVisible = currentSystem.image == null || currentSystem.image.uTexture == null;
                 else
-                    cursorVisible = current.image.uTexture == null;
+                    cursorVisible = current.image == null || current.image.uTexture == null;
                 return cursorVisible;
             }
         }

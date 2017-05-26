@@ -245,14 +245,14 @@ namespace System.Windows.Forms
                 if (_renderList[i].Node.Nodes.Count > 0)
                 {
                     var nodeTexture = _renderList[i].Node.Collapsed ? ImageFolderClosed : ImageFolderOpened;
-                    g.DrawTexture(nodeTexture, nodeOffset - 12, i * NodeHeight, 16, 16);
+                    g.uwfDrawTexture(nodeTexture, nodeOffset - 12, i * NodeHeight, 16, 16);
                 }
                 else
                 {
                     var image = ImageFile;
                     if (_renderList[i].Node.Image != null)
                         image = _renderList[i].Node.Image;
-                    g.DrawTexture(image, nodeOffset - 12, i * NodeHeight, image.width, image.height);
+                    g.uwfDrawTexture(image, nodeOffset - 12, i * NodeHeight, image.width, image.height);
                 }
             }
             //g.GroupEnd();

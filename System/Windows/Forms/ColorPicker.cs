@@ -23,6 +23,10 @@ namespace System.Windows.Forms
             _borderPen = new Pen(BorderColor);
         }
 
+        protected virtual void OnColorChanged(object sender, EventArgs e)
+        {
+            ColorChanged(this, EventArgs.Empty);
+        }
         protected override void OnMouseClick(MouseEventArgs e)
         {
             if (_currentForm == null)
@@ -31,8 +35,8 @@ namespace System.Windows.Forms
                 _currentForm.Color = Color;
                 _currentForm.ColorChanged += (object sender, EventArgs args) =>
                 {
-                    Color = _currentForm.Color;
-                    ColorChanged(this, null);
+                    Color = ((ColorPickerForm)sender).Color;
+                    OnColorChanged(this, args);
                 };
                 _currentForm.OnDisposing += (object sender, EventArgs args) =>
                 {
@@ -50,9 +54,9 @@ namespace System.Windows.Forms
             if (Hovered) borderColor = BorderHoverColor;
             _borderPen.Color = borderColor;
 
-            e.Graphics.FillRectangle(Color.FromArgb(255, Color), 0, 0, Width, Height - 3);
-            e.Graphics.FillRectangle(Color.Black, 0, Height - 3, Width, 3);
-            e.Graphics.FillRectangle(Color.White, 0, Height - 3, alphaWidth, 3);
+            e.Graphics.uwfFillRectangle(Color.FromArgb(255, Color), 0, 0, Width, Height - 3);
+            e.Graphics.uwfFillRectangle(Color.Black, 0, Height - 3, Width, 3);
+            e.Graphics.uwfFillRectangle(Color.White, 0, Height - 3, alphaWidth, 3);
             e.Graphics.DrawRectangle(_borderPen, 0, 0, Width, Height);
         }
 
@@ -110,7 +114,8 @@ namespace System.Windows.Forms
         {
             _owner = owner;
 
-            Size = new Size(188, 264);
+            BackColor = Color.White;
+            Size = new Size(188, 272);
             Location = new Point(
                 Screen.PrimaryScreen.WorkingArea.Width / 2 - Width / 2,
                 Screen.PrimaryScreen.WorkingArea.Height / 2 - Height / 2);
@@ -119,7 +124,7 @@ namespace System.Windows.Forms
             TopMost = true;
 
             _bsPicker = new BrightnessSaturationPicker(128, 128);
-            _bsPicker.Location = new Point(16, 24);
+            _bsPicker.Location = new Point(16, 32);
             _bsPicker.BrightnessChanged += _bsPicker_BrightnessChanged;
             _bsPicker.SaturationChanged += _bsPicker_SaturationChanged;
 
@@ -388,6 +393,12 @@ namespace System.Windows.Forms
                 (e.KeyCode == UnityEngine.KeyCode.W && e.Modifiers == UnityEngine.EventModifiers.Control))
                 Close();
         }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+
+            e.Graphics.DrawLine(borderPen, 1, HeaderHeight - 1, Width - 1, HeaderHeight - 1);
+        }
 
         public event EventHandler ColorChanged = delegate { };
 
@@ -425,7 +436,7 @@ namespace System.Windows.Forms
                 _image = new Bitmap(w, h);
                 _UpdateImage();
 
-                UWF_AppOwner.UpClick += Application_UpClick;
+                uwfAppOwner.UpClick += Application_UpClick;
             }
 
             void Application_UpClick(object sender, MouseEventArgs e)
@@ -486,7 +497,7 @@ namespace System.Windows.Forms
 
             public override void Dispose()
             {
-                UWF_AppOwner.UpClick -= Application_UpClick;
+                uwfAppOwner.UpClick -= Application_UpClick;
                 base.Dispose();
             }
             protected override void OnMouseDown(MouseEventArgs e)
@@ -514,7 +525,7 @@ namespace System.Windows.Forms
             protected override void OnPaint(PaintEventArgs e)
             {
                 if (_image != null)
-                    e.Graphics.DrawTexture(_image, 0, 0, Width, Height);
+                    e.Graphics.DrawImage(_image, 0, 0, Width, Height);
 
                 e.Graphics.DrawRectangle(new Pen(Color.White), Saturation * Width - 2, Height - Brightness * Height - 2, 4, 4);
 
@@ -579,7 +590,7 @@ namespace System.Windows.Forms
             protected override void OnPaint(PaintEventArgs e)
             {
                 if (_image != null)
-                    e.Graphics.DrawTexture(_image, 0, 0, Width, Height);
+                    e.Graphics.DrawImage(_image, 0, 0, Width, Height);
 
                 e.Graphics.DrawLine(new Pen(Color.White), 0, Hue * Height, Width, Hue * Height);
 
@@ -664,7 +675,7 @@ namespace System.Windows.Forms
                 _borderPen.Color = borderColor;
 
                 if (_image != null)
-                    e.Graphics.DrawTexture(_image, 0, 0, Width, Height);
+                    e.Graphics.DrawImage(_image, 0, 0, Width, Height);
 
                 e.Graphics.DrawLine(_cursorPen, Alpha * Width, 0, Alpha * Width, Height);
                 e.Graphics.DrawRectangle(_borderPen, 0, 0, Width, Height);

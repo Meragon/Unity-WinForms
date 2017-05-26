@@ -375,10 +375,6 @@
             }
             return Color.FromArgb((int)(255 * r), (int)(255 * g), (int)(255 * b));
         }
-        public static Color FromUColor(UnityEngine.Color color)
-        {
-            return Color.FromArgb((int)(color.a * 255), (int)(color.r * 255), (int)(color.g * 255), (int)(color.b * 255));
-        }
 
         public override bool Equals(object obj)
         {
@@ -509,10 +505,6 @@
         public override string ToString()
         {
             return "{ R: " + R.ToString() + "; G: " + G.ToString() + "; B: " + B.ToString() + "; A: " + A.ToString() + " }";
-        }
-        public UnityEngine.Color ToUColor()
-        {
-            return new UnityEngine.Color((float)_r / 255, (float)_g / 255, (float)_b / 255, (float)_a / 255);
         }
 
         private static double _GetColorComponent(double temp1, double temp2, double temp3)

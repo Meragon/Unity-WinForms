@@ -9,8 +9,15 @@ namespace System.Windows.Forms
 {
     public class TabControl_Old : Control
     {
+        private readonly SolidBrush backBrush = new SolidBrush(Color.Transparent);
+
         public const int DefaultHeaderHeight = 24;
 
+        public override Color BackColor
+        {
+            get { return backBrush.Color; }
+            set { backBrush.Color = value; }
+        }
         public int HeaderHeight { get; set; }
         public int SelectedIndex { get { return TabPages.CurrentIndex; } }
         public TabPageCollection TabPages { get; set; }
@@ -26,7 +33,7 @@ namespace System.Windows.Forms
             base.OnPaint(e);
             Graphics g = e.Graphics;
 
-            g.FillRectangle(new SolidBrush(BackColor), 0, HeaderHeight, Width, Height - HeaderHeight);
+            g.FillRectangle(backBrush, 0, HeaderHeight, Width, Height - HeaderHeight);
 
         }
         public void UpdateTabs()

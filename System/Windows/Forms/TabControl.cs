@@ -162,7 +162,7 @@ namespace System.Windows.Forms
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            e.Graphics.FillRectangle(BackColor, 0, 0, Width, Height);
+            e.Graphics.uwfFillRectangle(BackColor, 0, 0, Width, Height);
 
             // Borders.
             var borderPen = new Pen(BorderColor);
@@ -225,7 +225,7 @@ namespace System.Windows.Forms
                 {
                     navigationButtonRight = new Button();
                     navigationButtonRight.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-                    navigationButtonRight.Image = ApplicationBehaviour.Resources.Images.ArrowRight;
+                    navigationButtonRight.Image = ApplicationBehaviour.GdiImages.ArrowRight;
                     navigationButtonRight.ImageColor = Color.Black;
                     navigationButtonRight.Size = new Size(16, 16);
                     navigationButtonRight.Location = new Point(Width - navigationButtonRight.Width, ItemSize.Height - navigationButtonRight.Height - 2);
@@ -241,7 +241,7 @@ namespace System.Windows.Forms
 
                     navigationButtonLeft = new Button();
                     navigationButtonLeft.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-                    navigationButtonLeft.Image = ApplicationBehaviour.Resources.Images.ArrowLeft;
+                    navigationButtonLeft.Image = ApplicationBehaviour.GdiImages.ArrowLeft;
                     navigationButtonLeft.ImageColor = Color.Black;
                     navigationButtonLeft.Size = navigationButtonRight.Size;
                     navigationButtonLeft.Location = new Point(navigationButtonRight.Location.X - navigationButtonRight.Width, navigationButtonRight.Location.Y);

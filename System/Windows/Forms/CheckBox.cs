@@ -33,27 +33,23 @@ namespace System.Windows.Forms
             CheckedChanged(this, new EventArgs());
         }
 
-        protected override void OnKeyUp(KeyEventArgs e)
-        {
-            base.OnKeyUp(e);
-        }
         protected override void OnPaint(PaintEventArgs e)
         {
             Graphics g = e.Graphics;
 
             var backColor = DisableColor;
-            var borderColor = BorderDisableColor;
+            borderPen.Color = BorderDisableColor;
             if (Enabled)
             {
                 if (Hovered)
                 {
                     backColor = HoverColor;
-                    borderColor = BorderHoverColor;
+                    borderPen.Color = BorderHoverColor;
                 }
                 else
                 {
                     backColor = BackColor;
-                    borderColor = BorderColor;
+                    borderPen.Color = BorderColor;
                 }
             }
 
@@ -61,12 +57,12 @@ namespace System.Windows.Forms
             var checkRectY = Padding.Top + Height / 2 - 6;
             var checkRectWH = 12;
 
-            g.FillRectangle(backColor, checkRectX, checkRectY, checkRectWH, checkRectWH);
-            g.DrawRectangle(new Pen(borderColor), checkRectX, checkRectY, checkRectWH, checkRectWH);
+            g.uwfFillRectangle(backColor, checkRectX, checkRectY, checkRectWH, checkRectWH);
+            g.DrawRectangle(borderPen, checkRectX, checkRectY, checkRectWH, checkRectWH);
             if (Checked)
-                g.DrawTexture(ApplicationBehaviour.Resources.Images.Checked, checkRectX, checkRectY, checkRectWH, checkRectWH);
+                g.DrawImage(ApplicationBehaviour.GdiImages.Checked, checkRectX, checkRectY, checkRectWH, checkRectWH);
 
-            g.DrawString(Text, Font, new SolidBrush(ForeColor), checkRectX + checkRectWH + 4, Padding.Top + 0, Width - 20, Height, TextAlign);
+            g.uwfDrawString(Text, Font, ForeColor, checkRectX + checkRectWH + 4, Padding.Top + 0, Width - 20, Height, TextAlign);
         }
 
         public event EventHandler CheckedChanged = delegate { };

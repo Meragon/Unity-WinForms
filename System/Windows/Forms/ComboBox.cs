@@ -163,9 +163,6 @@ namespace System.Windows.Forms
             }
             if (listBox != null && DropDownStyle == ComboBoxStyle.DropDownList)
             {
-                if (listBox.ScrollIndex < 0)
-                    listBox.ScrollIndex = 0;
-
                 if (keyFlag == true)
                 {
                     keyFlag = false;
@@ -252,7 +249,7 @@ namespace System.Windows.Forms
 
             #endregion
 
-            g.FillRectangle(backColor, 0, 0, Width, Height);
+            g.uwfFillRectangle(backColor, 0, 0, Width, Height);
 
             switch (DropDownStyle)
             {
@@ -260,7 +257,7 @@ namespace System.Windows.Forms
 
                     if (Focused && Enabled)
                     {
-                        var filterBuffer = g.DrawTextField(filter, Font, ForeColor, 2, 0, Width - downButtonWidth, Height,
+                        var filterBuffer = g.uwfDrawTextField(filter, Font, ForeColor, 2, 0, Width - downButtonWidth, Height,
                             HorizontalAlignment.Left);
                         if (filterBuffer != filter)
                         {
@@ -275,7 +272,7 @@ namespace System.Windows.Forms
                         filter = filterBuffer;
                     }
                     else
-                        g.DrawString(Text, Font, ForeColor, 5, 0, Width - downButtonWidth, Height);
+                        g.uwfDrawString(Text, Font, ForeColor, 5, 0, Width - downButtonWidth, Height);
 
                     if (Hovered)
                     {
@@ -292,21 +289,21 @@ namespace System.Windows.Forms
                         else
                             downButtonBorderPen.Color = Color.Transparent;
 
-                        g.FillRectangle(downButtonBackColor, bRect);
+                        g.uwfFillRectangle(downButtonBackColor, bRect);
                         g.DrawLine(downButtonBorderPen, bRect.X, bRect.Y, bRect.X, bRect.Y + bRect.Height);
                     }
                     break;
                 case ComboBoxStyle.DropDownList:
-                    g.DrawString(Text, Font, ForeColor, 5, 0, Width - downButtonWidth, Height);
+                    g.uwfDrawString(Text, Font, ForeColor, 5, 0, Width - downButtonWidth, Height);
                     break;
             }
 
-            g.DrawTexture(ApplicationBehaviour.Resources.Images.CurvedArrowDown, Width - 16 - 1, Height / 2 - 8, 16, 16, arrowColor);
-            g.DrawRectangle(borderColor, 0, 0, Width, Height);
+            g.uwfDrawImage(ApplicationBehaviour.GdiImages.CurvedArrowDown, arrowColor, Width - 16 - 1, Height / 2 - 8, 16, 16);
+            g.uwfDrawRectangle(borderColor, 0, 0, Width, Height);
         }
-        protected override object UWF_OnPaintEditor(float width)
+        protected override object uwfOnPaintEditor(float width)
         {
-            var component = base.UWF_OnPaintEditor(width);
+            var component = base.uwfOnPaintEditor(width);
 
 #if UNITY_EDITOR
             Editor.NewLine(2);
@@ -359,12 +356,12 @@ namespace System.Windows.Forms
             {
                 listBox = new ListBox();
                 listBox.Font = Font;
-                listBox.UWF_Context = true;
+                listBox.uwfContext = true;
                 listBox.Width = Width;
                 listBox.ItemHeight = ItemHeight;
                 listBox.Height = listBox.ItemHeight * (Items.Count > MaxDropDownItems ? MaxDropDownItems : Items.Count);
                 listBox.WrapText = false;
-                listBox.UWF_ShadowBox = true;
+                listBox.uwfShadowBox = true;
                 listBox.BorderColor = listBox.BorderSelectColor;
                 if (listBox.Height < listBox.ItemHeight) listBox.Height = listBox.ItemHeight;
 

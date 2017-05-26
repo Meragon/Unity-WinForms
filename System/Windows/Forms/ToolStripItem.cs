@@ -10,6 +10,8 @@ namespace System.Windows.Forms
     public abstract class ToolStripItem : Component
     {
         private bool _hovered;
+        private Color hoverColor;
+        protected Pen selectPen = new Pen(Color.Transparent);
 
         internal bool JustVisual { get; set; }
 
@@ -20,7 +22,15 @@ namespace System.Windows.Forms
         public virtual Color ForeColor { get; set; }
         public int Height { get; set; }
         public bool Hovered { get { return _hovered; } }
-        public Color HoverColor { get; set; }
+        public Color HoverColor
+        {
+            get { return hoverColor; }
+            set
+            {
+                hoverColor = value;
+                selectPen.Color = HoverColor - Color.FromArgb(0, 64, 64, 64);
+            }
+        }
         public Rectangle HoverPadding { get; set; }
         public virtual Bitmap Image { get; set; }
         public Color ImageColor { get; set; }
@@ -42,6 +52,7 @@ namespace System.Windows.Forms
         protected ToolStripItem()
         {
             Enabled = true;
+            Font = new Font("Arial", 12);
             ForeColor = Color.FromArgb(64, 64, 64);
             HoverColor = Color.FromArgb(64, 200, 200, 200);
             HoverPadding = new Rectangle(2, 2, -4, -4);
@@ -66,7 +77,7 @@ namespace System.Windows.Forms
         }
         protected virtual void OnMouseHover(EventArgs e)
         {
-            
+
         }
         protected virtual void OnMouseLeave(EventArgs e)
         {
@@ -92,27 +103,27 @@ namespace System.Windows.Forms
             var ew = e.ClipRectangle.Width;
             var eh = e.ClipRectangle.Height;
 
-            g.FillRectangle(BackColor, ex, ey, ew, eh);
+            g.uwfFillRectangle(BackColor, ex, ey, ew, eh);
             if (Image != null)
-                g.DrawTexture(Image, ex + 6, ey + 4, 12, 12, ImageColor);
+                g.uwfDrawImage(Image, ImageColor, ex + 6, ey + 4, 12, 12);
             if (Enabled)
             {
                 if (!Selected)
                 {
                     if (_hovered)
                     {
-                        g.FillRectangle(HoverColor, e.ClipRectangle + HoverPadding);
-                        g.DrawRectangle(new Pen(HoverColor - Color.FromArgb(0, 64, 64, 64)), e.ClipRectangle + HoverPadding);
+                        g.uwfFillRectangle(HoverColor, e.ClipRectangle + HoverPadding);
+                        g.DrawRectangle(selectPen, e.ClipRectangle + HoverPadding);
                     }
                 }
                 else
                 {
                     if (Owner.Orientation == Orientation.Horizontal)
-                        g.FillRectangle(Color.FromArgb(246, 246, 246), e.ClipRectangle);
+                        g.uwfFillRectangle(Color.FromArgb(246, 246, 246), e.ClipRectangle);
                     else
                     {
-                        g.FillRectangle(HoverColor, e.ClipRectangle + HoverPadding);
-                        g.DrawRectangle(new Pen(HoverColor - Color.FromArgb(0, 64, 64, 64)), e.ClipRectangle + HoverPadding);
+                        g.uwfFillRectangle(HoverColor, e.ClipRectangle + HoverPadding);
+                        g.DrawRectangle(selectPen, e.ClipRectangle + HoverPadding);
                     }
                 }
             }
@@ -121,11 +132,11 @@ namespace System.Windows.Forms
             if (Selected && Enabled) textColor = Color.FromArgb(64, 64, 64);
 
             if (Parent.Orientation == Orientation.Horizontal)
-                g.DrawString(Text, Font, textColor, ex, ey, ew, eh, TextAlign);
+            {
+                g.uwfDrawString(Text, Font, textColor, ex, ey, ew, eh, TextAlign);
+            }
             else
-                g.DrawString(Text, Font, textColor, ex + 32, ey, ew, eh, TextAlign);
-            if (!Selected)
-                g.DrawRectangle(new Pen(BackColor), e.ClipRectangle);
+                g.uwfDrawString(Text, Font, textColor, ex + 32, ey, ew, eh, TextAlign);
         }
 
         internal void RaiseClick()
@@ -162,14 +173,14 @@ namespace System.Windows.Forms
         }
         internal void ResetSelected()
         {
-            if (Parent.UWF_Context && Owner.OwnerItem != null)
+            if (Parent.uwfContext && Owner.OwnerItem != null)
             {
                 var parent = Owner.OwnerItem.Owner;
                 while (true)
                 {
                     if (parent == null) break;
 
-                    if (!parent.UWF_Context)
+                    if (!parent.uwfContext)
                     {
                         parent.ResetSelected();
                         break;
@@ -204,7 +215,7 @@ namespace System.Windows.Forms
             _dropDownItems = new ToolStripItemCollection(Parent, null);
 
             ArrowColor = Color.Black;
-            ArrowImage = ApplicationBehaviour.Resources.Images.DropDownRightArrow;
+            ArrowImage = ApplicationBehaviour.GdiImages.DropDownRightArrow;
         }
 
         public Color ArrowColor { get; set; }
@@ -240,10 +251,10 @@ namespace System.Windows.Forms
             if (!_pressed)
             {
                 _dropDownToolStrip = new ToolStrip();
-                _dropDownToolStrip.UWF_Context = true;
+                _dropDownToolStrip.uwfContext = true;
                 _dropDownToolStrip.OwnerItem = this;
 
-                if (Parent.UWF_ShadowHandler != null)
+                if (Parent.uwfShadowHandler != null)
                     _dropDownToolStrip.MakeShadow();
 
                 int index = Parent.Items.IndexOf(this);
@@ -262,7 +273,7 @@ namespace System.Windows.Forms
                     _dropDownToolStrip.Items[i].OwnerItem = this;
                     _dropDownToolStrip.Items[i].Selected = false;
                 }
-                _dropDownToolStrip.UWF_ShadowBox = true;
+                _dropDownToolStrip.uwfShadowBox = true;
                 _dropDownToolStrip.Orientation = Orientation.Vertical;
                 int height = 0;
                 for (int i = 0; i < DropDownItems.Count; i++)
@@ -307,7 +318,7 @@ namespace System.Windows.Forms
             base.OnPaint(e);
             if (_dropDownItems.Count > 0 && Parent.Orientation == Orientation.Vertical)
             {
-                e.Graphics.DrawTexture(ArrowImage, e.ClipRectangle.X + e.ClipRectangle.Width - 26, e.ClipRectangle.Y, 24, 24, ArrowColor);
+                e.Graphics.uwfDrawImage(ArrowImage, ArrowColor, e.ClipRectangle.X + e.ClipRectangle.Width - 26, e.ClipRectangle.Y, 24, 24);
             }
         }
     }
@@ -342,7 +353,7 @@ namespace System.Windows.Forms
 
     public class ToolStripMenuItem : ToolStripDropDownItem
     {
-        private StringFormat _shortcutKeysFormat = new StringFormat() { LineAlignment = StringAlignment.Center };
+        private ContentAlignment _shortcutKeysFormat = ContentAlignment.MiddleLeft;
 
         public bool Checked { get; set; }
         public string ShortcutKeys { get; set; } // TODO: enum (flag).
@@ -364,17 +375,17 @@ namespace System.Windows.Forms
                 int rectWH = e.ClipRectangle.Height - 8;
                 int checkedWH = e.ClipRectangle.Height - 12;
 
-                e.Graphics.FillRectangle(HoverColor, e.ClipRectangle.X + 4, e.ClipRectangle.Y + 4, rectWH, rectWH);
-                e.Graphics.DrawRectangle(new Pen(HoverColor - Color.FromArgb(0, 64, 64, 64)), e.ClipRectangle.X + 4, e.ClipRectangle.Y + 4, rectWH, rectWH);
-                e.Graphics.DrawTexture(ApplicationBehaviour.Resources.Images.Checked, e.ClipRectangle.X + 6, e.ClipRectangle.Y + 6, checkedWH, checkedWH);
+                e.Graphics.uwfFillRectangle(HoverColor, e.ClipRectangle.X + 4, e.ClipRectangle.Y + 4, rectWH, rectWH);
+                e.Graphics.DrawRectangle(selectPen, e.ClipRectangle.X + 4, e.ClipRectangle.Y + 4, rectWH, rectWH);
+                e.Graphics.DrawImage(ApplicationBehaviour.GdiImages.Checked, e.ClipRectangle.X + 6, e.ClipRectangle.Y + 6, checkedWH, checkedWH);
             }
 
             if (!String.IsNullOrEmpty(ShortcutKeys))
             {
                 //e.Graphics.DrawRectangle(Pens.DarkRed, e.ClipRectangle);
                 if (Parent.Orientation == Orientation.Vertical)
-                    e.Graphics.DrawString(ShortcutKeys, Font,
-                        new SolidBrush(Enabled ? ForeColor : ForeColor + Color.FromArgb(0, 100, 100, 100)),
+                    e.Graphics.uwfDrawString(ShortcutKeys, Font,
+                        (Enabled ? ForeColor : ForeColor + Color.FromArgb(0, 100, 100, 100)),
                         e.ClipRectangle.X + e.ClipRectangle.Width - 60, e.ClipRectangle.Y, 60, e.ClipRectangle.Height, _shortcutKeysFormat);
             }
         }

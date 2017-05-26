@@ -730,7 +730,7 @@ namespace System.Windows.Forms
                 for (currentIndex = 0; currentIndex < directories.Count; currentIndex++)
                 {
                     var dir = directories[currentIndex];
-                    var estimatedWidth = System.Drawing.Graphics.MeasureStringSimple(dir.Name, SystemFonts.DefaultFont).Width + 15;
+                    var estimatedWidth = System.Drawing.Graphics.uwfMeasureStringSimple(dir.Name, SystemFonts.DefaultFont).Width + 15;
 
                     currentWidth += estimatedWidth;
                     if (currentWidth >= allowedWidth)
@@ -822,7 +822,7 @@ namespace System.Windows.Forms
                     arrowButton.Height = Height;
                     arrowButton.Location = new Point(Width - arrowButton.Width, 0);
                     arrowButton.Text = "";
-                    arrowButton.Image = ApplicationBehaviour.Resources.Images.ArrowRight;
+                    arrowButton.Image = ApplicationBehaviour.GdiImages.ArrowRight;
                     arrowButton.ImageColor = Color.Gray;
                     arrowButton.ImageHoverColor = Color.Gray;
 

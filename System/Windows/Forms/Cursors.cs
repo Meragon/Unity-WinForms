@@ -7,7 +7,7 @@ namespace System.Windows.Forms
 {
     public sealed class Cursors
     {
-        private static AppResources.CursorImages Images = ApplicationBehaviour.Resources.Images.Cursors;
+        private static AppGdiImages.CursorImages Images = ApplicationBehaviour.GdiImages.Cursors;
 
         private static Cursor appStarting = null;
         private static Cursor arrow = null;

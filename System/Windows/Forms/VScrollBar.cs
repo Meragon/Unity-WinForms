@@ -16,12 +16,12 @@ namespace System.Windows.Forms
             this.Size = new Size(15, 80);
 
             this.subtractButton.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            this.subtractButton.Image = ApplicationBehaviour.Resources.Images.CurvedArrowUp;
+            this.subtractButton.Image = ApplicationBehaviour.GdiImages.CurvedArrowUp;
             this.subtractButton.Location = new Point(0, 0);
             this.subtractButton.Size = ButtonSize;
 
             this.addButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            this.addButton.Image = ApplicationBehaviour.Resources.Images.CurvedArrowDown;
+            this.addButton.Image = ApplicationBehaviour.GdiImages.CurvedArrowDown;
             this.addButton.Location = new Point(0, Height - ButtonSize.Height);
             this.addButton.Size = ButtonSize;
 

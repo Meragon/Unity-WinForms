@@ -5,13 +5,14 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using Color = UnityEngine.Color;
+using Graphics = System.Drawing.Graphics;
 
 namespace System.Windows.Forms
 {
     public class Application
     {
-        private static bool _dragndrop;
-        private static object _dragData;
+        internal static bool _dragndrop;
+        internal static object _dragData;
         private static DragDropEffects _dragControlEffects;
         private static DragDropRenderHandler _dragRender;
         private static KeyCode _currentKeyDown = KeyCode.None;
@@ -118,12 +119,12 @@ namespace System.Windows.Forms
         internal static bool ControlIsVisible(Control control)
         {
             if (control.Visible == false) return false;
-            if (control.Location.X + control.UWF_Offset.X + control.Width < 0) return false;
-            if (control.Location.Y + control.UWF_Offset.Y + control.Height < 0) return false;
+            if (control.Location.X + control.uwfOffset.X + control.Width < 0) return false;
+            if (control.Location.Y + control.uwfOffset.Y + control.Height < 0) return false;
             if (control.Parent != null)
             {
-                if (control.Location.X + control.UWF_Offset.X > control.Parent.Width) return false;
-                if (control.Location.Y + control.UWF_Offset.Y > control.Parent.Height) return false;
+                if (control.Location.X + control.uwfOffset.X > control.Parent.Width) return false;
+                if (control.Location.Y + control.uwfOffset.Y > control.Parent.Height) return false;
             }
             return true;
         }
@@ -251,10 +252,11 @@ namespace System.Windows.Forms
                 var client_mpos = control.PointToClient(mousePosition);
                 if (mousePositionChanged)
                 {
-                    MouseEventArgs m_args = new MouseEventArgs(MouseButtons.None, 0, (int)client_mpos.X, (int)client_mpos.Y, 0);
-                    control.RaiseOnMouseMove(m_args);
+                    var m_args = new MouseEventArgs(MouseButtons.None, 0, (int)client_mpos.X, (int)client_mpos.Y, 0);
                     if (_dragData != null)
                         _dragndrop = true;
+                    else
+                        control.RaiseOnMouseMove(m_args);
                 }
 
                 if (!contains && _mouseEvent != MouseEvents.Up)
@@ -277,6 +279,7 @@ namespace System.Windows.Forms
                             }
                             _dragData = null;
                             _dragndrop = false;
+                            return true;
                         }
                         MouseEventArgs mu_args = new MouseEventArgs(_mouseButton, 1, (int)client_mpos.X, (int)client_mpos.Y, 0);
                         control.RaiseOnMouseUp(mu_args);
@@ -304,6 +307,11 @@ namespace System.Windows.Forms
             switch (Event.current.type)
             {
                 case EventType.KeyDown:
+                    if (_currentKeyDown == KeyCode.None || _currentKeyDown != args.KeyCode)
+                        keyControl.RaiseOnKeyDown(args);
+
+                    keyControl.RaiseOnKeyPress(args);
+
                     // Tab switching through controls.
                     if (TabSwitching && Event.current.keyCode == KeyCode.Tab)
                     {
@@ -311,13 +319,7 @@ namespace System.Windows.Forms
                             NextTabControl(Control.lastSelected);
                         else if (Event.current.modifiers == EventModifiers.Shift)
                             PrevTabControl(Control.lastSelected);
-                        break;
                     }
-
-                    if (_currentKeyDown == KeyCode.None || _currentKeyDown != args.KeyCode)
-                        keyControl.RaiseOnKeyDown(args);
-
-                    keyControl.RaiseOnKeyPress(args);
 
                     break;
                 case EventType.KeyUp:
@@ -364,63 +366,12 @@ namespace System.Windows.Forms
         {
             Behaviour = behaviour;
             TabSwitching = true;
-
             _paintEventArgs = new PaintEventArgs();
-            _paintEventArgs.Graphics = new Drawing.Graphics();
+            _paintEventArgs.Graphics = new Graphics();
 
             Cursor.Current = Cursors.Default;
         }
 
-        public void Draw()
-        {
-            // Scale if needed.
-            if (ScaleX != 1f || ScaleY != 1f)
-                UnityEngine.GUI.matrix = UnityEngine.Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(0, Vector3.up), new Vector3(ScaleX, ScaleY, 1));
-
-            GUI.color = Color.white;
-
-            _paintEventArgs.Graphics.FillRate = 0;
-
-            for (int i = 0; i < Forms.Count; i++)
-            {
-                var form = Forms[i];
-                if (form.Visible) form.RaiseOnPaint(_paintEventArgs);
-            }
-
-            for (int i = 0; i < ModalForms.Count; i++)
-            {
-                var form = ModalForms[i];
-                if (form.Visible) form.RaiseOnPaint(_paintEventArgs);
-            }
-
-            for (int i = 0; i < Contexts.Count; i++)
-            {
-                var context = Contexts[i];
-                if (context.Visible) context.RaiseOnPaint(_paintEventArgs);
-            }
-
-            FillRate = _paintEventArgs.Graphics.FillRate;
-
-            if (_dragRender != null && _dragndrop)
-            {
-                var g = new System.Drawing.Graphics();
-                var _dragRenderControl = new Control();
-                g.Control = _dragRenderControl;
-                _dragRender.Invoke(g);
-                _dragRenderControl.Dispose();
-            }
-
-            // ToolTip.
-            ToolTip.OnPaint(_paintEventArgs);
-
-            var cursor = Cursor.CurrentSystem ?? Cursor.Current;
-            cursor.Draw(_paintEventArgs.Graphics,
-                new Drawing.Rectangle(
-                    Control.MousePosition.X,
-                    Control.MousePosition.Y,
-                    (int)(cursor.Size.Width / ScaleX),
-                    (int)(cursor.Size.Height / ScaleY)));
-        }
         public void ProccessKeys()
         {
             // Close context if possible.
@@ -580,7 +531,7 @@ namespace System.Windows.Forms
             // Dispose context first.
             for (int i = 0; i < Contexts.Count; i++)
             {
-                if (!Contexts[i].UWF_Context) continue;
+                if (!Contexts[i].uwfContext) continue;
 
                 var contextControl = Contexts[i];
                 if (Contains(contextControl, hoveredControl)) continue;
@@ -616,15 +567,68 @@ namespace System.Windows.Forms
 
             ProccessMouse(new Drawing.PointF(mArgs.X, mArgs.Y));
         }
+        /// <summary>
+        /// Redrawing the whole screen.
+        /// </summary>
+        public void Redraw()
+        {
+            // Scale if needed.
+            if (ScaleX != 1f || ScaleY != 1f)
+                UnityEngine.GUI.matrix = UnityEngine.Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(0, Vector3.up), new Vector3(ScaleX, ScaleY, 1));
+
+            GUI.color = Color.white;
+
+            _paintEventArgs.Graphics.FillRate = 0;
+
+            for (int i = 0; i < Forms.Count; i++)
+            {
+                var form = Forms[i];
+                if (form.Visible) form.RaiseOnPaint(_paintEventArgs);
+            }
+
+            for (int i = 0; i < ModalForms.Count; i++)
+            {
+                var form = ModalForms[i];
+                if (form.Visible) form.RaiseOnPaint(_paintEventArgs);
+            }
+
+            for (int i = 0; i < Contexts.Count; i++)
+            {
+                var context = Contexts[i];
+                if (context.Visible) context.RaiseOnPaint(_paintEventArgs);
+            }
+
+            FillRate = _paintEventArgs.Graphics.FillRate;
+
+            if (_dragRender != null && _dragndrop)
+            {
+                var g = new Graphics();
+                var _dragRenderControl = new Control();
+                g.Control = _dragRenderControl;
+                _dragRender.Invoke(g);
+                _dragRenderControl.Dispose();
+            }
+
+            // ToolTip.
+            ToolTip.OnPaint(_paintEventArgs);
+
+            var cursor = Cursor.CurrentSystem ?? Cursor.Current;
+            cursor.Draw(_paintEventArgs.Graphics,
+                new Drawing.Rectangle(
+                    Control.MousePosition.X,
+                    Control.MousePosition.Y,
+                    (int)(cursor.Size.Width / ScaleX),
+                    (int)(cursor.Size.Height / ScaleY)));
+        }
         public void Run(Control control)
         {
-            control.UWF_AppOwner = this;
+            control.uwfAppOwner = this;
             //this.Controls.Add(control);
         }
         public void Update()
         {
             // Update hovered control.
-            if (hoveredControl != null)
+            if (hoveredControl != null && _dragndrop == false)
             {
                 var mclient = hoveredControl.PointToClient(Control.MousePosition);
                 var hargs = new MouseEventArgs(MouseButtons.None, 0, mclient.X, mclient.Y, 0);
@@ -641,6 +645,8 @@ namespace System.Windows.Forms
                     hoveredControl.hovered = false;
                     hoveredControl.mouseEntered = false;
                     hoveredControl.RaiseOnMouseLeave(new MouseEventArgs(MouseButtons.None, 0, 0, 0, 0));
+                    if (_dragndrop)
+                        hoveredControl.RaiseOnDragLeave(EventArgs.Empty);
                 }
                 if (controlAtMouse == null)
                     hoveredControl = null;
@@ -654,6 +660,8 @@ namespace System.Windows.Forms
                         controlAtMouse.hovered = true;
                         controlAtMouse.mouseEntered = true;
                         controlAtMouse.RaiseOnMouseEnter(new MouseEventArgs(MouseButtons.None, 0, mclient.X, mclient.Y, 0));
+                        if (_dragndrop)
+                            controlAtMouse.RaiseOnDragEnter(new DragEventArgs(new DataObject(_dragData), 0, mclient.X, mclient.Y, DragDropEffects.None, _dragControlEffects));
                     }
                 }
 
@@ -708,7 +716,7 @@ namespace System.Windows.Forms
 
             UpdateEvent();
         }
-        
+
         internal static void DoDragDrop(object data, DragDropEffects effect, DragDropRenderHandler render = null)
         {
             _dragData = data;
@@ -749,12 +757,9 @@ namespace System.Windows.Forms
             _FillListWithVisibleControls(controlForm, formControls);
 
             var possibleControls = formControls.FindAll(x => x.IsDisposed == false && x.CanSelect && x.TabStop);
-            if (possibleControls.Find(x => x.TabIndex > 0) != null)
-            {
-                possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
-                //possibleControls.Reverse();
-            }
             if (possibleControls.Count == 0) return;
+
+            possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
 
             int controlIndex = possibleControls.FindIndex(x => x == control);
 
@@ -772,12 +777,9 @@ namespace System.Windows.Forms
             _FillListWithVisibleControls(controlForm, formControls);
 
             var possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.CanSelect && x.TabStop);
-            if (possibleControls.Find(x => x.TabIndex > 0) != null)
-            {
-                possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
-                //possibleControls.Reverse();
-            }
             if (possibleControls.Count == 0) return;
+
+            possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
 
             int controlIndex = possibleControls.FindIndex(x => x == control);
 

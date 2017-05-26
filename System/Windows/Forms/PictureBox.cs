@@ -67,7 +67,7 @@ namespace System.Windows.Forms
                         break;
                 }
                 e.Graphics.FillRectangle(new SolidBrush(ImageBackColor), rect);
-                e.Graphics.DrawTexture(Image, rect);
+                e.Graphics.DrawImage(Image, rect);
                 e.Graphics.DrawRectangle(new Pen(ImageBorderColor), rect);
             }
         }

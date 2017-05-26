@@ -19,7 +19,7 @@ namespace System.Windows.Forms
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            e.Graphics.FillRectangle(BackColor, 0, 0, Width, Height);
+            e.Graphics.uwfFillRectangle(BackColor, 0, 0, Width, Height);
             e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
     }

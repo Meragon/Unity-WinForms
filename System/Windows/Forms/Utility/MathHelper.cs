@@ -20,6 +20,10 @@ namespace System.Windows.Forms
                 (2.0 * value1 - 5.0 * value2 + 4.0 * value3 - value4) * amountSquared +
                 (3.0 * value2 - value1 - 3.0 * value3 + value4) * amountCubed));
         }
+        public static byte Clamp(byte value, byte min, byte max)
+        {
+            return (value > max ? max : value) < min ? min : value;
+        }
         public static int Clamp(int value, int min, int max)
         {
             return (value > max ? max : value) < min ? min : value;

@@ -11,7 +11,7 @@ namespace System.Windows.Forms
     public class Button : Control, IButtonControl
     {
         internal ColorF currentBackColor;
-        private readonly Pen borderPen;
+        protected Pen borderPen;
         private DialogResult dialogResult;
 
         private bool _toggleEditor = true;
@@ -96,7 +96,7 @@ namespace System.Windows.Forms
             else
                 currentBackColor = MathHelper.ColorLerp(currentBackColor, DisableColor, 5);
 
-            g.FillRectangle(currentBackColor, 0, 0, Width, Height);
+            g.uwfFillRectangle(currentBackColor, 0, 0, Width, Height);
 
             // Border.
             if (Enabled == false)
@@ -124,17 +124,17 @@ namespace System.Windows.Forms
                 {
                     default:
                     case ImageLayout.None:
-                        g.DrawTexture(imageToPaint, 0, 0, imageToPaint.Width, imageToPaint.Height, imageColorToPaint);
+                        g.uwfDrawImage(imageToPaint, imageColorToPaint, 0, 0, imageToPaint.Width, imageToPaint.Height);
                         break;
                     case ImageLayout.Center:
-                        g.DrawTexture(imageToPaint, 
+                        g.uwfDrawImage(imageToPaint, imageColorToPaint,
                             Width / 2 - imageToPaint.Width / 2, 
                             Height / 2 - imageToPaint.Height / 2, 
                             imageToPaint.Width, 
-                            imageToPaint.Height, imageColorToPaint);
+                            imageToPaint.Height);
                         break;
                     case ImageLayout.Stretch:
-                        g.DrawTexture(imageToPaint, 0, 0, Width, Height, imageColorToPaint);
+                        g.uwfDrawImage(imageToPaint, imageColorToPaint, 0, 0, Width, Height);
                         break;
                     case ImageLayout.Zoom:
                         // TODO: not working.
@@ -143,15 +143,15 @@ namespace System.Windows.Forms
             }
             var textColor = ForeColor;
             if (Enabled == false) textColor = ForeColor + Color.FromArgb(0, 128, 128, 128);
-            g.DrawString(Text, Font, textColor,
+            g.uwfDrawString(Text, Font, textColor,
                     Padding.Left,
                     Padding.Top,
                     Width - Padding.Left - Padding.Right,
                     Height - Padding.Top - Padding.Bottom, TextAlign);
         }
-        protected override object UWF_OnPaintEditor(float width)
+        protected override object uwfOnPaintEditor(float width)
         {
-            var control = base.UWF_OnPaintEditor(width);
+            var control = base.uwfOnPaintEditor(width);
 
             Editor.BeginVertical();
             Editor.NewLine(1);
@@ -161,16 +161,9 @@ namespace System.Windows.Forms
             {
                 Editor.BeginGroup(width - 24);
 
+                Editor.ColorField("      BackColor", BackColor, (c) => { BackColor = c; });
                 Editor.ColorField("      HoverBorderColor", BorderHoverColor, (c) => { BorderHoverColor = c; });
                 Editor.ColorField("      HoverColor", HoverColor, (c) => { HoverColor = c; });
-
-                var editorImage = Editor.ObjectField("      Image", Image, typeof(UnityEngine.Texture2D));
-                if (editorImage.Changed) Image = new Bitmap((UnityEngine.Texture2D)editorImage.Value);
-
-                var editorImageHover = Editor.ObjectField("      ImageHover", ImageHover, typeof(UnityEngine.Texture2D));
-                if (editorImageHover.Changed) ImageHover = new Bitmap((UnityEngine.Texture2D)editorImageHover.Value);
-
-                Editor.ColorField("      BackColor", BackColor, (c) => { BackColor = c; });
                 Editor.ColorField("      ImageColor", ImageColor, (c) => { ImageColor = c; });
                 Editor.ColorField("      NormalBorderColor", BorderColor, (c) => { BorderColor = c; });
 

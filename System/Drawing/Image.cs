@@ -8,18 +8,27 @@ namespace System.Drawing
     [Serializable]
     public abstract class Image
     {
-        internal UnityEngine.Texture2D uTexture { get; set; }
-
-        public Color Color { get; set; }
-        public int Height { get { return uTexture.height; } }
+        internal ITexture uTexture { get; set; }
+        
+        public int Height { get { return uTexture.Height; } }
         public Size Size { get { return new Size(Width, Height); } }
-        public int Width { get { return uTexture.width; } }
-
-        public static Image FromTexture(UnityEngine.Texture2D original)
-        {
-            return new Bitmap(original);
-        }
-
+        public object Tag { get; set; }
+        public int Width { get { return uTexture.Width; } }
+        
         public abstract void Apply();
+    }
+
+    public interface ITexture
+    {
+        int Height { get; }
+        int Width { get; }
+
+        void Apply();
+        Color GetPixel(int x, int y);
+        Color[] GetPixels();
+        Color[] GetPixels(int x, int y, int width, int height);
+        void SetPixel(int x, int y, Color color);
+        void SetPixels(Color[] colors);
+        void SetPixels(int x, int y, int width, int height, Color[] colors);
     }
 }

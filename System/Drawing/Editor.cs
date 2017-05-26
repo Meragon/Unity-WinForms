@@ -108,7 +108,7 @@ namespace System.Drawing
 #if UNITY_EDITOR
             else
             {
-                colorBuffer = System.Drawing.Color.FromUColor(UnityEditor.EditorGUILayout.ColorField(value.ToUColor(), UnityEngine.GUILayout.Width(_contentWidth)));
+                colorBuffer = UnityEditor.EditorGUILayout.ColorField(value.ToUColor(), UnityEngine.GUILayout.Width(_contentWidth)).ToColor();
                 if (colorBuffer != value && setColor != null)
                     setColor.Invoke(colorBuffer);
             }

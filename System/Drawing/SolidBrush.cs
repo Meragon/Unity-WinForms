@@ -11,10 +11,12 @@ namespace System.Drawing
 
         public static bool operator!=(SolidBrush left, SolidBrush right)
         {
-            return left.Color != right.Color;
+            return !(left == right);
         }
         public static bool operator==(SolidBrush left, SolidBrush right)
         {
+            if (object.ReferenceEquals(left, null) || object.ReferenceEquals(right, null)) return false;
+
             return left.Color == right.Color;
         }
 
@@ -27,14 +29,6 @@ namespace System.Drawing
         {
             SolidBrush brush = new SolidBrush(this.Color);
             return brush;
-        }
-        public override bool Equals(object obj)
-        {
-            return base.Equals(obj);
-        }
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
         }
     }
 }

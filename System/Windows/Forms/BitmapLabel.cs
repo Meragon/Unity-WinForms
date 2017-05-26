@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
-using DiaLib.Blocks.Signal_Manipulation;
 using UnityEngine;
 using Color = System.Drawing.Color;
 
@@ -55,12 +54,12 @@ namespace System.Windows.Forms
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            e.Graphics.FillRectangle(BackColor, 0, 0, Width, Height);
-            e.Graphics.DrawTexture(bmText.uTexture, 0, 0, bmText.Width, bmText.Height, ForeColor);
+            e.Graphics.uwfFillRectangle(BackColor, 0, 0, Width, Height);
+            e.Graphics.uwfDrawImage(bmText, ForeColor, 0, 0, bmText.Width, bmText.Height);
         }
-        protected override object UWF_OnPaintEditor(float width)
+        protected override object uwfOnPaintEditor(float width)
         {
-            var control = base.UWF_OnPaintEditor(width);
+            var control = base.uwfOnPaintEditor(width);
 
             Editor.NewLine(1);
 

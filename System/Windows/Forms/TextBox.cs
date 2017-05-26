@@ -59,15 +59,15 @@ namespace System.Windows.Forms
             var textW = Width - Padding.Horizontal;
             var textH = Height - Padding.Vertical;
 
-            g.FillRectangle(BackColor, 0, 0, Width, Height);
+            g.uwfFillRectangle(BackColor, 0, 0, Width, Height);
 
             if (Enabled && Focused)
             {
                 var _tempText = "";
                 if (!Multiline)
-                    _tempText = g.DrawTextField(Text, Font, ForeColor, textX, textY, textW, textH, TextAlign);
+                    _tempText = g.uwfDrawTextField(Text, Font, ForeColor, textX, textY, textW, textH, TextAlign);
                 else
-                    _tempText = g.DrawTextArea(Text, Font, ForeColor, textX, textY, textW, textH);
+                    _tempText = g.uwfDrawTextArea(Text, Font, ForeColor, textX, textY, textW, textH);
 
                 if (ReadOnly == false && string.Equals(Text, _tempText) == false)
                     Text = _tempText;
@@ -75,16 +75,16 @@ namespace System.Windows.Forms
             else
             {
                 if (Multiline)
-                    g.DrawString(Text, Font, ForeColor, textX, textY, textW, textH, ContentAlignment.TopLeft);
+                    g.uwfDrawString(Text, Font, ForeColor, textX, textY, textW, textH, ContentAlignment.TopLeft);
                 else
-                    g.DrawString(Text, Font, ForeColor, textX, textY, textW, textH, TextAlign);
+                    g.uwfDrawString(Text, Font, ForeColor, textX, textY, textW, textH, TextAlign);
             }
 
             g.DrawRectangle(_borderPen, 0, 0, Width, Height);
         }
-        protected override object UWF_OnPaintEditor(float width)
+        protected override object uwfOnPaintEditor(float width)
         {
-            var control = base.UWF_OnPaintEditor(width);
+            var control = base.uwfOnPaintEditor(width);
 
 #if UNITY_EDITOR
 

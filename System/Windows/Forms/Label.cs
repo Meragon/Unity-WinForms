@@ -30,12 +30,12 @@ namespace System.Windows.Forms
 
             Graphics g = e.Graphics;
 
-            g.FillRectangle(BackColor, 0, 0, Width, Height);
-            g.DrawString(Text, Font, ForeColor, Padding.Left, Padding.Top, Width - Padding.Right - Padding.Left, Height - Padding.Bottom - Padding.Top, TextAlign);
+            g.uwfFillRectangle(BackColor, 0, 0, Width, Height);
+            g.uwfDrawString(Text, Font, ForeColor, Padding.Left, Padding.Top, Width - Padding.Right - Padding.Left, Height - Padding.Bottom - Padding.Top, TextAlign);
         }
-        protected override object UWF_OnPaintEditor(float width)
+        protected override object uwfOnPaintEditor(float width)
         {
-            var control = base.UWF_OnPaintEditor(width);
+            var control = base.uwfOnPaintEditor(width);
 
 #if UNITY_EDITOR
             Editor.BeginVertical();
