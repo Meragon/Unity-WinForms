@@ -10,7 +10,11 @@ namespace System.Windows.Forms
     [Serializable]
     public class Button : Control, IButtonControl
     {
-        internal ColorF currentBackColor;
+        internal Color currentBackColor;
+        private float cBackColorA;
+        private float cBackColorR;
+        private float cBackColorG;
+        private float cBackColorB;
         protected Pen borderPen;
         private DialogResult dialogResult;
 
@@ -52,6 +56,10 @@ namespace System.Windows.Forms
 
             borderPen = new Pen(BorderColor);
             currentBackColor = BackColor;
+            cBackColorA = currentBackColor.A;
+            cBackColorR = currentBackColor.R;
+            cBackColorG = currentBackColor.G;
+            cBackColorB = currentBackColor.B;
         }
 
         public void NotifyDefault(bool value)
@@ -89,12 +97,14 @@ namespace System.Windows.Forms
             if (Enabled)
             {
                 if (Hovered == false)
-                    currentBackColor = MathHelper.ColorLerp(currentBackColor, BackColor, 5);
+                    MathHelper.ColorLerp(BackColor, 5, ref cBackColorA, ref cBackColorR, ref cBackColorG, ref cBackColorB);
                 else
-                    currentBackColor = MathHelper.ColorLerp(currentBackColor, HoverColor, 5);
+                    MathHelper.ColorLerp(HoverColor, 5, ref cBackColorA, ref cBackColorR, ref cBackColorG, ref cBackColorB);
             }
             else
-                currentBackColor = MathHelper.ColorLerp(currentBackColor, DisableColor, 5);
+                MathHelper.ColorLerp(DisableColor, 5, ref cBackColorA, ref cBackColorR, ref cBackColorG, ref cBackColorB);
+
+            currentBackColor = Color.FromArgb((int)cBackColorA, (int)cBackColorR, (int)cBackColorG, (int)cBackColorB);
 
             g.uwfFillRectangle(currentBackColor, 0, 0, Width, Height);
 
@@ -109,7 +119,7 @@ namespace System.Windows.Forms
                 borderPen.Color = BorderColor;
 
             g.DrawRectangle(borderPen, 0, 0, Width, Height);
-            
+
             if (Image != null && Image.uTexture != null)
             {
                 var imageToPaint = Image;
@@ -128,9 +138,9 @@ namespace System.Windows.Forms
                         break;
                     case ImageLayout.Center:
                         g.uwfDrawImage(imageToPaint, imageColorToPaint,
-                            Width / 2 - imageToPaint.Width / 2, 
-                            Height / 2 - imageToPaint.Height / 2, 
-                            imageToPaint.Width, 
+                            Width / 2 - imageToPaint.Width / 2,
+                            Height / 2 - imageToPaint.Height / 2,
+                            imageToPaint.Width,
                             imageToPaint.Height);
                         break;
                     case ImageLayout.Stretch:

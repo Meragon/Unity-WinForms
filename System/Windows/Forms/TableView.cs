@@ -664,7 +664,7 @@ namespace System.Windows.Forms
             {
                 if (resizing)
                 {
-                    var dif = PointToScreen(e.Location) - resizeStartMouseLocation;
+                    var dif = PointToScreen(e.Location).Subtract(resizeStartMouseLocation);
                     switch (resizeType)
                     {
                         case resizeTypes.Left:

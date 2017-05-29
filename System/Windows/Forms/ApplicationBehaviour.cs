@@ -99,14 +99,15 @@ namespace System.Windows.Forms
             _lastWidth = UnityEngine.Screen.width;
             _lastHeight = UnityEngine.Screen.height;
 
-            _controller.Update();
+            if (_controller != null)
+                _controller.Update();
 
             for (int i = 0; i < actions.Count; i++)
             {
                 var a = actions[i];
                 a.Seconds -= Time.deltaTime;
                 if (a.Seconds > 0) continue;
-                
+
                 a.Action();
                 actions.RemoveAt(i);
                 i--;
@@ -120,6 +121,8 @@ namespace System.Windows.Forms
         }
         private void OnGUI()
         {
+            if (_controller == null) return;
+
             if (_paused == false)
             {
                 _controller.ProccessMouse(Input.mousePosition.x, UnityEngine.Screen.height - Input.mousePosition.y);

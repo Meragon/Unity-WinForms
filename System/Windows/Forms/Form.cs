@@ -428,9 +428,9 @@ namespace System.Windows.Forms
             if (_windowMove)
             {
                 if (Parent == null)
-                    Location = PointToScreen(e.Location) - _windowMove_StartPosition;
+                    Location = PointToScreen(e.Location).Subtract(_windowMove_StartPosition);
                 else
-                    Location = Parent.PointToClient(PointToScreen(e.Location) - _windowMove_StartPosition);
+                    Location = Parent.PointToClient(PointToScreen(e.Location).Subtract(_windowMove_StartPosition));
             }
             else
                 GetResizeAt(e.Location);

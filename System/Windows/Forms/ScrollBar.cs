@@ -18,7 +18,11 @@ namespace System.Windows.Forms
         private int minimum = 0;
         private readonly int minScrollSize = 17;
         private bool scrollCanDrag;
-        private ColorF scrollCurrentColor;
+        private Color scrollCurrentColor;
+        private float scrollCurrentColorA;
+        private float scrollCurrentColorR;
+        private float scrollCurrentColorG;
+        private float scrollCurrentColorB;
         private Color scrollDestinationColor;
         private Point scrollDragStartLocation;
         private Point scrollDragRectOffset;
@@ -84,7 +88,12 @@ namespace System.Windows.Forms
         {
             BackColor = Color.FromArgb(240, 240, 240);
             ScrollColor = Color.FromArgb(205, 205, 205);
-            ScrollHoverColor = Color.FromArgb(192, 192, 192);
+            ScrollHoverColor = Color.FromArgb(166, 166, 166);
+            scrollCurrentColor = ScrollColor;
+            scrollCurrentColorA = scrollCurrentColor.A;
+            scrollCurrentColorR = scrollCurrentColor.R;
+            scrollCurrentColorG = scrollCurrentColor.G;
+            scrollCurrentColorB = scrollCurrentColor.B;
 
             var backColor = Color.FromArgb(240, 240, 240);
             var backHoverColor = Color.FromArgb(218, 218, 218);
@@ -226,7 +235,7 @@ namespace System.Windows.Forms
             if (barSize < minScrollSize)
                 barSize = minScrollSize;
 
-            scrollLength -= barSize; // Addjusted range for scroll bar, depending on size.
+            scrollLength -= barSize; // Adjusted range for scroll bar, depending on size.
             var valueDl = (int)scrollLength + minimum;
             if (valueDl == 0) return;
 
@@ -342,7 +351,7 @@ namespace System.Windows.Forms
             {
                 scrollCanDrag = true;
                 scrollDragStartLocation = e.Location;
-                scrollDragRectOffset = e.Location - scrollRect.Location;
+                scrollDragRectOffset = e.Location.Subtract(scrollRect.Location);
             }
             else
             {
@@ -405,11 +414,12 @@ namespace System.Windows.Forms
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            if (Hovered)
+            if (Hovered || scrollDraging)
                 scrollDestinationColor = ScrollHoverColor;
             else
                 scrollDestinationColor = ScrollColor;
-            scrollCurrentColor = MathHelper.ColorLerp(scrollCurrentColor, scrollDestinationColor, 4);
+            MathHelper.ColorLerp(scrollDestinationColor, 4, ref scrollCurrentColorA, ref scrollCurrentColorR, ref scrollCurrentColorG, ref scrollCurrentColorB);
+            scrollCurrentColor = Color.FromArgb((int)scrollCurrentColorA, (int)scrollCurrentColorR, (int)scrollCurrentColorR, (int)scrollCurrentColorB);
 
             if (scrollOrientation == ScrollOrientation.HorizontalScroll)
             {
@@ -446,6 +456,7 @@ namespace System.Windows.Forms
                     Minimum = editorMinimum.Value[0];
 
                 Editor.ColorField("ScrollColor", ScrollColor, (c) => { ScrollColor = c; });
+                Editor.ColorField("ScrollHoverColor", ScrollHoverColor, (c) => { ScrollHoverColor = c; });
                 Editor.Label("scrollRect", scrollRect);
 
                 var editorSmallChange = Editor.IntField("SmallChange", SmallChange);

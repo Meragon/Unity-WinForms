@@ -312,10 +312,6 @@ namespace System.Windows.Forms
         }
         public Point PointToClient(Point p)
         {
-            return PointToClient(new PointF(p.X, p.Y));
-        }
-        public PointF PointToClient(PointF p)
-        {
             if (Parent != null)
                 p = Parent.PointToClient(p);
 
@@ -770,7 +766,7 @@ namespace System.Windows.Forms
                 {
                     uwfShadowHandler = (pArgs) =>
                     {
-                        var psLoc = PointToScreen(Point.Zero);
+                        var psLoc = PointToScreen(Point.Empty);
                         int shX = psLoc.X + 6;
                         int shY = psLoc.Y + 6;
                         var shadowColor = defaultShadowColor;
@@ -804,7 +800,7 @@ namespace System.Windows.Forms
                     var childControl = Controls[i];
                     if (Application.ControlIsVisible(childControl) == false) continue;
 
-                    var currentAbspos = childControl.PointToScreen(Point.Zero);
+                    var currentAbspos = childControl.PointToScreen(Point.Empty);
                     if (currentAbspos.X + childControl.Width < 0 || currentAbspos.X > Screen.PrimaryScreen.WorkingArea.Width ||
                     currentAbspos.Y + childControl.Height < 0 || currentAbspos.Y > Screen.PrimaryScreen.WorkingArea.Height)
                         continue;
@@ -835,7 +831,7 @@ namespace System.Windows.Forms
         }
         internal void RaiseOnResize(Point delta)
         {
-            if (delta != Point.Zero)
+            if (delta != Point.Empty)
                 if (Controls != null)
                     for (int i = 0; i < Controls.Count; i++)
                         Controls[i].ParentResized(delta);

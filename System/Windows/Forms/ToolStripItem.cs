@@ -31,7 +31,7 @@ namespace System.Windows.Forms
                 selectPen.Color = HoverColor - Color.FromArgb(0, 64, 64, 64);
             }
         }
-        public Rectangle HoverPadding { get; set; }
+        public Size HoverPadding { get; set; }
         public virtual Bitmap Image { get; set; }
         public Color ImageColor { get; set; }
         public string Name { get; set; }
@@ -55,7 +55,7 @@ namespace System.Windows.Forms
             Font = new Font("Arial", 12);
             ForeColor = Color.FromArgb(64, 64, 64);
             HoverColor = Color.FromArgb(64, 200, 200, 200);
-            HoverPadding = new Rectangle(2, 2, -4, -4);
+            HoverPadding = new Size(2, 2);
             ImageColor = Color.White;
             Name = "toolStripItem";
             Padding = new Forms.Padding(8, 0, 8, 0);
@@ -108,12 +108,13 @@ namespace System.Windows.Forms
                 g.uwfDrawImage(Image, ImageColor, ex + 6, ey + 4, 12, 12);
             if (Enabled)
             {
+                var rect = Rectangle.Inflate(e.ClipRectangle, -HoverPadding.Width, -HoverPadding.Height);
                 if (!Selected)
                 {
                     if (_hovered)
                     {
-                        g.uwfFillRectangle(HoverColor, e.ClipRectangle + HoverPadding);
-                        g.DrawRectangle(selectPen, e.ClipRectangle + HoverPadding);
+                        g.uwfFillRectangle(HoverColor, rect);
+                        g.DrawRectangle(selectPen, rect);
                     }
                 }
                 else
@@ -122,8 +123,8 @@ namespace System.Windows.Forms
                         g.uwfFillRectangle(Color.FromArgb(246, 246, 246), e.ClipRectangle);
                     else
                     {
-                        g.uwfFillRectangle(HoverColor, e.ClipRectangle + HoverPadding);
-                        g.DrawRectangle(selectPen, e.ClipRectangle + HoverPadding);
+                        g.uwfFillRectangle(HoverColor, rect);
+                        g.DrawRectangle(selectPen, rect);
                     }
                 }
             }
@@ -280,10 +281,10 @@ namespace System.Windows.Forms
                     height += DropDownItems[i].Height;
                 _dropDownToolStrip.Size = new Size(DropDownItems[0].Width, height);
 
-                var parentLocationClient = Parent.PointToScreen(Point.Zero);
+                var parentLocationClient = Parent.PointToScreen(Point.Empty);
                 if (Parent.Orientation == Orientation.Horizontal)
                 {
-                    _dropDownToolStrip.Location = new Point(parentLocationClient.X + x + Parent.Padding.Left, parentLocationClient.Y + Parent.Height - HoverPadding.Y - 1);
+                    _dropDownToolStrip.Location = new Point(parentLocationClient.X + x + Parent.Padding.Left, parentLocationClient.Y + Parent.Height - HoverPadding.Height - 1);
                     _dropDownToolStrip.BorderColor = Color.Transparent;
                 }
                 else

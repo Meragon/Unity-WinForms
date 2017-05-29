@@ -63,7 +63,7 @@ namespace System.Windows.Forms
                         float newLeft = (Width - newWidth) / 2f;
                         float newTop = (Height - newHeight) / 2f;
 
-                        rect = new RectangleF(newLeft, newTop, newWidth, newHeight);
+                        rect = new Rectangle((int)newLeft, (int)newTop, (int)newWidth, (int)newHeight);
                         break;
                 }
                 e.Graphics.FillRectangle(new SolidBrush(ImageBackColor), rect);

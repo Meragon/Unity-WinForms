@@ -24,7 +24,7 @@ namespace System.Windows.Forms
             if (control == null)
                 Location = position;
             else
-                Location = control.PointToScreen(Point.Empty) + position;
+                Location = control.PointToScreen(Point.Empty).Add(position);
             int height = 0;
             int width = 160;
             for (int i = 0; i < Items.Count; i++)

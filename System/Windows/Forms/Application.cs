@@ -220,7 +220,7 @@ namespace System.Windows.Forms
             //Application.Log(control.Name);
             if (control == null || control.Parent == null) return currentControl;
 
-            var parentLocation = control.Parent.PointToScreen(System.Drawing.Point.Zero);
+            var parentLocation = control.Parent.PointToScreen(System.Drawing.Point.Empty);
             var parentRect = new System.Drawing.RectangleF(parentLocation.X, parentLocation.Y, control.Parent.Width, control.Parent.Height);
             if (parentRect.Contains(mousePosition) == true)
                 currentControl = control.Parent;
@@ -232,7 +232,7 @@ namespace System.Windows.Forms
         private static bool _ProcessControl(System.Drawing.PointF mousePosition, Control control, bool ignore_rect)
         {
             // ignore_rect will call mouse_up & mouse_move in any case.
-            var c_location = control.PointToScreen(System.Drawing.Point.Zero);
+            var c_location = control.PointToScreen(System.Drawing.Point.Empty);
             var clientRect = new System.Drawing.RectangleF(c_location.X, c_location.Y, control.Width, control.Height);
             var contains = clientRect.Contains(mousePosition);
 
@@ -249,7 +249,7 @@ namespace System.Windows.Forms
 
             if (ignore_rect || contains)
             {
-                var client_mpos = control.PointToClient(mousePosition);
+                var client_mpos = control.PointToClient(new Point((int)mousePosition.X, (int)mousePosition.Y));
                 if (mousePositionChanged)
                 {
                     var m_args = new MouseEventArgs(MouseButtons.None, 0, (int)client_mpos.X, (int)client_mpos.Y, 0);

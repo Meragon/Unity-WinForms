@@ -47,13 +47,13 @@ namespace System.Drawing
         }
         public void SetPixel(int x, int y, Color color)
         {
-            texture.SetPixel(x, y, color.ToUColor());
+            texture.SetPixel(x, y, color.ToUnityColor());
         }
         public void SetPixels(Color[] colors)
         {
             var ucs = new UnityEngine.Color32[colors.Length];
             for (int i = 0; i < ucs.Length; i++)
-                ucs[i] = colors[i].ToUColor();
+                ucs[i] = colors[i].ToUnityColor();
 
             texture.SetPixels32(ucs);
         }
@@ -61,7 +61,7 @@ namespace System.Drawing
         {
             var ucs = new UnityEngine.Color32[colors.Length];
             for (int i = 0; i < ucs.Length; i++)
-                ucs[i] = colors[i].ToUColor();
+                ucs[i] = colors[i].ToUnityColor();
 
             texture.SetPixels32(x, y, width, height, ucs);
         }

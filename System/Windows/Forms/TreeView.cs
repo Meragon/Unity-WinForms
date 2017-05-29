@@ -421,7 +421,9 @@ namespace System.Windows.Forms
                 
                 OnDrawNode(nodeArgs); 
             }
-
+        }
+        protected override void OnLatePaint(PaintEventArgs e)
+        {
             e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
         protected override object uwfOnPaintEditor(float width)

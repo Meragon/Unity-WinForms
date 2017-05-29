@@ -26,7 +26,7 @@ namespace System.Drawing
         internal Rectangle Group { get; set; }
         internal void GroupBegin(Control groupControl)
         {
-            var c_position = Control.Location + Control.uwfOffset;//Control.PointToScreen(Point.Zero);
+            var c_position = new Point(Control.Location.X + Control.uwfOffset.X, Control.Location.Y + Control.uwfOffset.Y);//Control.PointToScreen(Point.Zero);
             GUI.BeginGroup(new Rect((c_position.X + Group.X), (c_position.Y + Group.Y), Group.Width, Group.Height));
             _groupControls.Add(groupControl);
         }
@@ -163,7 +163,7 @@ namespace System.Drawing
                 //GL.LoadOrtho();
 
                 GL.Begin(GL.LINES);
-                GL.Color(pen.Color.ToUColor());
+                GL.Color(pen.Color.ToUnityColor());
 
                 // TODO: switch (pen.DashStyle) { ... }
                 var loc = Control.PointToScreen(Point.Empty);
@@ -226,7 +226,7 @@ namespace System.Drawing
                 }
             }
 
-            GUI.color = pen.Color.ToUColor();
+            GUI.color = pen.Color.ToUnityColor();
 
             switch (pen.DashStyle)
             {
@@ -278,7 +278,7 @@ namespace System.Drawing
                 if (i + 1 >= points.Length) break;
 
                 GL.Begin(GL.LINES);
-                GL.Color(pen.Color.ToUColor());
+                GL.Color(pen.Color.ToUnityColor());
 
                 GL.Vertex3(points[i].X, points[i].Y, 0);
                 GL.Vertex3(points[i + 1].X, points[i + 1].Y, 0);
@@ -298,7 +298,7 @@ namespace System.Drawing
         {
             if (NoRects) return;
             if (pen.Color.A <= 0 || pen.Width <= 0) return;
-            GUI.color = pen.Color.ToUColor();
+            GUI.color = pen.Color.ToUnityColor();
 
             switch (pen.DashStyle)
             {
@@ -490,18 +490,18 @@ namespace System.Drawing
                 GUI.skin.textField.fontSize = 12;
             }
 
-            GUI.color = brush.Color.ToUColor();
+            GUI.color = brush.Color.ToUnityColor();
 
             if (!_group)
             {
-                var c_position = Control.PointToScreen(Point.Zero);
+                var c_position = Control.PointToScreen(Point.Empty);
                 return GUI.PasswordField(new Rect(c_position.X + x, c_position.Y + y, width, height), s, '*');
             }
             else
             {
-                var c_position = Control.PointToScreen(Point.Zero);
-                var g_position = _groupControlLast.PointToScreen(Point.Zero);
-                var position = c_position - g_position + new PointF(x, y);
+                var c_position = Control.PointToScreen(Point.Empty);
+                var g_position = _groupControlLast.PointToScreen(Point.Empty);
+                var position = new PointF(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y);
 
                 return GUI.PasswordField(new Rect(position.X, position.Y, width, height), s, '*');
             }
@@ -511,7 +511,7 @@ namespace System.Drawing
             if (NoRects) return;
             if (color.A <= 0) return;
 
-            GUI.color = color.ToUColor();
+            GUI.color = color.ToUnityColor();
 
             if (Control != null)
                 Control.uwfBatches += 2;
@@ -608,7 +608,7 @@ namespace System.Drawing
 
             GUI.skin.textArea.alignment = TextAnchor.UpperLeft;
 
-            GUI.color = color.ToUColor();
+            GUI.color = color.ToUnityColor();
             //GUI.skin.textArea.hover.textColor = brush.Color.ToUColor();
 
             GUI_SetFont(GUI.skin.textArea, font);
@@ -658,7 +658,7 @@ namespace System.Drawing
 
             GUI_SetFont(GUI.skin.textField, font);
 
-            GUI.color = color.ToUColor();
+            GUI.color = color.ToUnityColor();
             GUI.skin.textField.hover.background = null;
             GUI.skin.textField.active.background = null;
             GUI.skin.textField.focused.background = null;
@@ -706,7 +706,7 @@ namespace System.Drawing
 
             FillRate += width * height;
 
-            GUI.color = color.ToUColor();
+            GUI.color = color.ToUnityColor();
 
             if (angle != 0)
             {
@@ -729,7 +729,7 @@ namespace System.Drawing
             Control.uwfBatches++;
             FillRate += width * height;
 
-            mat.color = color.ToUColor();
+            mat.color = color.ToUnityColor();
             UnityEngine.Graphics.DrawTexture(new Rect(x, y, width, height), texture, mat);
         }
         public void uwfFillPolygonConvex(SolidBrush brush, PointF[] points)
@@ -739,12 +739,12 @@ namespace System.Drawing
             if (DefaultMaterial != null)
             {
                 DefaultMaterial.SetPass(0);
-                DefaultMaterial.color = brush.Color.ToUColor();
+                DefaultMaterial.color = brush.Color.ToUnityColor();
             }
 
             GL.Begin(GL.TRIANGLES);
 
-            var color = brush.Color.ToUColor();
+            var color = brush.Color.ToUnityColor();
             GL.Color(color);
 
             for (int i = 1; i + 1 < points.Length; i += 1)
@@ -792,7 +792,7 @@ namespace System.Drawing
         {
             GL.Begin(GL.QUADS);
 
-            GL.Color(color.ToUColor());
+            GL.Color(color.ToUnityColor());
 
             GL.Vertex3(p1.X, p1.Y, 0);
             GL.Vertex3(p2.X, p2.Y, 0);

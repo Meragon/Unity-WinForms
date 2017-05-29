@@ -393,8 +393,8 @@ namespace System.Windows.Forms
                     listBox.EnsureVisible();
                 }
 
-                var gpoint = PointToScreen(Point.Zero);
-                listBox.Location = gpoint + new Point(0, Height);
+                var gpoint = PointToScreen(Point.Empty);
+                listBox.Location = new Point(gpoint.X, gpoint.Y + Height);
                 listBox.MouseUp += ListBoxOnMouseUp;
                 listBox.KeyDown += ListBoxOnKeyDown;
                 listBox.OnDisposing += ListBoxOnOnDisposing;

@@ -32,14 +32,21 @@ namespace System.Windows.Forms
         {
             return (value > max ? max : value) < min ? min : value;
         }
-        public static ColorF ColorLerp(ColorF from, Color to, float speed)
+        public static Color ColorLerp(Color from, Color to, float speed)
         {
             if (from == to) return from;
-            var r = FloatLerp(from.R, to.R, speed);
-            var g = FloatLerp(from.G, to.G, speed);
-            var b = FloatLerp(from.B, to.B, speed);
-            var a = FloatLerp(from.A, to.A, speed);
-            return ColorF.FromArgb(a, r, g, b);
+            var r = (int)Math.Ceiling(FloatLerp(from.R, to.R, speed));
+            var g = (int)Math.Ceiling(FloatLerp(from.G, to.G, speed));
+            var b = (int)Math.Ceiling(FloatLerp(from.B, to.B, speed));
+            var a = (int)Math.Ceiling(FloatLerp(from.A, to.A, speed));
+            return Color.FromArgb(a, r, g, b);
+        }
+        public static void ColorLerp(Color to, float speed, ref float a, ref float r, ref float g, ref float b)
+        {
+            r = FloatLerp(r, to.R, speed);
+            g = FloatLerp(g, to.G, speed);
+            b = FloatLerp(b, to.B, speed);
+            a = FloatLerp(a, to.A, speed);
         }
         public static double DistanceD(float x1, float y1, float x2, float y2)
         {

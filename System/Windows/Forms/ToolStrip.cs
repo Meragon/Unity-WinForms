@@ -213,7 +213,7 @@ namespace System.Windows.Forms
         {
             uwfShadowHandler = (g) =>
             {
-                var loc = PointToScreen(Point.Zero);
+                var loc = PointToScreen(Point.Empty);
                 var color = Color.FromArgb(12, 64, 64, 64);
                 g.Graphics.uwfFillRectangle(color, loc.X - 3, loc.Y, Width + 6, Height + 3);
                 g.Graphics.uwfFillRectangle(color, loc.X - 2, loc.Y, Width + 4, Height + 2);

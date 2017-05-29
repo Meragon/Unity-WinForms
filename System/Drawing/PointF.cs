@@ -1,79 +1,99 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
 namespace System.Drawing
 {
-    public struct PointF
+    public struct PointF : IEquatable<PointF>
     {
-        private float _x;
-        private float _y;
+        private float x, y;
 
-        public static readonly PointF Empty = default(PointF);
+        public static readonly Point Empty = new Point();
 
-        public static implicit operator Point(PointF p)
+        public static PointF operator +(PointF pt, Size sz)
         {
-            return new Point((int)p.X, (int)p.Y);
+            return Add(pt, sz);
         }
-
+        public static PointF operator -(PointF pt, Size sz)
+        {
+            return Subtract(pt, sz);
+        }
+        public static PointF operator +(PointF pt, SizeF sz)
+        {
+            return Add(pt, sz);
+        }
+        public static PointF operator -(PointF pt, SizeF sz)
+        {
+            return Subtract(pt, sz);
+        }
         public static bool operator ==(PointF left, PointF right)
         {
-            if (left.X == right.X && left.Y == right.Y)
-                return true;
-            return false;
+            return left.X == right.X && left.Y == right.Y;
         }
         public static bool operator !=(PointF left, PointF right)
         {
             return !(left == right);
         }
 
-        public static PointF Zero { get { return new PointF(0, 0); } }
-
-        public UnityEngine.Vector2 AsVector2 { get { return new UnityEngine.Vector2(_x, _y); } }
-        public float X { get { return _x; } set { _x = value; } }
-        public float Y { get { return _y; } set { _y = value; } }
+        public bool IsEmpty
+        {
+            get { return x == 0 && y == 0; }
+        }
+        public float X { get { return x; } set { x = value; } }
+        public float Y { get { return y; } set { y = value; } }
 
         public PointF(float x, float y)
         {
-            _x = 0;
-            _y = 0;
+            this.x = 0;
+            this.y = 0;
 
             X = x;
             Y = y;
         }
 
-        public float Distance(PointF to)
+        public bool Equals(PointF other)
         {
-            return (float)Math.Sqrt(Math.Pow(to.X - X, 2) + Math.Pow(to.Y - Y, 2));
+            return x == other.x && y == other.y;
         }
-        public void Offset(Point point)
-        {
-            _x += point.X;
-            _y += point.Y;
-        }
-        public static Point FromVector2(UnityEngine.Vector2 vector)
-        {
-            return new PointF(vector.x, vector.y);
-        }
-
         public override bool Equals(object obj)
         {
-            if (!(obj is PointF))
-            {
-                return false;
-            }
-            PointF point = (PointF)obj;
-            return point.X == this.X && point.Y == this.Y;
+            if (!(obj is PointF)) return false;
+            PointF comp = (PointF)obj;
+            return comp.X == this.X && comp.Y == this.Y && comp.GetType() == this.GetType();
         }
         public override int GetHashCode()
         {
             return base.GetHashCode();
         }
-        public override string ToString()
+        public void Offset(int dx, int dy)
         {
-            return "{ X: " + X.ToString() + "; Y: " + Y.ToString() + " }";
+            X += dx;
+            Y += dy;
+        }
+        public void Offset(Point point)
+        {
+            x += point.X;
+            y += point.Y;
+        }
+
+        public static PointF Add(PointF pt, Size sz)
+        {
+            return new PointF(pt.X + sz.Width, pt.Y + sz.Height);
+        }
+        public static PointF Subtract(PointF pt, Size sz)
+        {
+            return new PointF(pt.X - sz.Width, pt.Y - sz.Height);
+        }
+        public static PointF Add(PointF pt, SizeF sz)
+        {
+            return new PointF(pt.X + sz.Width, pt.Y + sz.Height);
+        }
+        public static PointF Subtract(PointF pt, SizeF sz)
+        {
+            return new PointF(pt.X - sz.Width, pt.Y - sz.Height);
         }
     }
 }

@@ -87,7 +87,7 @@ namespace System.Windows.Forms
                 case ScrollOrientation.HorizontalScroll:
                     //if (ScrollOffset.X + _scrollDelta > _scrollMinX &&
                     //    ScrollOffset.X + _scrollDelta < _scrollMaxX)
-                    _scrollOffset += new int[] { _scrollDelta, 0 };
+                    //_scrollOffset += new int[] { _scrollDelta, 0 };
                     break;
                 case ScrollOrientation.VerticalScroll:
                     bool scrollDown = _scrollDelta < 0;
@@ -118,7 +118,7 @@ namespace System.Windows.Forms
                     //if (ScrollOffset.Y + _scrollDelta > _scrollMinY &&
                     //    ScrollOffset.Y + _scrollDelta < _scrollMaxY)
                     
-                    _scrollOffset -= new int[] { 0, _scrollDelta };
+                    //_scrollOffset -= new int[] { 0, _scrollDelta };
                     break;
             }
             //Application.Log(ScrollOffset);

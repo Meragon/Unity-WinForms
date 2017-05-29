@@ -40,13 +40,13 @@ namespace System.Drawing
                 var mat = material as Material;
                 if (mat != null)
                 {
-                    mat.color = color.ToUColor();
+                    mat.color = color.ToUnityColor();
                     UnityEngine.Graphics.DrawTexture(new Rect(x, y, width, height), textureToDraw, mat);
                     return;
                 }
             }
 
-            GUI.color = color.ToUColor();
+            GUI.color = color.ToUnityColor();
             GUI.DrawTexture(new Rect(x, y, width, height), textureToDraw);
         }
         public override void DrawString(string text, Font font, Color color, float x, float y, float width, float height, ContentAlignment align, object material = null)
@@ -90,7 +90,7 @@ namespace System.Drawing
 
             int guiSkinFontSizeBuffer = GUI_SetFont(GUI.skin.label, font);
 
-            GUI.color = color.ToUColor();
+            GUI.color = color.ToUnityColor();
             GUI.skin.label.alignment = uAlign;
             GUI.Label(new Rect(x, y, width, height), text);
 
@@ -98,7 +98,7 @@ namespace System.Drawing
         }
         public override void FillRectangle(Color color, float x, float y, float width, float height, object material = null)
         {
-            GUI.color = color.ToUColor();
+            GUI.color = color.ToUnityColor();
             GUI.DrawTexture(new Rect(x, y, width, height), defaultTexture);
         }
 

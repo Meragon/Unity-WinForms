@@ -63,7 +63,7 @@ namespace System.Windows.Forms
         {
             if (_control != null && _control.Visible && !_control.Disposing)
             {
-                var position = Control.MousePosition + new Point(0, 18);
+                var position = Control.MousePosition.Add(new Point(0, 18));
                 Show(_text, position);
             }
         }

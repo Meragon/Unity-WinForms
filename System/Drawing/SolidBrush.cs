@@ -8,18 +8,7 @@ namespace System.Drawing
     public sealed class SolidBrush : Brush
     {
         public Color Color { get; set; }
-
-        public static bool operator!=(SolidBrush left, SolidBrush right)
-        {
-            return !(left == right);
-        }
-        public static bool operator==(SolidBrush left, SolidBrush right)
-        {
-            if (object.ReferenceEquals(left, null) || object.ReferenceEquals(right, null)) return false;
-
-            return left.Color == right.Color;
-        }
-
+        
         public SolidBrush(Color color)
         {
             Color = color;
@@ -27,7 +16,7 @@ namespace System.Drawing
 
         public override object Clone()
         {
-            SolidBrush brush = new SolidBrush(this.Color);
+            var brush = new SolidBrush(this.Color);
             return brush;
         }
     }
