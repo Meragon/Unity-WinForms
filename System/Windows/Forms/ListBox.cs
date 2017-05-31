@@ -408,9 +408,9 @@ namespace System.Windows.Forms
 
             return control;
         }
-        protected override void OnResize(Point delta)
+        protected override void OnResize(EventArgs e)
         {
-            base.OnResize(delta);
+            base.OnResize(e);
 
             if (IntegralHeight && integralHeightAdjust)
                 AdjustHeight();

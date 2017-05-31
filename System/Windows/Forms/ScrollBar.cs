@@ -473,9 +473,9 @@ namespace System.Windows.Forms
 #endif
             return component;
         }
-        protected override void OnResize(Point delta)
+        protected override void OnResize(EventArgs e)
         {
-            base.OnResize(delta);
+            base.OnResize(e);
             UpdateScrollRect();
         }
         protected virtual void OnScroll(ScrollEventArgs se)

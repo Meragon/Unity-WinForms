@@ -119,7 +119,7 @@ namespace System.Windows.Forms
             Location = new Point(
                 Screen.PrimaryScreen.WorkingArea.Width / 2 - Width / 2,
                 Screen.PrimaryScreen.WorkingArea.Height / 2 - Height / 2);
-            Resizable = false;
+            uwfResizable = false;
             Text = "Pick a color";
             TopMost = true;
 

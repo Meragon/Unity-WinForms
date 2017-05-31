@@ -36,6 +36,8 @@ namespace System.Windows.Forms
         public Color ImageColor { get; set; }
         public Color ImageHoverColor { get; set; }
         public ContentAlignment TextAlign { get; set; }
+        
+        public bool UseVisualStyleBackColor;
 
         public Button()
         {

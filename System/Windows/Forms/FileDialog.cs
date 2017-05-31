@@ -56,7 +56,7 @@ namespace System.Windows.Forms
             MinimumSize = new Drawing.Size(240, 240);
             KeyPreview = true;
             Padding = new Padding(12, 12, 12, 12);
-            ResizeIcon = true;
+            SizeGripStyle = SizeGripStyle.Show;
             Text = "File Dialog";
 
             handleFormSize = false;
@@ -176,7 +176,7 @@ namespace System.Windows.Forms
 
             #region File Render.
             fileRenderer = new FileRenderer(this);
-            fileRenderer.Anchor = AnchorStyles.All;
+            fileRenderer.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
             fileRenderer.Location = new Point(Padding.Left, buttonBack.Location.Y + buttonBack.Height + 8);
             fileRenderer.Name = "fileRenderer";
             fileRenderer.Size = new Drawing.Size(Width - Padding.Left - Padding.Right, textBoxFilename.Location.Y - buttonBack.Location.Y - buttonBack.Height - 16);
@@ -293,9 +293,9 @@ namespace System.Windows.Forms
 
             e.Graphics.DrawLine(borderPen, 1, HeaderHeight, Width - 1, HeaderHeight);
         }
-        protected override void OnResize(Point delta)
+        protected override void OnResize(EventArgs e)
         {
-            base.OnResize(delta);
+            base.OnResize(e);
 
             if (handleFormSize)
                 savedFormSize = Size;
@@ -327,7 +327,7 @@ namespace System.Windows.Forms
                 prevPathes = new List<string>();
 
                 filesTree = new TreeView();
-                filesTree.Anchor = AnchorStyles.All;
+                filesTree.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
                 filesTree.BorderColor = Color.LightGray;
                 filesTree.Size = new Drawing.Size(Width, Height);
                 filesTree.SelectedNodeChanged += filesTree_SelectedNodeChanged;
@@ -629,7 +629,7 @@ namespace System.Windows.Forms
 #if UNITY_STANDALONE
                 Size = new Drawing.Size(320, 120);
                 Location = new Point(Screen.PrimaryScreen.WorkingArea.Width / 2 - Width / 2, Screen.PrimaryScreen.WorkingArea.Height / 2 - Height / 2);
-                Resizable = false;
+                uwfResizable = false;
                 Text = "Properties: ";
 
                 if (System.IO.File.Exists(path) == false) return;

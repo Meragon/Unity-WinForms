@@ -6,16 +6,16 @@ using System.Drawing;
 
 namespace System.Windows.Forms
 {
-    internal class ResizeButton : Button, IResizableControl
+    internal sealed class ResizeButton : Button, IResizableControl
     {
         private bool pressed;
-        private Form owner;
+        private readonly Form owner;
 
         public ResizeButton(Form form, Bitmap img)
         {
             owner = form;
 
-            Anchor = AnchorStyles.BottomRight;
+            Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             CanSelect = false;
             Image = img;
             ImageColor = Color.White;

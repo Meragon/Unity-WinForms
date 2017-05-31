@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Drawing;
@@ -7,19 +8,18 @@ using System.Drawing;
 namespace System.Windows.Forms
 {
     [Serializable]
-    public class PictureBox : Control
+    public class PictureBox : Control, ISupportInitialize
     {
         public Bitmap Image { get; set; }
         public Color ImageBackColor { get; set; }
         public Color ImageBorderColor { get; set; }
         public Color ImageColor { get; set; }
-        public ImageLayout ImageLayout { get; set; }
 
         public PictureBox()
         {
             ImageBackColor = Color.Transparent;
             ImageColor = Color.White;
-            ImageLayout = Forms.ImageLayout.Center;
+            BackgroundImageLayout = Forms.ImageLayout.Center;
             Size = new Size(100, 50);
         }
 
@@ -29,7 +29,7 @@ namespace System.Windows.Forms
             if (Image != null && Image.uTexture != null)
             {
                 Rectangle rect = new Rectangle();
-                var iLayout = ImageLayout;
+                var iLayout = BackgroundImageLayout;
                 if (iLayout == Forms.ImageLayout.CenterZoom)
                 {
                     if (Image.Width > Width || Image.Height > Height)
@@ -70,6 +70,15 @@ namespace System.Windows.Forms
                 e.Graphics.DrawImage(Image, rect);
                 e.Graphics.DrawRectangle(new Pen(ImageBorderColor), rect);
             }
+        }
+
+        public void BeginInit()
+        {
+
+        }
+        public void EndInit()
+        {
+
         }
     }
 }

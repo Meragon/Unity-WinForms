@@ -8,34 +8,16 @@ namespace System.Windows.Forms
     public sealed class Cursors
     {
         private static AppGdiImages.CursorImages Images = ApplicationBehaviour.GdiImages.Cursors;
-
-        private static Cursor appStarting = null;
-        private static Cursor arrow = null;
-        private static Cursor cross = null;
+        
         private static Cursor defaultCursor = null;
-        private static Cursor iBeam = null;
-        private static Cursor no = null;
         private static Cursor sizeAll = null;
         private static Cursor sizeNESW = null;
         private static Cursor sizeNS = null;
         private static Cursor sizeNWSE = null;
         private static Cursor sizeWE = null;
-        private static Cursor upArrow = null;
-        private static Cursor wait = null;
         private static Cursor help = null;
         private static Cursor hSplit = null;
         private static Cursor vSplit = null;
-        private static Cursor noMove2D = null;
-        private static Cursor noMoveHoriz = null;
-        private static Cursor noMoveVert = null;
-        private static Cursor panEast = null;
-        private static Cursor panNE = null;
-        private static Cursor panNorth = null;
-        private static Cursor panNW = null;
-        private static Cursor panSE = null;
-        private static Cursor panSouth = null;
-        private static Cursor panSW = null;
-        private static Cursor panWest = null;
         private static Cursor hand = null;
 
         public static Cursor Default

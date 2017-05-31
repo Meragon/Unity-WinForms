@@ -24,8 +24,8 @@ namespace System.Windows.Forms
         private Point _resizePosition;
         private Point _resizeDelta;
         private const int _resizeOffset = 8;
-        protected Button resizeButton;
-        private bool resizeIcon;
+        private SizeGripStyle sizeGripStyle;
+        protected Button uwfSizeGripRenderer;
         private bool _toggleEditor = true;
         private bool _topMost;
 
@@ -74,38 +74,23 @@ namespace System.Windows.Forms
         public Padding HeaderPadding { get; set; }
         public Color HeaderTextColor { get; set; }
         public ContentAlignment HeaderTextAlign { get; set; }
-        public bool HighlightResizeBorders { get; set; }
         public bool KeyPreview { get; set; }
         public MenuStrip MainMenuStrip { get { return _mainMenuStrip; } set { _mainMenuStrip = value; } }
-        public bool Movable { get; set; }
-        public bool Resizable { get; set; }
-        public bool ResizeIcon
+        public SizeGripStyle SizeGripStyle
         {
-            get { return resizeIcon; }
+            get { return sizeGripStyle; }
             set
             {
-                if (resizeIcon == value) return;
+                if (sizeGripStyle == value) return;
 
-                resizeIcon = value;
-                if (value == false && resizeButton != null && resizeButton.IsDisposed == false)
+                sizeGripStyle = value;
+                if (value == SizeGripStyle.Show && uwfSizeGripRenderer != null && uwfSizeGripRenderer.IsDisposed == false)
                 {
-                    resizeButton.Dispose();
-                    resizeButton = null;
+                    uwfSizeGripRenderer.Dispose();
+                    uwfSizeGripRenderer = null;
                 }
                 else
                     _MakeButtonResize();
-            }
-        }
-        public new Size Size
-        {
-            get { return base.Size; }
-            set
-            {
-                base.Size = value;
-                if (nextLocation.X + value.Width > Screen.PrimaryScreen.WorkingArea.Width - 32)
-                    nextLocation = new Point(64, nextLocation.Y);
-                if (nextLocation.Y + value.Height > Screen.PrimaryScreen.WorkingArea.Height - 32)
-                    nextLocation = new Point(nextLocation.X, 32);
             }
         }
         public override string Text { get; set; }
@@ -118,6 +103,9 @@ namespace System.Windows.Forms
                 uwfAppOwner.Forms.Sort();
             }
         }
+
+        public bool uwfMovable { get; set; }
+        public bool uwfResizable { get; set; }
 
         public Form()
         {
@@ -137,8 +125,8 @@ namespace System.Windows.Forms
             HeaderTextAlign = ContentAlignment.MiddleLeft;
             ControlBox = true;
             MinimumSize = new Drawing.Size(128, 48);
-            Movable = true;
-            Resizable = true;
+            uwfMovable = true;
+            uwfResizable = true;
             uwfShadowBox = true;
             Size = new Size(334, 260);
             Visible = false;
@@ -192,15 +180,15 @@ namespace System.Windows.Forms
             var img = ApplicationBehaviour.GdiImages.FormResize;
             if (img == null) return;
 
-            resizeButton = new ResizeButton(this, img);
-            resizeButton.Location = new Point(Width - img.Width - 2, Height - img.Height - 2);
-            Controls.Add(resizeButton);
+            uwfSizeGripRenderer = new ResizeButton(this, img);
+            uwfSizeGripRenderer.Location = new Point(Width - img.Width - 2, Height - img.Height - 2);
+            Controls.Add(uwfSizeGripRenderer);
         }
         private void Owner_UpdateEvent()
         {
             #region ResizeComponent
 
-            if (resizeType != ControlResizeTypes.None && Resizable)
+            if (resizeType != ControlResizeTypes.None && uwfResizable)
             {
                 int estimatedWidth = 0;
                 int estimatedHeight = 0;
@@ -292,7 +280,7 @@ namespace System.Windows.Forms
         }
         public virtual ControlResizeTypes GetResizeAt(Point mclient)
         {
-            if (!Resizable) return ControlResizeTypes.None;
+            if (!uwfResizable) return ControlResizeTypes.None;
 
             var r_type = ControlResizeTypes.None;
 
@@ -413,7 +401,7 @@ namespace System.Windows.Forms
                 if (resizeType == ControlResizeTypes.None)
                 {
                     // Move then.
-                    if (Movable)
+                    if (uwfMovable)
                         if (e.Location.Y < HeaderHeight)
                         {
                             _windowMove_StartPosition = e.Location;
@@ -468,14 +456,11 @@ namespace System.Windows.Forms
                 var editorHeaderTextFormat = Editor.EnumField("      HeaderTextFormat", HeaderTextAlign);
                 if (editorHeaderTextFormat.Changed) HeaderTextAlign = (System.Drawing.ContentAlignment)editorHeaderTextFormat.Value;
 
-                var editorHighlightResizeBorders = Editor.BooleanField("      HighlightResizeBorders", HighlightResizeBorders);
-                if (editorHighlightResizeBorders.Changed) HighlightResizeBorders = editorHighlightResizeBorders;
+                var editorMovable = Editor.BooleanField("      Movable", uwfMovable);
+                if (editorMovable.Changed) uwfMovable = editorMovable;
 
-                var editorMovable = Editor.BooleanField("      Movable", Movable);
-                if (editorMovable.Changed) Movable = editorMovable;
-
-                var editorResizable = Editor.BooleanField("      Resizable", Resizable);
-                if (editorResizable.Changed) Resizable = editorResizable;
+                var editorResizable = Editor.BooleanField("      Resizable", uwfResizable);
+                if (editorResizable.Changed) uwfResizable = editorResizable;
 
                 var editorTopMost = Editor.BooleanField("      TopMost", TopMost);
                 if (editorTopMost.Changed) TopMost = editorTopMost.Value;
@@ -491,6 +476,10 @@ namespace System.Windows.Forms
             base.OnLatePaint(e);
 
             e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+        }
+        protected override void SetBoundsCore(int x, int y, int width, int height, BoundsSpecified specified)
+        {
+            base.SetBoundsCore(x, y, width, height, specified);
         }
     }
 

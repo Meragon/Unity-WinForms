@@ -20,7 +20,7 @@ namespace System.Windows.Forms
             BackColor = Color.Transparent;
             Padding = new Forms.Padding(4, 0, 8, 0);
             Size = new Drawing.Size(128, 20);
-            TabIndex = -1;
+            TabStop = false;
             TextAlign = ContentAlignment.TopLeft;
         }
 

@@ -189,9 +189,9 @@ namespace System.Windows.Forms
                 e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
             }
         }
-        protected override void OnResize(Point delta)
+        protected override void OnResize(EventArgs e)
         {
-            base.OnResize(delta);
+            base.OnResize(e);
             CheckNavButtons();
         }
 
@@ -379,7 +379,7 @@ namespace System.Windows.Forms
                 if (value is TabPage == false) throw new ArgumentException("value is not TabPage");
 
                 var tabPage = value as TabPage;
-                tabPage.Anchor = AnchorStyles.All;
+                tabPage.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
                 tabPage.Bounds = owner.DisplayRectangle;
                 tabPage.Visible = false;
 

@@ -27,21 +27,29 @@ namespace System.Windows.Forms
         private bool _toggleControls;
         private bool _toggleSource;
 
-        private bool _uwfContext;
+        private AnchorStyles anchor = AnchorStyles.Top | AnchorStyles.Left;
+        private int clientHeight;
+        private int clientWidth;
         private ControlCollection _controls;
+        private Font font = SystemFonts.DefaultFont;
         internal bool selected;
         internal static Control lastSelected;
-        private Point _location;
-        private int _height;
+        private int height;
         internal bool hovered;
         internal bool mouseEntered;
         internal bool shouldFocus;
+        private bool _uwfContext;
         private bool _visible;
-        private int _width;
+        private int width;
+        private int x, y;
 
         public virtual bool AllowDrop { get; set; }
         public bool AlwaysFocused { get; set; }
-        public virtual AnchorStyles Anchor { get; set; }
+        public virtual AnchorStyles Anchor
+        {
+            get { return anchor; }
+            set { anchor = value; }
+        }
         public virtual bool AutoSize { get; set; }
         public virtual Color BackColor { get; set; }
         public virtual ImageLayout BackgroundImageLayout { get; set; }
@@ -55,23 +63,27 @@ namespace System.Windows.Forms
             }
         }
         public bool CanSelect { get; set; }
-        public Rectangle ClientRectangle { get { return new Rectangle(0, 0, Width, Height); } }
+        public Rectangle ClientRectangle { get { return new Rectangle(0, 0, clientWidth, clientHeight); } }
+        public Size ClientSize
+        {
+            get { return new Size(clientWidth, clientHeight); }
+            set { Size = value; }
+        }
         public ControlCollection Controls { get { return _controls; } set { _controls = value; } }
         public virtual Rectangle DisplayRectangle { get { return ClientRectangle; } }
         public bool Disposing { get; private set; }
         public bool Enabled { get; set; }
         public bool Focused { get { return selected; } }
-        public virtual Font Font { get; set; }
+        public virtual Font Font
+        {
+            get { return font; }
+            set { font = value; }
+        }
         public Color ForeColor { get; set; }
         public int Height
         {
-            get { return _height; }
-            set
-            {
-                var delta = new Point(0, _height - value);
-                _height = value;
-                RaiseOnResize(delta);
-            }
+            get { return height; }
+            set { this.SetBounds(this.x, this.y, this.width, value, BoundsSpecified.Height); }
         }
         public bool Hovered { get { return hovered; } }
         public bool IsDisposed { get; private set; }
@@ -82,12 +94,8 @@ namespace System.Windows.Forms
         }
         public Point Location
         {
-            get { return _location; }
-            set
-            {
-                _location = value;
-                OnLocationChanged(null);
-            }
+            get { return new Point(x, y); }
+            set { this.SetBounds(value.X, value.Y, this.width, this.height, BoundsSpecified.Location); }
         }
         public virtual Size MaximumSize { get; set; }
         public virtual Size MinimumSize { get; set; }
@@ -96,20 +104,8 @@ namespace System.Windows.Forms
         public Control Parent { get; set; }
         public Size Size
         {
-            get
-            {
-                return new Size(Width, Height);
-            }
-            set
-            {
-                int widthBuffer = _width;
-                int heightBuffer = _height;
-
-                _width = value.Width;
-                _height = value.Height;
-
-                RaiseOnResize(new Point(widthBuffer - value.Width, heightBuffer - value.Height));
-            }
+            get {  return new Size(Width, Height); }
+            set { this.SetBounds(this.x, this.y, value.Width, value.Height, BoundsSpecified.Size); }
         }
         public int TabIndex { get; set; }
         public bool TabStop { get; set; }
@@ -133,13 +129,8 @@ namespace System.Windows.Forms
         }
         public int Width
         {
-            get { return _width; }
-            set
-            {
-                var delta = new Point(_width - value, 0);
-                _width = value;
-                RaiseOnResize(delta);
-            }
+            get { return width; }
+            set { this.SetBounds(this.x, this.y, value, this.height, BoundsSpecified.Width); }
         }
 
         public Application uwfAppOwner { get; internal set; }
@@ -174,10 +165,8 @@ namespace System.Windows.Forms
             else if (DefaultController != null)
                 DefaultController.Run(this);
 
-            Anchor = AnchorStyles.Left | AnchorStyles.Top;
             Controls = new ControlCollection(this);
             Enabled = true;
-            Font = SystemFonts.DefaultFont;
             ForeColor = Color.Black;
             TabIndex = -1;
             TabStop = true;
@@ -199,23 +188,28 @@ namespace System.Windows.Forms
 
             if (Anchor != AnchorStyles.None)
             {
-                int prevWidth = _width;
-                int prevHeight = _height;
+                int prevWidth = width;
+                int prevHeight = height;
+
+                int nextX = x;
+                int nextY = y;
+                int nextWidth = width;
+                int nextHeight = height;
 
                 if (an_right)
-                    Location = new Point(Location.X - delta.X, Location.Y);
+                    nextX -= delta.X;
                 else
                     delta = new Point(0, delta.Y);
                 if (an_bottom)
-                    Location = new Point(Location.X, Location.Y - delta.Y);
+                    nextY -= delta.Y;
                 else
                     delta = new Point(delta.X, 0);
                 if (an_left)
                 {
                     if (an_right)
                     {
-                        Location = new Point(Location.X + delta.X, Location.Y);
-                        _width = Size.Width - delta.X;
+                        nextX += delta.X;
+                        nextWidth -= delta.X;
                         delta = new Point(delta.X, delta.Y);
                     }
                 }
@@ -223,21 +217,30 @@ namespace System.Windows.Forms
                 {
                     if (an_bottom)
                     {
-                        Location = new Point(Location.X, Location.Y + delta.Y);
-                        _height = Size.Height - delta.Y;
+                        nextY += delta.Y;
+                        nextHeight -= delta.Y;
                         delta = new Point(delta.X, delta.Y);
                     }
                 }
 
+                SetBounds(nextX, nextY, nextWidth, nextHeight, BoundsSpecified.All);
+
                 // Reset delta for childs.
-                if (prevWidth - _width == 0)
+                if (prevWidth - width == 0)
                     delta = new Point(0, delta.Y);
-                if (prevHeight - _height == 0)
+                if (prevHeight - height == 0)
                     delta = new Point(delta.X, 0);
 
                 if ((an_left && an_right) || (an_top && an_bottom))
-                    RaiseOnResize(delta);
+                    ResizeChilds(delta);
             }
+        }
+        private void ResizeChilds(Point delta)
+        {
+            if (delta != Point.Empty)
+                if (Controls != null)
+                    for (int i = 0; i < Controls.Count; i++)
+                        Controls[i].ParentResized(delta);
         }
 
         public void BringToFront()
@@ -310,6 +313,10 @@ namespace System.Windows.Forms
         {
             // Dunno.
         }
+        public void PerformLayout()
+        {
+
+        }
         public Point PointToClient(Point p)
         {
             if (Parent != null)
@@ -336,6 +343,10 @@ namespace System.Windows.Forms
         {
 
         }
+        public void ResumeLayout(bool performLayout)
+        {
+
+        }
         public void Select()
         {
             if (CanSelect == false || lastSelected == this) return;
@@ -348,6 +359,24 @@ namespace System.Windows.Forms
 
             selected = true;
             lastSelected = this;
+        }
+        public void SetBounds(int argX, int argY, int argWidth, int argHeight)
+        {
+            if (this.x != argX || this.y != argY || (this.width != argWidth || this.height != argHeight))
+                this.SetBoundsCore(argX, argY, argWidth, argHeight, BoundsSpecified.All);
+        }
+        public void SetBounds(int argX, int argY, int argWidth, int argHeight, BoundsSpecified specified)
+        {
+            if ((specified & BoundsSpecified.X) == BoundsSpecified.None)
+                argX = this.x;
+            if ((specified & BoundsSpecified.Y) == BoundsSpecified.None)
+                argY = this.y;
+            if ((specified & BoundsSpecified.Width) == BoundsSpecified.None)
+                argWidth = this.width;
+            if ((specified & BoundsSpecified.Height) == BoundsSpecified.None)
+                argHeight = this.height;
+            if (this.x != argX || this.y != argY || (this.width != argWidth || this.height != argHeight))
+                this.SetBoundsCore(argX, argY, argWidth, argHeight, specified);
         }
         public void SuspendLayout()
         {
@@ -368,6 +397,10 @@ namespace System.Windows.Forms
         protected virtual void OnClick(EventArgs e)
         {
             Click(this, e);
+        }
+        protected virtual void OnClientSizeChanged(EventArgs e)
+        {
+            ClientSizeChanged(this, e);
         }
         protected virtual void OnDoubleClick(EventArgs e)
         {
@@ -467,27 +500,86 @@ namespace System.Windows.Forms
         {
 
         }
-        protected virtual void OnResize(Point delta)
+        protected virtual void OnResize(EventArgs e)
         {
-
-
+            Resize(this, e);
         }
         protected virtual void OnTextChanged(EventArgs e)
         {
             TextChanged(this, e);
         }
+        protected virtual void SetBoundsCore(int argX, int argY, int argWidth, int argHeight, BoundsSpecified specified)
+        {
+            if (this.x == argX && this.y == argY && (this.width == argWidth && this.height == argHeight))
+                return;
 
+            if (this.Parent != null)
+                this.Parent.SuspendLayout();
+
+            this.UpdateBounds(argX, argY, argWidth, argHeight);
+
+            if (this.Parent != null)
+                this.Parent.ResumeLayout(true);
+        }
+        protected virtual void SetClientSizeCore(int argX, int argY)
+        {
+            this.Size = this.SizeFromClientSize(argX, argY);
+            this.clientWidth = argX;
+            this.clientHeight = argY;
+            this.OnClientSizeChanged(EventArgs.Empty);
+        }
+        protected virtual void OnSizeChanged(EventArgs e)
+        {
+            OnResize(EventArgs.Empty);
+            SizeChanged(this, e);
+        }
+        protected virtual Size SizeFromClientSize(Size clientSize)
+        {
+            return this.SizeFromClientSize(clientSize.Width, clientSize.Height);
+        }
+        protected void UpdateBounds(int argX, int argY, int argWidth, int argHeight)
+        {
+            int cWidth = argWidth;
+            int cHeight = argHeight;
+            this.UpdateBounds(argX, argY, argWidth, argHeight, cWidth, cHeight);
+        }
+        protected void UpdateBounds(int argX, int argY, int argWidth, int argHeight, int argClientWidth, int argClientHeight)
+        {
+            int widthBuffer = this.width;
+            int heightBuffer = this.height;
+
+            bool locationFlag = this.x != argX || this.y != argY;
+            bool sizeFlag = this.Width != argWidth || this.Height != argHeight || this.clientWidth != argClientWidth || this.clientHeight != argClientHeight;
+
+            this.x = argX;
+            this.y = argY;
+            this.width = argWidth;
+            this.height = argHeight;
+            this.clientWidth = argClientWidth;
+            this.clientHeight = argClientHeight;
+
+            if (locationFlag)
+                this.OnLocationChanged(EventArgs.Empty);
+            if (!sizeFlag)
+                return;
+
+            var delta = new Point(widthBuffer - argWidth, heightBuffer - argHeight);
+            ResizeChilds(delta);
+
+            this.OnSizeChanged(EventArgs.Empty);
+            this.OnClientSizeChanged(EventArgs.Empty);
+        }
         protected virtual void uwfChildGotFocus(Control child)
         {
             if (Parent == null) return;
 
             Parent.uwfChildGotFocus(child);
         }
-        protected virtual object uwfOnPaintEditor(float width)
+        protected virtual object uwfOnPaintEditor(float argWidth)
         {
             System.Windows.Forms.Control controlToSet = null;
 
-            Editor.BeginGroup(width - 24);
+            Editor.BeginGroup(argWidth - 24);
 
             _toggleEditor = Editor.Foldout("Control (" + GetType().Name + ")", _toggleEditor);
             if (_toggleEditor)
@@ -520,7 +612,7 @@ namespace System.Windows.Forms
                     _toggleControls = Editor.Foldout("Controls (" + this.Controls.Count.ToString() + ")", _toggleControls);
                     if (_toggleControls)
                     {
-                        Editor.BeginGroup(width - 32);
+                        Editor.BeginGroup(argWidth - 32);
                         for (int i = 0; i < this.Controls.Count; i++)
                         {
                             var childControl = this.Controls[i];
@@ -786,10 +878,10 @@ namespace System.Windows.Forms
                 int gx = e.ClipRectangle.X;
                 int gy = e.ClipRectangle.Y;
 
-                if (gx != 0 && gy != 9) // Reset?
+                if (gx != 0 && gy != 0) // Reset?
                     e.ClipRectangle = new Rectangle(0, 0, Screen.PrimaryScreen.WorkingArea.Width, Screen.PrimaryScreen.WorkingArea.Height);
 
-                e.Graphics.Group = new Drawing.Rectangle(gx, gy, Width, Height);
+                e.Graphics.Group = new Drawing.Rectangle(gx, gy, ClientSize.Width, ClientSize.Height);
                 e.Graphics.GroupBegin(this);
             }
             OnPaintBackground(e);
@@ -825,19 +917,13 @@ namespace System.Windows.Forms
 
             e.Graphics.Control = null;
         }
-        internal object RaiseOnPaintEditor(float width)
+        internal object RaiseOnPaintEditor(float argWidth)
         {
-            return uwfOnPaintEditor(width);
+            return uwfOnPaintEditor(argWidth);
         }
-        internal void RaiseOnResize(Point delta)
+        internal Size SizeFromClientSize(int argWidth, int argHeight)
         {
-            if (delta != Point.Empty)
-                if (Controls != null)
-                    for (int i = 0; i < Controls.Count; i++)
-                        Controls[i].ParentResized(delta);
-
-            OnResize(delta);
-            Resize(this, null);
+            return new Size(argWidth, argHeight);
         }
         internal void uwfAddjustSizeToScreen(Size delta)
         {
@@ -845,6 +931,7 @@ namespace System.Windows.Forms
         }
 
         public event EventHandler Click = delegate { };
+        public event EventHandler ClientSizeChanged = delegate { };
         public new event EventHandler Disposed = delegate { };
         public event DragEventHandler DragDrop = delegate { };
         public event DragEventHandler DragEnter = delegate { };
@@ -862,6 +949,7 @@ namespace System.Windows.Forms
         public event MouseEventHandler MouseUp = delegate { };
         public event EventHandler OnDisposing = delegate { };
         public event EventHandler Resize = delegate { };
+        public event EventHandler SizeChanged = delegate { };
         public event EventHandler TextChanged = delegate { };
         public event EventHandler VisibleChanged = delegate { };
 
