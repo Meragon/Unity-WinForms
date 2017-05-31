@@ -103,7 +103,6 @@ namespace System.Windows.Forms
             var imageHoverColor = Color.Black;
 
             addButton = new RepeatButton();
-            addButton.CanSelect = false;
             addButton.BorderHoverColor = borderHoverColor;
             addButton.BorderDisableColor = borderColor;
             addButton.HoverColor = backHoverColor;
@@ -115,7 +114,6 @@ namespace System.Windows.Forms
             Controls.Add(addButton);
 
             subtractButton = new RepeatButton();
-            subtractButton.CanSelect = false;
             subtractButton.BorderHoverColor = borderHoverColor;
             subtractButton.BorderDisableColor = borderColor;
             subtractButton.HoverColor = backHoverColor;

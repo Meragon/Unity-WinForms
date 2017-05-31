@@ -22,6 +22,9 @@ namespace System.Windows.Forms
             Size = new Drawing.Size(128, 20);
             TabStop = false;
             TextAlign = ContentAlignment.TopLeft;
+
+            this.SetStyle(ControlStyles.FixedHeight | ControlStyles.Selectable, false);
+            this.SetStyle(ControlStyles.ResizeRedraw, true);
         }
 
         protected override void OnPaint(PaintEventArgs e)

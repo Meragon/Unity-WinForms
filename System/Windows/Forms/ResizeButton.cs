@@ -16,13 +16,14 @@ namespace System.Windows.Forms
             owner = form;
 
             Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            CanSelect = false;
             Image = img;
             ImageColor = Color.White;
             ImageHoverColor = Color.FromArgb(0, 122, 204);
             Text = "";
             Height = img.Height;
             Width = img.Width;
+
+            SetStyle(ControlStyles.Selectable, false);
 
             this.ClearColor(Color.Transparent);
 

@@ -38,7 +38,7 @@ namespace System.Windows.Forms
         internal Control hoveredControl;
         internal readonly List<Form> ModalForms = new List<Form>();
 
-        public ApplicationBehaviour Behaviour { get; private set; }
+        public ApplicationBehaviour uwfBehaviour { get; private set; }
         public static bool Debug { get; set; }
         public static float DeltaTime { get { return UnityEngine.Time.deltaTime; } }
         public float FillRate { get; set; }
@@ -364,7 +364,7 @@ namespace System.Windows.Forms
 
         public Application(ApplicationBehaviour behaviour)
         {
-            Behaviour = behaviour;
+            uwfBehaviour = behaviour;
             TabSwitching = true;
             _paintEventArgs = new PaintEventArgs();
             _paintEventArgs.Graphics = new Graphics();

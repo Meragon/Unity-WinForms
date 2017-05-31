@@ -56,7 +56,6 @@ namespace System.Windows.Forms
 
             this.BackColor = Color.White;
             this.BorderColor = Color.FromArgb(130, 135, 144);
-            this.CanSelect = true;
             this.ImageList = new ImageList();
             this.ItemHeight = 22;
             this.Padding = new Padding(4);

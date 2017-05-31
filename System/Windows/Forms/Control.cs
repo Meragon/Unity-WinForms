@@ -31,6 +31,7 @@ namespace System.Windows.Forms
         private int clientHeight;
         private int clientWidth;
         private ControlCollection _controls;
+        private ControlStyles controlStyle;
         private Font font = SystemFonts.DefaultFont;
         internal bool selected;
         internal static Control lastSelected;
@@ -62,7 +63,11 @@ namespace System.Windows.Forms
                 Size = new Size(value.Width, value.Height);
             }
         }
-        public bool CanSelect { get; set; }
+
+        public bool CanSelect
+        {
+            get { return CanSelectCore(); }
+        }
         public Rectangle ClientRectangle { get { return new Rectangle(0, 0, clientWidth, clientHeight); } }
         public Size ClientSize
         {
@@ -104,7 +109,7 @@ namespace System.Windows.Forms
         public Control Parent { get; set; }
         public Size Size
         {
-            get {  return new Size(Width, Height); }
+            get { return new Size(Width, Height); }
             set { this.SetBounds(this.x, this.y, value.Width, value.Height, BoundsSpecified.Size); }
         }
         public int TabIndex { get; set; }
@@ -173,6 +178,8 @@ namespace System.Windows.Forms
             uwfAutoGroup = true;
             _visible = true;
 
+            this.SetStyle(ControlStyles.UserPaint | ControlStyles.StandardClick | ControlStyles.Selectable | ControlStyles.StandardDoubleClick | ControlStyles.AllPaintingInWmPaint | ControlStyles.UseTextForAccessibility, true);
+
 #if UNITY_EDITOR
             var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
             uwfSource = stackTrace;
@@ -181,59 +188,51 @@ namespace System.Windows.Forms
 
         private void ParentResized(Point delta)
         {
+            if (Anchor == AnchorStyles.None) return;
+
             bool an_right = (Anchor & AnchorStyles.Right) == AnchorStyles.Right;
             bool an_bottom = (Anchor & AnchorStyles.Bottom) == AnchorStyles.Bottom;
             bool an_left = (Anchor & AnchorStyles.Left) == AnchorStyles.Left;
             bool an_top = (Anchor & AnchorStyles.Top) == AnchorStyles.Top;
 
-            if (Anchor != AnchorStyles.None)
+            int prevWidth = width;
+            int prevHeight = height;
+
+            int nextX = x;
+            int nextY = y;
+            int nextWidth = width;
+            int nextHeight = height;
+
+            if (an_right)
+                nextX -= delta.X;
+            else
+                delta = new Point(0, delta.Y);
+
+            if (an_bottom)
+                nextY -= delta.Y;
+            else
+                delta = new Point(delta.X, 0);
+
+            if (an_left)
             {
-                int prevWidth = width;
-                int prevHeight = height;
-
-                int nextX = x;
-                int nextY = y;
-                int nextWidth = width;
-                int nextHeight = height;
-
                 if (an_right)
-                    nextX -= delta.X;
-                else
-                    delta = new Point(0, delta.Y);
-                if (an_bottom)
-                    nextY -= delta.Y;
-                else
-                    delta = new Point(delta.X, 0);
-                if (an_left)
                 {
-                    if (an_right)
-                    {
-                        nextX += delta.X;
-                        nextWidth -= delta.X;
-                        delta = new Point(delta.X, delta.Y);
-                    }
+                    nextX += delta.X;
+                    nextWidth -= delta.X;
+                    delta = new Point(delta.X, delta.Y);
                 }
-                if (an_top)
-                {
-                    if (an_bottom)
-                    {
-                        nextY += delta.Y;
-                        nextHeight -= delta.Y;
-                        delta = new Point(delta.X, delta.Y);
-                    }
-                }
-
-                SetBounds(nextX, nextY, nextWidth, nextHeight, BoundsSpecified.All);
-
-                // Reset delta for childs.
-                if (prevWidth - width == 0)
-                    delta = new Point(0, delta.Y);
-                if (prevHeight - height == 0)
-                    delta = new Point(delta.X, 0);
-
-                if ((an_left && an_right) || (an_top && an_bottom))
-                    ResizeChilds(delta);
             }
+            if (an_top)
+            {
+                if (an_bottom)
+                {
+                    nextY += delta.Y;
+                    nextHeight -= delta.Y;
+                    delta = new Point(delta.X, delta.Y);
+                }
+            }
+
+            UpdateBounds(nextX, nextY, nextWidth, nextHeight);
         }
         private void ResizeChilds(Point delta)
         {
@@ -528,6 +527,10 @@ namespace System.Windows.Forms
             this.clientHeight = argY;
             this.OnClientSizeChanged(EventArgs.Empty);
         }
+        protected void SetStyle(ControlStyles flag, bool value)
+        {
+            this.controlStyle = value ? this.controlStyle | flag : this.controlStyle & ~flag;
+        }
         protected virtual void OnSizeChanged(EventArgs e)
         {
             OnResize(EventArgs.Empty);
@@ -601,10 +604,7 @@ namespace System.Windows.Forms
                 var editorBackgroundImageLayout = Editor.EnumField("BackgroundImageLayout", this.BackgroundImageLayout);
                 if (editorBackgroundImageLayout.Changed) this.BackgroundImageLayout = (ImageLayout)editorBackgroundImageLayout.Value;
 
-                var editorCanSelect = Editor.BooleanField("CanSelect", CanSelect);
-                if (editorCanSelect.Changed)
-                    CanSelect = editorCanSelect.Value;
-
+                Editor.Label("CanSelect", CanSelect);
                 Editor.Label("ClientRectangle", this.ClientRectangle);
 
                 if (this.Controls != null && this.Controls.Count > 0)
@@ -757,6 +757,17 @@ namespace System.Windows.Forms
             return controlToSet;
         }
 
+        internal virtual bool CanSelectCore()
+        {
+            if ((this.controlStyle & ControlStyles.Selectable) != ControlStyles.Selectable)
+                return false;
+            for (Control control = this; control != null; control = control.Parent)
+            {
+                if (!control.Enabled || !control.Visible)
+                    return false;
+            }
+            return true;
+        }
         internal Form FindFormInternal()
         {
             Control cur = this;

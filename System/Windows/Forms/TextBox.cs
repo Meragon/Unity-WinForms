@@ -40,7 +40,6 @@ namespace System.Windows.Forms
             BackColor = Color.FromArgb(250, 250, 250);
             BorderColor = Color.LightGray;
             BorderHoverColor = Color.FromArgb(126, 180, 234);
-            CanSelect = true;
             TextAlign = HorizontalAlignment.Left;
             ForeColor = Color.Black;
             Padding = new Padding(2, 0, 2, 0);

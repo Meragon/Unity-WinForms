@@ -17,7 +17,6 @@ namespace System.Windows.Forms
             BorderColor = Color.FromArgb(112, 112, 112);
             BorderHoverColor = Color.FromArgb(51, 153, 255);
             BorderDisableColor = Color.FromArgb(188, 188, 188);
-            CanSelect = true;
             DisableColor = Color.FromArgb(230, 230, 230);
             ForeColor = Color.Black;
             HoverColor = Color.FromArgb(243, 249, 255);

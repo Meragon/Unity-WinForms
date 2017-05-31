@@ -47,7 +47,6 @@ namespace System.Windows.Forms
             BorderDisableColor = Color.FromArgb(217, 217, 217);
             BorderHoverColor = Color.FromArgb(126, 180, 234);
             BorderSelectColor = Color.FromArgb(51, 153, 255);
-            CanSelect = true;
             DisableColor = Color.FromArgb(239, 239, 239);
             ForeColor = Color.FromArgb(64, 64, 64);
             ImageColor = Color.White;

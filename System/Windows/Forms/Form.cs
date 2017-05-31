@@ -116,7 +116,6 @@ namespace System.Windows.Forms
 
             BackColor = Color.FromArgb(238, 238, 242);
             BorderColor = Color.FromArgb(204, 206, 219);
-            CanSelect = true;
             Font = new Font("Arial", 14);
             Location = nextLocation;
             HeaderColor = Color.FromArgb(238, 238, 242);
@@ -150,10 +149,9 @@ namespace System.Windows.Forms
         }
         private void _MakeButtonClose()
         {
-            _closeButton = new Button();
+            _closeButton = new formSystemButton();
 
             CloseButton.Anchor = AnchorStyles.Right;
-            CloseButton.CanSelect = false;
             CloseButton.Text = "";
             if (ApplicationBehaviour.Resources != null && ApplicationBehaviour.GdiImages.Close != null)
                 CloseButton.Image = ApplicationBehaviour.GdiImages.Close;
@@ -480,6 +478,14 @@ namespace System.Windows.Forms
         protected override void SetBoundsCore(int x, int y, int width, int height, BoundsSpecified specified)
         {
             base.SetBoundsCore(x, y, width, height, specified);
+        }
+
+        private class formSystemButton : Button
+        {
+            public formSystemButton()
+            {
+                SetStyle(ControlStyles.Selectable, false);
+            }
         }
     }
 

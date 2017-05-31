@@ -76,7 +76,6 @@ namespace System.Windows.Forms
         {
             this.BackColor = Color.FromArgb(250, 250, 250);
             this.BorderColor = Color.FromArgb(175, 175, 175);
-            this.CanSelect = true;
             this.DisabledColor = Color.FromArgb(240, 240, 240);
             this.Increment = 1;
             this.Maximum = 100;
@@ -89,7 +88,6 @@ namespace System.Windows.Forms
             {
                 ButtonIncrease = new RepeatButton();
                 ButtonIncrease.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-                ButtonIncrease.CanSelect = false;
                 ButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
                 ButtonIncrease.Size = new Size(14, 8);
                 ButtonIncrease.Name = "_numericButtonIncrease";
@@ -102,7 +100,6 @@ namespace System.Windows.Forms
 
                 ButtonDecrease = new RepeatButton();
                 ButtonDecrease.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-                ButtonDecrease.CanSelect = false;
                 ButtonDecrease.Location = new Point(Width - 16, Height / 2);
                 ButtonDecrease.Size = new Drawing.Size(14, 8);
                 ButtonDecrease.Name = "_numericButtonDecrease";
@@ -129,11 +126,6 @@ namespace System.Windows.Forms
             if (decimal.TryParse(valueText, out value))
                 if (Value != value)
                     Value = value;
-        }
-        public void HideButtons()
-        {
-            ButtonIncrease.Visible = false;
-            ButtonDecrease.Visible = false;
         }
         protected override void OnLatePaint(PaintEventArgs e)
         {
@@ -176,6 +168,13 @@ namespace System.Windows.Forms
                 valueText = g.uwfDrawTextField(valueText, Font, foreColor, Padding.Left - 2, 0, Width + textPaddingRight + 4, Height, TextAlign);
             else
                 g.uwfDrawString(valueText, Font, foreColor, Padding.Left, 0, Width + textPaddingRight, Height, TextAlign);
+        }
+        protected void UpdateButtonsLocation(object sender, EventArgs e)
+        {
+            if (ButtonIncrease != null)
+                ButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
+            if (ButtonDecrease != null)
+                ButtonDecrease.Location = new Point(Width - 16, Height / 2);
         }
         protected override object uwfOnPaintEditor(float width)
         {
@@ -221,12 +220,10 @@ namespace System.Windows.Forms
             ButtonIncrease.Visible = true;
             ButtonDecrease.Visible = true;
         }
-        protected void UpdateButtonsLocation(object sender, EventArgs e)
+        public void HideButtons()
         {
-            if (ButtonIncrease != null)
-                ButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
-            if (ButtonDecrease != null)
-                ButtonDecrease.Location = new Point(Width - 16, Height / 2);
+            ButtonIncrease.Visible = false;
+            ButtonDecrease.Visible = false;
         }
     }
 }

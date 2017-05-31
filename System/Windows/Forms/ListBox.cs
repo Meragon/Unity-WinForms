@@ -158,7 +158,6 @@ namespace System.Windows.Forms
             BackColor = Color.White;
             BorderColor = Color.FromArgb(130, 135, 144);
             BorderSelectColor = Color.FromArgb(126, 180, 234);
-            CanSelect = true;
             DisabledColor = Color.Gray;
             DrawMode = DrawMode.Normal;
             DrawItem = InternalDrawItem;
@@ -244,7 +243,7 @@ namespace System.Windows.Forms
                         SelectItem(itemIndex);
 
                         if (keyFilterIA == null)
-                            keyFilterIA = uwfAppOwner.Behaviour.Invoke(ResetKeyFilter, keyFilterResetTime);
+                            keyFilterIA = uwfAppOwner.uwfBehaviour.Invoke(ResetKeyFilter, keyFilterResetTime);
                         keyFilterIA.Seconds = keyFilterResetTime;
                     }
                     break;

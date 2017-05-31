@@ -99,7 +99,6 @@ namespace System.Windows.Forms
             BorderColor = Color.DarkGray;
             BorderColorDisabled = Color.FromArgb(217, 217, 217);
             BorderColorHovered = Color.FromArgb(126, 180, 234);
-            CanSelect = true;
             DisabledColor = Color.FromArgb(239, 239, 239);
             DropDownStyle = ComboBoxStyle.DropDown;
             HoverColor = Color.White;
