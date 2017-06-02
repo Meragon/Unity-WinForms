@@ -495,10 +495,10 @@ namespace System.Windows.Forms
                 _UpdateImage();
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool release_all)
             {
                 uwfAppOwner.UpClick -= Application_UpClick;
-                base.Dispose();
+                base.Dispose(release_all);
             }
             protected override void OnMouseDown(MouseEventArgs e)
             {

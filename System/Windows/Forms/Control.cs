@@ -3,11 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Windows.Forms.Design;
 
 namespace System.Windows.Forms
 {
     [Serializable]
-    public class Control : Component, IDisposable
+    public class Control : Component
     {
         protected static Color defaultShadowColor = Color.FromArgb(12, 0, 0, 0);
 
@@ -21,11 +22,6 @@ namespace System.Windows.Forms
                     (int)((UnityEngine.Screen.height - UnityEngine.Input.mousePosition.y) / Application.ScaleY));
             }
         }
-
-        private bool _toggleEditor = true;
-        private bool _toggleFont;
-        private bool _toggleControls;
-        private bool _toggleSource;
 
         private AnchorStyles anchor = AnchorStyles.Top | AnchorStyles.Left;
         private int clientHeight;
@@ -156,10 +152,10 @@ namespace System.Windows.Forms
                 }
             }
         }
-        public bool uwfPreventChildDisposing { get; set; }
         public bool uwfShadowBox { get; set; }
         public DrawHandler uwfShadowHandler { get; set; }
 
+        internal IControlDesigner uwfDesigner { get; set; }
         internal Point uwfOffset { get; set; }
         internal string uwfSource { get; set; }
 
@@ -195,9 +191,6 @@ namespace System.Windows.Forms
             bool an_left = (Anchor & AnchorStyles.Left) == AnchorStyles.Left;
             bool an_top = (Anchor & AnchorStyles.Top) == AnchorStyles.Top;
 
-            int prevWidth = width;
-            int prevHeight = height;
-
             int nextX = x;
             int nextY = y;
             int nextWidth = width;
@@ -219,7 +212,6 @@ namespace System.Windows.Forms
                 {
                     nextX += delta.X;
                     nextWidth -= delta.X;
-                    delta = new Point(delta.X, delta.Y);
                 }
             }
             if (an_top)
@@ -228,7 +220,6 @@ namespace System.Windows.Forms
                 {
                     nextY += delta.Y;
                     nextHeight -= delta.Y;
-                    delta = new Point(delta.X, delta.Y);
                 }
             }
 
@@ -236,10 +227,11 @@ namespace System.Windows.Forms
         }
         private void ResizeChilds(Point delta)
         {
-            if (delta != Point.Empty)
-                if (Controls != null)
-                    for (int i = 0; i < Controls.Count; i++)
-                        Controls[i].ParentResized(delta);
+            if (delta == Point.Empty) return;
+            if (Controls == null) return;
+
+            for (int i = 0; i < Controls.Count; i++)
+                Controls[i].ParentResized(delta);
         }
 
         public void BringToFront()
@@ -266,34 +258,6 @@ namespace System.Windows.Forms
                     this.uwfAppOwner.ModalForms.Add(form);
                 }
             }
-        }
-        public new virtual void Dispose()
-        {
-            if (IsDisposed) return;
-
-            Disposing = true;
-            OnDisposing(this, EventArgs.Empty);
-
-            if (uwfPreventChildDisposing == false)
-            {
-                for (; Controls.Count > 0;)
-                    Controls[0].Dispose();
-
-                Controls.Clear();
-            }
-
-            if (Parent != null)
-            {
-                int self = Parent.Controls.FindIndex(x => x == this);
-                if (self > -1)
-                    Parent.Controls.RemoveAt(self);
-            }
-
-            if (uwfContext)
-                uwfAppOwner.Contexts.Remove(this);
-
-            Disposed(this, null);
-            IsDisposed = true;
         }
         public DragDropEffects DoDragDrop(object data, DragDropEffects allowedEffects, DragDropRenderHandler render = null)
         {
@@ -382,6 +346,36 @@ namespace System.Windows.Forms
             // dunno.
         }
 
+        protected override void Dispose(bool release_all)
+        {
+            if (IsDisposed) return;
+
+            Disposing = true;
+            OnDisposing(this, EventArgs.Empty);
+            
+            if (release_all)
+            {
+                for (; Controls.Count > 0;)
+                    Controls[0].Dispose();
+
+                Controls.Clear();
+            }
+
+            if (Parent != null)
+            {
+                int self = Parent.Controls.FindIndex(x => x == this);
+                if (self > -1)
+                    Parent.Controls.RemoveAt(self);
+            }
+
+            if (uwfContext)
+                uwfAppOwner.Contexts.Remove(this);
+
+            Disposed(this, EventArgs.Empty);
+            IsDisposed = true;
+
+            base.Dispose(release_all);
+        }
         protected void InvokeGotFocus(Control toInvoke, EventArgs e)
         {
             if (toInvoke == null) return;
@@ -578,184 +572,6 @@ namespace System.Windows.Forms
 
             Parent.uwfChildGotFocus(child);
         }
-        protected virtual object uwfOnPaintEditor(float argWidth)
-        {
-            System.Windows.Forms.Control controlToSet = null;
-
-            Editor.BeginGroup(argWidth - 24);
-
-            _toggleEditor = Editor.Foldout("Control (" + GetType().Name + ")", _toggleEditor);
-            if (_toggleEditor)
-            {
-                var editorAllowDrop = Editor.BooleanField("AllowDrop", this.AllowDrop);
-                if (editorAllowDrop.Changed) this.AllowDrop = editorAllowDrop;
-
-                var editorAlwaysFocused = Editor.BooleanField("AlwaysFocused", this.AlwaysFocused);
-                if (editorAlwaysFocused.Changed) this.AlwaysFocused = editorAlwaysFocused;
-
-                var editorAnchor = Editor.EnumField("Anchor", this.Anchor);
-                if (editorAnchor.Changed) this.Anchor = (AnchorStyles)editorAnchor.Value;
-
-                var editorAutoSize = Editor.BooleanField("AutoSize", this.AutoSize);
-                if (editorAutoSize.Changed) this.AutoSize = editorAutoSize;
-
-                Editor.ColorField("BackColor", this.BackColor, (c) => { this.BackColor = c; });
-
-                var editorBackgroundImageLayout = Editor.EnumField("BackgroundImageLayout", this.BackgroundImageLayout);
-                if (editorBackgroundImageLayout.Changed) this.BackgroundImageLayout = (ImageLayout)editorBackgroundImageLayout.Value;
-
-                Editor.Label("CanSelect", CanSelect);
-                Editor.Label("ClientRectangle", this.ClientRectangle);
-
-                if (this.Controls != null && this.Controls.Count > 0)
-                {
-                    _toggleControls = Editor.Foldout("Controls (" + this.Controls.Count.ToString() + ")", _toggleControls);
-                    if (_toggleControls)
-                    {
-                        Editor.BeginGroup(argWidth - 32);
-                        for (int i = 0; i < this.Controls.Count; i++)
-                        {
-                            var childControl = this.Controls[i];
-                            if (Editor.Button(childControl.Name, childControl.GetType().Name))
-                                controlToSet = childControl;
-                        }
-                        Editor.EndGroup();
-                    }
-                }
-
-                Editor.Label("DisplayRectangle", this.DisplayRectangle);
-                Editor.Label("Disposing", this.Disposing);
-
-                var editorEnabled = Editor.BooleanField("Enabled", this.Enabled);
-                if (editorEnabled.Changed) Enabled = editorEnabled;
-
-                Editor.Label("Focused", this.Focused);
-
-                _toggleFont = Editor.Foldout("Font", _toggleFont);
-                if (_toggleFont)
-                {
-                    int selectedFont = -1;
-                    float size = 12;
-                    if (this.Font != null)
-                        size = this.Font.Size;
-                    System.Drawing.FontStyle style = System.Drawing.FontStyle.Regular;
-                    if (this.Font != null)
-                        style = this.Font.Style;
-                    List<string> fonts = new List<string>();
-                    for (int i = 0; i < System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Count; i++)
-                    {
-                        fonts.Add(System.Windows.Forms.ApplicationBehaviour.Resources.Fonts[i].fontNames[0]);
-                        if (this.Font != null && this.Font.Name.ToLower() == System.Windows.Forms.ApplicationBehaviour.Resources.Fonts[i].fontNames[0].ToLower())
-                            selectedFont = i;
-                    }
-
-                    var editorFont = Editor.Popup("      Font", selectedFont, fonts.ToArray());
-                    if (editorFont.Changed)
-                        this.Font = new System.Drawing.Font(System.Windows.Forms.ApplicationBehaviour.Resources.Fonts[editorFont].fontNames[0], size);
-
-                    var editorFontSize = Editor.Slider("      Size", size, 8, 128);
-                    if (editorFontSize.Changed)
-                    {
-                        if (this.Font == null)
-                            this.Font = new System.Drawing.Font("Arial", editorFontSize);
-                        else
-                            this.Font = new System.Drawing.Font(this.Font.Name, editorFontSize);
-                    }
-
-                    var editorFontStyle = Editor.EnumField("      Style", style);
-                    if (editorFontStyle.Changed)
-                    {
-                        if (this.Font == null)
-                            this.Font = new System.Drawing.Font("Arial", editorFontSize, (System.Drawing.FontStyle)editorFontStyle.Value);
-                        else
-                            this.Font = new System.Drawing.Font(this.Font.Name, editorFontSize, (System.Drawing.FontStyle)editorFontStyle.Value);
-                    }
-                }
-
-                Editor.ColorField("ForeColor", this.ForeColor, (c) => { this.ForeColor = c; });
-
-                var editorHeight = Editor.Slider("Height", this.Height, 0, 4096);
-                if (editorHeight.Changed) Height = (int)editorHeight.Value;
-
-                Editor.Label("Hovered", this.Hovered);
-
-                Editor.Label("IsDisposed", this.IsDisposed.ToString());
-
-                var editorLocation = Editor.IntField("Location", this.Location.X, this.Location.Y);
-                if (editorLocation.Changed) Location = new Point(editorLocation.Value[0], editorLocation.Value[1]);
-
-                var editorMaximumSize = Editor.IntField("MaximumSize", this.MaximumSize.Width, this.MaximumSize.Height);
-                if (editorMaximumSize.Changed) this.MaximumSize = new Drawing.Size(editorMaximumSize.Value[0], editorMaximumSize.Value[1]);
-
-                var editorMinimumSize = Editor.IntField("MinimumSize", this.MinimumSize.Width, this.MinimumSize.Height);
-                if (editorMinimumSize.Changed) this.MinimumSize = new Drawing.Size(editorMinimumSize.Value[0], editorMinimumSize.Value[1]);
-
-                var editorName = Editor.TextField("Name", Name ?? "");
-                if (editorName.Changed) this.Name = editorName;
-
-                var editorPadding = Editor.IntField("Padding", this.Padding.Left, this.Padding.Top, this.Padding.Right, this.Padding.Bottom);
-                if (editorPadding.Changed)
-                    Padding = new Forms.Padding(editorPadding.Value[0], editorPadding.Value[3], editorPadding.Value[2], editorPadding.Value[1]);
-
-                if (this.Parent != null)
-                {
-                    if (Editor.Button("Parent", this.Parent.GetType().Name))
-                        controlToSet = this.Parent;
-                }
-                else
-                    Editor.Label("Parent", "null");
-
-                var editorSize = Editor.IntField("Size", this.Size.Width, this.Size.Height);
-                if (editorSize.Changed) this.Size = new Drawing.Size(editorSize.Value[0], editorSize.Value[1]);
-
-                var editorTabIndex = Editor.Slider("TabIndex", this.TabIndex, 0, 255);
-                if (editorTabIndex.Changed) this.TabIndex = (int)editorTabIndex.Value;
-
-                var editorTabStop = Editor.BooleanField("TabStop", TabStop);
-                if (editorTabStop.Changed)
-                    TabStop = editorTabStop.Value;
-
-                string tagText = "null";
-                if (Tag != null)
-                    tagText = string.Format("[{0}] {1}", Tag.GetType().Name, Tag.ToString());
-                Editor.Label("Tag", tagText);
-
-                var editorText = Editor.TextField("Text", Text ?? "");
-                if (editorText.Changed) this.Text = editorText;
-
-                Editor.Label("Type", this.GetType());
-
-                var editorVisible = Editor.BooleanField("Visible", this.Visible);
-                if (editorVisible.Changed) this.Visible = editorVisible;
-
-                var editorWidth = Editor.Slider("Width", this.Width, 0, 4096);
-                if (editorWidth.Changed) this.Width = (int)editorWidth.Value;
-
-                Editor.NewLine(1);
-
-                Editor.Label("uwfBatches", uwfBatches);
-                Editor.Label("uwfContext", this.uwfContext);
-                Editor.Label("uwfOffset", uwfOffset);
-
-                var editorShadowBox = Editor.BooleanField("uwfShadowBox", this.uwfShadowBox);
-                if (editorShadowBox.Changed) uwfShadowBox = editorShadowBox;
-
-                _toggleSource = Editor.Foldout("uwfSource", _toggleSource);
-                if (_toggleSource) Editor.Label(this.uwfSource);
-
-                Editor.NewLine(1);
-
-                if (Editor.Button("BringToFront()")) BringToFront();
-                if (Editor.Button("Dispose()")) Dispose();
-                if (Editor.Button("Focus()")) Focus();
-                if (Editor.Button("Refresh()")) Refresh();
-                if (Editor.Button("Select()")) Select();
-            }
-
-            Editor.EndGroup();
-
-            return controlToSet;
-        }
 
         internal virtual bool CanSelectCore()
         {
@@ -927,10 +743,6 @@ namespace System.Windows.Forms
                 e.Graphics.GroupEnd();
 
             e.Graphics.Control = null;
-        }
-        internal object RaiseOnPaintEditor(float argWidth)
-        {
-            return uwfOnPaintEditor(argWidth);
         }
         internal Size SizeFromClientSize(int argWidth, int argHeight)
         {

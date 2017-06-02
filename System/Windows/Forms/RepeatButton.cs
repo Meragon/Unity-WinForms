@@ -52,7 +52,7 @@ namespace System.Windows.Forms
                     repeatCooldownCurrent = repeatCooldown;
                 }
                 else
-                    repeatCooldownCurrent -= Application.DeltaTime;
+                    repeatCooldownCurrent -= swfHelper.GetDeltaTime();
             }
         }
         private void StartRepeat()
@@ -63,11 +63,11 @@ namespace System.Windows.Forms
             repeatCooldownCurrent = repeatCooldown;
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool release_all)
         {
             uwfAppOwner.UpClick -= Owner_UpClick;
 
-            base.Dispose();
+            base.Dispose(release_all);
         }
         protected override void OnMouseDown(MouseEventArgs e)
         {

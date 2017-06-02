@@ -42,9 +42,9 @@ namespace System.Windows.Forms
             return ControlResizeTypes.RightDown;
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool release_all)
         {
-            base.Dispose();
+            base.Dispose(release_all);
 
             uwfAppOwner.UpClick -= Owner_UpClick;
         }

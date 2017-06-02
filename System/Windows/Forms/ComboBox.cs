@@ -13,10 +13,6 @@ namespace System.Windows.Forms
 {
     public class ComboBox : ListControl
     {
-#if UNITY_EDITOR
-        private bool _toggleItems;
-#endif
-
         private readonly Pen downButtonBorderPen = new Pen(Color.Transparent);
         private const int downButtonWidth = 17;
         private ComboBoxStyle dropDownStyle;
@@ -299,26 +295,6 @@ namespace System.Windows.Forms
 
             g.uwfDrawImage(ApplicationBehaviour.GdiImages.CurvedArrowDown, arrowColor, Width - 16 - 1, Height / 2 - 8, 16, 16);
             g.uwfDrawRectangle(borderColor, 0, 0, Width, Height);
-        }
-        protected override object uwfOnPaintEditor(float width)
-        {
-            var component = base.uwfOnPaintEditor(width);
-
-#if UNITY_EDITOR
-            Editor.NewLine(2);
-            Editor.Label("ComboBox");
-            Editor.EnumField("AutoCompleteMode", AutoCompleteMode);
-            Editor.EnumField("AutoCompleteSource", AutoCompleteSource);
-            Editor.EnumField("DropDownStyle", DropDownStyle);
-            if ((_toggleItems = Editor.Foldout("Items", _toggleItems)) == true)
-                for (int i = 0; i < Items.Count; i++)
-                    Editor.Label(i.ToString(), Items[i].ToString());
-            Editor.Label("SelectedIndex", SelectedIndex);
-            Editor.Label("SelectedItem", SelectedItem);
-            Editor.Label("Text", Text);
-#endif
-
-            return component;
         }
         protected override void OnSelectedIndexChanged(EventArgs e)
         {

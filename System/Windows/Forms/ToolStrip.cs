@@ -9,9 +9,9 @@ namespace System.Windows.Forms
     [Serializable]
     public class ToolStrip : ScrollableControl
     {
-        private SolidBrush brushBack = new SolidBrush(Color.Transparent);
-        private ToolStripItemCollection _items;
-        private PaintEventArgs p_args;
+        private readonly SolidBrush brushBack = new SolidBrush(Color.Transparent);
+        private readonly ToolStripItemCollection _items;
+        private readonly PaintEventArgs p_args;
 
         public ToolStrip()
         {
@@ -77,10 +77,10 @@ namespace System.Windows.Forms
                     _items[i].Selected = false;
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool release_all)
         {
             uwfAppOwner.DownClick -= Application_UpClick;
-            base.Dispose();
+            base.Dispose(release_all);
         }
         protected override void OnMouseHover(EventArgs e)
         {
@@ -183,19 +183,6 @@ namespace System.Windows.Forms
             }
 
             p_args.Graphics.uwfDrawRectangle(BorderColor, 0, 0, Width, Height);
-        }
-        protected override object uwfOnPaintEditor(float width)
-        {
-            var control = base.uwfOnPaintEditor(width);
-
-#if UNITY_EDITOR
-            Editor.NewLine(1);
-            Editor.ColorField("BorderColor", BorderColor, new Action<Color>((c) => { BorderColor = c; }));
-            Editor.Label("Orientation", Orientation);
-            Editor.Label("OwnerItem", OwnerItem);
-#endif
-
-            return control;
         }
 
         public event ToolStripItemClickedEventHandler ItemClicked = delegate { };

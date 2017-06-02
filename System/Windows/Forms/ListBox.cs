@@ -13,10 +13,6 @@ namespace System.Windows.Forms
 {
     public class ListBox : ListControl
     {
-#if UNITY_EDITOR
-        private bool _toggleEditor;
-#endif
-
         private Color borderCurrentColor;
         private Color borderColor;
         private Color borderSelectColor;
@@ -364,48 +360,6 @@ namespace System.Windows.Forms
                     OnDrawItem(args);
                 }
             }
-        }
-        protected override object uwfOnPaintEditor(float width)
-        {
-            var control = base.uwfOnPaintEditor(width);
-
-#if UNITY_EDITOR
-
-            Editor.BeginGroup(width - 24);
-            Editor.BeginVertical();
-
-            _toggleEditor = Editor.Foldout("ListBox", _toggleEditor);
-            if (_toggleEditor)
-            {
-                Editor.Label("hoveredItem", hoveredItem);
-                Editor.Label("ItemHeight", ItemHeight);
-                Editor.Label("PreferredHeight", PreferredHeight);
-                Editor.ColorField("SelectionBackColor", SelectionBackColor, c => SelectionBackColor = c);
-                Editor.Label("SelectedIndex", SelectedIndex);
-                Editor.Label("ScrollIndex", ScrollIndex);
-                Editor.Label("visibleItemsCount", visibleItemsCount);
-
-                if (Editor.Button("AddItem"))
-                {
-                    Items.Add(Items.Count - 1);
-                }
-                if (Editor.Button("RefreshItems"))
-                {
-                    RefreshItems();
-                }
-                if (Editor.Button("RemoveSelectedItem") && SelectedIndex != -1)
-                {
-                    var itemIndex = SelectedIndex;
-                    SelectedIndex = -1;
-                    Items.RemoveAt(itemIndex);
-                }
-            }
-
-            Editor.EndVertical();
-            Editor.EndGroup();
-#endif
-
-            return control;
         }
         protected override void OnResize(EventArgs e)
         {

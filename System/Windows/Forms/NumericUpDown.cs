@@ -9,10 +9,6 @@ namespace System.Windows.Forms
 {
     public class NumericUpDown : Control
     {
-#if UNITY_EDITOR
-        private bool _toggleEditor;
-#endif
-
         private decimal _minimum;
         private decimal _maximum;
 
@@ -175,44 +171,6 @@ namespace System.Windows.Forms
                 ButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
             if (ButtonDecrease != null)
                 ButtonDecrease.Location = new Point(Width - 16, Height / 2);
-        }
-        protected override object uwfOnPaintEditor(float width)
-        {
-            var component = base.uwfOnPaintEditor(width);
-
-#if UNITY_EDITOR
-            Editor.BeginGroup(width - 24);
-            Editor.BeginVertical();
-
-            _toggleEditor = Editor.Foldout("NumericUpDown", _toggleEditor);
-            if (_toggleEditor)
-            {
-                var editorIncrement = Editor.Slider("Increment", (float)Increment, 0, 255);
-                if (editorIncrement.Changed)
-                    Increment = (decimal)editorIncrement.Value;
-
-                float editorMinValue = short.MinValue;
-                float editorMaxValue = short.MaxValue;
-                if ((float)Maximum > editorMaxValue) editorMaxValue = (float)Maximum;
-                if ((float)Minimum < editorMinValue) editorMinValue = (float)Minimum;
-
-                var editorMaximum = Editor.Slider("Maximum", (float)Maximum, editorMinValue, editorMaxValue);
-                if (editorMaximum.Changed)
-                    Maximum = (decimal)editorMaximum.Value;
-
-                var editorMinimum = Editor.Slider("Minimum", (float)Minimum, editorMinValue, editorMaxValue);
-                if (editorMinimum.Changed)
-                    Minimum = (decimal)editorMinimum.Value;
-
-                var editorValue = Editor.Slider("Value", (float)Value, (float)Minimum, (float)Maximum);
-                if (editorValue.Changed)
-                    Value = (decimal)editorValue.Value;
-            }
-            Editor.EndVertical();
-            Editor.EndGroup();
-#endif
-
-            return component;
         }
 
         public void ShowButtons()

@@ -81,28 +81,5 @@ namespace System.Windows.Forms
 
             g.DrawRectangle(_borderPen, 0, 0, Width, Height);
         }
-        protected override object uwfOnPaintEditor(float width)
-        {
-            var control = base.uwfOnPaintEditor(width);
-
-#if UNITY_EDITOR
-
-            Editor.NewLine(1);
-            Editor.ColorField("BorderColor", BorderColor, (c) => { BorderColor = c; });
-            Editor.ColorField("BorderHoverColor", BorderHoverColor, (c) => { BorderHoverColor = c; });
-
-            var editorMultiline = Editor.BooleanField("Multiline", Multiline);
-            if (editorMultiline.Changed)
-                Multiline = editorMultiline.Value;
-
-            var editorReadonly = Editor.BooleanField("ReadOnly", ReadOnly);
-            if (editorReadonly.Changed)
-                ReadOnly = editorReadonly.Value;
-
-            Editor.Label("TextAlign", TextAlign);
-#endif
-
-            return control;
-        }
     }
 }

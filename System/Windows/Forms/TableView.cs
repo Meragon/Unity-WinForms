@@ -412,21 +412,6 @@ namespace System.Windows.Forms
         {
             e.Graphics.uwfFillRectangle(BackColor, 0, 0, Width, Height);
         }
-        protected override object uwfOnPaintEditor(float width)
-        {
-            var control = base.uwfOnPaintEditor(width);
-
-#if UNITY_EDITOR
-            Editor.NewLine(1);
-            Editor.Label("columnHeadersHidden", columnHeadersHidden);
-            Editor.Label("rowHeadersHidden", rowHeadersHidden);
-
-            Editor.Label("HScroll", hScroll);
-            Editor.Label("VScroll", vScroll);
-#endif
-
-            return control;
-        }
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
@@ -608,9 +593,9 @@ namespace System.Windows.Forms
                 resizeType = resizeTypes.None;
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool release_all)
             {
-                base.Dispose();
+                base.Dispose(release_all);
 
                 uwfAppOwner.UpClick -= Owner_UpClick;
             }

@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using Unity.API;
 using Color = UnityEngine.Color;
 
 namespace System.Windows.Forms
@@ -32,7 +33,7 @@ namespace System.Windows.Forms
         public AppResources _Resources;
         public static bool ShowControlProperties { get; set; }
 
-        private List<invokeAction> actions = new List<invokeAction>();
+        private readonly List<invokeAction> actions = new List<invokeAction>();
         private Application _controller;
         private float _lastWidth;
         private float _lastHeight;
@@ -42,7 +43,7 @@ namespace System.Windows.Forms
         {
             Resources = _Resources;
 
-            System.Drawing.Graphics.GAPI = new UnityGdi(DefaultSprite);
+            System.Drawing.Graphics.ApiGraphics = ApiHolder.Graphics;
 
             // Enum + dictionary?
             GdiImages = new AppGdiImages();

@@ -26,7 +26,6 @@ namespace System.Windows.Forms
         private const int _resizeOffset = 8;
         private SizeGripStyle sizeGripStyle;
         protected Button uwfSizeGripRenderer;
-        private bool _toggleEditor = true;
         private bool _topMost;
 
         internal bool dialog;
@@ -367,13 +366,13 @@ namespace System.Windows.Forms
         public event FormClosingEventHandler FormClosing = delegate { };
         public event EventHandler Shown = delegate { };
 
-        public override void Dispose()
+        protected override void Dispose(bool release_all)
         {
             if (IsModal == false)
                 uwfAppOwner.Forms.Remove(this);
             else
                 uwfAppOwner.ModalForms.Remove(this);
-            base.Dispose();
+            base.Dispose(release_all);
         }
         protected virtual void OnClosed(EventArgs e)
         {
@@ -428,46 +427,6 @@ namespace System.Windows.Forms
             g.uwfFillRectangle(HeaderColor, 0, 0, Width, HeaderHeight);
             g.uwfDrawString(Text, HeaderFont, HeaderTextColor, HeaderPadding.Left, HeaderPadding.Top, Width - HeaderPadding.Right - HeaderPadding.Left, HeaderHeight - HeaderPadding.Bottom - HeaderPadding.Top, HeaderTextAlign);
             g.uwfFillRectangle(BackColor, 0, HeaderHeight, Width, Height - HeaderHeight);
-        }
-        protected override object uwfOnPaintEditor(float width)
-        {
-            var control = base.uwfOnPaintEditor(width);
-
-            Editor.BeginGroup(width - 24);
-            Editor.BeginVertical();
-
-            _toggleEditor = Editor.Foldout("Form", _toggleEditor);
-            if (_toggleEditor)
-            {
-                Editor.ColorField("      BorderColor", BorderColor, (c) => { BorderColor = c; });
-
-                var editorControlBox = Editor.BooleanField("      ControlBox", ControlBox);
-                if (editorControlBox.Changed) ControlBox = editorControlBox;
-
-                Editor.ColorField("      HeaderColor", HeaderColor, (c) => { HeaderColor = c; });
-
-                var editorHeaderHeight = Editor.IntField("      HeaderHeight", HeaderHeight);
-                if (editorHeaderHeight.Changed) HeaderHeight = editorHeaderHeight.Value[0];
-
-                Editor.ColorField("      HeaderTextColor", HeaderTextColor, (c) => { HeaderTextColor = c; });
-
-                var editorHeaderTextFormat = Editor.EnumField("      HeaderTextFormat", HeaderTextAlign);
-                if (editorHeaderTextFormat.Changed) HeaderTextAlign = (System.Drawing.ContentAlignment)editorHeaderTextFormat.Value;
-
-                var editorMovable = Editor.BooleanField("      Movable", uwfMovable);
-                if (editorMovable.Changed) uwfMovable = editorMovable;
-
-                var editorResizable = Editor.BooleanField("      Resizable", uwfResizable);
-                if (editorResizable.Changed) uwfResizable = editorResizable;
-
-                var editorTopMost = Editor.BooleanField("      TopMost", TopMost);
-                if (editorTopMost.Changed) TopMost = editorTopMost.Value;
-
-            }
-            Editor.EndVertical();
-            Editor.EndGroup();
-
-            return control;
         }
         protected override void OnLatePaint(PaintEventArgs e)
         {

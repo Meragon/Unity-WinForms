@@ -9,10 +9,6 @@ namespace System.Windows.Forms
 {
     public abstract class ScrollBar : Control
     {
-#if UNITY_EDITOR
-        private bool _toggleEditor;
-#endif
-
         private int largeChange = 10;
         private int maximum = 100;
         private int minimum = 0;
@@ -334,12 +330,12 @@ namespace System.Windows.Forms
             }
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool release_all)
         {
             uwfAppOwner.UpClick -= Owner_UpClick;
             uwfAppOwner.UpdateEvent -= Owner_UpdateEvent;
 
-            base.Dispose();
+            base.Dispose(release_all);
         }
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -430,46 +426,6 @@ namespace System.Windows.Forms
                 e.Graphics.uwfFillRectangle(BackColor, 0, backY, Width, addButton.Location.Y - backY);
             }
             e.Graphics.uwfFillRectangle(scrollCurrentColor, scrollRect.X, scrollRect.Y, scrollRect.Width, scrollRect.Height);
-        }
-        protected override object uwfOnPaintEditor(float width)
-        {
-            var component = base.uwfOnPaintEditor(width);
-#if UNITY_EDITOR
-            Editor.BeginGroup(width - 24);
-            Editor.BeginVertical();
-
-            _toggleEditor = Editor.Foldout("ScrollBar", _toggleEditor);
-            if (_toggleEditor)
-            {
-                var editorLargeChange = Editor.IntField("LargeChange", LargeChange);
-                if (editorLargeChange.Changed)
-                    LargeChange = editorLargeChange.Value[0];
-
-                var editorMaximum = Editor.IntField("Maximum", Maximum);
-                if (editorMaximum.Changed)
-                    Maximum = editorMaximum.Value[0];
-
-                var editorMinimum = Editor.IntField("Minimum", Minimum);
-                if (editorMinimum.Changed)
-                    Minimum = editorMinimum.Value[0];
-
-                Editor.ColorField("ScrollColor", ScrollColor, (c) => { ScrollColor = c; });
-                Editor.ColorField("ScrollHoverColor", ScrollHoverColor, (c) => { ScrollHoverColor = c; });
-                Editor.Label("scrollRect", scrollRect);
-
-                var editorSmallChange = Editor.IntField("SmallChange", SmallChange);
-                if (editorSmallChange.Changed)
-                    SmallChange = editorSmallChange.Value[0];
-
-                var editorValue = Editor.IntField("Value", Value);
-                if (editorValue.Changed)
-                    Value = editorValue.Value[0];
-            }
-
-            Editor.EndVertical();
-            Editor.EndGroup();
-#endif
-            return component;
         }
         protected override void OnResize(EventArgs e)
         {

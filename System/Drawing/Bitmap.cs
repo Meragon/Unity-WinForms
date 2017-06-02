@@ -19,7 +19,7 @@ namespace System.Drawing
         }
         public Bitmap(int width, int height)
         {
-            uTexture = Graphics.GAPI.CreateTexture(width, height);
+            uTexture = Graphics.ApiGraphics.CreateTexture(width, height);
         }
 
         public override void Apply()

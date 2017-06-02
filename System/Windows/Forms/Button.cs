@@ -18,8 +18,6 @@ namespace System.Windows.Forms
         protected Pen borderPen;
         private DialogResult dialogResult;
 
-        private bool _toggleEditor = true;
-
         public virtual DialogResult DialogResult
         {
             get { return dialogResult; }
@@ -54,6 +52,8 @@ namespace System.Windows.Forms
             HoverColor = Color.FromArgb(223, 238, 252);
             TextAlign = ContentAlignment.MiddleCenter;
             Size = new Drawing.Size(75, 23);
+
+            this.SetStyle(ControlStyles.StandardClick | ControlStyles.StandardDoubleClick, false);
 
             borderPen = new Pen(BorderColor);
             currentBackColor = BackColor;
@@ -159,35 +159,6 @@ namespace System.Windows.Forms
                     Padding.Top,
                     Width - Padding.Left - Padding.Right,
                     Height - Padding.Top - Padding.Bottom, TextAlign);
-        }
-        protected override object uwfOnPaintEditor(float width)
-        {
-            var control = base.uwfOnPaintEditor(width);
-
-            Editor.BeginVertical();
-            Editor.NewLine(1);
-
-            _toggleEditor = Editor.Foldout("Button", _toggleEditor);
-            if (_toggleEditor)
-            {
-                Editor.BeginGroup(width - 24);
-
-                Editor.ColorField("      BackColor", BackColor, (c) => { BackColor = c; });
-                Editor.ColorField("      HoverBorderColor", BorderHoverColor, (c) => { BorderHoverColor = c; });
-                Editor.ColorField("      HoverColor", HoverColor, (c) => { HoverColor = c; });
-                Editor.ColorField("      ImageColor", ImageColor, (c) => { ImageColor = c; });
-                Editor.ColorField("      NormalBorderColor", BorderColor, (c) => { BorderColor = c; });
-
-                var editorTextAlign = Editor.EnumField("      TextAlign", TextAlign);
-                if (editorTextAlign.Changed) TextAlign = (ContentAlignment)editorTextAlign.Value;
-
-                Editor.Label("      TextMargin", Padding);
-
-                Editor.EndGroup();
-            }
-            Editor.EndVertical();
-
-            return control;
         }
     }
 }

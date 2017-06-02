@@ -15,7 +15,7 @@ namespace System.Windows.Forms
         private Point _dragPosition;
         private string _filter;
         private TreeNode _hoveredNode;
-        private DrawTreeNodeEventArgs nodeArgs = new DrawTreeNodeEventArgs(null, null, Rectangle.Empty, TreeNodeStates.Default);
+        private readonly DrawTreeNodeEventArgs nodeArgs = new DrawTreeNodeEventArgs(null, null, Rectangle.Empty, TreeNodeStates.Default);
         private List<TreeNode> _nodeList = new List<TreeNode>();
         private float _resetFilterTime;
         protected ScrollBar vScrollBar;
@@ -306,11 +306,11 @@ namespace System.Windows.Forms
             _UpdateScrollList();
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool release_all)
         {
             uwfAppOwner.UpClick -= _Application_UpClick;
 
-            base.Dispose();
+            base.Dispose(release_all);
         }
         protected virtual void OnDrawNode(DrawTreeNodeEventArgs e)
         {
@@ -402,7 +402,7 @@ namespace System.Windows.Forms
             // Reset filter.
             if (_resetFilterTime > 0)
             {
-                _resetFilterTime -= Application.DeltaTime;
+                _resetFilterTime -= swfHelper.GetDeltaTime();
                 if (_resetFilterTime <= 0)
                     _filter = "";
             }
@@ -424,50 +424,6 @@ namespace System.Windows.Forms
         protected override void OnLatePaint(PaintEventArgs e)
         {
             e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
-        }
-        protected override object uwfOnPaintEditor(float width)
-        {
-            var control = base.uwfOnPaintEditor(width);
-
-            Editor.NewLine(1);
-            Editor.Label("   TreeView");
-
-            Editor.ColorField("BorderColor", BorderColor, (c) => { BorderColor = c; });
-
-            var itemHeightBuffer = Editor.IntField("ItemHeight", ItemHeight);
-            if (itemHeightBuffer.Changed)
-                ItemHeight = itemHeightBuffer.Value[0];
-
-            Editor.ColorField("ScrollBarColor", ScrollBarColor, (c) => { ScrollBarColor = c; });
-            Editor.ColorField("ScrollBarHoverColor", ScrollBarHoverColor, (c) => { ScrollBarHoverColor = c; });
-
-            var scrollSpeedBuffer = Editor.Slider("ScrollSpeed", ScrollSpeed, 0, 255);
-            if (scrollSpeedBuffer.Changed)
-                ScrollSpeed = scrollSpeedBuffer.Value;
-
-            var scrollIndexBuffer = Editor.Slider("ScrollIndex", ScrollIndex, -1, _nodeList.Count * ItemHeight);
-            if (scrollIndexBuffer.Changed)
-                ScrollIndex = scrollIndexBuffer.Value;
-
-            Editor.ColorField("SelectionColor", SelectionColor, (c) => { SelectionColor = c; });
-            Editor.ColorField("SelectionHoverColor", SelectionHoverColor, (c) => { SelectionHoverColor = c; });
-
-            var smoothScrollingBuffer = Editor.BooleanField("SmoothScrolling", SmoothScrolling);
-            if (smoothScrollingBuffer.Changed)
-                SmoothScrolling = smoothScrollingBuffer.Value;
-
-            var useNodeBoundsForSelectionBuffer = Editor.BooleanField("UseNodeBoundsForSelection", UseNodeBoundsForSelection);
-            if (useNodeBoundsForSelectionBuffer.Changed)
-                UseNodeBoundsForSelection = useNodeBoundsForSelectionBuffer.Value;
-
-            var wrapTextBuffer = Editor.BooleanField("WrapText", WrapText);
-            if (wrapTextBuffer.Changed)
-                WrapText = wrapTextBuffer.Value;
-
-            Editor.Label("HoveredNode", _hoveredNode);
-            Editor.Label("SelectedNode", SelectedNode);
-
-            return control;
         }
         protected virtual void ProccesNode(TreeNode node)
         {

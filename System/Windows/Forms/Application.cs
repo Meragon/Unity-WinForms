@@ -40,7 +40,6 @@ namespace System.Windows.Forms
 
         public ApplicationBehaviour uwfBehaviour { get; private set; }
         public static bool Debug { get; set; }
-        public static float DeltaTime { get { return UnityEngine.Time.deltaTime; } }
         public float FillRate { get; set; }
         public static bool IsDraging { get { return _dragndrop; } }
         public static bool IsStandalone

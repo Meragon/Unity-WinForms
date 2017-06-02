@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.Drawing.API;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using Unity.API;
 
 namespace System.Drawing
 {
@@ -15,7 +17,7 @@ namespace System.Drawing
         private static readonly PointF _linePivot = new PointF();
 
         public static UnityEngine.Material DefaultMaterial { get; set; }
-        public static GAPI GAPI { get; set; }
+        public static IApiGraphics ApiGraphics { get; set; }
         public static bool GL_Lines { get; set; }
         public static bool NoFill { get; set; }
         public static bool NoRects { get; set; }
@@ -102,7 +104,7 @@ namespace System.Drawing
         public void Clear(Color color)
         {
             if (Control != null)
-                GAPI.FillRectangle(color, 0, 0, Control.Width, Control.Height);
+                ApiGraphics.FillRectangle(color, 0, 0, Control.Width, Control.Height);
         }
         public void Dispose()
         {
@@ -137,7 +139,7 @@ namespace System.Drawing
         {
             if (image == null) return;
 
-            GAPI.DrawImage(image, Color.White, x, y, width, height);
+            ApiGraphics.DrawImage(image, Color.White, x, y, width, height);
         }
         public void DrawLine(Pen pen, Point pt1, Point pt2)
         {
@@ -432,7 +434,7 @@ namespace System.Drawing
         #region Not original methods.
         public void uwfDrawImage(Image image, Color color, float x, float y, float width, float height)
         {
-            GAPI.DrawImage(image, color, x, y, width, height);
+            ApiGraphics.DrawImage(image, color, x, y, width, height);
         }
         public void uwfDrawMesh(Mesh mesh, Point position, Quaternion rotation, Material mat)
         {
@@ -551,7 +553,7 @@ namespace System.Drawing
                 Control.uwfBatches += 1;
             FillRate += width * height;
 
-            GAPI.DrawString(s, font, color, x, y, width, height, alignment);
+            ApiGraphics.DrawString(s, font, color, x, y, width, height, alignment);
         }
         public void uwfDrawString(string s, Font font, Color color, float x, float y)
         {
@@ -780,7 +782,7 @@ namespace System.Drawing
                 Control.uwfBatches += 1;
             FillRate += width * height;
 
-            GAPI.FillRectangle(color, x, y, width, height, mat);
+            ApiGraphics.FillRectangle(color, x, y, width, height, mat);
         }
         public void uwfFillQuad(Color color, PointF[] points)
         {

@@ -77,7 +77,7 @@ namespace System.Windows.Forms
         /// <returns></returns>
         public static float FloatLerp(float from_value, float to_value, float speed)
         {
-            return from_value + (to_value - from_value) * speed * Application.DeltaTime;
+            return from_value + (to_value - from_value) * speed * swfHelper.GetDeltaTime();
         }
         public static bool InRange(int val, int min, int max)
         {
@@ -127,7 +127,7 @@ namespace System.Windows.Forms
         }
         public static float Step(float from_value, float to_value, float speed)
         {
-            float uSpeed = speed * Application.DeltaTime;
+            float uSpeed = speed * swfHelper.GetDeltaTime();
             if (Math.Abs(from_value - to_value) < uSpeed) return to_value;
 
             if (from_value < to_value)
