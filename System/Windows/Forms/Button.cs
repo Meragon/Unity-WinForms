@@ -87,7 +87,7 @@ namespace System.Windows.Forms
         protected override void OnKeyUp(KeyEventArgs e)
         {
             base.OnKeyUp(e);
-            if (e.KeyCode == UnityEngine.KeyCode.Space || e.KeyCode == UnityEngine.KeyCode.Return)
+            if (e.KeyCode == Keys.Space || e.KeyCode == Keys.Return)
                 PerformClick();
         }
         protected override void OnPaint(PaintEventArgs e)

@@ -216,7 +216,7 @@ namespace System.Windows.Forms
             _dropDownItems = new ToolStripItemCollection(Parent, null);
 
             ArrowColor = Color.Black;
-            ArrowImage = ApplicationBehaviour.GdiImages.DropDownRightArrow;
+            ArrowImage = Unity.API.ApplicationBehaviour.GdiImages.DropDownRightArrow;
         }
 
         public Color ArrowColor { get; set; }
@@ -378,7 +378,7 @@ namespace System.Windows.Forms
 
                 e.Graphics.uwfFillRectangle(HoverColor, e.ClipRectangle.X + 4, e.ClipRectangle.Y + 4, rectWH, rectWH);
                 e.Graphics.DrawRectangle(selectPen, e.ClipRectangle.X + 4, e.ClipRectangle.Y + 4, rectWH, rectWH);
-                e.Graphics.DrawImage(ApplicationBehaviour.GdiImages.Checked, e.ClipRectangle.X + 6, e.ClipRectangle.Y + 6, checkedWH, checkedWH);
+                e.Graphics.DrawImage(Unity.API.ApplicationBehaviour.GdiImages.Checked, e.ClipRectangle.X + 6, e.ClipRectangle.Y + 6, checkedWH, checkedWH);
             }
 
             if (!String.IsNullOrEmpty(ShortcutKeys))

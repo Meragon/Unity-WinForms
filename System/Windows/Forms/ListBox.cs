@@ -25,7 +25,7 @@ namespace System.Windows.Forms
         private int itemHeight = DefaultItemHeight;
         private readonly ObjectCollection items;
         private string keyFilter = "";
-        private ApplicationBehaviour.invokeAction keyFilterIA;
+        private Unity.API.ApplicationBehaviour.invokeAction keyFilterIA;
         private float keyFilterResetTime = 3;
         private int visibleItemsCount = 0;
         private bool scrollAlwaysVisible;
@@ -205,26 +205,26 @@ namespace System.Windows.Forms
         {
             switch (e.KeyCode)
             {
-                case KeyCode.DownArrow:
-                case KeyCode.RightArrow:
+                case Keys.Down:
+                case Keys.Right:
                     SelectItem(SelectedIndex + 1);
                     break;
-                case KeyCode.LeftArrow:
-                case KeyCode.UpArrow:
+                case Keys.Left:
+                case Keys.Up:
                     SelectItem(SelectedIndex - 1);
                     break;
 
-                case KeyCode.PageDown:
+                case Keys.PageDown:
                     SelectItem(SelectedIndex + visibleItemsCount - 1);
                     break;
-                case KeyCode.PageUp:
+                case Keys.PageUp:
                     SelectItem(SelectedIndex - visibleItemsCount + 1);
                     break;
 
-                case KeyCode.Home:
+                case Keys.Home:
                     SelectItem(0);
                     break;
-                case KeyCode.End:
+                case Keys.End:
                     SelectItem(Items.Count - 1);
                     break;
 
@@ -239,7 +239,7 @@ namespace System.Windows.Forms
                         SelectItem(itemIndex);
 
                         if (keyFilterIA == null)
-                            keyFilterIA = uwfAppOwner.uwfBehaviour.Invoke(ResetKeyFilter, keyFilterResetTime);
+                            keyFilterIA = Unity.API.ApplicationBehaviour.Invoke(ResetKeyFilter, keyFilterResetTime);
                         keyFilterIA.Seconds = keyFilterResetTime;
                     }
                     break;

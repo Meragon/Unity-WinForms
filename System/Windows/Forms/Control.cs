@@ -650,7 +650,7 @@ namespace System.Windows.Forms
             OnMouseUp(e);
             MouseUp(this, e);
 
-            if (uwfAppOwner != null && ApplicationBehaviour.ShowControlProperties && Application.ShowCallback != null)
+            if (uwfAppOwner != null && Unity.API.ApplicationBehaviour.ShowControlProperties && Application.ShowCallback != null)
                 Application.ShowCallback.Invoke(this);
         }
         internal void RaiseOnMouseWheel(MouseEventArgs e)
@@ -676,7 +676,6 @@ namespace System.Windows.Forms
         }
         internal void RaiseOnPaint(PaintEventArgs e)
         {
-            e.Graphics.Control = this;
             uwfBatches = 0;
 
             if (uwfShadowBox)
@@ -701,16 +700,8 @@ namespace System.Windows.Forms
             }
 
             if (uwfAutoGroup)
-            {
-                int gx = e.ClipRectangle.X;
-                int gy = e.ClipRectangle.Y;
-
-                if (gx != 0 && gy != 0) // Reset?
-                    e.ClipRectangle = new Rectangle(0, 0, Screen.PrimaryScreen.WorkingArea.Width, Screen.PrimaryScreen.WorkingArea.Height);
-
-                e.Graphics.Group = new Drawing.Rectangle(gx, gy, ClientSize.Width, ClientSize.Height);
                 e.Graphics.GroupBegin(this);
-            }
+            
             OnPaintBackground(e);
             OnPaint(e);
             if (Controls != null)
@@ -723,11 +714,10 @@ namespace System.Windows.Forms
                     if (currentAbspos.X + childControl.Width < 0 || currentAbspos.X > Screen.PrimaryScreen.WorkingArea.Width ||
                     currentAbspos.Y + childControl.Height < 0 || currentAbspos.Y > Screen.PrimaryScreen.WorkingArea.Height)
                         continue;
-
-                    e.Graphics.Control = childControl;
+                    
                     childControl.RaiseOnPaint(e);
                 }
-            e.Graphics.Control = this;
+
             if (Application.Debug)
             {
                 e.Graphics.uwfDrawString(GetType().Name, Font, Brushes.White, 3, 1, 256, 32);
@@ -739,10 +729,9 @@ namespace System.Windows.Forms
                 e.Graphics.DrawRectangle(outlinePen, 0, 0, Width, Height);
             }
             OnLatePaint(e);
+
             if (uwfAutoGroup)
                 e.Graphics.GroupEnd();
-
-            e.Graphics.Control = null;
         }
         internal Size SizeFromClientSize(int argWidth, int argHeight)
         {

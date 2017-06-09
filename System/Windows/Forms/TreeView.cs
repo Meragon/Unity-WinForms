@@ -169,7 +169,7 @@ namespace System.Windows.Forms
                             arrowTexture = img as Bitmap;
                     }
                     else
-                        arrowTexture = ApplicationBehaviour.GdiImages.TreeNodeExpanded;
+                        arrowTexture = uwfAppOwner.Resources.TreeNodeExpanded;
                 }
                 else
                 {
@@ -180,7 +180,7 @@ namespace System.Windows.Forms
                             arrowTexture = img as Bitmap;
                     }
                     else
-                        arrowTexture = ApplicationBehaviour.GdiImages.TreeNodeCollapsed;
+                        arrowTexture = uwfAppOwner.Resources.TreeNodeCollapsed;
                 }
 
                 if (arrowTexture != null)
@@ -300,6 +300,9 @@ namespace System.Windows.Forms
             }
 
             UpdateScrollBar();
+
+            _filter = ""; // reset filter.
+            _resetFilterTime = 0;
         }
         private void VScrollBarOnValueChanged(object sender, EventArgs eventArgs)
         {
@@ -319,28 +322,28 @@ namespace System.Windows.Forms
         protected override void OnKeyPress(KeyEventArgs e)
         {
             base.OnKeyPress(e);
-            if (e.Modifiers == UnityEngine.EventModifiers.None)
+            if (e.Modifiers == Keys.None)
             {
                 switch (e.KeyCode)
                 {
-                    case UnityEngine.KeyCode.Space:
-                    case UnityEngine.KeyCode.Return:
+                    case Keys.Space:
+                    case Keys.Return:
                         if (SelectedNode != null)
                             SelectedNode.Toggle();
                         break;
 
-                    case UnityEngine.KeyCode.DownArrow:
+                    case Keys.Down:
                         _SelectNext();
                         break;
-                    case UnityEngine.KeyCode.LeftArrow:
+                    case Keys.Left:
                         if (SelectedNode != null)
                             SelectedNode.Collapse();
                         break;
-                    case UnityEngine.KeyCode.RightArrow:
+                    case Keys.Right:
                         if (SelectedNode != null)
                             SelectedNode.Expand();
                         break;
-                    case UnityEngine.KeyCode.UpArrow:
+                    case Keys.Up:
                         _SelectPrevious();
                         break;
                 }

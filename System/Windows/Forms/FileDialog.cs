@@ -264,26 +264,26 @@ namespace System.Windows.Forms
         protected override void OnKeyPress(KeyEventArgs e)
         {
             base.OnKeyPress(e);
-            if (e.KeyCode == KeyCode.Escape)
+            if (e.KeyCode == Keys.Escape)
             {
                 DialogResult = DialogResult.Cancel;
                 Close();
             }
 
             // Next folder.
-            if (e.KeyCode == KeyCode.Return)
+            if (e.KeyCode == Keys.Return)
                 fileRenderer.Next();
 
             // Refresh directory.
-            if (e.KeyCode == KeyCode.F5)
+            if (e.KeyCode == Keys.F5)
                 ButtonRefresh();
 
-            if (e.Modifiers == EventModifiers.Alt)
+            if (e.Alt)
             {
                 switch (e.KeyCode)
                 {
-                    case KeyCode.LeftArrow: ButtonBack(); break;
-                    case KeyCode.UpArrow: ButtonUp(); break;
+                    case Keys.Left: ButtonBack(); break;
+                    case Keys.Up: ButtonUp(); break;
                 }
             }
         }
@@ -730,7 +730,7 @@ namespace System.Windows.Forms
                 for (currentIndex = 0; currentIndex < directories.Count; currentIndex++)
                 {
                     var dir = directories[currentIndex];
-                    var estimatedWidth = System.Drawing.Graphics.uwfMeasureStringSimple(dir.Name, SystemFonts.DefaultFont).Width + 15;
+                    var estimatedWidth = Font.MeasureStringSimple(dir.Name).Width + 15;
 
                     currentWidth += estimatedWidth;
                     if (currentWidth >= allowedWidth)
@@ -822,7 +822,7 @@ namespace System.Windows.Forms
                     arrowButton.Height = Height;
                     arrowButton.Location = new Point(Width - arrowButton.Width, 0);
                     arrowButton.Text = "";
-                    arrowButton.Image = ApplicationBehaviour.GdiImages.ArrowRight;
+                    arrowButton.Image = Unity.API.ApplicationBehaviour.GdiImages.ArrowRight;
                     arrowButton.ImageColor = Color.Gray;
                     arrowButton.ImageHoverColor = Color.Gray;
 

@@ -152,8 +152,8 @@ namespace System.Windows.Forms
 
             CloseButton.Anchor = AnchorStyles.Right;
             CloseButton.Text = "";
-            if (ApplicationBehaviour.Resources != null && ApplicationBehaviour.GdiImages.Close != null)
-                CloseButton.Image = ApplicationBehaviour.GdiImages.Close;
+            if (uwfAppOwner.Resources != null && uwfAppOwner.Resources.Close != null)
+                CloseButton.Image = uwfAppOwner.Resources.Close;
             else
                 CloseButton.Text = "X";
             CloseButton.HoverColor = System.Drawing.Color.FromArgb(252, 252, 252);
@@ -174,7 +174,7 @@ namespace System.Windows.Forms
         }
         private void _MakeButtonResize()
         {
-            var img = ApplicationBehaviour.GdiImages.FormResize;
+            var img = uwfAppOwner.Resources.FormResize;
             if (img == null) return;
 
             uwfSizeGripRenderer = new ResizeButton(this, img);

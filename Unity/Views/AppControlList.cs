@@ -12,7 +12,7 @@ namespace Views
 {
     public class AppControlList : EditorWindow
     {
-        [MenuItem("Views/AppControlList")]
+        [MenuItem("Window/NetWinForms/AppControlList")]
         public static void ShowWindow()
         {
             EditorWindow.GetWindow(typeof(AppControlList), false, "AppControlList");

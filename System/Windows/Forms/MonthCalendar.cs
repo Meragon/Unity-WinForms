@@ -130,7 +130,7 @@ namespace System.Windows.Forms
             Value = DateTime.Now;
 
             Button prevMonthButton = new Button();
-            prevMonthButton.Image = ApplicationBehaviour.GdiImages.ArrowLeft;
+            prevMonthButton.Image = uwfAppOwner.Resources.ArrowLeft;
             prevMonthButton.ImageColor = Color.FromArgb(48, 48, 48);
             prevMonthButton.Size = new Size(16, 16);
             prevMonthButton.Location = new Point(4, 8);
@@ -142,7 +142,7 @@ namespace System.Windows.Forms
 
             Button nextMonthButton = new Button();
             nextMonthButton.Anchor = AnchorStyles.Right;
-            nextMonthButton.Image = ApplicationBehaviour.GdiImages.ArrowRight;
+            nextMonthButton.Image = uwfAppOwner.Resources.ArrowRight;
             nextMonthButton.ImageColor = Color.FromArgb(48, 48, 48);
             nextMonthButton.Size = new Size(16, 16);
             nextMonthButton.Location = new Point(Width - nextMonthButton.Width - 4, 8);

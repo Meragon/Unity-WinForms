@@ -38,6 +38,10 @@ namespace System.Drawing
         {
             return new Point(p1.X / (int)p2.X, p1.Y / (int)p2.Y);
         }
+        public static SizeF MeasureStringSimple(this Font font, string text)
+        {
+            return new SizeF() { Width = text.Length * 8, Height = font.Size }; // fast, but not accurate.
+        }
         public static Point Multiply(this Point p1, int val)
         {
             return new Point(p1.X * val, p1.Y * val);

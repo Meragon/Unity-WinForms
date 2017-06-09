@@ -158,7 +158,7 @@ namespace System.Windows.Forms
                 case ScrollEventType.ThumbPosition:
                 case ScrollEventType.ThumbTrack:
 
-                    Application.Log("not implemented yet");
+                    // not implemented yet.
                     break;
             }
 

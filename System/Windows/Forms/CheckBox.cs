@@ -59,7 +59,7 @@ namespace System.Windows.Forms
             g.uwfFillRectangle(backColor, checkRectX, checkRectY, checkRectWH, checkRectWH);
             g.DrawRectangle(borderPen, checkRectX, checkRectY, checkRectWH, checkRectWH);
             if (Checked)
-                g.DrawImage(ApplicationBehaviour.GdiImages.Checked, checkRectX, checkRectY, checkRectWH, checkRectWH);
+                g.DrawImage(uwfAppOwner.Resources.Checked, checkRectX, checkRectY, checkRectWH, checkRectWH);
 
             g.uwfDrawString(Text, Font, ForeColor, checkRectX + checkRectWH + 4, Padding.Top + 0, Width - 20, Height, TextAlign);
         }

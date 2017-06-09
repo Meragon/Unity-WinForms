@@ -722,10 +722,10 @@ namespace System.Windows.Forms
                         switch (lastSortDirection)
                         {
                             case ListSortDirection.Ascending:
-                                e.Graphics.uwfDrawImage(ApplicationBehaviour.GdiImages.ArrowUp, Color.Gray, 8, Height / 2 - 4, 8, 8);
+                                e.Graphics.uwfDrawImage(uwfAppOwner.Resources.ArrowUp, Color.Gray, 8, Height / 2 - 4, 8, 8);
                                 break;
                             case ListSortDirection.Descending:
-                                e.Graphics.uwfDrawImage(ApplicationBehaviour.GdiImages.ArrowDown, Color.Gray, 8, Height / 2 - 4, 8, 8);
+                                e.Graphics.uwfDrawImage(uwfAppOwner.Resources.ArrowDown, Color.Gray, 8, Height / 2 - 4, 8, 8);
                                 break;
                         }
                     }

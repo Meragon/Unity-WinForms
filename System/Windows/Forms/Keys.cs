@@ -5,6 +5,7 @@ using System.Text;
 
 namespace System.Windows.Forms
 {
+    [Flags]
     public enum Keys
     {
         KeyCode = 65535,
@@ -200,6 +201,6 @@ namespace System.Windows.Forms
         OemClear = 254,
         Shift = 65536,
         Control = 131072,
-        Alt = 262144
+        Alt = 262144,
     }
 }

@@ -10,6 +10,7 @@ namespace System.Windows.Forms
     public class ToolStrip : ScrollableControl
     {
         private readonly SolidBrush brushBack = new SolidBrush(Color.Transparent);
+        private readonly Pen borderPen = new Pen(Color.Transparent);
         private readonly ToolStripItemCollection _items;
         private readonly PaintEventArgs p_args;
 
@@ -41,7 +42,11 @@ namespace System.Windows.Forms
             get { return brushBack.Color; }
             set { brushBack.Color = value; }
         }
-        public Color BorderColor { get; set; }
+        public Color BorderColor
+        {
+            get { return borderPen.Color; }
+            set { borderPen.Color = value; }
+        }
         public virtual ToolStripItemCollection Items { get { return _items; } }
         public Orientation Orientation { get; set; }
         internal ToolStripItem OwnerItem { get; set; }
@@ -147,10 +152,10 @@ namespace System.Windows.Forms
             base.OnKeyDown(e);
             switch (e.KeyCode)
             {
-                case UnityEngine.KeyCode.DownArrow: break;
-                case UnityEngine.KeyCode.LeftArrow: break;
-                case UnityEngine.KeyCode.RightArrow: break;
-                case UnityEngine.KeyCode.UpArrow: break;
+                case Keys.Down: break;
+                case Keys.Left: break;
+                case Keys.Right: break;
+                case Keys.Up: break;
             }
         }
         protected override void OnPaint(PaintEventArgs e)
@@ -182,7 +187,7 @@ namespace System.Windows.Forms
                     y += item.Height;
             }
 
-            p_args.Graphics.uwfDrawRectangle(BorderColor, 0, 0, Width, Height);
+            p_args.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
 
         public event ToolStripItemClickedEventHandler ItemClicked = delegate { };

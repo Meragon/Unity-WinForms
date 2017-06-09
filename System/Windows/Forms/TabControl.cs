@@ -225,7 +225,7 @@ namespace System.Windows.Forms
                 {
                     navigationButtonRight = new Button();
                     navigationButtonRight.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-                    navigationButtonRight.Image = ApplicationBehaviour.GdiImages.ArrowRight;
+                    navigationButtonRight.Image = uwfAppOwner.Resources.ArrowRight;
                     navigationButtonRight.ImageColor = Color.Black;
                     navigationButtonRight.Size = new Size(16, 16);
                     navigationButtonRight.Location = new Point(Width - navigationButtonRight.Width, ItemSize.Height - navigationButtonRight.Height - 2);
@@ -241,7 +241,7 @@ namespace System.Windows.Forms
 
                     navigationButtonLeft = new Button();
                     navigationButtonLeft.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-                    navigationButtonLeft.Image = ApplicationBehaviour.GdiImages.ArrowLeft;
+                    navigationButtonLeft.Image = uwfAppOwner.Resources.ArrowLeft;
                     navigationButtonLeft.ImageColor = Color.Black;
                     navigationButtonLeft.Size = navigationButtonRight.Size;
                     navigationButtonLeft.Location = new Point(navigationButtonRight.Location.X - navigationButtonRight.Width, navigationButtonRight.Location.Y);

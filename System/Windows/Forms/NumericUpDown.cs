@@ -91,7 +91,7 @@ namespace System.Windows.Forms
                 ButtonIncrease.BorderColor = Color.FromArgb(172, 172, 172);
                 ButtonIncrease.HoverColor = Color.FromArgb(228, 241, 252);
                 ButtonIncrease.BorderHoverColor = Color.FromArgb(126, 180, 234);
-                ButtonIncrease.Image = ApplicationBehaviour.GdiImages.NumericUp;
+                ButtonIncrease.Image = uwfAppOwner.Resources.NumericUp;
                 ButtonIncrease.Click += delegate { if (Enabled) Value += Increment; };
 
                 ButtonDecrease = new RepeatButton();
@@ -103,7 +103,7 @@ namespace System.Windows.Forms
                 ButtonDecrease.BorderColor = Color.FromArgb(172, 172, 172);
                 ButtonDecrease.HoverColor = Color.FromArgb(228, 241, 252);
                 ButtonDecrease.BorderHoverColor = Color.FromArgb(126, 180, 234);
-                ButtonDecrease.Image = ApplicationBehaviour.GdiImages.NumericDown;
+                ButtonDecrease.Image = uwfAppOwner.Resources.NumericDown;
                 ButtonDecrease.Click += delegate { if (Enabled) Value -= Increment; };
 
                 Controls.Add(ButtonIncrease);
@@ -129,11 +129,11 @@ namespace System.Windows.Forms
 
             e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
-        protected override void OnKeyPress(KeyEventArgs e)
+        protected override void OnKeyDown(KeyEventArgs e)
         {
-            base.OnKeyPress(e);
+            base.OnKeyDown(e);
 
-            if (e.KeyCode == UnityEngine.KeyCode.Return)
+            if (e.KeyCode == Keys.Return)
                 ConfirmValue();
         }
         protected override void OnMouseWheel(MouseEventArgs e)

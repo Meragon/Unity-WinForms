@@ -13,6 +13,7 @@ namespace System.Windows.Forms
 {
     public class ComboBox : ListControl
     {
+        private readonly Pen borderPen = new Pen(Color.Transparent);
         private readonly Pen downButtonBorderPen = new Pen(Color.Transparent);
         private const int downButtonWidth = 17;
         private ComboBoxStyle dropDownStyle;
@@ -119,7 +120,7 @@ namespace System.Windows.Forms
             base.OnKeyDown(e);
             switch (e.KeyCode)
             {
-                case UnityEngine.KeyCode.DownArrow:
+                case Keys.Down:
                     {
                         if (Items.IsDisabled(selectedIndex + 1))
                             break;
@@ -127,12 +128,13 @@ namespace System.Windows.Forms
                         {
                             listBox.SelectedIndex++;
                             SelectedIndex = Items.FindIndex(x => x == listBox.SelectedItem);
+                            listBox.EnsureVisible();
                         }
                         else if (selectedIndex + 1 < Items.Count)
                             SelectedIndex++;
                     }
                     break;
-                case UnityEngine.KeyCode.UpArrow:
+                case Keys.Up:
                     {
                         if (Items.IsDisabled(selectedIndex - 1))
                             break;
@@ -143,12 +145,13 @@ namespace System.Windows.Forms
                             if (listBox.SelectedIndex < 0 && listBox.Items.Count > 0)
                                 listBox.SelectedIndex = 0;
                             SelectedIndex = Items.FindIndex(x => x == listBox.SelectedItem);
+                            listBox.EnsureVisible();
                         }
                         else if (selectedIndex > 0)
                             SelectedIndex--;
                     }
                     break;
-                case UnityEngine.KeyCode.Return:
+                case Keys.Return:
                     if (listBox != null && !listBox.Disposing && !listBox.IsDisposed)
                     {
                         listBox.SelectItem(listBox.SelectedIndex);
@@ -177,7 +180,7 @@ namespace System.Windows.Forms
         protected override void OnKeyUp(KeyEventArgs e)
         {
             base.OnKeyUp(e);
-            if (e.KeyCode == UnityEngine.KeyCode.Space)
+            if (e.KeyCode == Keys.Space)
                 RaiseOnMouseDown(new MouseEventArgs(MouseButtons.Left, Width - 1, 1, 0, 0));
         }
         protected override void OnMouseDown(MouseEventArgs e)
@@ -242,6 +245,8 @@ namespace System.Windows.Forms
                 borderColor = BorderColorDisabled;
             }
 
+            borderPen.Color = borderColor;
+
             #endregion
 
             g.uwfFillRectangle(backColor, 0, 0, Width, Height);
@@ -293,8 +298,8 @@ namespace System.Windows.Forms
                     break;
             }
 
-            g.uwfDrawImage(ApplicationBehaviour.GdiImages.CurvedArrowDown, arrowColor, Width - 16 - 1, Height / 2 - 8, 16, 16);
-            g.uwfDrawRectangle(borderColor, 0, 0, Width, Height);
+            g.uwfDrawImage(uwfAppOwner.Resources.CurvedArrowDown, arrowColor, Width - 16 - 1, Height / 2 - 8, 16, 16);
+            g.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
         protected override void OnSelectedIndexChanged(EventArgs e)
         {
@@ -302,7 +307,7 @@ namespace System.Windows.Forms
         }
         protected virtual void OnSelectedItemChanged(EventArgs e)
         {
-            
+
         }
 
         private void ApplySelectedItem()
@@ -361,7 +366,7 @@ namespace System.Windows.Forms
                 for (int i = 0; i < Items.Count; i++)
                     if (Items.IsDisabled(i))
                         listBox.Items.Disable(i);
-                    
+
                 if (selectedIndexChanged == false)
                 {
                     listBox.SelectedIndex = SelectedIndex;
@@ -389,7 +394,7 @@ namespace System.Windows.Forms
         }
         private void ListBoxOnKeyDown(object sender, KeyEventArgs keyEventArgs)
         {
-            if (keyEventArgs.KeyCode != KeyCode.Return && keyEventArgs.KeyCode != KeyCode.Space) return;
+            if (keyEventArgs.KeyCode != Keys.Return && keyEventArgs.KeyCode != Keys.Space) return;
 
             ApplySelectedItem();
         }

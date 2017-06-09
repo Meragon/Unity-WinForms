@@ -24,7 +24,7 @@ namespace Views
             }
         }
 
-        [MenuItem("Views/SWF Inspector")]
+        [MenuItem("Window/NetWinForms/SWF Inspector")]
         public static EditorWindow ShowWindow()
         {
             return EditorWindow.GetWindow(typeof(AppControl), false, "SWF Inspector");

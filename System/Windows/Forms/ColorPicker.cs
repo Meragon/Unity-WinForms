@@ -121,6 +121,7 @@ namespace System.Windows.Forms
                 Screen.PrimaryScreen.WorkingArea.Height / 2 - Height / 2);
             uwfResizable = false;
             Text = "Pick a color";
+            KeyPreview = true;
             TopMost = true;
 
             _bsPicker = new BrightnessSaturationPicker(128, 128);
@@ -389,8 +390,7 @@ namespace System.Windows.Forms
 
         protected override void OnKeyUp(KeyEventArgs e)
         {
-            if (e.KeyCode == UnityEngine.KeyCode.Escape ||
-                (e.KeyCode == UnityEngine.KeyCode.W && e.Modifiers == UnityEngine.EventModifiers.Control))
+            if (e.KeyCode == Keys.Escape || (e.KeyCode == Keys.W && e.Control))
                 Close();
         }
         protected override void OnPaint(PaintEventArgs e)

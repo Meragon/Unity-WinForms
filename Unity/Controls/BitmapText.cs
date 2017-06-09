@@ -109,7 +109,7 @@ namespace Unity.Controls
                     // Scale texture if needed.
                     if ((int) cW != charTexture.Width || (int) cH != charTexture.Height)
                     {
-                        Application.Log("scaling not working");
+                        // TODO: not working.
                         //TextureScaler.scale(charTexture, (int) cW, (int) cH);
                     }
 

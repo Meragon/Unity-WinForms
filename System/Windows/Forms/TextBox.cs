@@ -63,10 +63,20 @@ namespace System.Windows.Forms
             if (Enabled && Focused)
             {
                 var _tempText = "";
+
+                if (shouldFocus)
+                    g.uwfFocusNext();
+
                 if (!Multiline)
                     _tempText = g.uwfDrawTextField(Text, Font, ForeColor, textX, textY, textW, textH, TextAlign);
                 else
                     _tempText = g.uwfDrawTextArea(Text, Font, ForeColor, textX, textY, textW, textH);
+
+                if (shouldFocus)
+                {
+                    shouldFocus = false;
+                    g.uwfFocus();
+                }
 
                 if (ReadOnly == false && string.Equals(Text, _tempText) == false)
                     Text = _tempText;
