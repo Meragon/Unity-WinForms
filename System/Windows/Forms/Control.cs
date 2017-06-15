@@ -36,7 +36,7 @@ namespace System.Windows.Forms
         internal bool mouseEntered;
         internal bool shouldFocus;
         private bool _uwfContext;
-        private bool _visible;
+        private bool visible;
         private int width;
         private int x, y;
 
@@ -59,7 +59,6 @@ namespace System.Windows.Forms
                 Size = new Size(value.Width, value.Height);
             }
         }
-
         public bool CanSelect
         {
             get { return CanSelectCore(); }
@@ -119,11 +118,11 @@ namespace System.Windows.Forms
         }
         public bool Visible
         {
-            get { return _visible; }
+            get { return visible; }
             set
             {
-                bool changed = _visible != value;
-                _visible = value;
+                bool changed = visible != value;
+                visible = value;
                 if (changed)
                     VisibleChanged(this, new EventArgs());
             }
@@ -172,7 +171,7 @@ namespace System.Windows.Forms
             TabIndex = -1;
             TabStop = true;
             uwfAutoGroup = true;
-            _visible = true;
+            visible = true;
 
             this.SetStyle(ControlStyles.UserPaint | ControlStyles.StandardClick | ControlStyles.Selectable | ControlStyles.StandardDoubleClick | ControlStyles.AllPaintingInWmPaint | ControlStyles.UseTextForAccessibility, true);
 
@@ -282,20 +281,26 @@ namespace System.Windows.Forms
         }
         public Point PointToClient(Point p)
         {
-            if (Parent != null)
-                p = Parent.PointToClient(p);
+            var parent = Parent;
+            if (parent != null)
+                p = parent.PointToClient(p);
 
-            p.X -= Location.X + uwfOffset.X;
-            p.Y -= Location.Y + uwfOffset.Y;
+            var location = Location;
+            var localuwfOffset = uwfOffset;
+
+            p.Offset(-location.X - localuwfOffset.X, -location.Y - localuwfOffset.Y);
             return p;
         }
         public Point PointToScreen(Point p)
         {
-            if (Parent != null)
-                p = Parent.PointToScreen(p);
+            var parent = Parent;
+            if (parent != null)
+                p = parent.PointToScreen(p);
 
-            p.X += Location.X + uwfOffset.X;
-            p.Y += Location.Y + uwfOffset.Y;
+            var location = Location;
+            var localuwfOffset = uwfOffset;
+
+            p.Offset(location.X + localuwfOffset.X, location.Y + localuwfOffset.Y);
             return p;
         }
         public virtual void Refresh()
@@ -352,7 +357,7 @@ namespace System.Windows.Forms
 
             Disposing = true;
             OnDisposing(this, EventArgs.Empty);
-            
+
             if (release_all)
             {
                 for (; Controls.Count > 0;)
@@ -688,11 +693,13 @@ namespace System.Windows.Forms
                         int shX = psLoc.X + 6;
                         int shY = psLoc.Y + 6;
                         var shadowColor = defaultShadowColor;
-                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 6, shY + 6, Width - 12, Height - 12);
-                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 5, shY + 5, Width - 10, Height - 10);
-                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 4, shY + 4, Width - 8, Height - 8);
-                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 3, shY + 3, Width - 6, Height - 6);
-                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 2, shY + 2, Width - 4, Height - 4);
+                        var localWidth = Width;
+                        var localHeight = Height;
+                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 6, shY + 6, localWidth - 12, localHeight - 12);
+                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 5, shY + 5, localWidth - 10, localHeight - 10);
+                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 4, shY + 4, localWidth - 8, localHeight - 8);
+                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 3, shY + 3, localWidth - 6, localHeight - 6);
+                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 2, shY + 2, localWidth - 4, localHeight - 4);
                     };
                 }
 
@@ -701,33 +708,30 @@ namespace System.Windows.Forms
 
             if (uwfAutoGroup)
                 e.Graphics.GroupBegin(this);
-            
+
             OnPaintBackground(e);
             OnPaint(e);
-            if (Controls != null)
-                for (int i = 0; i < Controls.Count; i++)
+
+            var controls = Controls;
+            if (controls != null)
+            {
+                var screenRect = Screen.PrimaryScreen.WorkingArea;
+                for (int i = 0; i < controls.Count; i++)
                 {
-                    var childControl = Controls[i];
+                    var childControl = controls[i];
                     if (Application.ControlIsVisible(childControl) == false) continue;
 
                     var currentAbspos = childControl.PointToScreen(Point.Empty);
-                    if (currentAbspos.X + childControl.Width < 0 || currentAbspos.X > Screen.PrimaryScreen.WorkingArea.Width ||
-                    currentAbspos.Y + childControl.Height < 0 || currentAbspos.Y > Screen.PrimaryScreen.WorkingArea.Height)
+                    if (currentAbspos.X + childControl.Width < 0 ||
+                        currentAbspos.X > screenRect.Width ||
+                        currentAbspos.Y + childControl.Height < 0 ||
+                        currentAbspos.Y > screenRect.Height)
                         continue;
-                    
+
                     childControl.RaiseOnPaint(e);
                 }
-
-            if (Application.Debug)
-            {
-                e.Graphics.uwfDrawString(GetType().Name, Font, Brushes.White, 3, 1, 256, 32);
-                e.Graphics.uwfDrawString(GetType().Name, Font, Brushes.White, 5, 3, 256, 32);
-                e.Graphics.uwfDrawString(GetType().Name, Font, Brushes.DarkRed, 4, 2, 256, 32);
-
-                var outlinePen = Pens.DarkRed;
-                if (Focused) outlinePen = new Pen(SystemColors.Highlight);
-                e.Graphics.DrawRectangle(outlinePen, 0, 0, Width, Height);
             }
+
             OnLatePaint(e);
 
             if (uwfAutoGroup)

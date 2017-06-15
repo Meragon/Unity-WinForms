@@ -415,15 +415,17 @@ namespace System.Drawing
         {
             return uwfDrawTextField(s, font, brush.Color, x, y, width, height, alignment);
         }
-        internal void uwfDrawTexture(Texture texture, float x, float y, float width, float height, Material mat)
+        internal void uwfDrawTexture(Texture texture, float x, float y, float width, float height, Material mat = null)
         {
             uwfDrawTexture(texture, x, y, width, height, Color.White, mat);
         }
-        internal void uwfDrawTexture(Texture texture, float x, float y, float width, float height, Color color, Material mat)
+        internal void uwfDrawTexture(Texture texture, float x, float y, float width, float height, Color color, Material mat = null)
         {
             if (texture == null) return;
             if (mat != null)
                 mat.color = color.ToUnityColor();
+            else
+                GUI.color = color.ToUnityColor();
             UnityEngine.Graphics.DrawTexture(new Rect(x, y, width, height), texture, mat);
         }
         internal void uwfFillPolygonConvex(SolidBrush brush, PointF[] points)

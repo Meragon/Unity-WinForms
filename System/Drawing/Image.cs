@@ -24,6 +24,7 @@ namespace System.Drawing
         int Width { get; }
 
         void Apply();
+        void Clear(Color color);
         Color GetPixel(int x, int y);
         Color[] GetPixels();
         Color[] GetPixels(int x, int y, int width, int height);

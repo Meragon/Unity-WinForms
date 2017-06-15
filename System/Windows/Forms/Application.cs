@@ -37,11 +37,9 @@ namespace System.Windows.Forms
         internal Control hoveredControl;
         internal readonly List<Form> ModalForms = new List<Form>();
         internal AppGdiImages Resources;
-
-        public static bool Debug { get; set; }
-        public float FillRate { get; set; }
-        public static bool IsDraging { get { return _dragndrop; } }
-        public static bool IsStandalone
+        
+        internal static bool IsDraging { get { return _dragndrop; } }
+        internal static bool IsStandalone
         {
             get
             {
@@ -52,7 +50,7 @@ namespace System.Windows.Forms
 #endif
             }
         }
-        public static float ScaleX
+        internal static float ScaleX
         {
             get { return _scaleX; }
             set
@@ -62,7 +60,7 @@ namespace System.Windows.Forms
                     _scaleX = 1f;
             }
         }
-        public static float ScaleY
+        internal static float ScaleY
         {
             get { return _scaleY; }
             set
@@ -72,8 +70,8 @@ namespace System.Windows.Forms
                     _scaleY = 1f;
             }
         }
-        public static Action<Control> ShowCallback { get; set; }
-        public bool TabSwitching { get; set; }
+        internal static Action<Control> ShowCallback { get; set; }
+        internal bool TabSwitching { get; set; }
 
         private static bool Contains(Control parent, Control child)
         {
@@ -110,12 +108,22 @@ namespace System.Windows.Forms
         internal static bool ControlIsVisible(Control control)
         {
             if (control.Visible == false) return false;
-            if (control.Location.X + control.uwfOffset.X + control.Width < 0) return false;
-            if (control.Location.Y + control.uwfOffset.Y + control.Height < 0) return false;
-            if (control.Parent != null)
+
+            var controlLocationX = control.Location.X;
+            var controlLocationY = control.Location.Y;
+            var controluwfOffsetX = control.uwfOffset.X;
+            var controluwfOffsetY = control.uwfOffset.Y;
+            var controlWidth = control.Width;
+            var controlHeight = control.Height;
+
+            if (controlLocationX + controluwfOffsetX + controlWidth < 0) return false;
+            if (controlLocationY + controluwfOffsetY + controlHeight < 0) return false;
+
+            var controlParent = control.Parent;
+            if (controlParent != null)
             {
-                if (control.Location.X + control.uwfOffset.X > control.Parent.Width) return false;
-                if (control.Location.Y + control.uwfOffset.Y > control.Parent.Height) return false;
+                if (controlLocationX + controluwfOffsetX > controlParent.Width) return false;
+                if (controlLocationY + controluwfOffsetY > controlParent.Height) return false;
             }
             return true;
         }
@@ -454,9 +462,9 @@ namespace System.Windows.Forms
             // Dispose context first.
             for (int i = 0; i < Contexts.Count; i++)
             {
-                if (!Contexts[i].uwfContext) continue;
-
                 var contextControl = Contexts[i];
+                if (!contextControl.uwfContext) continue;
+                
                 if (Contains(contextControl, hoveredControl)) continue;
                 if (_mouseEvent != MouseEvents.Down) continue;
 
@@ -531,12 +539,13 @@ namespace System.Windows.Forms
             ToolTip.OnPaint(_paintEventArgs);
 
             var cursor = Cursor.CurrentSystem ?? Cursor.Current;
+            var cursorSize = cursor.Size;
             cursor.Draw(_paintEventArgs.Graphics,
                 new Drawing.Rectangle(
                     Control.MousePosition.X,
                     Control.MousePosition.Y,
-                    (int)(cursor.Size.Width / ScaleX),
-                    (int)(cursor.Size.Height / ScaleY)));
+                    (int)(cursorSize.Width / ScaleX),
+                    (int)(cursorSize.Height / ScaleY)));
         }
         public void Run(Control control)
         {

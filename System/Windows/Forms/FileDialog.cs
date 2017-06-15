@@ -69,7 +69,7 @@ namespace System.Windows.Forms
             buttonBack.Enabled = false;
             buttonBack.Font = new Drawing.Font("Arial", 16, FontStyle.Bold);
             buttonBack.Image = FolderNavBack;
-            buttonBack.Location = new Point(Padding.Left, HeaderHeight + Padding.Top);
+            buttonBack.Location = new Point(Padding.Left, uwfHeaderHeight + Padding.Top);
             buttonBack.BackColor = Color.Transparent;
             buttonBack.BorderColor = Color.Transparent;
             buttonBack.Size = new Size(22, 22);
@@ -291,7 +291,7 @@ namespace System.Windows.Forms
         {
             base.OnPaint(e);
 
-            e.Graphics.DrawLine(borderPen, 1, HeaderHeight, Width - 1, HeaderHeight);
+            e.Graphics.DrawLine(borderPen, 1, uwfHeaderHeight, Width - 1, uwfHeaderHeight);
         }
         protected override void OnResize(EventArgs e)
         {

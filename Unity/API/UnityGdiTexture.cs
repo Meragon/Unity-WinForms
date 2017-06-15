@@ -28,17 +28,26 @@ namespace Unity.API
         {
             texture.Apply();
         }
+        public void Clear(Color color)
+        {
+            var colors = new Color[Width * Height];
+            for (int i = 0; i < colors.Length; i++)
+                colors[i] = color;
+
+            SetPixels(colors);
+        }
         public Color GetPixel(int x, int y)
         {
-            return texture.GetPixel(x, y).ToColor();
+            return texture.GetPixel(x, texture.height - y - 1).ToColor();
         }
-
         public Color[] GetPixels()
         {
+            // Fix: updside down.
             return GetPixels(0, 0, Width, Height);
         }
         public Color[] GetPixels(int x, int y, int width, int height)
         {
+            // Fix: updside down.
             var ucs = texture.GetPixels(x, y, width, height);
             var cs = new Color[ucs.Length];
             for (int i = 0; i < ucs.Length; i++)
@@ -48,10 +57,11 @@ namespace Unity.API
         }
         public void SetPixel(int x, int y, Color color)
         {
-            texture.SetPixel(x, y, color.ToUnityColor());
+            texture.SetPixel(x, texture.height - y - 1, color.ToUnityColor());
         }
         public void SetPixels(Color[] colors)
         {
+            // Fix: updside down.
             var ucs = new UnityEngine.Color32[colors.Length];
             for (int i = 0; i < ucs.Length; i++)
                 ucs[i] = colors[i].ToUnityColor();
@@ -60,6 +70,7 @@ namespace Unity.API
         }
         public void SetPixels(int x, int y, int width, int height, Color[] colors)
         {
+            // Fix: updside down.
             var ucs = new UnityEngine.Color32[colors.Length];
             for (int i = 0; i < ucs.Length; i++)
                 ucs[i] = colors[i].ToUnityColor();

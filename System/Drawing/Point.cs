@@ -87,8 +87,8 @@ namespace System.Drawing
         }
         public void Offset(int dx, int dy)
         {
-            X += dx;
-            Y += dy;
+            x += dx;
+            y += dy;
         }
         public void Offset(Point point)
         {

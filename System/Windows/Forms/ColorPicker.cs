@@ -397,7 +397,7 @@ namespace System.Windows.Forms
         {
             base.OnPaint(e);
 
-            e.Graphics.DrawLine(borderPen, 1, HeaderHeight - 1, Width - 1, HeaderHeight - 1);
+            e.Graphics.DrawLine(borderPen, 1, uwfHeaderHeight - 1, Width - 1, uwfHeaderHeight - 1);
         }
 
         public event EventHandler ColorChanged = delegate { };

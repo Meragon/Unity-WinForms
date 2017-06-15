@@ -67,12 +67,6 @@ namespace System.Windows.Forms
         }
         public DialogResult DialogResult { get; set; }
         public bool IsModal { get { return uwfAppOwner.ModalForms.Contains(this); } }
-        public Color HeaderColor { get; set; }
-        public Font HeaderFont { get; set; }
-        public int HeaderHeight { get; set; }
-        public Padding HeaderPadding { get; set; }
-        public Color HeaderTextColor { get; set; }
-        public ContentAlignment HeaderTextAlign { get; set; }
         public bool KeyPreview { get; set; }
         public MenuStrip MainMenuStrip { get { return _mainMenuStrip; } set { _mainMenuStrip = value; } }
         public SizeGripStyle SizeGripStyle
@@ -103,6 +97,12 @@ namespace System.Windows.Forms
             }
         }
 
+        public Color uwfHeaderColor { get; set; }
+        public Font uwfHeaderFont { get; set; }
+        public int uwfHeaderHeight { get; set; }
+        public Padding uwfHeaderPadding { get; set; }
+        public ContentAlignment uwfHeaderTextAlign { get; set; }
+        public Color uwfHeaderTextColor { get; set; }
         public bool uwfMovable { get; set; }
         public bool uwfResizable { get; set; }
 
@@ -110,17 +110,17 @@ namespace System.Windows.Forms
         {
             borderPen = new Pen(Color.White);
 
-            HeaderHeight = 24;
-            HeaderPadding = new Padding(32, 0, 32, 0);
+            uwfHeaderHeight = 24;
+            uwfHeaderPadding = new Padding(32, 0, 32, 0);
 
             BackColor = Color.FromArgb(238, 238, 242);
             BorderColor = Color.FromArgb(204, 206, 219);
             Font = new Font("Arial", 14);
             Location = nextLocation;
-            HeaderColor = Color.FromArgb(238, 238, 242);
-            HeaderFont = Font;
-            HeaderTextColor = Color.FromArgb(64, 64, 64);
-            HeaderTextAlign = ContentAlignment.MiddleLeft;
+            uwfHeaderColor = Color.FromArgb(238, 238, 242);
+            uwfHeaderFont = Font;
+            uwfHeaderTextColor = Color.FromArgb(64, 64, 64);
+            uwfHeaderTextAlign = ContentAlignment.MiddleLeft;
             ControlBox = true;
             MinimumSize = new Drawing.Size(128, 48);
             uwfMovable = true;
@@ -156,11 +156,11 @@ namespace System.Windows.Forms
                 CloseButton.Image = uwfAppOwner.Resources.Close;
             else
                 CloseButton.Text = "X";
-            CloseButton.HoverColor = System.Drawing.Color.FromArgb(252, 252, 252);
+            CloseButton.HoverColor = System.Drawing.Color.FromArgb(64, 252, 252, 252);
             CloseButton.BorderHoverColor = System.Drawing.Color.Transparent;
             CloseButton.Location = new Point(Width - 32, 1);
             CloseButton.Name = "buttonClose";
-            CloseButton.BackColor = System.Drawing.Color.FromArgb(238, 238, 242);
+            CloseButton.BackColor = System.Drawing.Color.FromArgb(0, 238, 238, 242);
             CloseButton.BorderColor = System.Drawing.Color.Transparent;
             CloseButton.Size = new System.Drawing.Size(24, 16);
             CloseButton.ForeColor = System.Drawing.Color.FromArgb(64, 64, 64);
@@ -399,7 +399,7 @@ namespace System.Windows.Forms
                 {
                     // Move then.
                     if (uwfMovable)
-                        if (e.Location.Y < HeaderHeight)
+                        if (e.Location.Y < uwfHeaderHeight)
                         {
                             _windowMove_StartPosition = e.Location;
                             _windowMove = true;
@@ -424,9 +424,12 @@ namespace System.Windows.Forms
         {
             var g = e.Graphics;
 
-            g.uwfFillRectangle(HeaderColor, 0, 0, Width, HeaderHeight);
-            g.uwfDrawString(Text, HeaderFont, HeaderTextColor, HeaderPadding.Left, HeaderPadding.Top, Width - HeaderPadding.Right - HeaderPadding.Left, HeaderHeight - HeaderPadding.Bottom - HeaderPadding.Top, HeaderTextAlign);
-            g.uwfFillRectangle(BackColor, 0, HeaderHeight, Width, Height - HeaderHeight);
+            var headerHeight = uwfHeaderHeight;
+            var headerPadding = uwfHeaderPadding;
+
+            g.uwfFillRectangle(uwfHeaderColor, 0, 0, Width, headerHeight);
+            g.uwfDrawString(Text, uwfHeaderFont, uwfHeaderTextColor, headerPadding.Left, headerPadding.Top, Width - headerPadding.Horizontal, headerHeight - headerPadding.Vertical, uwfHeaderTextAlign);
+            g.uwfFillRectangle(BackColor, 0, headerHeight, Width, Height - headerHeight);
         }
         protected override void OnLatePaint(PaintEventArgs e)
         {

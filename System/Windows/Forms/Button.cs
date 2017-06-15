@@ -94,8 +94,12 @@ namespace System.Windows.Forms
         {
             Graphics g = e.Graphics;
 
+            var enabled = Enabled;
+            var height = Height;
+            var width = Width;
+
             // Back.
-            if (Enabled)
+            if (enabled)
             {
                 if (Hovered == false)
                     MathHelper.ColorLerp(BackColor, 5, ref cBackColorA, ref cBackColorR, ref cBackColorG, ref cBackColorB);
@@ -107,10 +111,10 @@ namespace System.Windows.Forms
 
             currentBackColor = Color.FromArgb((int)cBackColorA, (int)cBackColorR, (int)cBackColorG, (int)cBackColorB);
 
-            g.uwfFillRectangle(currentBackColor, 0, 0, Width, Height);
+            g.uwfFillRectangle(currentBackColor, 0, 0, width, height);
 
             // Border.
-            if (Enabled == false)
+            if (enabled == false)
                 borderPen.Color = BorderDisableColor;
             else if (Hovered)
                 borderPen.Color = BorderHoverColor;
@@ -119,7 +123,7 @@ namespace System.Windows.Forms
             else
                 borderPen.Color = BorderColor;
 
-            g.DrawRectangle(borderPen, 0, 0, Width, Height);
+            g.DrawRectangle(borderPen, 0, 0, width, height);
 
             if (Image != null && Image.uTexture != null)
             {
@@ -139,13 +143,13 @@ namespace System.Windows.Forms
                         break;
                     case ImageLayout.Center:
                         g.uwfDrawImage(imageToPaint, imageColorToPaint,
-                            Width / 2 - imageToPaint.Width / 2,
-                            Height / 2 - imageToPaint.Height / 2,
+                            width / 2 - imageToPaint.Width / 2,
+                            height / 2 - imageToPaint.Height / 2,
                             imageToPaint.Width,
                             imageToPaint.Height);
                         break;
                     case ImageLayout.Stretch:
-                        g.uwfDrawImage(imageToPaint, imageColorToPaint, 0, 0, Width, Height);
+                        g.uwfDrawImage(imageToPaint, imageColorToPaint, 0, 0, width, height);
                         break;
                     case ImageLayout.Zoom:
                         // TODO: not working.
@@ -153,12 +157,13 @@ namespace System.Windows.Forms
                 }
             }
             var textColor = ForeColor;
-            if (Enabled == false) textColor = ForeColor + Color.FromArgb(0, 128, 128, 128);
+            if (enabled == false) textColor = ForeColor + Color.FromArgb(0, 128, 128, 128);
+            var padding = Padding;
             g.uwfDrawString(Text, Font, textColor,
-                    Padding.Left,
-                    Padding.Top,
-                    Width - Padding.Left - Padding.Right,
-                    Height - Padding.Top - Padding.Bottom, TextAlign);
+                    padding.Left,
+                    padding.Top,
+                    width - padding.Horizontal,
+                    height - padding.Vertical, TextAlign);
         }
     }
 }

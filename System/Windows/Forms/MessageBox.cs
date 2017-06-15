@@ -43,8 +43,8 @@ namespace System.Windows.Forms
             formGroup.Anchor = AnchorStyles.Left | AnchorStyles.Bottom | AnchorStyles.Right | AnchorStyles.Top;
             formGroup.BackColor = Color.White;
             formGroup.BorderColor = form.BorderColor;
-            formGroup.Size = new Size(form.Width - 16, form.Height - (int)form.HeaderHeight - 8 - 28);
-            formGroup.Location = new Point(8, (int)form.HeaderHeight);
+            formGroup.Size = new Size(form.Width - 16, form.Height - (int)form.uwfHeaderHeight - 8 - 28);
+            formGroup.Location = new Point(8, (int)form.uwfHeaderHeight);
 
             form.Controls.Add(formGroup);
 

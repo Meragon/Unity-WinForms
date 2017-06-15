@@ -10,6 +10,8 @@ namespace System.Windows.Forms
         public UnityEngine.KeyCode uwfKeyCode { get; set; }
         public UnityEngine.EventModifiers uwfModifiers { get; set; }
 
+        private Keys keyCode;
+        private bool keyCodeCached;
         private readonly Keys keyData;
         private bool handled;
         private bool suppressKeyPress;
@@ -31,10 +33,14 @@ namespace System.Windows.Forms
         {
             get
             {
-                var keys = keyData & Keys.KeyCode;
-                if (!Enum.IsDefined(typeof(Keys), keys))
-                    return Keys.None;
-                return keys;
+                if (keyCodeCached == false)
+                {
+                    var keys = keyData & Keys.KeyCode;
+                    keyCode = !Enum.IsDefined(typeof(Keys), keys) ? Keys.None : keys;
+                    keyCodeCached = true;
+                }
+
+                return keyCode;
             }
         }
         public int KeyValue
@@ -65,7 +71,7 @@ namespace System.Windows.Forms
 
         internal KeyEventArgs()
         {
-            
+
         }
         public KeyEventArgs(Keys keyData)
         {

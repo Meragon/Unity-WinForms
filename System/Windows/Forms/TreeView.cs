@@ -147,14 +147,17 @@ namespace System.Windows.Forms
         private void _OnDrawNode(object sender, DrawTreeNodeEventArgs e)
         {
             var node = e.Node;
-            var nodeY = node.Bounds.Y - ScrollIndex; // TODO: to node.Bounds.Y
+            var nodeBounds = node.Bounds;
+            var nodeY = nodeBounds.Y - ScrollIndex; // TODO: to node.Bounds.Y
+
+            var graphics = e.Graphics;
 
             // Node drawing.
-            e.Graphics.uwfFillRectangle(node.BackColor, node.Bounds.X, nodeY, node.Bounds.Width, node.Bounds.Height);
+            graphics.uwfFillRectangle(node.BackColor, nodeBounds.X, nodeY, nodeBounds.Width, nodeBounds.Height);
             if (node.IsSelected || node == _hoveredNode)
-                e.Graphics.uwfFillRectangle((node.IsSelected ? SelectionColor : SelectionHoverColor), UseNodeBoundsForSelection ? node.Bounds.X : 0, nodeY, Width, ItemHeight);
+                graphics.uwfFillRectangle((node.IsSelected ? SelectionColor : SelectionHoverColor), UseNodeBoundsForSelection ? nodeBounds.X : 0, nodeY, Width, ItemHeight);
 
-            int xOffset = node.Bounds.X;
+            int xOffset = nodeBounds.X;
 
             // Draw collapsed/expanded arrow.
             if (node.Nodes.Count > 0)
@@ -185,8 +188,10 @@ namespace System.Windows.Forms
 
                 if (arrowTexture != null)
                 {
-                    e.Graphics.DrawImage(arrowTexture, xOffset, nodeY + node.Bounds.Height / 2 - arrowTexture.Height / 2, arrowTexture.Width, arrowTexture.Height);
-                    xOffset += arrowTexture.Width;
+                    var arrowWidth = arrowTexture.Width;
+                    var arrowHeight = arrowTexture.Height;
+                    graphics.DrawImage(arrowTexture, xOffset, nodeY + nodeBounds.Height / 2f - arrowHeight / 2f, arrowWidth, arrowHeight);
+                    xOffset += arrowWidth;
                 }
             }
 
@@ -196,7 +201,7 @@ namespace System.Windows.Forms
                 var image = ImageList.Images[node.ImageIndex];
                 if (image != null && image.uTexture != null)
                 {
-                    e.Graphics.uwfDrawImage(image, node.ImageColor, xOffset, nodeY + node.Bounds.Height / 2 - image.Height / 2, image.Width, image.Height);
+                    graphics.uwfDrawImage(image, node.ImageColor, xOffset, nodeY + nodeBounds.Height / 2f - image.Height / 2f, image.Width, image.Height);
                     xOffset += image.Width + 2;
                 }
             }
@@ -204,7 +209,7 @@ namespace System.Windows.Forms
             // Draw text.
             string stringToDraw = node.Text;
             if (stringToDraw == null && node.Tag != null) stringToDraw = node.Tag.ToString();
-            e.Graphics.uwfDrawString(stringToDraw, Font, node.ForeColor, xOffset, nodeY - 2, (WrapText ? Width : Width * 16), e.Bounds.Height + 4, ContentAlignment.MiddleLeft);
+            graphics.uwfDrawString(stringToDraw, Font, node.ForeColor, xOffset, nodeY - 2, (WrapText ? Width : Width * 16), e.Bounds.Height + 4, ContentAlignment.MiddleLeft);
             // End of drawing.
 
             DrawNode(this, e);
@@ -278,10 +283,12 @@ namespace System.Windows.Forms
         {
             if (vScrollBar != null)
             {
-                vScrollBar.Maximum = ItemHeight * _nodeList.Count;
+                vScrollBar.ValueChanged -= VScrollBarOnValueChanged;
+                vScrollBar.Maximum = ItemHeight * _nodeList.Count - 1;
                 vScrollBar.SmallChange = ItemHeight;
                 vScrollBar.LargeChange = Height;
                 vScrollBar.Visible = vScrollBar.Maximum > Height;
+                vScrollBar.ValueChanged += VScrollBarOnValueChanged;
             }
         }
         private void _UpdateScrollList()
