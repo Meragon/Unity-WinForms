@@ -6,23 +6,24 @@ using System.Drawing;
 
 namespace System.Windows.Forms
 {
-    internal class ResizeButton : Button, IResizableControl
+    internal sealed class ResizeButton : Button, IResizableControl
     {
         private bool pressed;
-        private Form owner;
+        private readonly Form owner;
 
         public ResizeButton(Form form, Bitmap img)
         {
             owner = form;
 
-            Anchor = AnchorStyles.BottomRight;
-            CanSelect = false;
+            Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             Image = img;
-            ImageColor = Color.White;
-            ImageHoverColor = Color.FromArgb(0, 122, 204);
+            uwfImageColor = Color.White;
+            uwfImageHoverColor = Color.FromArgb(0, 122, 204);
             Text = "";
             Height = img.Height;
             Width = img.Width;
+
+            SetStyle(ControlStyles.Selectable, false);
 
             this.ClearColor(Color.Transparent);
 
@@ -41,9 +42,9 @@ namespace System.Windows.Forms
             return ControlResizeTypes.RightDown;
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool release_all)
         {
-            base.Dispose();
+            base.Dispose(release_all);
 
             uwfAppOwner.UpClick -= Owner_UpClick;
         }

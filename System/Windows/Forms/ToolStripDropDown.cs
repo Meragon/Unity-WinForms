@@ -24,7 +24,7 @@ namespace System.Windows.Forms
             if (control == null)
                 Location = position;
             else
-                Location = control.PointToScreen(Point.Empty) + position;
+                Location = control.PointToScreen(Point.Empty).Add(position);
             int height = 0;
             int width = 160;
             for (int i = 0; i < Items.Count; i++)
@@ -46,7 +46,7 @@ namespace System.Windows.Forms
                 if (Items[i] is ToolStripDropDownItem)
                 {
                     var ddi = Items[i] as ToolStripDropDownItem;
-                    ddi.ArrowImage = ApplicationBehaviour.Resources.Images.DropDownRightArrow;
+                    ddi.ArrowImage = uwfAppOwner.Resources.DropDownRightArrow;
                     ddi.ArrowColor = Color.Black;
                 }
                 Items[i].ForeColor = Color.FromArgb(64, 64, 64);

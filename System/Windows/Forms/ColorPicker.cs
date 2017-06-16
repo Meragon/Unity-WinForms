@@ -20,7 +20,7 @@ namespace System.Windows.Forms
             Color = Color.White;
             Size = new Size(128, 20);
 
-            _borderPen = new Pen(BorderColor);
+            _borderPen = new Pen(uwfBorderColor);
         }
 
         protected virtual void OnColorChanged(object sender, EventArgs e)
@@ -35,7 +35,7 @@ namespace System.Windows.Forms
                 _currentForm.Color = Color;
                 _currentForm.ColorChanged += (object sender, EventArgs args) =>
                 {
-                    Color = _currentForm.Color;
+                    Color = ((ColorPickerForm)sender).Color;
                     OnColorChanged(this, args);
                 };
                 _currentForm.OnDisposing += (object sender, EventArgs args) =>
@@ -50,13 +50,13 @@ namespace System.Windows.Forms
         {
             float alphaWidth = (float)Width * ((float)Color.A / 255);
 
-            var borderColor = BorderColor;
-            if (Hovered) borderColor = BorderHoverColor;
+            var borderColor = uwfBorderColor;
+            if (Hovered) borderColor = uwfBorderHoverColor;
             _borderPen.Color = borderColor;
 
-            e.Graphics.FillRectangle(Color.FromArgb(255, Color), 0, 0, Width, Height - 3);
-            e.Graphics.FillRectangle(Color.Black, 0, Height - 3, Width, 3);
-            e.Graphics.FillRectangle(Color.White, 0, Height - 3, alphaWidth, 3);
+            e.Graphics.uwfFillRectangle(Color.FromArgb(255, Color), 0, 0, Width, Height - 3);
+            e.Graphics.uwfFillRectangle(Color.Black, 0, Height - 3, Width, 3);
+            e.Graphics.uwfFillRectangle(Color.White, 0, Height - 3, alphaWidth, 3);
             e.Graphics.DrawRectangle(_borderPen, 0, 0, Width, Height);
         }
 
@@ -119,8 +119,9 @@ namespace System.Windows.Forms
             Location = new Point(
                 Screen.PrimaryScreen.WorkingArea.Width / 2 - Width / 2,
                 Screen.PrimaryScreen.WorkingArea.Height / 2 - Height / 2);
-            Resizable = false;
+            uwfResizable = false;
             Text = "Pick a color";
+            KeyPreview = true;
             TopMost = true;
 
             _bsPicker = new BrightnessSaturationPicker(128, 128);
@@ -389,15 +390,14 @@ namespace System.Windows.Forms
 
         protected override void OnKeyUp(KeyEventArgs e)
         {
-            if (e.KeyCode == UnityEngine.KeyCode.Escape ||
-                (e.KeyCode == UnityEngine.KeyCode.W && e.Modifiers == UnityEngine.EventModifiers.Control))
+            if (e.KeyCode == Keys.Escape || (e.KeyCode == Keys.W && e.Control))
                 Close();
         }
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
 
-            e.Graphics.DrawLine(borderPen, 1, HeaderHeight - 1, Width - 1, HeaderHeight - 1);
+            e.Graphics.DrawLine(borderPen, 1, uwfHeaderHeight - 1, Width - 1, uwfHeaderHeight - 1);
         }
 
         public event EventHandler ColorChanged = delegate { };
@@ -495,10 +495,10 @@ namespace System.Windows.Forms
                 _UpdateImage();
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool release_all)
             {
                 uwfAppOwner.UpClick -= Application_UpClick;
-                base.Dispose();
+                base.Dispose(release_all);
             }
             protected override void OnMouseDown(MouseEventArgs e)
             {
@@ -521,16 +521,18 @@ namespace System.Windows.Forms
             {
                 UpdateValues();
                 _mouseDown = false;
+
+                base.OnMouseUp(e);
             }
             protected override void OnPaint(PaintEventArgs e)
             {
                 if (_image != null)
-                    e.Graphics.DrawTexture(_image, 0, 0, Width, Height);
+                    e.Graphics.DrawImage(_image, 0, 0, Width, Height);
 
                 e.Graphics.DrawRectangle(new Pen(Color.White), Saturation * Width - 2, Height - Brightness * Height - 2, 4, 4);
 
-                var borderColor = BorderColor;
-                if (Hovered) borderColor = BorderHoverColor;
+                var borderColor = uwfBorderColor;
+                if (Hovered) borderColor = uwfBorderHoverColor;
                 e.Graphics.DrawRectangle(new Pen(borderColor), 0, 0, Width, Height);
             }
 
@@ -586,16 +588,18 @@ namespace System.Windows.Forms
                 Hue = (float)e.Y / Height;
                 if (Hue < 0) Hue = 0;
                 if (Hue > 1) Hue = 1;
+
+                base.OnMouseUp(e);
             }
             protected override void OnPaint(PaintEventArgs e)
             {
                 if (_image != null)
-                    e.Graphics.DrawTexture(_image, 0, 0, Width, Height);
+                    e.Graphics.DrawImage(_image, 0, 0, Width, Height);
 
                 e.Graphics.DrawLine(new Pen(Color.White), 0, Hue * Height, Width, Hue * Height);
 
-                var borderColor = BorderColor;
-                if (Hovered) borderColor = BorderHoverColor;
+                var borderColor = uwfBorderColor;
+                if (Hovered) borderColor = uwfBorderHoverColor;
                 e.Graphics.DrawRectangle(new Pen(borderColor), 0, 0, Width, Height);
             }
 
@@ -629,7 +633,7 @@ namespace System.Windows.Forms
                 Alpha = 1;
                 Size = new Size(w, h);
 
-                _borderPen = new Pen(BorderColor);
+                _borderPen = new Pen(uwfBorderColor);
                 _cursorPen = new Pen(Color.White);
                 _image = new Bitmap(w, h);
                 for (int i = 0; i < w; i++)
@@ -666,16 +670,18 @@ namespace System.Windows.Forms
                 if (Alpha < 0) Alpha = 0;
                 if (Alpha > 1) Alpha = 1;
                 _mouseDown = false;
+
+                base.OnMouseUp(e);
             }
             protected override void OnPaint(PaintEventArgs e)
             {
-                var borderColor = BorderColor;
-                if (Hovered) borderColor = BorderHoverColor;
+                var borderColor = uwfBorderColor;
+                if (Hovered) borderColor = uwfBorderHoverColor;
 
                 _borderPen.Color = borderColor;
 
                 if (_image != null)
-                    e.Graphics.DrawTexture(_image, 0, 0, Width, Height);
+                    e.Graphics.DrawImage(_image, 0, 0, Width, Height);
 
                 e.Graphics.DrawLine(_cursorPen, Alpha * Width, 0, Alpha * Width, Height);
                 e.Graphics.DrawRectangle(_borderPen, 0, 0, Width, Height);

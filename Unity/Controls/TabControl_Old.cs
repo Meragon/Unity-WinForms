@@ -9,8 +9,15 @@ namespace System.Windows.Forms
 {
     public class TabControl_Old : Control
     {
+        private readonly SolidBrush backBrush = new SolidBrush(Color.Transparent);
+
         public const int DefaultHeaderHeight = 24;
 
+        public override Color BackColor
+        {
+            get { return backBrush.Color; }
+            set { backBrush.Color = value; }
+        }
         public int HeaderHeight { get; set; }
         public int SelectedIndex { get { return TabPages.CurrentIndex; } }
         public TabPageCollection TabPages { get; set; }
@@ -26,7 +33,7 @@ namespace System.Windows.Forms
             base.OnPaint(e);
             Graphics g = e.Graphics;
 
-            g.FillRectangle(new SolidBrush(BackColor), 0, HeaderHeight, Width, Height - HeaderHeight);
+            g.FillRectangle(backBrush, 0, HeaderHeight, Width, Height - HeaderHeight);
 
         }
         public void UpdateTabs()
@@ -94,9 +101,9 @@ namespace System.Windows.Forms
             btn.Size = new Size(page.Width, HeaderHeight);
             btn.Location = new Point(page.Offset, 0);
             btn.BackColor = Color.FromArgb(204, 206, 219);
-            btn.BorderColor = Color.Transparent;
-            btn.BorderHoverColor = Color.Transparent;
-            btn.BorderSelectColor = Color.Transparent;
+            btn.uwfBorderColor = Color.Transparent;
+            btn.uwfBorderHoverColor = Color.Transparent;
+            btn.uwfBorderSelectColor = Color.Transparent;
 
             btn.Click += (object sender, EventArgs e) =>
             {
@@ -113,13 +120,13 @@ namespace System.Windows.Forms
             if (!active)
             {
                 header.BackColor = Color.FromArgb(0, 204, 206, 219);
-                header.HoverColor = Color.FromArgb(238, 238, 242);
+                header.uwfHoverColor = Color.FromArgb(238, 238, 242);
                 header.ForeColor = Color.DarkGray;
             }
             else
             {
                 header.BackColor = Color.FromArgb(204, 206, 219);
-                header.HoverColor = header.BackColor;
+                header.uwfHoverColor = header.BackColor;
                 header.ForeColor = Color.FromArgb(64, 64, 64);
             }
         }

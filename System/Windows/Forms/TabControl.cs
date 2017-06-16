@@ -162,7 +162,7 @@ namespace System.Windows.Forms
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            e.Graphics.FillRectangle(BackColor, 0, 0, Width, Height);
+            e.Graphics.uwfFillRectangle(BackColor, 0, 0, Width, Height);
 
             // Borders.
             var borderPen = new Pen(BorderColor);
@@ -189,9 +189,9 @@ namespace System.Windows.Forms
                 e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
             }
         }
-        protected override void OnResize(Point delta)
+        protected override void OnResize(EventArgs e)
         {
-            base.OnResize(delta);
+            base.OnResize(e);
             CheckNavButtons();
         }
 
@@ -199,8 +199,8 @@ namespace System.Windows.Forms
         {
             TabPageButton pageButton = new TabPageButton(this, tabPageCount);
             pageButton.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom;
-            pageButton.BorderHoverColor = Color.Transparent;
-            pageButton.BorderColor = Color.Transparent;
+            pageButton.uwfBorderHoverColor = Color.Transparent;
+            pageButton.uwfBorderColor = Color.Transparent;
             pageButton.Location = new Point(tabPageCount * pageButton.Width - tabPageCount, 0);
             pageButton.Height = ItemSize.Height;
             pageButton.Text = tabPage.Text;
@@ -225,8 +225,8 @@ namespace System.Windows.Forms
                 {
                     navigationButtonRight = new Button();
                     navigationButtonRight.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-                    navigationButtonRight.Image = ApplicationBehaviour.Resources.Images.ArrowRight;
-                    navigationButtonRight.ImageColor = Color.Black;
+                    navigationButtonRight.Image = uwfAppOwner.Resources.ArrowRight;
+                    navigationButtonRight.uwfImageColor = Color.Black;
                     navigationButtonRight.Size = new Size(16, 16);
                     navigationButtonRight.Location = new Point(Width - navigationButtonRight.Width, ItemSize.Height - navigationButtonRight.Height - 2);
                     navigationButtonRight.Click += (s, a) =>
@@ -241,8 +241,8 @@ namespace System.Windows.Forms
 
                     navigationButtonLeft = new Button();
                     navigationButtonLeft.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-                    navigationButtonLeft.Image = ApplicationBehaviour.Resources.Images.ArrowLeft;
-                    navigationButtonLeft.ImageColor = Color.Black;
+                    navigationButtonLeft.Image = uwfAppOwner.Resources.ArrowLeft;
+                    navigationButtonLeft.uwfImageColor = Color.Black;
                     navigationButtonLeft.Size = navigationButtonRight.Size;
                     navigationButtonLeft.Location = new Point(navigationButtonRight.Location.X - navigationButtonRight.Width, navigationButtonRight.Location.Y);
                     navigationButtonLeft.Click += (s, a) =>
@@ -379,7 +379,7 @@ namespace System.Windows.Forms
                 if (value is TabPage == false) throw new ArgumentException("value is not TabPage");
 
                 var tabPage = value as TabPage;
-                tabPage.Anchor = AnchorStyles.All;
+                tabPage.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
                 tabPage.Bounds = owner.DisplayRectangle;
                 tabPage.Visible = false;
 
@@ -662,7 +662,7 @@ namespace System.Windows.Forms
                 this.owner = owner;
                 this.index = index;
 
-                BorderSelectColor = Color.Transparent;
+                uwfBorderSelectColor = Color.Transparent;
                 EnabledBackColor = Color.White;
                 EnabledBackHoverColor = Color.White;
                 DisabledBackColor = Color.FromArgb(235, 235, 235);
@@ -688,14 +688,14 @@ namespace System.Windows.Forms
                     BackColor = DisabledBackColor;
                     Location = new Point(Location.X, 2);
                     Height = owner.ItemSize.Height - 2;
-                    HoverColor = DisabledBackHoverColor;
+                    uwfHoverColor = DisabledBackHoverColor;
                 }
                 else
                 {
                     BackColor = EnabledBackColor;
                     Location = new Point(Location.X, 0);
                     Height = owner.ItemSize.Height;
-                    HoverColor = EnabledBackHoverColor;
+                    uwfHoverColor = EnabledBackHoverColor;
                 }
             }
 

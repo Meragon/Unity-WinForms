@@ -13,10 +13,7 @@ namespace System.Windows.Forms
 {
     public class ComboBox : ListControl
     {
-#if UNITY_EDITOR
-        private bool _toggleItems;
-#endif
-
+        private readonly Pen borderPen = new Pen(Color.Transparent);
         private readonly Pen downButtonBorderPen = new Pen(Color.Transparent);
         private const int downButtonWidth = 17;
         private ComboBoxStyle dropDownStyle;
@@ -99,7 +96,6 @@ namespace System.Windows.Forms
             BorderColor = Color.DarkGray;
             BorderColorDisabled = Color.FromArgb(217, 217, 217);
             BorderColorHovered = Color.FromArgb(126, 180, 234);
-            CanSelect = true;
             DisabledColor = Color.FromArgb(239, 239, 239);
             DropDownStyle = ComboBoxStyle.DropDown;
             HoverColor = Color.White;
@@ -124,7 +120,7 @@ namespace System.Windows.Forms
             base.OnKeyDown(e);
             switch (e.KeyCode)
             {
-                case UnityEngine.KeyCode.DownArrow:
+                case Keys.Down:
                     {
                         if (Items.IsDisabled(selectedIndex + 1))
                             break;
@@ -132,12 +128,13 @@ namespace System.Windows.Forms
                         {
                             listBox.SelectedIndex++;
                             SelectedIndex = Items.FindIndex(x => x == listBox.SelectedItem);
+                            listBox.EnsureVisible();
                         }
                         else if (selectedIndex + 1 < Items.Count)
                             SelectedIndex++;
                     }
                     break;
-                case UnityEngine.KeyCode.UpArrow:
+                case Keys.Up:
                     {
                         if (Items.IsDisabled(selectedIndex - 1))
                             break;
@@ -148,12 +145,13 @@ namespace System.Windows.Forms
                             if (listBox.SelectedIndex < 0 && listBox.Items.Count > 0)
                                 listBox.SelectedIndex = 0;
                             SelectedIndex = Items.FindIndex(x => x == listBox.SelectedItem);
+                            listBox.EnsureVisible();
                         }
                         else if (selectedIndex > 0)
                             SelectedIndex--;
                     }
                     break;
-                case UnityEngine.KeyCode.Return:
+                case Keys.Return:
                     if (listBox != null && !listBox.Disposing && !listBox.IsDisposed)
                     {
                         listBox.SelectItem(listBox.SelectedIndex);
@@ -182,7 +180,7 @@ namespace System.Windows.Forms
         protected override void OnKeyUp(KeyEventArgs e)
         {
             base.OnKeyUp(e);
-            if (e.KeyCode == UnityEngine.KeyCode.Space)
+            if (e.KeyCode == Keys.Space)
                 RaiseOnMouseDown(new MouseEventArgs(MouseButtons.Left, Width - 1, 1, 0, 0));
         }
         protected override void OnMouseDown(MouseEventArgs e)
@@ -247,9 +245,11 @@ namespace System.Windows.Forms
                 borderColor = BorderColorDisabled;
             }
 
+            borderPen.Color = borderColor;
+
             #endregion
 
-            g.FillRectangle(backColor, 0, 0, Width, Height);
+            g.uwfFillRectangle(backColor, 0, 0, Width, Height);
 
             switch (DropDownStyle)
             {
@@ -257,7 +257,7 @@ namespace System.Windows.Forms
 
                     if (Focused && Enabled)
                     {
-                        var filterBuffer = g.DrawTextField(filter, Font, ForeColor, 2, 0, Width - downButtonWidth, Height,
+                        var filterBuffer = g.uwfDrawTextField(filter, Font, ForeColor, 2, 0, Width - downButtonWidth, Height,
                             HorizontalAlignment.Left);
                         if (filterBuffer != filter)
                         {
@@ -272,7 +272,7 @@ namespace System.Windows.Forms
                         filter = filterBuffer;
                     }
                     else
-                        g.DrawString(Text, Font, ForeColor, 5, 0, Width - downButtonWidth, Height);
+                        g.uwfDrawString(Text, Font, ForeColor, 5, 0, Width - downButtonWidth, Height);
 
                     if (Hovered)
                     {
@@ -289,37 +289,17 @@ namespace System.Windows.Forms
                         else
                             downButtonBorderPen.Color = Color.Transparent;
 
-                        g.FillRectangle(downButtonBackColor, bRect);
+                        g.uwfFillRectangle(downButtonBackColor, bRect);
                         g.DrawLine(downButtonBorderPen, bRect.X, bRect.Y, bRect.X, bRect.Y + bRect.Height);
                     }
                     break;
                 case ComboBoxStyle.DropDownList:
-                    g.DrawString(Text, Font, ForeColor, 5, 0, Width - downButtonWidth, Height);
+                    g.uwfDrawString(Text, Font, ForeColor, 5, 0, Width - downButtonWidth, Height);
                     break;
             }
 
-            g.DrawTexture(ApplicationBehaviour.Resources.Images.CurvedArrowDown, Width - 16 - 1, Height / 2 - 8, 16, 16, arrowColor);
-            g.DrawRectangle(borderColor, 0, 0, Width, Height);
-        }
-        protected override object uwfOnPaintEditor(float width)
-        {
-            var component = base.uwfOnPaintEditor(width);
-
-#if UNITY_EDITOR
-            Editor.NewLine(2);
-            Editor.Label("ComboBox");
-            Editor.EnumField("AutoCompleteMode", AutoCompleteMode);
-            Editor.EnumField("AutoCompleteSource", AutoCompleteSource);
-            Editor.EnumField("DropDownStyle", DropDownStyle);
-            if ((_toggleItems = Editor.Foldout("Items", _toggleItems)) == true)
-                for (int i = 0; i < Items.Count; i++)
-                    Editor.Label(i.ToString(), Items[i].ToString());
-            Editor.Label("SelectedIndex", SelectedIndex);
-            Editor.Label("SelectedItem", SelectedItem);
-            Editor.Label("Text", Text);
-#endif
-
-            return component;
+            g.uwfDrawImage(uwfAppOwner.Resources.CurvedArrowDown, arrowColor, Width - 16 - 1, Height / 2 - 8, 16, 16);
+            g.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
         protected override void OnSelectedIndexChanged(EventArgs e)
         {
@@ -327,7 +307,7 @@ namespace System.Windows.Forms
         }
         protected virtual void OnSelectedItemChanged(EventArgs e)
         {
-            
+
         }
 
         private void ApplySelectedItem()
@@ -386,15 +366,15 @@ namespace System.Windows.Forms
                 for (int i = 0; i < Items.Count; i++)
                     if (Items.IsDisabled(i))
                         listBox.Items.Disable(i);
-                    
+
                 if (selectedIndexChanged == false)
                 {
                     listBox.SelectedIndex = SelectedIndex;
                     listBox.EnsureVisible();
                 }
 
-                var gpoint = PointToScreen(Point.Zero);
-                listBox.Location = gpoint + new Point(0, Height);
+                var gpoint = PointToScreen(Point.Empty);
+                listBox.Location = new Point(gpoint.X, gpoint.Y + Height);
                 listBox.MouseUp += ListBoxOnMouseUp;
                 listBox.KeyDown += ListBoxOnKeyDown;
                 listBox.OnDisposing += ListBoxOnOnDisposing;
@@ -414,7 +394,7 @@ namespace System.Windows.Forms
         }
         private void ListBoxOnKeyDown(object sender, KeyEventArgs keyEventArgs)
         {
-            if (keyEventArgs.KeyCode != KeyCode.Return && keyEventArgs.KeyCode != KeyCode.Space) return;
+            if (keyEventArgs.KeyCode != Keys.Return && keyEventArgs.KeyCode != Keys.Space) return;
 
             ApplySelectedItem();
         }

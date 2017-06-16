@@ -9,16 +9,16 @@ namespace System.Windows.Forms
 {
     public abstract class ScrollBar : Control
     {
-#if UNITY_EDITOR
-        private bool _toggleEditor;
-#endif
-
         private int largeChange = 10;
         private int maximum = 100;
         private int minimum = 0;
         private readonly int minScrollSize = 17;
         private bool scrollCanDrag;
-        private ColorF scrollCurrentColor;
+        private Color scrollCurrentColor;
+        private float scrollCurrentColorA;
+        private float scrollCurrentColorR;
+        private float scrollCurrentColorG;
+        private float scrollCurrentColorB;
         private Color scrollDestinationColor;
         private Point scrollDragStartLocation;
         private Point scrollDragRectOffset;
@@ -84,7 +84,12 @@ namespace System.Windows.Forms
         {
             BackColor = Color.FromArgb(240, 240, 240);
             ScrollColor = Color.FromArgb(205, 205, 205);
-            ScrollHoverColor = Color.FromArgb(192, 192, 192);
+            ScrollHoverColor = Color.FromArgb(166, 166, 166);
+            scrollCurrentColor = ScrollColor;
+            scrollCurrentColorA = scrollCurrentColor.A;
+            scrollCurrentColorR = scrollCurrentColor.R;
+            scrollCurrentColorG = scrollCurrentColor.G;
+            scrollCurrentColorB = scrollCurrentColor.B;
 
             var backColor = Color.FromArgb(240, 240, 240);
             var backHoverColor = Color.FromArgb(218, 218, 218);
@@ -94,25 +99,23 @@ namespace System.Windows.Forms
             var imageHoverColor = Color.Black;
 
             addButton = new RepeatButton();
-            addButton.CanSelect = false;
-            addButton.BorderHoverColor = borderHoverColor;
-            addButton.BorderDisableColor = borderColor;
-            addButton.HoverColor = backHoverColor;
-            addButton.ImageColor = imageColor;
-            addButton.ImageHoverColor = imageHoverColor;
-            addButton.BorderColor = borderColor;
+            addButton.uwfBorderHoverColor = borderHoverColor;
+            addButton.uwfBorderDisableColor = borderColor;
+            addButton.uwfHoverColor = backHoverColor;
+            addButton.uwfImageColor = imageColor;
+            addButton.uwfImageHoverColor = imageHoverColor;
+            addButton.uwfBorderColor = borderColor;
             addButton.BackColor = backColor;
             addButton.Click += (s, a) => { DoScroll(ScrollEventType.SmallIncrement); };
             Controls.Add(addButton);
 
             subtractButton = new RepeatButton();
-            subtractButton.CanSelect = false;
-            subtractButton.BorderHoverColor = borderHoverColor;
-            subtractButton.BorderDisableColor = borderColor;
-            subtractButton.HoverColor = backHoverColor;
-            subtractButton.ImageColor = imageColor;
-            subtractButton.ImageHoverColor = imageHoverColor;
-            subtractButton.BorderColor = borderColor;
+            subtractButton.uwfBorderHoverColor = borderHoverColor;
+            subtractButton.uwfBorderDisableColor = borderColor;
+            subtractButton.uwfHoverColor = backHoverColor;
+            subtractButton.uwfImageColor = imageColor;
+            subtractButton.uwfImageHoverColor = imageHoverColor;
+            subtractButton.uwfBorderColor = borderColor;
             subtractButton.BackColor = backColor;
             subtractButton.Click += (s, a) => { DoScroll(ScrollEventType.SmallDecrement); };
             Controls.Add(subtractButton);
@@ -155,7 +158,7 @@ namespace System.Windows.Forms
                 case ScrollEventType.ThumbPosition:
                 case ScrollEventType.ThumbTrack:
 
-                    Application.Log("not implemented yet");
+                    // not implemented yet.
                     break;
             }
 
@@ -226,7 +229,7 @@ namespace System.Windows.Forms
             if (barSize < minScrollSize)
                 barSize = minScrollSize;
 
-            scrollLength -= barSize; // Addjusted range for scroll bar, depending on size.
+            scrollLength -= barSize; // Adjusted range for scroll bar, depending on size.
             var valueDl = (int)scrollLength + minimum;
             if (valueDl == 0) return;
 
@@ -327,12 +330,12 @@ namespace System.Windows.Forms
             }
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool release_all)
         {
             uwfAppOwner.UpClick -= Owner_UpClick;
             uwfAppOwner.UpdateEvent -= Owner_UpdateEvent;
 
-            base.Dispose();
+            base.Dispose(release_all);
         }
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -342,7 +345,7 @@ namespace System.Windows.Forms
             {
                 scrollCanDrag = true;
                 scrollDragStartLocation = e.Location;
-                scrollDragRectOffset = e.Location - scrollRect.Location;
+                scrollDragRectOffset = e.Location.Subtract(scrollRect.Location);
             }
             else
             {
@@ -405,66 +408,28 @@ namespace System.Windows.Forms
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            if (Hovered)
+            if (Hovered || scrollDraging)
                 scrollDestinationColor = ScrollHoverColor;
             else
                 scrollDestinationColor = ScrollColor;
-            scrollCurrentColor = MathHelper.ColorLerp(scrollCurrentColor, scrollDestinationColor, 4);
+            MathHelper.ColorLerp(scrollDestinationColor, 4, ref scrollCurrentColorA, ref scrollCurrentColorR, ref scrollCurrentColorG, ref scrollCurrentColorB);
+            scrollCurrentColor = Color.FromArgb((int)scrollCurrentColorA, (int)scrollCurrentColorR, (int)scrollCurrentColorR, (int)scrollCurrentColorB);
 
             if (scrollOrientation == ScrollOrientation.HorizontalScroll)
             {
                 int backX = subtractButton.Location.X + subtractButton.Width;
-                e.Graphics.FillRectangle(BackColor, backX, 0, addButton.Location.X - backX, Height);
+                e.Graphics.uwfFillRectangle(BackColor, backX, 0, addButton.Location.X - backX, Height);
             }
             else
             {
                 int backY = subtractButton.Location.Y + subtractButton.Height;
-                e.Graphics.FillRectangle(BackColor, 0, backY, Width, addButton.Location.Y - backY);
+                e.Graphics.uwfFillRectangle(BackColor, 0, backY, Width, addButton.Location.Y - backY);
             }
-            e.Graphics.FillRectangle(scrollCurrentColor, scrollRect.X, scrollRect.Y, scrollRect.Width, scrollRect.Height);
+            e.Graphics.uwfFillRectangle(scrollCurrentColor, scrollRect.X, scrollRect.Y, scrollRect.Width, scrollRect.Height);
         }
-        protected override object uwfOnPaintEditor(float width)
+        protected override void OnResize(EventArgs e)
         {
-            var component = base.uwfOnPaintEditor(width);
-#if UNITY_EDITOR
-            Editor.BeginGroup(width - 24);
-            Editor.BeginVertical();
-
-            _toggleEditor = Editor.Foldout("ScrollBar", _toggleEditor);
-            if (_toggleEditor)
-            {
-                var editorLargeChange = Editor.IntField("LargeChange", LargeChange);
-                if (editorLargeChange.Changed)
-                    LargeChange = editorLargeChange.Value[0];
-
-                var editorMaximum = Editor.IntField("Maximum", Maximum);
-                if (editorMaximum.Changed)
-                    Maximum = editorMaximum.Value[0];
-
-                var editorMinimum = Editor.IntField("Minimum", Minimum);
-                if (editorMinimum.Changed)
-                    Minimum = editorMinimum.Value[0];
-
-                Editor.ColorField("ScrollColor", ScrollColor, (c) => { ScrollColor = c; });
-                Editor.Label("scrollRect", scrollRect);
-
-                var editorSmallChange = Editor.IntField("SmallChange", SmallChange);
-                if (editorSmallChange.Changed)
-                    SmallChange = editorSmallChange.Value[0];
-
-                var editorValue = Editor.IntField("Value", Value);
-                if (editorValue.Changed)
-                    Value = editorValue.Value[0];
-            }
-
-            Editor.EndVertical();
-            Editor.EndGroup();
-#endif
-            return component;
-        }
-        protected override void OnResize(Point delta)
-        {
-            base.OnResize(delta);
+            base.OnResize(e);
             UpdateScrollRect();
         }
         protected virtual void OnScroll(ScrollEventArgs se)

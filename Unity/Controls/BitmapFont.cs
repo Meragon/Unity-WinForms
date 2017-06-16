@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Xml.Serialization;
 
-namespace System.Drawing
+namespace Unity.Controls
 {
     public class BitmapFont
     {
@@ -23,7 +25,7 @@ namespace System.Drawing
         /// <param name="format">GHL format (FontBuilder)</param>
         public void Load(Bitmap fontImage, byte[] format)
         {
-            var ser = new Xml.Serialization.XmlSerializer(typeof(font));
+            var ser = new XmlSerializer(typeof(font));
             using (var str = new System.IO.MemoryStream(format))
             {
                 var font = (font)ser.Deserialize(str);
@@ -47,7 +49,6 @@ namespace System.Drawing
                     bChar.OffsetY = Convert.ToInt32(offset[1]);
 
                     bChar.Texture = new Bitmap(charW, charH);
-                    bChar.Texture.uTexture.name = (char)bChar.Id + "_GlyphTexture";
                     if (charW > 0 && charH > 0)
                     {
                         

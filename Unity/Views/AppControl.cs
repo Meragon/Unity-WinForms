@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using System.Windows.Forms.Design;
 #if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
@@ -24,7 +24,7 @@ namespace Views
             }
         }
 
-        [MenuItem("Views/SWF Inspector")]
+        [MenuItem("Window/NetWinForms/SWF Inspector")]
         public static EditorWindow ShowWindow()
         {
             return EditorWindow.GetWindow(typeof(AppControl), false, "SWF Inspector");
@@ -50,7 +50,7 @@ namespace Views
         }
         void Update()
         {
-            if (_repaintWait < .5f)
+            if (_repaintWait < 1f)
                 _repaintWait += Time.deltaTime;
             else
             {
@@ -69,9 +69,12 @@ namespace Views
 
             _scrollPosition = UnityEngine.GUILayout.BeginScrollView(_scrollPosition);
 
-            var control = Control.RaiseOnPaintEditor(position.width - 8);
+            if (Control.uwfDesigner == null)
+                Control.uwfDesigner = Control.GetDesigner();
 
-            if (control != null && control is System.Windows.Forms.Control) Control = control as System.Windows.Forms.Control;
+            var control = Control.uwfDesigner.Draw((int)position.width - 8, int.MaxValue);
+
+            if (control is System.Windows.Forms.Control) Control = control as System.Windows.Forms.Control;
             UnityEngine.GUILayout.EndScrollView();
         }
     }

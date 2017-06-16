@@ -56,7 +56,7 @@ namespace System.Windows.Forms
             MinimumSize = new Drawing.Size(240, 240);
             KeyPreview = true;
             Padding = new Padding(12, 12, 12, 12);
-            ResizeIcon = true;
+            SizeGripStyle = SizeGripStyle.Show;
             Text = "File Dialog";
 
             handleFormSize = false;
@@ -69,9 +69,9 @@ namespace System.Windows.Forms
             buttonBack.Enabled = false;
             buttonBack.Font = new Drawing.Font("Arial", 16, FontStyle.Bold);
             buttonBack.Image = FolderNavBack;
-            buttonBack.Location = new Point(Padding.Left, HeaderHeight + Padding.Top);
+            buttonBack.Location = new Point(Padding.Left, uwfHeaderHeight + Padding.Top);
             buttonBack.BackColor = Color.Transparent;
-            buttonBack.BorderColor = Color.Transparent;
+            buttonBack.uwfBorderColor = Color.Transparent;
             buttonBack.Size = new Size(22, 22);
             if (buttonBack.Image == null) buttonBack.Text = "◀";
             buttonBack.Click += (sender, args) => ButtonBack();
@@ -88,7 +88,7 @@ namespace System.Windows.Forms
             buttonUp.Image = FolderNavUp;
             buttonUp.Location = new Point(buttonBack.Location.X + buttonBack.Width + 8, buttonBack.Location.Y);
             buttonUp.BackColor = Color.Transparent;
-            buttonUp.BorderColor = Color.Transparent;
+            buttonUp.uwfBorderColor = Color.Transparent;
             buttonUp.Size = new Drawing.Size(22, 22);
             if (buttonUp.Image == null) buttonUp.Text = "▲";
             buttonUp.Click += (sender, args) => ButtonUp();
@@ -102,10 +102,10 @@ namespace System.Windows.Forms
             buttonRefresh = new Button();
             buttonRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             buttonRefresh.Image = FolderNavRefresh;
-            buttonRefresh.ImageColor = Color.FromArgb(64, 64, 64);
-            buttonRefresh.ImageHoverColor = buttonRefresh.ImageColor;
+            buttonRefresh.uwfImageColor = Color.FromArgb(64, 64, 64);
+            buttonRefresh.uwfImageHoverColor = buttonRefresh.uwfImageColor;
             buttonRefresh.BackColor = Color.Transparent;
-            buttonRefresh.BorderColor = Color.Transparent;
+            buttonRefresh.uwfBorderColor = Color.Transparent;
             buttonRefresh.Size = new Size(22, 22);
             buttonRefresh.Location = new Point(Width - Padding.Right - buttonRefresh.Width, buttonUp.Location.Y);
             buttonRefresh.Click += (sender, args) => ButtonRefresh();
@@ -176,7 +176,7 @@ namespace System.Windows.Forms
 
             #region File Render.
             fileRenderer = new FileRenderer(this);
-            fileRenderer.Anchor = AnchorStyles.All;
+            fileRenderer.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
             fileRenderer.Location = new Point(Padding.Left, buttonBack.Location.Y + buttonBack.Height + 8);
             fileRenderer.Name = "fileRenderer";
             fileRenderer.Size = new Drawing.Size(Width - Padding.Left - Padding.Right, textBoxFilename.Location.Y - buttonBack.Location.Y - buttonBack.Height - 16);
@@ -264,26 +264,26 @@ namespace System.Windows.Forms
         protected override void OnKeyPress(KeyEventArgs e)
         {
             base.OnKeyPress(e);
-            if (e.KeyCode == KeyCode.Escape)
+            if (e.KeyCode == Keys.Escape)
             {
                 DialogResult = DialogResult.Cancel;
                 Close();
             }
 
             // Next folder.
-            if (e.KeyCode == KeyCode.Return)
+            if (e.KeyCode == Keys.Return)
                 fileRenderer.Next();
 
             // Refresh directory.
-            if (e.KeyCode == KeyCode.F5)
+            if (e.KeyCode == Keys.F5)
                 ButtonRefresh();
 
-            if (e.Modifiers == EventModifiers.Alt)
+            if (e.Alt)
             {
                 switch (e.KeyCode)
                 {
-                    case KeyCode.LeftArrow: ButtonBack(); break;
-                    case KeyCode.UpArrow: ButtonUp(); break;
+                    case Keys.Left: ButtonBack(); break;
+                    case Keys.Up: ButtonUp(); break;
                 }
             }
         }
@@ -291,11 +291,11 @@ namespace System.Windows.Forms
         {
             base.OnPaint(e);
 
-            e.Graphics.DrawLine(borderPen, 1, HeaderHeight, Width - 1, HeaderHeight);
+            e.Graphics.DrawLine(borderPen, 1, uwfHeaderHeight, Width - 1, uwfHeaderHeight);
         }
-        protected override void OnResize(Point delta)
+        protected override void OnResize(EventArgs e)
         {
-            base.OnResize(delta);
+            base.OnResize(e);
 
             if (handleFormSize)
                 savedFormSize = Size;
@@ -327,7 +327,7 @@ namespace System.Windows.Forms
                 prevPathes = new List<string>();
 
                 filesTree = new TreeView();
-                filesTree.Anchor = AnchorStyles.All;
+                filesTree.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
                 filesTree.BorderColor = Color.LightGray;
                 filesTree.Size = new Drawing.Size(Width, Height);
                 filesTree.SelectedNodeChanged += filesTree_SelectedNodeChanged;
@@ -629,7 +629,7 @@ namespace System.Windows.Forms
 #if UNITY_STANDALONE
                 Size = new Drawing.Size(320, 120);
                 Location = new Point(Screen.PrimaryScreen.WorkingArea.Width / 2 - Width / 2, Screen.PrimaryScreen.WorkingArea.Height / 2 - Height / 2);
-                Resizable = false;
+                uwfResizable = false;
                 Text = "Properties: ";
 
                 if (System.IO.File.Exists(path) == false) return;
@@ -730,7 +730,7 @@ namespace System.Windows.Forms
                 for (currentIndex = 0; currentIndex < directories.Count; currentIndex++)
                 {
                     var dir = directories[currentIndex];
-                    var estimatedWidth = System.Drawing.Graphics.MeasureStringSimple(dir.Name, SystemFonts.DefaultFont).Width + 15;
+                    var estimatedWidth = Font.MeasureStringSimple(dir.Name).Width + 15;
 
                     currentWidth += estimatedWidth;
                     if (currentWidth >= allowedWidth)
@@ -807,24 +807,24 @@ namespace System.Windows.Forms
                     Path = path;
 
                     BackColor = Color.Transparent;
-                    BorderColor = Color.Transparent;
+                    uwfBorderColor = Color.Transparent;
                     ForeColor = Color.FromArgb(47, 47, 47);
-                    HoverColor = Color.FromArgb(229, 243, 251);
+                    uwfHoverColor = Color.FromArgb(229, 243, 251);
                     Padding = new Padding(4, 0, 4, 0);
                     TextAlign = ContentAlignment.MiddleLeft;
 
                     var arrowButton = new Button();
                     arrowButton.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
                     arrowButton.BackColor = BackColor;
-                    arrowButton.BorderColor = BorderColor;
-                    arrowButton.HoverColor = HoverColor;
+                    arrowButton.uwfBorderColor = uwfBorderColor;
+                    arrowButton.uwfHoverColor = uwfHoverColor;
                     arrowButton.Width = 15;
                     arrowButton.Height = Height;
                     arrowButton.Location = new Point(Width - arrowButton.Width, 0);
                     arrowButton.Text = "";
-                    arrowButton.Image = ApplicationBehaviour.Resources.Images.ArrowRight;
-                    arrowButton.ImageColor = Color.Gray;
-                    arrowButton.ImageHoverColor = Color.Gray;
+                    arrowButton.Image = Unity.API.ApplicationBehaviour.GdiImages.ArrowRight;
+                    arrowButton.uwfImageColor = Color.Gray;
+                    arrowButton.uwfImageHoverColor = Color.Gray;
 
                     Controls.Add(arrowButton);
                 }

@@ -410,26 +410,11 @@ namespace System.Windows.Forms
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            e.Graphics.FillRectangle(BackColor, 0, 0, Width, Height);
+            e.Graphics.uwfFillRectangle(BackColor, 0, 0, Width, Height);
         }
-        protected override object uwfOnPaintEditor(float width)
+        protected override void OnResize(EventArgs e)
         {
-            var control = base.uwfOnPaintEditor(width);
-
-#if UNITY_EDITOR
-            Editor.NewLine(1);
-            Editor.Label("columnHeadersHidden", columnHeadersHidden);
-            Editor.Label("rowHeadersHidden", rowHeadersHidden);
-
-            Editor.Label("HScroll", hScroll);
-            Editor.Label("VScroll", vScroll);
-#endif
-
-            return control;
-        }
-        protected override void OnResize(Point delta)
-        {
-            base.OnResize(delta);
+            base.OnResize(e);
 
             UpdateScrolls();
         }
@@ -571,10 +556,10 @@ namespace System.Windows.Forms
             public TableColumnButton(TableView t, TableButtonStyle style)
             {
                 BackColor = style.BackColor;
-                HoverColor = style.HoverColor;
-                BorderColor = style.BorderColor;
-                BorderHoverColor = style.BorderHoverColor;
-                BorderSelectColor = style.BorderSelectColor;
+                uwfHoverColor = style.HoverColor;
+                uwfBorderColor = style.BorderColor;
+                uwfBorderHoverColor = style.BorderHoverColor;
+                uwfBorderSelectColor = style.BorderSelectColor;
                 Padding = new Padding(8, 0, 8, 0);
                 ResizeWidth = 8;
                 Size = new Size(t.ColumnsDefaultWidth, 20);
@@ -608,9 +593,9 @@ namespace System.Windows.Forms
                 resizeType = resizeTypes.None;
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool release_all)
             {
-                base.Dispose();
+                base.Dispose(release_all);
 
                 uwfAppOwner.UpClick -= Owner_UpClick;
             }
@@ -664,7 +649,7 @@ namespace System.Windows.Forms
             {
                 if (resizing)
                 {
-                    var dif = PointToScreen(e.Location) - resizeStartMouseLocation;
+                    var dif = PointToScreen(e.Location).Subtract(resizeStartMouseLocation);
                     switch (resizeType)
                     {
                         case resizeTypes.Left:
@@ -737,10 +722,10 @@ namespace System.Windows.Forms
                         switch (lastSortDirection)
                         {
                             case ListSortDirection.Ascending:
-                                e.Graphics.DrawTexture(ApplicationBehaviour.Resources.Images.ArrowUp, 8, Height / 2 - 4, 8, 8, Color.Gray);
+                                e.Graphics.uwfDrawImage(uwfAppOwner.Resources.ArrowUp, Color.Gray, 8, Height / 2 - 4, 8, 8);
                                 break;
                             case ListSortDirection.Descending:
-                                e.Graphics.DrawTexture(ApplicationBehaviour.Resources.Images.ArrowDown, 8, Height / 2 - 4, 8, 8, Color.Gray);
+                                e.Graphics.uwfDrawImage(uwfAppOwner.Resources.ArrowDown, Color.Gray, 8, Height / 2 - 4, 8, 8);
                                 break;
                         }
                     }
@@ -762,10 +747,10 @@ namespace System.Windows.Forms
             public TableRowButton(TableButtonStyle style)
             {
                 BackColor = style.BackColor;
-                HoverColor = style.HoverColor;
-                BorderColor = style.BorderColor;
-                BorderHoverColor = style.BorderHoverColor;
-                BorderSelectColor = style.BorderSelectColor;
+                uwfHoverColor = style.HoverColor;
+                uwfBorderColor = style.BorderColor;
+                uwfBorderHoverColor = style.BorderHoverColor;
+                uwfBorderSelectColor = style.BorderSelectColor;
                 Padding = new Padding(8, 0, 8, 0);
                 Size = new Size(100, 20);
                 TabStop = false;

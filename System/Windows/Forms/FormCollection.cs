@@ -8,7 +8,7 @@ namespace System.Windows.Forms
 {
     internal sealed class FormCollection : IList
     {
-        private List<Form> items = new List<Form>();
+        private readonly List<Form> items = new List<Form>();
 
         public Form this[int index]
         {
@@ -24,6 +24,10 @@ namespace System.Windows.Forms
         public bool Contains(Form form)
         {
             return items.Contains(form);
+        }
+        public Form Find(Predicate<Form> match)
+        {
+            return items.Find(match);
         }
         public int FindIndex(Predicate<Form> match)
         {

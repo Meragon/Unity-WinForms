@@ -4,7 +4,8 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using Color = UnityEngine.Color;
+
+using Graphics = System.Drawing.Graphics;
 
 namespace System.Windows.Forms
 {
@@ -14,8 +15,7 @@ namespace System.Windows.Forms
         internal static object _dragData;
         private static DragDropEffects _dragControlEffects;
         private static DragDropRenderHandler _dragRender;
-        private static KeyCode _currentKeyDown = KeyCode.None;
-        private static readonly List<_HotKey> _hotKeys = new List<_HotKey>();
+        private static Keys _currentKeyDown = Keys.None;
         private static MouseEvents _mouseEvent = 0;
         private static MouseButtons _mouseButton = 0;
         private static Control _mouseLastClickControl;
@@ -36,13 +36,10 @@ namespace System.Windows.Forms
         internal readonly List<Control> HoveredControls = new List<Control>();
         internal Control hoveredControl;
         internal readonly List<Form> ModalForms = new List<Form>();
-
-        public ApplicationBehaviour Behaviour { get; private set; }
-        public static bool Debug { get; set; }
-        public static float DeltaTime { get { return UnityEngine.Time.deltaTime; } }
-        public float FillRate { get; set; }
-        public static bool IsDraging { get { return _dragndrop; } }
-        public static bool IsStandalone
+        internal AppGdiImages Resources;
+        
+        internal static bool IsDraging { get { return _dragndrop; } }
+        internal static bool IsStandalone
         {
             get
             {
@@ -53,34 +50,28 @@ namespace System.Windows.Forms
 #endif
             }
         }
-        public static float ScaleX
+        internal static float ScaleX
         {
             get { return _scaleX; }
             set
             {
                 _scaleX = value;
                 if (value < .1f)
-                {
                     _scaleX = 1f;
-                    Log("Minimum scale value should be >= .1f");
-                }
             }
         }
-        public static float ScaleY
+        internal static float ScaleY
         {
             get { return _scaleY; }
             set
             {
                 _scaleY = value;
                 if (value < .1f)
-                {
                     _scaleY = 1f;
-                    Log("Minimum scale value should be >= .1f");
-                }
             }
         }
-        public static Action<Control> ShowCallback { get; set; }
-        public bool TabSwitching { get; set; }
+        internal static Action<Control> ShowCallback { get; set; }
+        internal bool TabSwitching { get; set; }
 
         private static bool Contains(Control parent, Control child)
         {
@@ -114,28 +105,27 @@ namespace System.Windows.Forms
 
             return currentControl;
         }
-
         internal static bool ControlIsVisible(Control control)
         {
             if (control.Visible == false) return false;
-            if (control.Location.X + control.uwfOffset.X + control.Width < 0) return false;
-            if (control.Location.Y + control.uwfOffset.Y + control.Height < 0) return false;
-            if (control.Parent != null)
+
+            var controlLocationX = control.Location.X;
+            var controlLocationY = control.Location.Y;
+            var controluwfOffsetX = control.uwfOffset.X;
+            var controluwfOffsetY = control.uwfOffset.Y;
+            var controlWidth = control.Width;
+            var controlHeight = control.Height;
+
+            if (controlLocationX + controluwfOffsetX + controlWidth < 0) return false;
+            if (controlLocationY + controluwfOffsetY + controlHeight < 0) return false;
+
+            var controlParent = control.Parent;
+            if (controlParent != null)
             {
-                if (control.Location.X + control.uwfOffset.X > control.Parent.Width) return false;
-                if (control.Location.Y + control.uwfOffset.Y > control.Parent.Height) return false;
+                if (controlLocationX + controluwfOffsetX > controlParent.Width) return false;
+                if (controlLocationY + controluwfOffsetY > controlParent.Height) return false;
             }
             return true;
-        }
-        private static bool _ControlWParentVisible(Control control)
-        {
-            if (ControlIsVisible(control) == false) return false;
-
-            if (control.Parent == null)
-                return control.Visible;
-            if (control.Parent.Visible)
-                return _ControlWParentVisible(control.Parent);
-            return false;
         }
         private static void _FillListWithVisibleControls(Control control, List<Control> list)
         {
@@ -219,7 +209,7 @@ namespace System.Windows.Forms
             //Application.Log(control.Name);
             if (control == null || control.Parent == null) return currentControl;
 
-            var parentLocation = control.Parent.PointToScreen(System.Drawing.Point.Zero);
+            var parentLocation = control.Parent.PointToScreen(System.Drawing.Point.Empty);
             var parentRect = new System.Drawing.RectangleF(parentLocation.X, parentLocation.Y, control.Parent.Width, control.Parent.Height);
             if (parentRect.Contains(mousePosition) == true)
                 currentControl = control.Parent;
@@ -231,7 +221,7 @@ namespace System.Windows.Forms
         private static bool _ProcessControl(System.Drawing.PointF mousePosition, Control control, bool ignore_rect)
         {
             // ignore_rect will call mouse_up & mouse_move in any case.
-            var c_location = control.PointToScreen(System.Drawing.Point.Zero);
+            var c_location = control.PointToScreen(System.Drawing.Point.Empty);
             var clientRect = new System.Drawing.RectangleF(c_location.X, c_location.Y, control.Width, control.Height);
             var contains = clientRect.Contains(mousePosition);
 
@@ -248,7 +238,7 @@ namespace System.Windows.Forms
 
             if (ignore_rect || contains)
             {
-                var client_mpos = control.PointToClient(mousePosition);
+                var client_mpos = control.PointToClient(new Point((int)mousePosition.X, (int)mousePosition.Y));
                 if (mousePositionChanged)
                 {
                     var m_args = new MouseEventArgs(MouseButtons.None, 0, (int)client_mpos.X, (int)client_mpos.Y, 0);
@@ -301,12 +291,12 @@ namespace System.Windows.Forms
                 control.RaiseOnMouseLeave(null);
             return false;
         }
-        private void RaiseKeyEvent(KeyEventArgs args, Control keyControl)
+        private void RaiseKeyEvent(KeyEventArgs args, KeyEvents keyEventType, Control keyControl)
         {
-            switch (Event.current.type)
+            switch (keyEventType)
             {
-                case EventType.KeyDown:
-                    if (_currentKeyDown == KeyCode.None || _currentKeyDown != args.KeyCode)
+                case KeyEvents.Down:
+                    if (_currentKeyDown == Keys.None || _currentKeyDown != args.KeyCode)
                         keyControl.RaiseOnKeyDown(args);
 
                     keyControl.RaiseOnKeyPress(args);
@@ -321,111 +311,30 @@ namespace System.Windows.Forms
                     }
 
                     break;
-                case EventType.KeyUp:
-                    _currentKeyDown = KeyCode.None;
+                case KeyEvents.Up:
+                    _currentKeyDown = Keys.None;
                     keyControl.RaiseOnKeyUp(args);
                     break;
-                case EventType.Layout:
-                    break;
             }
-        }
-        private static Keys _UKeyToKey(UnityEngine.KeyCode ukey)
-        {
-            Keys key = Keys.None;
-            Keys mod = Keys.None; // TODO: return KeyEventArgs with this mod
-
-            switch (ukey)
-            {
-                case KeyCode.Backspace: key = Keys.Back; break;
-                case KeyCode.Tab: key = Keys.Tab; break;
-                case KeyCode.Clear: key = Keys.Clear; break;
-                case KeyCode.Return: key = Keys.Return; break;
-                case KeyCode.Pause: key = Keys.Pause; break;
-                case KeyCode.Escape: key = Keys.Escape; break;
-                case KeyCode.Space: key = Keys.Space; break;
-
-                case KeyCode.Exclaim: key = Keys.D1; mod = Keys.Shift; break;
-                case KeyCode.DoubleQuote: key = Keys.D2; mod = Keys.Shift; break;
-                case KeyCode.Hash: key = Keys.D3; mod = Keys.Shift; break;
-                case KeyCode.Dollar: key = Keys.D4; mod = Keys.Shift; break;
-                case KeyCode.Ampersand: key = Keys.D5; mod = Keys.Shift; break;
-                case KeyCode.Quote: key = Keys.OemQuotes; break;
-            }
-
-            Application.Log(key.ToString() + " mod: " + mod.ToString());
-
-            return key;
         }
         internal void UpdatePaintClipRect()
         {
             _paintEventArgs.ClipRectangle = new Drawing.Rectangle(0, 0, Screen.PrimaryScreen.WorkingArea.Width, Screen.PrimaryScreen.WorkingArea.Height);
         }
 
-        public Application(ApplicationBehaviour behaviour)
+        public Application()
         {
-            Behaviour = behaviour;
             TabSwitching = true;
-
             _paintEventArgs = new PaintEventArgs();
-            _paintEventArgs.Graphics = new Drawing.Graphics();
+            _paintEventArgs.Graphics = new Graphics();
 
             Cursor.Current = Cursors.Default;
         }
 
-        public void Draw()
-        {
-            // Scale if needed.
-            if (ScaleX != 1f || ScaleY != 1f)
-                UnityEngine.GUI.matrix = UnityEngine.Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(0, Vector3.up), new Vector3(ScaleX, ScaleY, 1));
-
-            GUI.color = Color.white;
-
-            _paintEventArgs.Graphics.FillRate = 0;
-
-            for (int i = 0; i < Forms.Count; i++)
-            {
-                var form = Forms[i];
-                if (form.Visible) form.RaiseOnPaint(_paintEventArgs);
-            }
-
-            for (int i = 0; i < ModalForms.Count; i++)
-            {
-                var form = ModalForms[i];
-                if (form.Visible) form.RaiseOnPaint(_paintEventArgs);
-            }
-
-            for (int i = 0; i < Contexts.Count; i++)
-            {
-                var context = Contexts[i];
-                if (context.Visible) context.RaiseOnPaint(_paintEventArgs);
-            }
-
-            FillRate = _paintEventArgs.Graphics.FillRate;
-
-            if (_dragRender != null && _dragndrop)
-            {
-                var g = new System.Drawing.Graphics();
-                var _dragRenderControl = new Control();
-                g.Control = _dragRenderControl;
-                _dragRender.Invoke(g);
-                _dragRenderControl.Dispose();
-            }
-
-            // ToolTip.
-            ToolTip.OnPaint(_paintEventArgs);
-
-            var cursor = Cursor.CurrentSystem ?? Cursor.Current;
-            cursor.Draw(_paintEventArgs.Graphics,
-                new Drawing.Rectangle(
-                    Control.MousePosition.X,
-                    Control.MousePosition.Y,
-                    (int)(cursor.Size.Width / ScaleX),
-                    (int)(cursor.Size.Height / ScaleY)));
-        }
-        public void ProccessKeys()
+        public void ProccessKeys(KeyEventArgs args, KeyEvents keyEventType)
         {
             // Close context if possible.
-            if (Event.current.keyCode == KeyCode.Escape && Event.current.type == EventType.KeyDown)
+            if (args.KeyCode == Keys.Escape && keyEventType == KeyEvents.Down)
             {
                 if (Contexts.Count > 0)
                 {
@@ -434,47 +343,19 @@ namespace System.Windows.Forms
                 }
             }
 
-            if (Event.current.keyCode != KeyCode.None)
+            // Raise keys on selected controls if possible.
+            if (Control.lastSelected != null && Control.lastSelected.IsDisposed == false)
             {
-                KeyEventArgs args = new KeyEventArgs();
-                args.KeyCode = Event.current.keyCode;
-                args.Modifiers = Event.current.modifiers;
-                if ((args.Modifiers & EventModifiers.FunctionKey) != 0)
-                    args.Modifiers &= ~EventModifiers.FunctionKey;
+                var keyControl = Control.lastSelected;
+                var parentForm = GetParentForm(Control.lastSelected);
+                if (parentForm != null && parentForm.KeyPreview)
+                    RaiseKeyEvent(args, keyEventType, parentForm); // Raise key event if keyPreview is used.
 
-                //_UKeyToKey(args.KeyCode); // testing...
-
-                // HotKey for control.
-                var _hotKey = _hotKeys.Find(x => x.hWnd != null && x.Key == args.KeyCode && x.Modifier == args.Modifiers);
-                if (_hotKey != null)
-                {
-                    switch (Event.current.type)
-                    {
-                        case EventType.KeyDown: // not working with mods (?).
-                            if (_currentKeyDown == KeyCode.None || _currentKeyDown != args.KeyCode)
-                                _hotKey.hWnd.RaiseOnKeyDown(args);
-                            _hotKey.hWnd.RaiseOnKeyPress(args);
-                            break;
-                        case EventType.KeyUp:
-                            _hotKey.hWnd.RaiseOnKeyUp(args);
-                            break;
-                    }
-                }
-
-                // Raise keys on selected controls if possible.
-                if (Control.lastSelected != null && Control.lastSelected.IsDisposed == false)
-                {
-                    var keyControl = Control.lastSelected;
-                    var parentForm = GetParentForm(Control.lastSelected);
-                    if (parentForm != null && parentForm.KeyPreview)
-                        RaiseKeyEvent(args, parentForm); // Raise key event if keyPreview is used.
-
-                    RaiseKeyEvent(args, keyControl);
-                }
-
-                if (Event.current.type == EventType.keyDown)
-                    _currentKeyDown = args.KeyCode;
+                RaiseKeyEvent(args, keyEventType, keyControl);
             }
+
+            if (keyEventType == KeyEvents.Down)
+                _currentKeyDown = args.KeyCode;
         }
         public void ProccessMouse(float mouseX, float mouseY)
         {
@@ -581,9 +462,9 @@ namespace System.Windows.Forms
             // Dispose context first.
             for (int i = 0; i < Contexts.Count; i++)
             {
-                if (!Contexts[i].uwfContext) continue;
-
                 var contextControl = Contexts[i];
+                if (!contextControl.uwfContext) continue;
+                
                 if (Contains(contextControl, hoveredControl)) continue;
                 if (_mouseEvent != MouseEvents.Down) continue;
 
@@ -616,6 +497,55 @@ namespace System.Windows.Forms
             _userMouseArgs = mArgs;
 
             ProccessMouse(new Drawing.PointF(mArgs.X, mArgs.Y));
+        }
+        /// <summary>
+        /// Redrawing the whole screen.
+        /// </summary>
+        public void Redraw()
+        {
+            // Scale if needed.
+            if (ScaleX != 1f || ScaleY != 1f)
+                UnityEngine.GUI.matrix = UnityEngine.Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(0, Vector3.up), new Vector3(ScaleX, ScaleY, 1));
+
+            _paintEventArgs.Graphics.Clear(System.Drawing.Color.White);
+
+            for (int i = 0; i < Forms.Count; i++)
+            {
+                var form = Forms[i];
+                if (form.Visible) form.RaiseOnPaint(_paintEventArgs);
+            }
+
+            for (int i = 0; i < ModalForms.Count; i++)
+            {
+                var form = ModalForms[i];
+                if (form.Visible) form.RaiseOnPaint(_paintEventArgs);
+            }
+
+            for (int i = 0; i < Contexts.Count; i++)
+            {
+                var context = Contexts[i];
+                if (context.Visible) context.RaiseOnPaint(_paintEventArgs);
+            }
+
+            if (_dragRender != null && _dragndrop)
+            {
+                var g = new Graphics();
+                var _dragRenderControl = new Control();
+                _dragRender.Invoke(g);
+                _dragRenderControl.Dispose();
+            }
+
+            // ToolTip.
+            ToolTip.OnPaint(_paintEventArgs);
+
+            var cursor = Cursor.CurrentSystem ?? Cursor.Current;
+            var cursorSize = cursor.Size;
+            cursor.Draw(_paintEventArgs.Graphics,
+                new Drawing.Rectangle(
+                    Control.MousePosition.X,
+                    Control.MousePosition.Y,
+                    (int)(cursorSize.Width / ScaleX),
+                    (int)(cursorSize.Height / ScaleY)));
         }
         public void Run(Control control)
         {
@@ -720,7 +650,7 @@ namespace System.Windows.Forms
             _dragControlEffects = effect;
             _dragRender = render;
         }
-        public static Form GetParentForm(Control control)
+        internal static Form GetParentForm(Control control)
         {
             if (control == null) return null;
             var form = control.Parent as Form;
@@ -728,7 +658,7 @@ namespace System.Windows.Forms
 
             return GetParentForm(control.Parent);
         }
-        public static Control GetRootControl(Control control)
+        internal static Control GetRootControl(Control control)
         {
             if (control == null) return null;
 
@@ -737,15 +667,7 @@ namespace System.Windows.Forms
 
             return control;
         }
-        public static void Log(object message)
-        {
-            UnityEngine.Debug.Log(message);
-        }
-        public static void LogError(object message)
-        {
-            UnityEngine.Debug.LogError(message);
-        }
-        public static void NextTabControl(Control control)
+        internal static void NextTabControl(Control control)
         {
             var controlForm = GetRootControl(control) as Form;
             if (controlForm == null || controlForm.Controls.Count <= 0) return;
@@ -765,7 +687,7 @@ namespace System.Windows.Forms
                 nextControlIndex = 0;
             possibleControls[nextControlIndex].Focus();
         }
-        public static void PrevTabControl(Control control)
+        internal static void PrevTabControl(Control control)
         {
             var controlForm = GetRootControl(control) as Form;
             if (controlForm == null || controlForm.Controls.Count <= 0) return;
@@ -784,25 +706,6 @@ namespace System.Windows.Forms
             if (nextControlIndex < 0)
                 nextControlIndex = possibleControls.Count - 1;
             possibleControls[nextControlIndex].Focus();
-        }
-        public static bool RegisterHotKey(Control hWnd, int id, UnityEngine.EventModifiers modifier, UnityEngine.KeyCode key)
-        {
-            if (hWnd == null || hWnd.Disposing || hWnd.IsDisposed) return false;
-            if (_hotKeys.Find(x => x.hWnd == hWnd && x.Id == id) != null)
-                return false;
-
-            _hotKeys.Add(new _HotKey(hWnd, id, modifier, key));
-
-            return true;
-        }
-        public static bool UnregisterHotKey(Control hWnd, int id)
-        {
-            if (hWnd == null || hWnd.Disposing || hWnd.IsDisposed) return false;
-            var _hotKeyIndex = _hotKeys.FindIndex(x => x.hWnd == hWnd && x.Id == id);
-            if (_hotKeyIndex == -1) return false;
-
-            _hotKeys.RemoveAt(_hotKeyIndex);
-            return true;
         }
 
         public delegate void UpdateEventDelegate();
@@ -826,44 +729,7 @@ namespace System.Windows.Forms
         {
             None,
             Down,
-            Up,
-        }
-
-        private class _HotKey
-        {
-            private Control _hWnd;
-            private int _id;
-            private UnityEngine.EventModifiers _modifier;
-            private UnityEngine.KeyCode _key;
-
-            public Control hWnd
-            {
-                get { return _hWnd; }
-                private set { _hWnd = value; }
-            }
-            public int Id
-            {
-                get { return _id; }
-                private set { _id = value; }
-            }
-            public UnityEngine.EventModifiers Modifier
-            {
-                get { return _modifier; }
-                private set { _modifier = value; }
-            }
-            public UnityEngine.KeyCode Key
-            {
-                get { return _key; }
-                private set { _key = value; }
-            }
-
-            public _HotKey(Control hwnd, int id, UnityEngine.EventModifiers modifier, UnityEngine.KeyCode key)
-            {
-                this.hWnd = hwnd;
-                this.Id = id;
-                this.Modifier = modifier;
-                this.Key = key;
-            }
+            Up
         }
     }
 }

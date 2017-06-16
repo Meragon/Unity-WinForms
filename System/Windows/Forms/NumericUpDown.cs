@@ -9,20 +9,21 @@ namespace System.Windows.Forms
 {
     public class NumericUpDown : Control
     {
-#if UNITY_EDITOR
-        private bool _toggleEditor;
-#endif
-
         private decimal _minimum;
         private decimal _maximum;
 
+        protected Pen borderPen = new Pen(Color.Transparent);
         protected decimal value;
         protected string valueText = "0";
 
         public Button ButtonIncrease { get; private set; }
         public Button ButtonDecrease { get; private set; }
 
-        public Color BorderColor { get; set; }
+        public Color BorderColor
+        {
+            get { return borderPen.Color; }
+            set { borderPen.Color = value; }
+        }
         public Color DisabledColor { get; set; }
         public decimal Increment { get; set; }
         public decimal Maximum
@@ -71,7 +72,6 @@ namespace System.Windows.Forms
         {
             this.BackColor = Color.FromArgb(250, 250, 250);
             this.BorderColor = Color.FromArgb(175, 175, 175);
-            this.CanSelect = true;
             this.DisabledColor = Color.FromArgb(240, 240, 240);
             this.Increment = 1;
             this.Maximum = 100;
@@ -84,28 +84,26 @@ namespace System.Windows.Forms
             {
                 ButtonIncrease = new RepeatButton();
                 ButtonIncrease.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-                ButtonIncrease.CanSelect = false;
                 ButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
                 ButtonIncrease.Size = new Size(14, 8);
                 ButtonIncrease.Name = "_numericButtonIncrease";
                 ButtonIncrease.BackColor = Color.FromArgb(236, 236, 236);
-                ButtonIncrease.BorderColor = Color.FromArgb(172, 172, 172);
-                ButtonIncrease.HoverColor = Color.FromArgb(228, 241, 252);
-                ButtonIncrease.BorderHoverColor = Color.FromArgb(126, 180, 234);
-                ButtonIncrease.Image = ApplicationBehaviour.Resources.Images.NumericUp;
+                ButtonIncrease.uwfBorderColor = Color.FromArgb(172, 172, 172);
+                ButtonIncrease.uwfHoverColor = Color.FromArgb(228, 241, 252);
+                ButtonIncrease.uwfBorderHoverColor = Color.FromArgb(126, 180, 234);
+                ButtonIncrease.Image = uwfAppOwner.Resources.NumericUp;
                 ButtonIncrease.Click += delegate { if (Enabled) Value += Increment; };
 
                 ButtonDecrease = new RepeatButton();
                 ButtonDecrease.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-                ButtonDecrease.CanSelect = false;
                 ButtonDecrease.Location = new Point(Width - 16, Height / 2);
                 ButtonDecrease.Size = new Drawing.Size(14, 8);
                 ButtonDecrease.Name = "_numericButtonDecrease";
                 ButtonDecrease.BackColor = Color.FromArgb(236, 236, 236);
-                ButtonDecrease.BorderColor = Color.FromArgb(172, 172, 172);
-                ButtonDecrease.HoverColor = Color.FromArgb(228, 241, 252);
-                ButtonDecrease.BorderHoverColor = Color.FromArgb(126, 180, 234);
-                ButtonDecrease.Image = ApplicationBehaviour.Resources.Images.NumericDown;
+                ButtonDecrease.uwfBorderColor = Color.FromArgb(172, 172, 172);
+                ButtonDecrease.uwfHoverColor = Color.FromArgb(228, 241, 252);
+                ButtonDecrease.uwfBorderHoverColor = Color.FromArgb(126, 180, 234);
+                ButtonDecrease.Image = uwfAppOwner.Resources.NumericDown;
                 ButtonDecrease.Click += delegate { if (Enabled) Value -= Increment; };
 
                 Controls.Add(ButtonIncrease);
@@ -125,22 +123,17 @@ namespace System.Windows.Forms
                 if (Value != value)
                     Value = value;
         }
-        public void HideButtons()
-        {
-            ButtonIncrease.Visible = false;
-            ButtonDecrease.Visible = false;
-        }
         protected override void OnLatePaint(PaintEventArgs e)
         {
             base.OnLatePaint(e);
 
-            e.Graphics.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
+            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
-        protected override void OnKeyPress(KeyEventArgs e)
+        protected override void OnKeyDown(KeyEventArgs e)
         {
-            base.OnKeyPress(e);
+            base.OnKeyDown(e);
 
-            if (e.KeyCode == UnityEngine.KeyCode.Return)
+            if (e.KeyCode == Keys.Return)
                 ConfirmValue();
         }
         protected override void OnMouseWheel(MouseEventArgs e)
@@ -165,56 +158,12 @@ namespace System.Windows.Forms
             var backColor = Enabled ? BackColor : DisabledColor;
             var foreColor = Enabled ? ForeColor : Color.Black;
 
-            g.FillRectangle(backColor, 0, 0, Width, Height);
+            g.uwfFillRectangle(backColor, 0, 0, Width, Height);
 
             if (Focused)
-                valueText = g.DrawTextField(valueText, Font, foreColor, Padding.Left - 2, 0, Width + textPaddingRight + 4, Height, TextAlign);
+                valueText = g.uwfDrawTextField(valueText, Font, foreColor, Padding.Left - 2, 0, Width + textPaddingRight + 4, Height, TextAlign);
             else
-                g.DrawString(valueText, Font, foreColor, Padding.Left, 0, Width + textPaddingRight, Height, TextAlign);
-        }
-        protected override object uwfOnPaintEditor(float width)
-        {
-            var component = base.uwfOnPaintEditor(width);
-
-#if UNITY_EDITOR
-            Editor.BeginGroup(width - 24);
-            Editor.BeginVertical();
-
-            _toggleEditor = Editor.Foldout("NumericUpDown", _toggleEditor);
-            if (_toggleEditor)
-            {
-                var editorIncrement = Editor.Slider("Increment", (float)Increment, 0, 255);
-                if (editorIncrement.Changed)
-                    Increment = (decimal)editorIncrement.Value;
-
-                float editorMinValue = short.MinValue;
-                float editorMaxValue = short.MaxValue;
-                if ((float)Maximum > editorMaxValue) editorMaxValue = (float)Maximum;
-                if ((float)Minimum < editorMinValue) editorMinValue = (float)Minimum;
-
-                var editorMaximum = Editor.Slider("Maximum", (float)Maximum, editorMinValue, editorMaxValue);
-                if (editorMaximum.Changed)
-                    Maximum = (decimal)editorMaximum.Value;
-
-                var editorMinimum = Editor.Slider("Minimum", (float)Minimum, editorMinValue, editorMaxValue);
-                if (editorMinimum.Changed)
-                    Minimum = (decimal)editorMinimum.Value;
-
-                var editorValue = Editor.Slider("Value", (float)Value, (float)Minimum, (float)Maximum);
-                if (editorValue.Changed)
-                    Value = (decimal)editorValue.Value;
-            }
-            Editor.EndVertical();
-            Editor.EndGroup();
-#endif
-
-            return component;
-        }
-
-        public void ShowButtons()
-        {
-            ButtonIncrease.Visible = true;
-            ButtonDecrease.Visible = true;
+                g.uwfDrawString(valueText, Font, foreColor, Padding.Left, 0, Width + textPaddingRight, Height, TextAlign);
         }
         protected void UpdateButtonsLocation(object sender, EventArgs e)
         {
@@ -222,6 +171,17 @@ namespace System.Windows.Forms
                 ButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
             if (ButtonDecrease != null)
                 ButtonDecrease.Location = new Point(Width - 16, Height / 2);
+        }
+
+        public void ShowButtons()
+        {
+            ButtonIncrease.Visible = true;
+            ButtonDecrease.Visible = true;
+        }
+        public void HideButtons()
+        {
+            ButtonIncrease.Visible = false;
+            ButtonDecrease.Visible = false;
         }
     }
 }

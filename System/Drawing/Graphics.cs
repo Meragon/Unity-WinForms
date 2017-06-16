@@ -1,41 +1,33 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.Drawing.API;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using Unity.API;
 
 namespace System.Drawing
 {
     public sealed class Graphics : IDeviceContext, IDisposable
     {
-        private bool _group { get { return _groupControls.Count > 0; } }
-        private Control _groupControlLast { get { return _groupControls[_groupControls.Count - 1]; } }
-        private readonly List<Control> _groupControls = new List<Control>();
-        private static readonly PointF _linePivot = new PointF();
+        internal static IApiGraphics ApiGraphics { get; set; }
 
-        public static UnityEngine.Material DefaultMaterial { get; set; }
-        public static bool GL_Lines { get; set; }
-        public static bool NoFill { get; set; }
-        public static bool NoRects { get; set; }
-        public static bool NoStrings { get; set; }
-
-        internal Control Control { get; set; }
-        internal float FillRate { get; set; }
-        internal Rectangle Group { get; set; }
-        internal void GroupBegin(Control groupControl)
+        internal void GroupBegin(Control control)
         {
-            var c_position = Control.Location + Control.uwfOffset;//Control.PointToScreen(Point.Zero);
-            GUI.BeginGroup(new Rect((c_position.X + Group.X), (c_position.Y + Group.Y), Group.Width, Group.Height));
-            _groupControls.Add(groupControl);
+            var x = control.Location.X + control.uwfOffset.X;
+            var y = control.Location.Y + control.uwfOffset.Y;
+            var w = control.ClientSize.Width;
+            var h = control.ClientSize.Height;
+
+            ApiGraphics.BeginGroup(x, y, w, h);
         }
         internal void GroupEnd()
         {
-            GUI.EndGroup();
-            _groupControls.RemoveAt(_groupControls.Count - 1);
+            ApiGraphics.EndGroup();
         }
 
-        public static PointF[] GetBezierApproximation(PointF[] controlPoints, int outputSegmentCount)
+        private static PointF[] GetBezierApproximation(PointF[] controlPoints, int outputSegmentCount)
         {
             if (outputSegmentCount <= 0) return null;
             PointF[] points = new PointF[outputSegmentCount + 1];
@@ -59,15 +51,25 @@ namespace System.Drawing
             int guiSkinFontSizeBuffer = GUI.skin.label.fontSize;
             if (font != null)
             {
-                if (font.UFont == null)
-                    font.UFont = System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
+                if (font.UFont == null && Unity.API.ApplicationBehaviour.gResources != null && Unity.API.ApplicationBehaviour.gResources.Fonts != null)
+                {
+                    var fonts = Unity.API.ApplicationBehaviour.gResources.Fonts;
+                    for (int i = 0; i < fonts.Count; i++)
+                        if (fonts[i].fontNames[0] == font.Name)
+                        {
+                            font.UFont = fonts[i];
+                            break;
+                        }
+                }
 
                 if (font.UFont != null)
                     style.font = font.UFont;
                 else
                 {
                     style.font = null;
+#if UNITY_EDITOR
                     UnityEngine.Debug.LogError("Font not found: " + font.Name);
+#endif
                 }
 
                 style.fontSize = (int)(font.Size);
@@ -86,9 +88,9 @@ namespace System.Drawing
             }
             else
             {
-                if (ApplicationBehaviour.Resources.Fonts.Count > 0)
+                if (ApplicationBehaviour.gResources.Fonts.Count > 0)
                 {
-                    var _font = ApplicationBehaviour.Resources.Fonts[0];
+                    var _font = ApplicationBehaviour.gResources.Fonts[0];
                     if (_font != null)
                         style.font = _font;
                     style.fontSize = (int)(12);
@@ -98,13 +100,13 @@ namespace System.Drawing
             return guiSkinFontSizeBuffer;
         }
 
+        public void Clear(Color color)
+        {
+            ApiGraphics.Clear(color);
+        }
         public void Dispose()
         {
 
-        }
-
-        public void Clear(System.Drawing.Color color)
-        {
         }
         public void DrawCurve(Pen pen, PointF[] points, int segments = 32) // very slow.
         {
@@ -119,10 +121,31 @@ namespace System.Drawing
             for (int i = 0; i + 1 < bPoints.Length; i++)
                 DrawLine(pen, bPoints[i].X, bPoints[i].Y, bPoints[i + 1].X, bPoints[i + 1].Y);
         }
+        public void DrawImage(Image image, Rectangle rect)
+        {
+            DrawImage(image, rect.X, rect.Y, rect.Width, rect.Height);
+        }
+        public void DrawImage(Image image, RectangleF rect)
+        {
+            DrawImage(image, rect.X, rect.Y, rect.Width, rect.Height);
+        }
+        public void DrawImage(Image image, int x, int y, int width, int height)
+        {
+            DrawImage(image, (float)x, (float)y, (float)width, (float)height);
+        }
         public void DrawImage(Image image, float x, float y, float width, float height)
         {
             if (image == null) return;
-            DrawTexture(image.uTexture, x, y, width, height, image.Color);
+
+            ApiGraphics.DrawImage(image, Color.White, x, y, width, height, 0);
+        }
+        public void DrawLine(Pen pen, Point pt1, Point pt2)
+        {
+            DrawLine(pen, pt1.X, pt1.Y, pt2.X, pt2.Y);
+        }
+        public void DrawLine(Pen pen, PointF pt1, PointF pt2)
+        {
+            DrawLine(pen, pt1.X, pt1.Y, pt2.X, pt2.Y);
         }
         public void DrawLine(Pen pen, int x1, int y1, int x2, int y2)
         {
@@ -130,119 +153,106 @@ namespace System.Drawing
         }
         public void DrawLine(Pen pen, float x1, float y1, float x2, float y2)
         {
-            if (pen.Color.A <= 0) return;
-
-            if (GL_Lines)
+            ApiGraphics.DrawLine(pen, x1, y1, x2, y2);
+        }
+        public void DrawLines(Pen pen, PointF[] points)
+        {
+            for (int i = 0; i < points.Length - 1; i++)
+                DrawLine(pen, points[i], points[i + 1]);
+        }
+        public void DrawLines(Pen pen, Point[] points)
+        {
+            for (int i = 0; i < points.Length - 1; i++)
+                DrawLine(pen, points[i], points[i + 1]);
+        }
+        public void DrawPolygon(Pen pen, Point[] points)
+        {
+            ApiGraphics.DrawPolygon(pen, points);
+        }
+        public void DrawRectangle(Pen pen, Rectangle rect)
+        {
+            DrawRectangle(pen, rect.X, rect.Y, rect.Width, rect.Height);
+        }
+        public void DrawRectangle(Pen pen, int x, int y, int width, int height)
+        {
+            DrawRectangle(pen, (float)x, (float)y, (float)width, (float)height);
+        }
+        public void DrawRectangle(Pen pen, float x, float y, float width, float height)
+        {
+            ApiGraphics.DrawRectangle(pen, x, y, width, height);
+        }
+        public void DrawString(string s, Font font, Brush brush, RectangleF layoutRectangle)
+        {
+            uwfDrawString(s, font, brush, layoutRectangle.X, layoutRectangle.Y, layoutRectangle.Width, layoutRectangle.Height);
+        }
+        public void DrawString(string s, Font font, Brush brush, PointF point)
+        {
+            DrawString(s, font, brush, point.X, point.Y);
+        }
+        public void DrawString(string s, Font font, Brush brush, RectangleF layoutRectangle, StringFormat format)
+        {
+            uwfDrawString(s, font, brush, layoutRectangle.X, layoutRectangle.Y, layoutRectangle.Width, layoutRectangle.Height, format);
+        }
+        public void DrawString(string s, Font font, Brush brush, PointF point, StringFormat format)
+        {
+            DrawString(s, font, brush, point.X, point.Y, format);
+        }
+        public void DrawString(string s, Font font, Brush brush, float x, float y)
+        {
+            uwfDrawString(s, font, brush, x, y, 512, 64);
+        }
+        public void DrawString(string s, Font font, Brush brush, float x, float y, StringFormat format)
+        {
+            uwfDrawString(s, font, brush, x, y, 512, 64, format);
+        }
+        public void FillEllipse(SolidBrush brush, float x, float y, float width, float height)
+        {
+            uwfDrawImage(ApplicationBehaviour.GdiImages.Circle, brush.Color, x, y, width, height);
+        }
+        public void FillRectangle(Brush brush, Rectangle rect)
+        {
+            FillRectangle(brush, rect.X, rect.Y, rect.Width, rect.Height);
+        }
+        public void FillRectangle(Brush brush, RectangleF rect)
+        {
+            FillRectangle(brush, rect.X, rect.Y, rect.Width, rect.Height);
+        }
+        public void FillRectangle(Brush brush, int x, int y, int width, int height)
+        {
+            ApiGraphics.FillRectangle(brush, x, y, width, height);
+        }
+        public void FillRectangle(Brush brush, float x, float y, float width, float height)
+        {
+            ApiGraphics.FillRectangle(brush, x, y, width, height);
+        }
+        public void FillRectangles(Brush brush, RectangleF[] rects)
+        {
+            for (int i = 0; i < rects.Length; i++)
             {
-                GL.PushMatrix();
-                //if (DefaultMaterial != null)
-                //  DefaultMaterial.SetPass(0);
-                //GL.LoadOrtho();
-
-                GL.Begin(GL.LINES);
-                GL.Color(pen.Color.ToUColor());
-
-                // TODO: switch (pen.DashStyle) { ... }
-                var loc = Control.PointToScreen(Point.Empty);
-
-                GL.Vertex3(x1, y1, 0);
-                GL.Vertex3(x2, y2, 0);
-
-                GL.End();
-                GL.PopMatrix();
-                return;
-            }
-
-            float x = 0;
-            float y = 0;
-            float width = 0;
-            float height = 0;
-
-            if (x1 != x2 && y1 != y2)
-            {
-                Control.uwfBatches++;
-
-                float xDiff = x2 - x1;
-                float yDiff = y2 - y1;
-                var angle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
-
-                DrawTexture(ApplicationBehaviour.Resources.Images.Circle, x1, y1, (float)Math.Sqrt(xDiff * xDiff + yDiff * yDiff), pen.Width, pen.Color, (float)angle, _linePivot);
-                return;
-            }
-
-            if (x1 == x2)
-            {
-                if (y1 > y2) y1 += pen.Width;
-                else y2 += pen.Width;
-                x = x1;
-                width = pen.Width;
-                if (y1 < y2)
-                {
-                    y = y1;
-                    height = y2 - y1;
-                }
-                else
-                {
-                    y = y2;
-                    height = y1 - y2;
-                }
-            }
-            if (y1 == y2)
-            {
-                y = y1;
-                height = pen.Width;
-                if (x1 < x2)
-                {
-                    x = x1;
-                    width = x2 - x1;
-                }
-                else
-                {
-                    x = x2;
-                    width = x1 - x2;
-                }
-            }
-
-            GUI.color = pen.Color.ToUColor();
-
-            switch (pen.DashStyle)
-            {
-                case Drawing2D.DashStyle.Solid:
-                    if (Control != null) Control.uwfBatches++;
-                    GUI.DrawTexture(new Rect(x, y, width, height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                    break;
-                case Drawing2D.DashStyle.Dash:
-                    float dash_step = pen.Width * 6;
-                    if (y1 == y2)
-                        for (float i = 0; i < width; i += dash_step)
-                        {
-                            float dash_width = dash_step - 2;
-                            if (i + dash_width > width)
-                                dash_width = width - i;
-                            if (Control != null) Control.uwfBatches++;
-                            GUI.DrawTexture(new Rect(x + i, y, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                        }
-
-                    if (x1 == x2)
-                        for (float i = 0; i < height; i += dash_step)
-                        {
-                            float dash_height = dash_step - 2;
-                            if (i + dash_height > height)
-                                dash_height = height - i;
-                            if (Control != null) Control.uwfBatches++;
-                            GUI.DrawTexture(new Rect(x + width - pen.Width, y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                        }
-                    break;
+                var r = rects[i];
+                FillRectangle(brush, r);
             }
         }
-        public void DrawMesh(Mesh mesh, Point position, Quaternion rotation, Material mat)
+        public void FillRectangles(Brush brush, Rectangle[] rects)
         {
-            mat.SetPass(0);
-            UnityEngine.Graphics.DrawMeshNow(mesh, new Vector3(0, 0, 0), rotation);
+            for (int i = 0; i < rects.Length; i++)
+            {
+                var r = rects[i];
+                FillRectangle(brush, r);
+            }
         }
-        public string DrawPasswordField(string s, Font font, SolidBrush brush, float x, float y, float width, float height, HorizontalAlignment alignment)
+        public SizeF MeasureString(string text, Font font)
         {
-            if (Control == null) return s;
+            return ApiGraphics.MeasureString(text, font);
+        }
+
+        #region Not original methods.
+        internal void uwfDrawImage(Image image, Color color, float x, float y, float width, float height)
+        {
+            ApiGraphics.DrawImage(image, color, x, y, width, height, 0);
+        }
+        internal string uwfDrawPasswordField(string s, Font font, SolidBrush brush, float x, float y, float width, float height, HorizontalAlignment alignment)
+        {
             if (s == null) s = "";
 
             GUI.skin.textField.alignment = TextAnchor.UpperLeft;
@@ -261,9 +271,9 @@ namespace System.Drawing
 
             if (font != null)
             {
-                if (System.Windows.Forms.ApplicationBehaviour.Resources != null)
+                if (Unity.API.ApplicationBehaviour.gResources != null)
                 {
-                    var _font = System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Find(f => f.fontNames[0] == font.Name);
+                    var _font = Unity.API.ApplicationBehaviour.gResources.Fonts.Find(f => f.fontNames[0] == font.Name);
                     if (_font != null)
                         GUI.skin.textField.font = _font;
                     else
@@ -285,242 +295,52 @@ namespace System.Drawing
             }
             else
             {
-                var _font = System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Find(f => f.fontNames[0] == "Arial");
+                var _font = Unity.API.ApplicationBehaviour.gResources.Fonts.Find(f => f.fontNames[0] == "Arial");
                 if (_font != null)
                     GUI.skin.textField.font = _font;
                 GUI.skin.textField.fontSize = 12;
             }
 
-            GUI.color = brush.Color.ToUColor();
+            GUI.color = brush.Color.ToUnityColor();
 
-            if (!_group)
-            {
-                var c_position = Control.PointToScreen(Point.Zero);
-                return GUI.PasswordField(new Rect(c_position.X + x, c_position.Y + y, width, height), s, '*');
-            }
-            else
-            {
-                var c_position = Control.PointToScreen(Point.Zero);
-                var g_position = _groupControlLast.PointToScreen(Point.Zero);
-                var position = c_position - g_position + new PointF(x, y);
+            return GUI.PasswordField(new Rect(x, y, width, height), s, '*');
+        }
+        internal void uwfDrawString(string s, Font font, Brush brush, float x, float y, float width, float height, ContentAlignment alignment)
+        {
+            var solidBrush = brush as SolidBrush;
+            if (solidBrush == null) return;
 
-                return GUI.PasswordField(new Rect(position.X, position.Y, width, height), s, '*');
-            }
+            uwfDrawString(s, font, solidBrush.Color, x, y, width, height, alignment);
         }
-        public void DrawPoint(Color color, Point point)
+        internal void uwfDrawString(string s, Font font, Color color, float x, float y, float width, float height, ContentAlignment alignment)
         {
-            DrawPoint(color, point.X, point.Y);
-        }
-        public void DrawPoint(Color color, PointF point)
-        {
-            DrawPoint(color, point.X, point.Y);
-        }
-        public void DrawPoint(Color color, int x, int y)
-        {
-            DrawPoint(color, (float)x, (float)y);
-        }
-        public void DrawPoint(Color color, float x, float y)
-        {
-            DrawTexture(System.Windows.Forms.ApplicationBehaviour.DefaultSprite, x, y, 1, 1);
-        }
-        public void DrawPolygon(Pen pen, Point[] points)
-        {
-            if (DefaultMaterial != null)
-                DefaultMaterial.SetPass(0);
-
-            for (int i = 0; i < points.Length; i++)
-            {
-                if (i + 1 >= points.Length) break;
-
-                GL.Begin(GL.LINES);
-                GL.Color(pen.Color.ToUColor());
-
-                GL.Vertex3(points[i].X, points[i].Y, 0);
-                GL.Vertex3(points[i + 1].X, points[i + 1].Y, 0);
-
-                GL.End();
-            }
-        }
-        public void DrawRectangle(Color color, float x, float y, float width, float height)
-        {
-            if (NoRects) return;
-            if (color.A <= 0) return;
-
-            GUI.color = color.ToUColor();
-
-            if (Control != null)
-                Control.uwfBatches += 2;
-
-            GUI.DrawTexture(new Rect(x, y, width, 1), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-            GUI.DrawTexture(new Rect(x + width - 1, y + 1, 1, height - 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-            FillRate += width + height - 2;
-            if (height > 1)
-            {
-                if (Control != null)
-                    Control.uwfBatches++;
-                GUI.DrawTexture(new Rect(x, y + height - 1, width, 1), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                FillRate += width * 1 + 1;
-            }
-            if (width > 1)
-            {
-                if (Control != null)
-                    Control.uwfBatches++;
-                GUI.DrawTexture(new Rect(x, y + 1, 1, height - 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                FillRate += height - 2;
-            }
-        }
-        public void DrawRectangle(Pen pen, Rectangle rect)
-        {
-            DrawRectangle(pen, rect.X, rect.Y, rect.Width, rect.Height);
-        }
-        public void DrawRectangle(Pen pen, int x, int y, int width, int height)
-        {
-            DrawRectangle(pen, (float)x, (float)y, (float)width, (float)height);
-        }
-        public void DrawRectangle(Pen pen, float x, float y, float width, float height)
-        {
-            if (NoRects) return;
-            if (pen.Color.A <= 0 || pen.Width <= 0) return;
-            GUI.color = pen.Color.ToUColor();
-
-            switch (pen.DashStyle)
-            {
-                case Drawing2D.DashStyle.Solid:
-                    if (Control != null)
-                        Control.uwfBatches += 2;
-
-                    GUI.DrawTexture(new Rect(x, y, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                    GUI.DrawTexture(new Rect(x + width - pen.Width, y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                    FillRate += width * pen.Width + pen.Width * (height - pen.Width * 2);
-                    if (height > 1)
-                    {
-                        if (Control != null)
-                            Control.uwfBatches++;
-                        GUI.DrawTexture(new Rect(x, y + height - pen.Width, width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                        FillRate += width * pen.Width + pen.Width;
-                    }
-                    if (width > 1)
-                    {
-                        if (Control != null)
-                            Control.uwfBatches++;
-                        GUI.DrawTexture(new Rect(x, y + pen.Width, pen.Width, height - pen.Width * 2), System.Windows.Forms.ApplicationBehaviour.DefaultSprite);
-                        FillRate += pen.Width * (height - pen.Width * 2);
-                    }
-
-                    break;
-                case Drawing2D.DashStyle.Dash:
-                    float dash_step = pen.Width * 6;
-                    for (float i = 0; i < width; i += dash_step)
-                    {
-                        float dash_width = dash_step - 2;
-                        if (i + dash_width > width)
-                            dash_width = width - i;
-                        if (Control != null)
-                            Control.uwfBatches += 2;
-                        GUI.DrawTexture(new Rect(x + i, y, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Top.
-                        GUI.DrawTexture(new Rect(x + i, y + height - pen.Width, dash_width, pen.Width), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Bottom.
-                        FillRate += dash_width * pen.Width * 2;
-                    }
-                    for (float i = 0; i < height; i += dash_step)
-                    {
-                        float dash_height = dash_step - 2;
-                        if (i + dash_height > height)
-                            dash_height = height - i;
-                        if (Control != null)
-                            Control.uwfBatches += 2;
-                        GUI.DrawTexture(new Rect(x + width - pen.Width, y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Right.
-                        GUI.DrawTexture(new Rect(x, y + i, pen.Width, dash_height), System.Windows.Forms.ApplicationBehaviour.DefaultSprite); // Left.
-                        FillRate += pen.Width * dash_height * 2;
-                    }
-                    break;
-            }
-        }
-        public void DrawString(string s, Font font, SolidBrush brush, PointF point)
-        {
-            DrawString(s, font, brush, point.X, point.Y);
-        }
-        public void DrawString(string s, Font font, SolidBrush brush, float x, float y)
-        {
-            DrawString(s, font, brush, x, y, 512, 64);
-        }
-        public void DrawString(string s, Font font, Color color, float x, float y)
-        {
-            DrawString(s, font, color, x, y, 512, 64);
-        }
-        public void DrawString(string s, Font font, SolidBrush brush, float x, float y, StringFormat format)
-        {
-            DrawString(s, font, brush, x, y, 512, 64, format);
-        }
-        public void DrawString(string s, Font font, SolidBrush brush, float x, float y, float width, float height)
-        {
-            DrawString(s, font, brush, x, y, width, height, new StringFormat());
-        }
-        public void DrawString(string s, Font font, Color color, float x, float y, float width, float height)
-        {
-            DrawString(s, font, color, x, y, width, height, ContentAlignment.BottomLeft);
-        }
-        public void DrawString(string s, Font font, SolidBrush brush, float x, float y, float width, float height, ContentAlignment alignment)
-        {
-            DrawString(s, font, brush.Color, x, y, width, height, alignment);
-        }
-        public void DrawString(string s, Font font, Color color, float x, float y, float width, float height, ContentAlignment alignment)
-        {
-            if (NoStrings) return;
             if (color.A <= 0) return;
             if (string.IsNullOrEmpty(s)) return;
 
-            if (Control != null)
-                Control.uwfBatches += 1;
-            FillRate += width * height;
-
-            GUI.skin.label.alignment = TextAnchor.UpperLeft;
-            switch (alignment)
-            {
-                case ContentAlignment.BottomCenter:
-                    GUI.skin.label.alignment = TextAnchor.LowerCenter;
-                    break;
-                case ContentAlignment.BottomLeft:
-                    GUI.skin.label.alignment = TextAnchor.LowerLeft;
-                    break;
-                case ContentAlignment.BottomRight:
-                    GUI.skin.label.alignment = TextAnchor.LowerRight;
-                    break;
-                case ContentAlignment.MiddleCenter:
-                    GUI.skin.label.alignment = TextAnchor.MiddleCenter;
-                    break;
-                case ContentAlignment.MiddleLeft:
-                    GUI.skin.label.alignment = TextAnchor.MiddleLeft;
-                    break;
-                case ContentAlignment.MiddleRight:
-                    GUI.skin.label.alignment = TextAnchor.MiddleRight;
-                    break;
-                case ContentAlignment.TopCenter:
-                    GUI.skin.label.alignment = TextAnchor.UpperCenter;
-                    break;
-                case ContentAlignment.TopLeft:
-                    GUI.skin.label.alignment = TextAnchor.UpperLeft;
-                    break;
-                case ContentAlignment.TopRight:
-                    GUI.skin.label.alignment = TextAnchor.UpperRight;
-                    break;
-            }
-
-            int guiSkinFontSizeBuffer = GUI_SetFont(GUI.skin.label, font);
-            GUI.color = color.ToUColor();
-            GUI.Label(new Rect(x, y, width, height), s);
-
-            GUI.skin.label.fontSize = guiSkinFontSizeBuffer;
+            ApiGraphics.DrawString(s, font, color, x, y, width, height, alignment);
         }
-        public void DrawString(string s, Font font, Color color, float x, float y, float width, float height, HorizontalAlignment alignment)
+        internal void uwfDrawString(string s, Font font, Color color, float x, float y)
+        {
+            uwfDrawString(s, font, color, x, y, 512, 64);
+        }
+        internal void uwfDrawString(string s, Font font, Brush brush, float x, float y, float width, float height)
+        {
+            uwfDrawString(s, font, brush, x, y, width, height, new StringFormat());
+        }
+        internal void uwfDrawString(string s, Font font, Color color, float x, float y, float width, float height)
+        {
+            uwfDrawString(s, font, color, x, y, width, height, ContentAlignment.BottomLeft);
+        }
+        internal void uwfDrawString(string s, Font font, Color color, float x, float y, float width, float height, HorizontalAlignment alignment)
         {
             ContentAlignment ca = ContentAlignment.MiddleLeft;
             if (alignment == HorizontalAlignment.Center)
                 ca = ContentAlignment.MiddleCenter;
             else if (alignment == HorizontalAlignment.Right)
                 ca = ContentAlignment.MiddleRight;
-            DrawString(s, font, color, x, y, width, height, ca);
+            uwfDrawString(s, font, color, x, y, width, height, ca);
         }
-        public void DrawString(string s, Font font, SolidBrush brush, float x, float y, float width, float height, HorizontalAlignment horizontalAlignment)
+        internal void uwfDrawString(string s, Font font, Brush brush, float x, float y, float width, float height, HorizontalAlignment horizontalAlignment)
         {
             ContentAlignment alignment = ContentAlignment.MiddleLeft;
             switch (horizontalAlignment)
@@ -535,59 +355,23 @@ namespace System.Drawing
                     alignment = ContentAlignment.MiddleRight;
                     break;
             }
-            DrawString(s, font, brush, x, y, width, height, alignment);
+            uwfDrawString(s, font, brush, x, y, width, height, alignment);
         }
-        public void DrawString(string s, Font font, SolidBrush brush, float x, float y, float width, float height, StringFormat format)
+        internal void uwfDrawString(string s, Font font, Brush brush, float x, float y, float width, float height, StringFormat format)
         {
-            ContentAlignment alignment = ContentAlignment.TopLeft;
-            switch (format.Alignment)
-            {
-                case StringAlignment.Near:
-                    if (format.LineAlignment == StringAlignment.Near)
-                        alignment = ContentAlignment.TopLeft;
-                    else if (format.LineAlignment == StringAlignment.Center)
-                        alignment = ContentAlignment.MiddleLeft;
-                    else alignment = ContentAlignment.BottomLeft;
-                    break;
-                case StringAlignment.Center:
-                    if (format.LineAlignment == StringAlignment.Near)
-                        alignment = ContentAlignment.TopCenter;
-                    else if (format.LineAlignment == StringAlignment.Center)
-                        alignment = ContentAlignment.MiddleCenter;
-                    else alignment = ContentAlignment.BottomCenter;
-                    break;
-                case StringAlignment.Far:
-                    if (format.LineAlignment == StringAlignment.Near)
-                        alignment = ContentAlignment.TopRight;
-                    else if (format.LineAlignment == StringAlignment.Center)
-                        alignment = ContentAlignment.MiddleRight;
-                    else alignment = ContentAlignment.BottomRight;
-                    break;
-            }
-            DrawString(s, font, brush, x, y, width, height, alignment);
+            uwfDrawString(s, font, brush, x, y, width, height, format.ToContentAlignment());
         }
-        public void DrawString(string s, Font font, SolidBrush brush, RectangleF layoutRectangle)
+        internal string uwfDrawTextArea(string s, Font font, SolidBrush brush, float x, float y, float width, float height)
         {
-            DrawString(s, font, brush, layoutRectangle, new StringFormat());
+            return uwfDrawTextArea(s, font, brush.Color, x, y, width, height);
         }
-        public void DrawString(string s, Font font, SolidBrush brush, RectangleF layoutRectangle, StringFormat format)
+        internal string uwfDrawTextArea(string s, Font font, Color color, float x, float y, float width, float height)
         {
-            DrawString(s, font, brush, layoutRectangle.X, layoutRectangle.Y, layoutRectangle.Width, layoutRectangle.Height, format);
-        }
-        public string DrawTextArea(string s, Font font, SolidBrush brush, float x, float y, float width, float height)
-        {
-            return DrawTextArea(s, font, brush.Color, x, y, width, height);
-        }
-        public string DrawTextArea(string s, Font font, Color color, float x, float y, float width, float height)
-        {
-            if (Control == null) return s;
             if (s == null) s = "";
-
-            Control.uwfBatches++;
 
             GUI.skin.textArea.alignment = TextAnchor.UpperLeft;
 
-            GUI.color = color.ToUColor();
+            GUI.color = color.ToUnityColor();
             //GUI.skin.textArea.hover.textColor = brush.Color.ToUColor();
 
             GUI_SetFont(GUI.skin.textArea, font);
@@ -597,29 +381,11 @@ namespace System.Drawing
             GUI.skin.textArea.focused.background = null;
             GUI.skin.textArea.normal.background = null;
 
-            if (Control.shouldFocus)
-                FocusNext();
-
-            var val = GUI.TextArea(new Rect(x, y, width, height), s);
-
-            if (Control.shouldFocus)
-            {
-                Focus();
-                Control.shouldFocus = false;
-            }
-
-            return val;
+            return GUI.TextArea(new Rect(x, y, width, height), s);
         }
-        public string DrawTextField(string s, Font font, SolidBrush brush, RectangleF layoutRectangle, HorizontalAlignment alignment)
+        internal string uwfDrawTextField(string s, Font font, Color color, float x, float y, float width, float height, HorizontalAlignment alignment)
         {
-            return DrawTextField(s, font, brush, layoutRectangle.X, layoutRectangle.Y, layoutRectangle.Width, layoutRectangle.Height, alignment);
-        }
-        public string DrawTextField(string s, Font font, Color color, float x, float y, float width, float height, HorizontalAlignment alignment)
-        {
-            if (Control == null) return s;
             if (s == null) s = "";
-
-            Control.uwfBatches++;
 
             GUI.skin.textField.alignment = TextAnchor.UpperLeft;
             switch (alignment)
@@ -637,111 +403,38 @@ namespace System.Drawing
 
             GUI_SetFont(GUI.skin.textField, font);
 
-            GUI.color = color.ToUColor();
+            GUI.color = color.ToUnityColor();
             GUI.skin.textField.hover.background = null;
             GUI.skin.textField.active.background = null;
             GUI.skin.textField.focused.background = null;
             GUI.skin.textField.normal.background = null;
 
-            if (Control.shouldFocus)
-                FocusNext();
-
-            var val = GUI.TextField(new Rect(x, y, width, height), s);
-
-            if (Control.shouldFocus)
-            {
-                Focus();
-                Control.shouldFocus = false;
-            }
-
-            return val;
+            return GUI.TextField(new Rect(x, y, width, height), s);
         }
-        public string DrawTextField(string s, Font font, SolidBrush brush, float x, float y, float width, float height, HorizontalAlignment alignment)
+        internal string uwfDrawTextField(string s, Font font, SolidBrush brush, float x, float y, float width, float height, HorizontalAlignment alignment)
         {
-            return DrawTextField(s, font, brush.Color, x, y, width, height, alignment);
+            return uwfDrawTextField(s, font, brush.Color, x, y, width, height, alignment);
         }
-        public void DrawTexture(Texture texture, RectangleF layoutRectangle)
+        internal void uwfDrawTexture(Texture texture, float x, float y, float width, float height, Material mat = null)
         {
-            DrawTexture(texture, layoutRectangle.X, layoutRectangle.Y, layoutRectangle.Width, layoutRectangle.Height);
+            uwfDrawTexture(texture, x, y, width, height, Color.White, mat);
         }
-        public void DrawTexture(Texture texture, float x, float y, float width, float height)
-        {
-            DrawTexture(texture, x, y, width, height, Color.White);
-        }
-        public void DrawTexture(Texture texture, float x, float y, float width, float height, Color color)
-        {
-            DrawTexture(texture, x, y, width, height, color, 0);
-        }
-        public void DrawTexture(Texture texture, float x, float y, float width, float height, Color color, float angle)
-        {
-            DrawTexture(texture, x, y, width, height, color, angle, new PointF(width / 2, height / 2));
-        }
-        public void DrawTexture(Texture texture, float x, float y, float width, float height, Color color, float angle, PointF pivot)
+        internal void uwfDrawTexture(Texture texture, float x, float y, float width, float height, Color color, Material mat = null)
         {
             if (texture == null) return;
-
-            if (Control != null)
-                Control.uwfBatches++;
-
-            FillRate += width * height;
-
-            GUI.color = color.ToUColor();
-
-            if (angle != 0)
-            {
-                Matrix4x4 matrixBackup = GUI.matrix;
-                GUIUtility.RotateAroundPivot(angle, new Vector2(x + pivot.X, y + pivot.Y));
-                GUI.DrawTexture(new Rect(x, y, width, height), texture);
-                GUI.matrix = matrixBackup;
-            }
+            if (mat != null)
+                mat.color = color.ToUnityColor();
             else
-                GUI.DrawTexture(new Rect(x, y, width, height), texture);
-        }
-        public void DrawTexture(Texture texture, float x, float y, float width, float height, Material mat)
-        {
-            DrawTexture(texture, x, y, width, height, Color.White, mat);
-        }
-        public void DrawTexture(Texture texture, float x, float y, float width, float height, Color color, Material mat)
-        {
-            if (Control == null) return;
-
-            Control.uwfBatches++;
-            FillRate += width * height;
-
-            mat.color = color.ToUColor();
+                GUI.color = color.ToUnityColor();
             UnityEngine.Graphics.DrawTexture(new Rect(x, y, width, height), texture, mat);
         }
-        public void FillEllipse(SolidBrush brush, float x, float y, float width, float height)
-        {
-            if (Control == null) return;
-
-            GUI.color = brush.Color.ToUColor();
-
-            if (!_group)
-            {
-                var c_position = Control.PointToScreen(Point.Zero);
-                GUI.DrawTexture(new Rect(c_position.X + x, c_position.Y + y, width, height), System.Windows.Forms.ApplicationBehaviour.Resources.Images.Circle);
-            }
-            else
-            {
-                var c_position = Control.PointToScreen(Point.Zero);
-                var g_position = _groupControlLast.PointToScreen(Point.Zero);
-                GUI.DrawTexture(new Rect(c_position.X - g_position.X + x, c_position.Y - g_position.Y + y, width, height), System.Windows.Forms.ApplicationBehaviour.Resources.Images.Circle);
-            }
-        }
-        public void FillPolygonConvex(SolidBrush brush, PointF[] points)
+        internal void uwfFillPolygonConvex(SolidBrush brush, PointF[] points)
         {
             if (points.Length < 3) return;
 
-            if (DefaultMaterial != null)
-            {
-                DefaultMaterial.SetPass(0);
-                DefaultMaterial.color = brush.Color.ToUColor();
-            }
-
             GL.Begin(GL.TRIANGLES);
 
-            var color = brush.Color.ToUColor();
+            var color = brush.Color.ToUnityColor();
             GL.Color(color);
 
             for (int i = 1; i + 1 < points.Length; i += 1)
@@ -753,94 +446,28 @@ namespace System.Drawing
 
             GL.End();
         }
-        public void FillRectangle(SolidBrush brush, Rectangle rect)
+        internal void uwfFillRectangle(Color color, Rectangle rect)
         {
-            FillRectangle(brush, rect.X, rect.Y, rect.Width, rect.Height);
+            uwfFillRectangle(color, rect.X, rect.Y, rect.Width, rect.Height);
         }
-        public void FillRectangle(SolidBrush brush, int x, int y, int width, int height)
+        internal void uwfFillRectangle(Color color, float x, float y, float width, float height)
         {
-            FillRectangle(brush.Color, (float)x, (float)y, (float)width, (float)height);
+            uwfFillRectangle(color, x, y, width, height, null);
         }
-        public void FillRectangle(SolidBrush brush, float x, float y, float width, float height)
+        internal void uwfFillRectangle(Color color, float x, float y, float width, float height, Material mat)
         {
-            FillRectangle(brush.Color, x, y, width, height);
-        }
-        public void FillRectangle(Color color, Rectangle rect)
-        {
-            FillRectangle(color, rect.X, rect.Y, rect.Width, rect.Height);
-        }
-        public void FillRectangle(Color color, float x, float y, float width, float height)
-        {
-            if (NoFill) return;
             if (color.A <= 0) return;
 
-            if (Control != null)
-                Control.uwfBatches += 1;
-            FillRate += width * height;
-
-            GUI.color = color.ToUColor();
-            GUI.DrawTexture(new Rect(x, y, width, height), ApplicationBehaviour.DefaultSprite);
+            ApiGraphics.FillRectangle(color, x, y, width, height, mat);
         }
-        public void FillRectangle(Color color, float x, float y, float width, float height, Material mat)
+        internal void uwfFocus()
         {
-            DrawTexture(ApplicationBehaviour.DefaultSprite, x, y, width, height, color, mat);
+            ApiGraphics.Focus();
         }
-        public void FillQuad(Color color, PointF[] points)
+        internal void uwfFocusNext()
         {
-            if (points == null || points.Length != 4) return;
-
-            FillQuad(color, points[0], points[1], points[2], points[3]);
+            ApiGraphics.FocusNext();
         }
-        public void FillQuad(Color color, PointF p1, PointF p2, PointF p3, PointF p4)
-        {
-            GL.Begin(GL.QUADS);
-
-            GL.Color(color.ToUColor());
-
-            GL.Vertex3(p1.X, p1.Y, 0);
-            GL.Vertex3(p2.X, p2.Y, 0);
-            GL.Vertex3(p3.X, p3.Y, 0);
-            GL.Vertex3(p4.X, p4.Y, 0);
-
-            GL.End();
-        }
-        public void Focus()
-        {
-            if (Control != null)
-                UnityEngine.GUI.FocusControl(Control.GetHashCode().ToString("X2"));
-        }
-        public void FocusNext()
-        {
-            if (Control != null)
-                UnityEngine.GUI.SetNextControlName(Control.GetHashCode().ToString("X2"));
-        }
-        /// <summary>
-        /// OnPaint call only.
-        /// </summary>
-        /// <param name="text"></param>
-        /// <param name="font"></param>
-        /// <returns></returns>
-        public SizeF MeasureString(string text, Font font)
-        {
-            return MeasureStringStatic(text, font);
-        }
-        public static SizeF MeasureStringStatic(string text, Font font)
-        {
-            int guiSkinFontSizeBuffer = GUI_SetFont(GUI.skin.label, font);
-
-            var size = GUI.skin.label.CalcSize(new GUIContent(text));
-
-            GUI.skin.label.fontSize = guiSkinFontSizeBuffer;
-
-            return new SizeF(size.x, size.y);
-        }
-        public static SizeF MeasureStringSimple(string text, Font font)
-        {
-            return new SizeF() { Width = text.Length * 8, Height = font.Size }; // fast but not accurate.
-        }
-        public SizeF MeasureString(string text, Font font, int width, StringFormat format)
-        {
-            return new SizeF() { Width = text.Length * 6, Height = font.Size };
-        }
+        #endregion
     }
 }

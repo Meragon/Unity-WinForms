@@ -50,10 +50,10 @@ namespace System.Windows.Forms
         public static void ClearColor(this Button button, Color clearColor)
         {
             button.BackColor = clearColor;
-            button.BorderColor = clearColor;
-            button.HoverColor = clearColor;
-            button.BorderHoverColor = clearColor;
-            button.BorderSelectColor = clearColor;
+            button.uwfBorderColor = clearColor;
+            button.uwfHoverColor = clearColor;
+            button.uwfBorderHoverColor = clearColor;
+            button.uwfBorderSelectColor = clearColor;
         }
         public static void FillToBottom(this Control control, int offset = 0)
         {

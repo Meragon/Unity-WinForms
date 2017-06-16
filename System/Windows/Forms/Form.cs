@@ -24,9 +24,8 @@ namespace System.Windows.Forms
         private Point _resizePosition;
         private Point _resizeDelta;
         private const int _resizeOffset = 8;
-        protected Button resizeButton;
-        private bool resizeIcon;
-        private bool _toggleEditor = true;
+        private SizeGripStyle sizeGripStyle;
+        protected Button uwfSizeGripRenderer;
         private bool _topMost;
 
         internal bool dialog;
@@ -68,44 +67,23 @@ namespace System.Windows.Forms
         }
         public DialogResult DialogResult { get; set; }
         public bool IsModal { get { return uwfAppOwner.ModalForms.Contains(this); } }
-        public Color HeaderColor { get; set; }
-        public Font HeaderFont { get; set; }
-        public int HeaderHeight { get; set; }
-        public Padding HeaderPadding { get; set; }
-        public Color HeaderTextColor { get; set; }
-        public ContentAlignment HeaderTextAlign { get; set; }
-        public bool HighlightResizeBorders { get; set; }
         public bool KeyPreview { get; set; }
         public MenuStrip MainMenuStrip { get { return _mainMenuStrip; } set { _mainMenuStrip = value; } }
-        public bool Movable { get; set; }
-        public bool Resizable { get; set; }
-        public bool ResizeIcon
+        public SizeGripStyle SizeGripStyle
         {
-            get { return resizeIcon; }
+            get { return sizeGripStyle; }
             set
             {
-                if (resizeIcon == value) return;
+                if (sizeGripStyle == value) return;
 
-                resizeIcon = value;
-                if (value == false && resizeButton != null && resizeButton.IsDisposed == false)
+                sizeGripStyle = value;
+                if (value == SizeGripStyle.Show && uwfSizeGripRenderer != null && uwfSizeGripRenderer.IsDisposed == false)
                 {
-                    resizeButton.Dispose();
-                    resizeButton = null;
+                    uwfSizeGripRenderer.Dispose();
+                    uwfSizeGripRenderer = null;
                 }
                 else
                     _MakeButtonResize();
-            }
-        }
-        public new Size Size
-        {
-            get { return base.Size; }
-            set
-            {
-                base.Size = value;
-                if (nextLocation.X + value.Width > Screen.PrimaryScreen.WorkingArea.Width - 32)
-                    nextLocation = new Point(64, nextLocation.Y);
-                if (nextLocation.Y + value.Height > Screen.PrimaryScreen.WorkingArea.Height - 32)
-                    nextLocation = new Point(nextLocation.X, 32);
             }
         }
         public override string Text { get; set; }
@@ -119,26 +97,34 @@ namespace System.Windows.Forms
             }
         }
 
+        public Color uwfHeaderColor { get; set; }
+        public Font uwfHeaderFont { get; set; }
+        public int uwfHeaderHeight { get; set; }
+        public Padding uwfHeaderPadding { get; set; }
+        public ContentAlignment uwfHeaderTextAlign { get; set; }
+        public Color uwfHeaderTextColor { get; set; }
+        public bool uwfMovable { get; set; }
+        public bool uwfResizable { get; set; }
+
         public Form()
         {
             borderPen = new Pen(Color.White);
 
-            HeaderHeight = 24;
-            HeaderPadding = new Padding(32, 0, 32, 0);
+            uwfHeaderHeight = 24;
+            uwfHeaderPadding = new Padding(32, 0, 32, 0);
 
             BackColor = Color.FromArgb(238, 238, 242);
             BorderColor = Color.FromArgb(204, 206, 219);
-            CanSelect = true;
             Font = new Font("Arial", 14);
             Location = nextLocation;
-            HeaderColor = Color.FromArgb(238, 238, 242);
-            HeaderFont = Font;
-            HeaderTextColor = Color.FromArgb(64, 64, 64);
-            HeaderTextAlign = ContentAlignment.MiddleLeft;
+            uwfHeaderColor = Color.FromArgb(238, 238, 242);
+            uwfHeaderFont = Font;
+            uwfHeaderTextColor = Color.FromArgb(64, 64, 64);
+            uwfHeaderTextAlign = ContentAlignment.MiddleLeft;
             ControlBox = true;
             MinimumSize = new Drawing.Size(128, 48);
-            Movable = true;
-            Resizable = true;
+            uwfMovable = true;
+            uwfResizable = true;
             uwfShadowBox = true;
             Size = new Size(334, 260);
             Visible = false;
@@ -162,25 +148,24 @@ namespace System.Windows.Forms
         }
         private void _MakeButtonClose()
         {
-            _closeButton = new Button();
+            _closeButton = new formSystemButton();
 
             CloseButton.Anchor = AnchorStyles.Right;
-            CloseButton.CanSelect = false;
             CloseButton.Text = "";
-            if (ApplicationBehaviour.Resources != null && ApplicationBehaviour.Resources.Images.Close != null)
-                CloseButton.Image = ApplicationBehaviour.Resources.Images.Close;
+            if (uwfAppOwner.Resources != null && uwfAppOwner.Resources.Close != null)
+                CloseButton.Image = uwfAppOwner.Resources.Close;
             else
                 CloseButton.Text = "X";
-            CloseButton.HoverColor = System.Drawing.Color.FromArgb(252, 252, 252);
-            CloseButton.BorderHoverColor = System.Drawing.Color.Transparent;
+            CloseButton.uwfHoverColor = System.Drawing.Color.FromArgb(64, 252, 252, 252);
+            CloseButton.uwfBorderHoverColor = System.Drawing.Color.Transparent;
             CloseButton.Location = new Point(Width - 32, 1);
             CloseButton.Name = "buttonClose";
-            CloseButton.BackColor = System.Drawing.Color.FromArgb(238, 238, 242);
-            CloseButton.BorderColor = System.Drawing.Color.Transparent;
+            CloseButton.BackColor = System.Drawing.Color.FromArgb(0, 238, 238, 242);
+            CloseButton.uwfBorderColor = System.Drawing.Color.Transparent;
             CloseButton.Size = new System.Drawing.Size(24, 16);
             CloseButton.ForeColor = System.Drawing.Color.FromArgb(64, 64, 64);
-            CloseButton.ImageColor = Color.FromArgb(64, 64, 64);
-            CloseButton.ImageHoverColor = Color.FromArgb(128, 128, 128);
+            CloseButton.uwfImageColor = Color.FromArgb(64, 64, 64);
+            CloseButton.uwfImageHoverColor = Color.FromArgb(128, 128, 128);
 
             CloseButton.BringToFront();
             CloseButton.Click += (o, e) => { Close(); };
@@ -189,18 +174,18 @@ namespace System.Windows.Forms
         }
         private void _MakeButtonResize()
         {
-            var img = ApplicationBehaviour.Resources.Images.FormResize;
+            var img = uwfAppOwner.Resources.FormResize;
             if (img == null) return;
 
-            resizeButton = new ResizeButton(this, img);
-            resizeButton.Location = new Point(Width - img.width - 2, Height - img.height - 2);
-            Controls.Add(resizeButton);
+            uwfSizeGripRenderer = new ResizeButton(this, img);
+            uwfSizeGripRenderer.Location = new Point(Width - img.Width - 2, Height - img.Height - 2);
+            Controls.Add(uwfSizeGripRenderer);
         }
         private void Owner_UpdateEvent()
         {
             #region ResizeComponent
 
-            if (resizeType != ControlResizeTypes.None && Resizable)
+            if (resizeType != ControlResizeTypes.None && uwfResizable)
             {
                 int estimatedWidth = 0;
                 int estimatedHeight = 0;
@@ -292,7 +277,7 @@ namespace System.Windows.Forms
         }
         public virtual ControlResizeTypes GetResizeAt(Point mclient)
         {
-            if (!Resizable) return ControlResizeTypes.None;
+            if (!uwfResizable) return ControlResizeTypes.None;
 
             var r_type = ControlResizeTypes.None;
 
@@ -381,13 +366,13 @@ namespace System.Windows.Forms
         public event FormClosingEventHandler FormClosing = delegate { };
         public event EventHandler Shown = delegate { };
 
-        public override void Dispose()
+        protected override void Dispose(bool release_all)
         {
             if (IsModal == false)
                 uwfAppOwner.Forms.Remove(this);
             else
                 uwfAppOwner.ModalForms.Remove(this);
-            base.Dispose();
+            base.Dispose(release_all);
         }
         protected virtual void OnClosed(EventArgs e)
         {
@@ -413,8 +398,8 @@ namespace System.Windows.Forms
                 if (resizeType == ControlResizeTypes.None)
                 {
                     // Move then.
-                    if (Movable)
-                        if (e.Location.Y < HeaderHeight)
+                    if (uwfMovable)
+                        if (e.Location.Y < uwfHeaderHeight)
                         {
                             _windowMove_StartPosition = e.Location;
                             _windowMove = true;
@@ -428,9 +413,9 @@ namespace System.Windows.Forms
             if (_windowMove)
             {
                 if (Parent == null)
-                    Location = PointToScreen(e.Location) - _windowMove_StartPosition;
+                    Location = PointToScreen(e.Location).Subtract(_windowMove_StartPosition);
                 else
-                    Location = Parent.PointToClient(PointToScreen(e.Location) - _windowMove_StartPosition);
+                    Location = Parent.PointToClient(PointToScreen(e.Location).Subtract(_windowMove_StartPosition));
             }
             else
                 GetResizeAt(e.Location);
@@ -439,58 +424,30 @@ namespace System.Windows.Forms
         {
             var g = e.Graphics;
 
-            g.FillRectangle(HeaderColor, 0, 0, Width, HeaderHeight);
-            g.DrawString(Text, HeaderFont, HeaderTextColor, HeaderPadding.Left, HeaderPadding.Top, Width - HeaderPadding.Right - HeaderPadding.Left, HeaderHeight - HeaderPadding.Bottom - HeaderPadding.Top, HeaderTextAlign);
-            g.FillRectangle(BackColor, 0, HeaderHeight, Width, Height - HeaderHeight);
-        }
-        protected override object uwfOnPaintEditor(float width)
-        {
-            var control = base.uwfOnPaintEditor(width);
+            var headerHeight = uwfHeaderHeight;
+            var headerPadding = uwfHeaderPadding;
 
-            Editor.BeginGroup(width - 24);
-            Editor.BeginVertical();
-
-            _toggleEditor = Editor.Foldout("Form", _toggleEditor);
-            if (_toggleEditor)
-            {
-                Editor.ColorField("      BorderColor", BorderColor, (c) => { BorderColor = c; });
-
-                var editorControlBox = Editor.BooleanField("      ControlBox", ControlBox);
-                if (editorControlBox.Changed) ControlBox = editorControlBox;
-
-                Editor.ColorField("      HeaderColor", HeaderColor, (c) => { HeaderColor = c; });
-
-                var editorHeaderHeight = Editor.IntField("      HeaderHeight", HeaderHeight);
-                if (editorHeaderHeight.Changed) HeaderHeight = editorHeaderHeight.Value[0];
-
-                Editor.ColorField("      HeaderTextColor", HeaderTextColor, (c) => { HeaderTextColor = c; });
-
-                var editorHeaderTextFormat = Editor.EnumField("      HeaderTextFormat", HeaderTextAlign);
-                if (editorHeaderTextFormat.Changed) HeaderTextAlign = (System.Drawing.ContentAlignment)editorHeaderTextFormat.Value;
-
-                var editorHighlightResizeBorders = Editor.BooleanField("      HighlightResizeBorders", HighlightResizeBorders);
-                if (editorHighlightResizeBorders.Changed) HighlightResizeBorders = editorHighlightResizeBorders;
-
-                var editorMovable = Editor.BooleanField("      Movable", Movable);
-                if (editorMovable.Changed) Movable = editorMovable;
-
-                var editorResizable = Editor.BooleanField("      Resizable", Resizable);
-                if (editorResizable.Changed) Resizable = editorResizable;
-
-                var editorTopMost = Editor.BooleanField("      TopMost", TopMost);
-                if (editorTopMost.Changed) TopMost = editorTopMost.Value;
-
-            }
-            Editor.EndVertical();
-            Editor.EndGroup();
-
-            return control;
+            g.uwfFillRectangle(uwfHeaderColor, 0, 0, Width, headerHeight);
+            g.uwfDrawString(Text, uwfHeaderFont, uwfHeaderTextColor, headerPadding.Left, headerPadding.Top, Width - headerPadding.Horizontal, headerHeight - headerPadding.Vertical, uwfHeaderTextAlign);
+            g.uwfFillRectangle(BackColor, 0, headerHeight, Width, Height - headerHeight);
         }
         protected override void OnLatePaint(PaintEventArgs e)
         {
             base.OnLatePaint(e);
 
             e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+        }
+        protected override void SetBoundsCore(int x, int y, int width, int height, BoundsSpecified specified)
+        {
+            base.SetBoundsCore(x, y, width, height, specified);
+        }
+
+        private class formSystemButton : Button
+        {
+            public formSystemButton()
+            {
+                SetStyle(ControlStyles.Selectable, false);
+            }
         }
     }
 

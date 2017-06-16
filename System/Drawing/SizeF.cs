@@ -1,63 +1,108 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
 namespace System.Drawing
 {
-    public struct SizeF
+    public struct SizeF : IEquatable<SizeF>
     {
-        private float _width;
-        private float _height;
+        private float width;
+        private float height;
 
-        public static SizeF Empty { get { return new SizeF(0, 0); } }
+        public static readonly SizeF Empty = new SizeF();
+
+        public static explicit operator PointF(SizeF size)
+        {
+            return new PointF(size.Width, size.Height);
+        }
 
         public static SizeF operator +(SizeF sz1, SizeF sz2)
         {
-            return new SizeF(sz1.Width + sz2.Width, sz1.Height + sz2.Height);
-        }
-        public static SizeF operator +(SizeF sz1, float add)
-        {
-            return new SizeF(sz1.Width + add, sz1.Height + add);
+            return Add(sz1, sz2);
         }
         public static SizeF operator -(SizeF sz1, SizeF sz2)
         {
-            return new SizeF(sz1.Width - sz2.Width, sz1.Height - sz2.Height);
+            return Subtract(sz1, sz2);
         }
         public static bool operator ==(SizeF sz1, SizeF sz2)
         {
-            if (sz1.Width == sz2.Width && sz1.Height == sz2.Height)
-                return true;
-            return false;
+            return sz1.Width == sz2.Width && sz1.Height == sz2.Height;
         }
         public static bool operator !=(SizeF sz1, SizeF sz2)
         {
-            if (sz1.Width == sz2.Width && sz1.Height == sz2.Height)
-                return false;
-            return true;
+            return !(sz1 == sz2);
         }
 
-        public float Height { get { return _height; } set { _height = value; } }
-        public float Width { get { return _width; } set { _width = value; } }
+        public float Height
+        {
+            get { return height; }
+            set { height = value; }
+        }
+        public bool IsEmpty
+        {
+            get { return width == 0 && height == 0; }
+        }
+        public float Width
+        {
+            get { return width; }
+            set { width = value; }
+        }
 
+        public SizeF(SizeF size)
+        {
+            width = size.width;
+            height = size.height;
+        }
+        public SizeF(PointF pt)
+        {
+            width = pt.X;
+            height = pt.Y;
+        }
         public SizeF(float width, float height)
         {
-            _width = 0;
-            _height = 0;
-
-            Width = width;
-            Height = height;
+            this.width = width;
+            this.height = height;
         }
 
+        public bool Equals(SizeF other)
+        {
+            return width.Equals(other.width) && height.Equals(other.height);
+        }
         public override bool Equals(object obj)
         {
-            if (obj != null && obj is SizeF && ((SizeF)obj)._height == _height && ((SizeF)obj)._width == _width)
-                return true;
-            return false;
+            if (ReferenceEquals(null, obj)) return false;
+            return obj is SizeF && Equals((SizeF) obj);
         }
         public override int GetHashCode()
         {
-            return base.GetHashCode();
+            unchecked
+            {
+                return (width.GetHashCode() * 397) ^ height.GetHashCode();
+            }
+        }
+        public PointF ToPointF()
+        {
+            return (PointF)this;
+        }
+        public Size ToSize()
+        {
+            return Size.Truncate(this);
+        }
+        public override string ToString()
+        {
+            return "{Width=" + width.ToString(CultureInfo.CurrentCulture) + ", Height=" + height.ToString(CultureInfo.CurrentCulture) + "}";
+        }
+
+        public static SizeF Add(SizeF sz1, SizeF sz2)
+        {
+            return new SizeF(sz1.Width + sz2.Width, sz1.Height + sz2.Height);
+        }   
+        public static SizeF Subtract(SizeF sz1, SizeF sz2)
+        {
+            return new SizeF(sz1.Width - sz2.Width, sz1.Height - sz2.Height);
         }
     }
 }

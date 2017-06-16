@@ -9,22 +9,16 @@ namespace System.Windows.Forms
 {
     public class TreeView : Control
     {
+        private readonly Pen borderPen = new Pen(Color.White);
         private bool _drag;
         private TreeNode _dragNode;
         private Point _dragPosition;
         private string _filter;
         private TreeNode _hoveredNode;
-        private List<TreeNode> _nodeList;
+        private readonly DrawTreeNodeEventArgs nodeArgs = new DrawTreeNodeEventArgs(null, null, Rectangle.Empty, TreeNodeStates.Default);
+        private List<TreeNode> _nodeList = new List<TreeNode>();
         private float _resetFilterTime;
-        private bool _scrollVisible = false;
-        private bool _scroll;
-        private bool _scrollHovered;
-        protected float scrollIndex;
-        private float _scrollbarY;
-        private float _scrollbarHeight;
-        private float _scrollbarWidth = 10;
-        private float _scrollStartY;
-        private float _scroll_ItemsEstimatedHeigh;
+        protected ScrollBar vScrollBar;
 
         protected List<TreeNode> scrollNodeList;
 
@@ -32,12 +26,16 @@ namespace System.Windows.Forms
 
         private readonly DrawTreeNodeEventHandler onDrawNode;
 
-        public Color BorderColor { get; set; }
+        public Color BorderColor
+        {
+            get { return borderPen.Color; }
+            set { borderPen.Color = value; }
+        }
         public ImageList ImageList { get; set; }
         public int ItemHeight { get; set; }
         public TreeNodeCollection Nodes { get; private set; }
         public Color ScrollBarColor { get; set; }
-        public float ScrollIndex { get { return scrollIndex; } internal set { scrollIndex = value; } }
+        internal float ScrollIndex { get { return vScrollBar.Value; } set { vScrollBar.Value = (int)value; } }
         public Color ScrollBarHoverColor { get; set; }
         public float ScrollSpeed { get; set; }
         public TreeNode SelectedNode { get; set; }
@@ -49,9 +47,15 @@ namespace System.Windows.Forms
 
         public TreeView()
         {
+            vScrollBar = new VScrollBar();
+            vScrollBar.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
+            vScrollBar.Location = new Point(Width - vScrollBar.Width, 0);
+            vScrollBar.Height = Height;
+            vScrollBar.ValueChanged += VScrollBarOnValueChanged;
+            Controls.Add(vScrollBar);
+
             this.BackColor = Color.White;
             this.BorderColor = Color.FromArgb(130, 135, 144);
-            this.CanSelect = true;
             this.ImageList = new ImageList();
             this.ItemHeight = 22;
             this.Padding = new Padding(4);
@@ -67,7 +71,6 @@ namespace System.Windows.Forms
             this.SmoothScrolling = true;
 
             Nodes = new TreeNodeCollection(root);
-            _nodeList = new List<TreeNode>();
             scrollNodeList = new List<TreeNode>();
 
             onDrawNode = _OnDrawNode;
@@ -79,17 +82,12 @@ namespace System.Windows.Forms
         {
             if (SelectedNode != null)
             {
-                if (scrollIndex > SelectedNode.Bounds.Y)
-                {
-
-                    scrollIndex = SelectedNode.Bounds.Y;
-                    _UpdateScrollList();
-                }
-                if (scrollIndex + Height < SelectedNode.Bounds.Y + ItemHeight)
-                {
-                    scrollIndex = SelectedNode.Bounds.Y + ItemHeight - Height;
-                    _UpdateScrollList();
-                }
+                if (ScrollIndex > SelectedNode.Bounds.Y)
+                    ScrollIndex = SelectedNode.Bounds.Y;
+                
+                if (ScrollIndex + Height < SelectedNode.Bounds.Y + ItemHeight)
+                    ScrollIndex = SelectedNode.Bounds.Y + ItemHeight - Height;
+                
             }
         }
         private void _Application_UpClick(object sender, MouseEventArgs e)
@@ -97,29 +95,27 @@ namespace System.Windows.Forms
             _drag = false;
             _dragNode = null;
             _dragPosition = Point.Empty;
-
-            _scroll = false;
         }
         private void _FixScrollIndex()
         {
             if (_nodeList == null || _nodeList.Count == 0)
             {
-                scrollIndex = 0;
+                ScrollIndex = 0;
                 return;
             }
 
             if (SmoothScrolling == false)
-                scrollIndex = (float)Math.Ceiling(scrollIndex / ItemHeight) * ItemHeight;
+                ScrollIndex = (float)Math.Ceiling(ScrollIndex / ItemHeight) * ItemHeight;
 
-            if (scrollIndex > _nodeList.Last().Bounds.Y + ItemHeight - Height) scrollIndex = _nodeList.Last().Bounds.Y + ItemHeight - Height;
-            if (scrollIndex < 0) scrollIndex = 0;
+            if (ScrollIndex > _nodeList.Last().Bounds.Y + ItemHeight - Height) ScrollIndex = _nodeList.Last().Bounds.Y + ItemHeight - Height;
+            if (ScrollIndex < 0) ScrollIndex = 0;
         }
         private TreeNode _GetNodeAtPosition(TreeNode rootNode, Point position)
         {
             if (rootNode != root && rootNode.IsVisible)
             {
                 int nodeWidth = Width;
-                var rootNodeRect = new Rectangle(rootNode.Bounds.X, rootNode.Bounds.Y - (int)scrollIndex, nodeWidth, rootNode.Bounds.Height);
+                var rootNodeRect = new Rectangle(rootNode.Bounds.X, rootNode.Bounds.Y - (int)ScrollIndex, nodeWidth, rootNode.Bounds.Height);
                 if (UseNodeBoundsForSelection == false) rootNodeRect.X = 0;
                 if (rootNodeRect.Contains(position))
                     return rootNode;
@@ -151,29 +147,32 @@ namespace System.Windows.Forms
         private void _OnDrawNode(object sender, DrawTreeNodeEventArgs e)
         {
             var node = e.Node;
-            var nodeY = node.Bounds.Y - scrollIndex; // TODO: to node.Bounds.Y
+            var nodeBounds = node.Bounds;
+            var nodeY = nodeBounds.Y - ScrollIndex; // TODO: to node.Bounds.Y
+
+            var graphics = e.Graphics;
 
             // Node drawing.
-            e.Graphics.FillRectangle(node.BackColor, node.Bounds.X, nodeY, node.Bounds.Width, node.Bounds.Height);
+            graphics.uwfFillRectangle(node.BackColor, nodeBounds.X, nodeY, nodeBounds.Width, nodeBounds.Height);
             if (node.IsSelected || node == _hoveredNode)
-                e.Graphics.FillRectangle((node.IsSelected ? SelectionColor : SelectionHoverColor), UseNodeBoundsForSelection ? node.Bounds.X : 0, nodeY, Width, ItemHeight);
+                graphics.uwfFillRectangle((node.IsSelected ? SelectionColor : SelectionHoverColor), UseNodeBoundsForSelection ? nodeBounds.X : 0, nodeY, Width, ItemHeight);
 
-            int xOffset = node.Bounds.X;
+            int xOffset = nodeBounds.X;
 
             // Draw collapsed/expanded arrow.
             if (node.Nodes.Count > 0)
             {
-                UnityEngine.Texture2D arrowTexture = null;
+                Bitmap arrowTexture = null;
                 if (node.IsExpanded)
                 {
                     if (node.ImageIndex_Expanded > -1)
                     {
                         var img = ImageList.Images[node.ImageIndex_Expanded];
                         if (img != null)
-                            arrowTexture = img.uTexture;
+                            arrowTexture = img as Bitmap;
                     }
                     else
-                        arrowTexture = ApplicationBehaviour.Resources.Images.TreeNodeExpanded;
+                        arrowTexture = uwfAppOwner.Resources.TreeNodeExpanded;
                 }
                 else
                 {
@@ -181,16 +180,18 @@ namespace System.Windows.Forms
                     {
                         var img = ImageList.Images[node.ImageIndex_Collapsed];
                         if (img != null)
-                            arrowTexture = img.uTexture;
+                            arrowTexture = img as Bitmap;
                     }
                     else
-                        arrowTexture = ApplicationBehaviour.Resources.Images.TreeNodeCollapsed;
+                        arrowTexture = uwfAppOwner.Resources.TreeNodeCollapsed;
                 }
 
                 if (arrowTexture != null)
                 {
-                    e.Graphics.DrawTexture(arrowTexture, xOffset, nodeY + node.Bounds.Height / 2 - arrowTexture.height / 2, arrowTexture.width, arrowTexture.height);
-                    xOffset += arrowTexture.width;
+                    var arrowWidth = arrowTexture.Width;
+                    var arrowHeight = arrowTexture.Height;
+                    graphics.DrawImage(arrowTexture, xOffset, nodeY + nodeBounds.Height / 2f - arrowHeight / 2f, arrowWidth, arrowHeight);
+                    xOffset += arrowWidth;
                 }
             }
 
@@ -200,7 +201,7 @@ namespace System.Windows.Forms
                 var image = ImageList.Images[node.ImageIndex];
                 if (image != null && image.uTexture != null)
                 {
-                    e.Graphics.DrawTexture(image.uTexture, xOffset, nodeY + node.Bounds.Height / 2 - image.Height / 2, image.Width, image.Height, node.ImageColor);
+                    graphics.uwfDrawImage(image, node.ImageColor, xOffset, nodeY + nodeBounds.Height / 2f - image.Height / 2f, image.Width, image.Height);
                     xOffset += image.Width + 2;
                 }
             }
@@ -208,7 +209,7 @@ namespace System.Windows.Forms
             // Draw text.
             string stringToDraw = node.Text;
             if (stringToDraw == null && node.Tag != null) stringToDraw = node.Tag.ToString();
-            e.Graphics.DrawString(stringToDraw, Font, node.ForeColor, xOffset, nodeY - 2, (WrapText ? Width : Width * 16), e.Bounds.Height + 4, ContentAlignment.MiddleLeft);
+            graphics.uwfDrawString(stringToDraw, Font, node.ForeColor, xOffset, nodeY - 2, (WrapText ? Width : Width * 16), e.Bounds.Height + 4, ContentAlignment.MiddleLeft);
             // End of drawing.
 
             DrawNode(this, e);
@@ -276,29 +277,50 @@ namespace System.Windows.Forms
         {
             _FixScrollIndex();
             _UpdateScrollList();
+            UpdateScrollBar();
+        }
+        private void UpdateScrollBar()
+        {
+            if (vScrollBar != null)
+            {
+                vScrollBar.ValueChanged -= VScrollBarOnValueChanged;
+                vScrollBar.Maximum = ItemHeight * _nodeList.Count - 1;
+                vScrollBar.SmallChange = ItemHeight;
+                vScrollBar.LargeChange = Height;
+                vScrollBar.Visible = vScrollBar.Maximum > Height;
+                vScrollBar.ValueChanged += VScrollBarOnValueChanged;
+            }
         }
         private void _UpdateScrollList()
         {
             scrollNodeList = new List<TreeNode>();
 
-            int startNode = (int)(scrollIndex / ItemHeight) - 1;
+            int startNode = (int)(ScrollIndex / ItemHeight) - 1;
             if (startNode < 0) startNode = 0;
             int nodesOnScreen = Height / ItemHeight + 3; // Magic number.
 
             for (int i = startNode; i < startNode + nodesOnScreen && i < _nodeList.Count; i++)
             {
-                if (_nodeList[i].Bounds.Y + _nodeList[i].Bounds.Height > 0 && _nodeList[i].Bounds.Y - (int)scrollIndex < Height)
-                {
-                    scrollNodeList.Add(_nodeList[i]);
-                }
+                var node = _nodeList[i];
+                if (node.Bounds.Y + node.Bounds.Height > 0 && node.Bounds.Y - (int)ScrollIndex < Height)
+                    scrollNodeList.Add(node);
             }
+
+            UpdateScrollBar();
+
+            _filter = ""; // reset filter.
+            _resetFilterTime = 0;
+        }
+        private void VScrollBarOnValueChanged(object sender, EventArgs eventArgs)
+        {
+            _UpdateScrollList();
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool release_all)
         {
             uwfAppOwner.UpClick -= _Application_UpClick;
 
-            base.Dispose();
+            base.Dispose(release_all);
         }
         protected virtual void OnDrawNode(DrawTreeNodeEventArgs e)
         {
@@ -307,28 +329,28 @@ namespace System.Windows.Forms
         protected override void OnKeyPress(KeyEventArgs e)
         {
             base.OnKeyPress(e);
-            if (e.Modifiers == UnityEngine.EventModifiers.None)
+            if (e.Modifiers == Keys.None)
             {
                 switch (e.KeyCode)
                 {
-                    case UnityEngine.KeyCode.Space:
-                    case UnityEngine.KeyCode.Return:
+                    case Keys.Space:
+                    case Keys.Return:
                         if (SelectedNode != null)
                             SelectedNode.Toggle();
                         break;
 
-                    case UnityEngine.KeyCode.DownArrow:
+                    case Keys.Down:
                         _SelectNext();
                         break;
-                    case UnityEngine.KeyCode.LeftArrow:
+                    case Keys.Left:
                         if (SelectedNode != null)
                             SelectedNode.Collapse();
                         break;
-                    case UnityEngine.KeyCode.RightArrow:
+                    case Keys.Right:
                         if (SelectedNode != null)
                             SelectedNode.Expand();
                         break;
-                    case UnityEngine.KeyCode.UpArrow:
+                    case Keys.Up:
                         _SelectPrevious();
                         break;
                 }
@@ -354,14 +376,6 @@ namespace System.Windows.Forms
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
-            if (_scrollHovered)
-            {
-                var mclient = PointToClient(MousePosition);
-
-                _scroll = true;
-                _scrollStartY = mclient.Y - _scrollbarY;
-                return;
-            }
 
             if (_SelectAtPosition(e) != null) NodeMouseClick(this, new TreeNodeMouseClickEventArgs(SelectedNode, e.Button, e.Clicks, e.X, e.Y));
 
@@ -372,25 +386,11 @@ namespace System.Windows.Forms
         protected override void OnMouseHover(EventArgs e)
         {
             var mclient = PointToClient(MousePosition);
-            RectangleF _scrollRect = new RectangleF(Width - _scrollbarWidth, _scrollbarY, _scrollbarWidth, _scrollbarHeight);
-            if (_scrollRect.Contains(mclient))
-                _scrollHovered = true;
-            else
-                _scrollHovered = false;
 
             _hoveredNode = _GetNodeAtPosition(root, mclient);
         }
         protected override void OnMouseMove(MouseEventArgs e)
         {
-            if (_scroll)
-            {
-                var mclient = PointToClient(MousePosition);
-
-                scrollIndex = (mclient.Y - _scrollStartY) * (_scroll_ItemsEstimatedHeigh / Height);
-
-                _FixScrollIndex();
-                _UpdateScrollList();
-            }
             if (_drag)
             {
                 if (_dragPosition.Distance(e.Location) > 4)
@@ -403,92 +403,37 @@ namespace System.Windows.Forms
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            scrollIndex -= e.Delta * ScrollSpeed;
+            ScrollIndex -= e.Delta * ScrollSpeed;
 
             _FixScrollIndex();
-            _UpdateScrollList();
         }
         protected override void OnPaint(PaintEventArgs e)
         {
             // Reset filter.
             if (_resetFilterTime > 0)
             {
-                _resetFilterTime -= Application.DeltaTime;
+                _resetFilterTime -= swfHelper.GetDeltaTime();
                 if (_resetFilterTime <= 0)
                     _filter = "";
             }
 
-            e.Graphics.FillRectangle(BackColor, 0, 0, Width, Height);
+            e.Graphics.uwfFillRectangle(BackColor, 0, 0, Width, Height);
 
             for (int i = 0; i < scrollNodeList.Count; i++)
             {
-                OnDrawNode(new DrawTreeNodeEventArgs(e.Graphics, scrollNodeList[i], scrollNodeList[i].Bounds, TreeNodeStates.Default));
+                var scrollNode = scrollNodeList[i];
+                
+                nodeArgs.Graphics = e.Graphics;
+                nodeArgs.Node = scrollNode;
+                nodeArgs.Bounds = scrollNode.Bounds;
+                nodeArgs.State = TreeNodeStates.Default;
+                
+                OnDrawNode(nodeArgs); 
             }
-
-            #region Scroll.
-            _scroll_ItemsEstimatedHeigh = Padding.Top + Padding.Bottom + _nodeList.Count * ItemHeight;
-            if (_scroll_ItemsEstimatedHeigh > Height) _scrollVisible = true;
-            else _scrollVisible = false;
-
-            if (_scrollVisible)
-            {
-                Color _scrollBarColor = ScrollBarColor;
-                if (_scrollHovered || _scroll) _scrollBarColor = ScrollBarHoverColor;
-
-                float _scrollYCoeff = Height / _scroll_ItemsEstimatedHeigh;
-                _scrollbarHeight = Height * _scrollYCoeff;
-                if (_scrollbarHeight < 8) _scrollbarHeight = 8;
-                _scrollbarY = scrollIndex * _scrollYCoeff;
-
-                e.Graphics.FillRectangle(_scrollBarColor, Width - _scrollbarWidth + 2, _scrollbarY, _scrollbarWidth - 2, _scrollbarHeight);
-            }
-            #endregion
-
-            e.Graphics.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
         }
-        protected override object uwfOnPaintEditor(float width)
+        protected override void OnLatePaint(PaintEventArgs e)
         {
-            var control = base.uwfOnPaintEditor(width);
-
-            Editor.NewLine(1);
-            Editor.Label("   TreeView");
-
-            Editor.ColorField("BorderColor", BorderColor, (c) => { BorderColor = c; });
-
-            var itemHeightBuffer = Editor.IntField("ItemHeight", ItemHeight);
-            if (itemHeightBuffer.Changed)
-                ItemHeight = itemHeightBuffer.Value[0];
-
-            Editor.ColorField("ScrollBarColor", ScrollBarColor, (c) => { ScrollBarColor = c; });
-            Editor.ColorField("ScrollBarHoverColor", ScrollBarHoverColor, (c) => { ScrollBarHoverColor = c; });
-
-            var scrollSpeedBuffer = Editor.Slider("ScrollSpeed", ScrollSpeed, 0, 255);
-            if (scrollSpeedBuffer.Changed)
-                ScrollSpeed = scrollSpeedBuffer.Value;
-
-            var scrollIndexBuffer = Editor.Slider("ScrollIndex", ScrollIndex, -1, _nodeList.Count * ItemHeight);
-            if (scrollIndexBuffer.Changed)
-                ScrollIndex = scrollIndexBuffer.Value;
-
-            Editor.ColorField("SelectionColor", SelectionColor, (c) => { SelectionColor = c; });
-            Editor.ColorField("SelectionHoverColor", SelectionHoverColor, (c) => { SelectionHoverColor = c; });
-
-            var smoothScrollingBuffer = Editor.BooleanField("SmoothScrolling", SmoothScrolling);
-            if (smoothScrollingBuffer.Changed)
-                SmoothScrolling = smoothScrollingBuffer.Value;
-
-            var useNodeBoundsForSelectionBuffer = Editor.BooleanField("UseNodeBoundsForSelection", UseNodeBoundsForSelection);
-            if (useNodeBoundsForSelectionBuffer.Changed)
-                UseNodeBoundsForSelection = useNodeBoundsForSelectionBuffer.Value;
-
-            var wrapTextBuffer = Editor.BooleanField("WrapText", WrapText);
-            if (wrapTextBuffer.Changed)
-                WrapText = wrapTextBuffer.Value;
-
-            Editor.Label("HoveredNode", _hoveredNode);
-            Editor.Label("SelectedNode", SelectedNode);
-
-            return control;
+            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
         protected virtual void ProccesNode(TreeNode node)
         {
@@ -518,7 +463,7 @@ namespace System.Windows.Forms
             var nodeIndex = _nodeList.FindIndex(x => x == node);
             if (nodeIndex == -1) return; // Is not exist in tree.
 
-            scrollIndex = node.Bounds.Y;
+            ScrollIndex = node.Bounds.Y;
 
             _FixScrollIndex();
             _UpdateScrollList();

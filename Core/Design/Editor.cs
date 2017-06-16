@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using Unity.API;
 using UnityEngine;
 
 namespace System.Drawing
@@ -16,13 +17,13 @@ namespace System.Drawing
 
         public static bool WinFormsCompatible { get; set; }
 
-        public static void BeginGroup(float width)
+        public static void BeginGroup(float width, string style = "Box")
         {
             _width = width;
             _nameWidth = 160;
             _contentWidth = width - _nameWidth;
 
-            UnityEngine.GUILayout.BeginVertical("Box");
+            UnityEngine.GUILayout.BeginVertical(style);
         }
         public static void BeginHorizontal()
         {
@@ -108,7 +109,7 @@ namespace System.Drawing
 #if UNITY_EDITOR
             else
             {
-                colorBuffer = System.Drawing.Color.FromUColor(UnityEditor.EditorGUILayout.ColorField(value.ToUColor(), UnityEngine.GUILayout.Width(_contentWidth)));
+                colorBuffer = UnityEditor.EditorGUILayout.ColorField(value.ToUnityColor(), UnityEngine.GUILayout.Width(_contentWidth)).ToColor();
                 if (colorBuffer != value && setColor != null)
                     setColor.Invoke(colorBuffer);
             }

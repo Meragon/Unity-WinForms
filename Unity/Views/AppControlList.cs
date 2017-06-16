@@ -6,12 +6,13 @@ using System.Text;
 #if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
+using SWF = System.Windows.Forms;
 
 namespace Views
 {
     public class AppControlList : EditorWindow
     {
-        [MenuItem("Views/AppControlList")]
+        [MenuItem("Window/NetWinForms/AppControlList")]
         public static void ShowWindow()
         {
             EditorWindow.GetWindow(typeof(AppControlList), false, "AppControlList");
@@ -34,16 +35,22 @@ namespace Views
         void OnGUI()
         {
             if (!Application.isPlaying) return;
+            if (SWF.Control.DefaultController == null)
+            {
+                GUILayout.Label("SWF.Control.DefaultController is null");
+                return;
+            }
 
             float width = position.width - 24;
             _scrollPosition = GUILayout.BeginScrollView(_scrollPosition);
             GUILayout.BeginVertical();
             _filter = GUILayout.TextField(_filter);
             GUILayout.Label("Modal Forms");
-            for (int i = 0; i < System.Windows.Forms.Control.DefaultController.ModalForms.Count; i++)
+
+            for (int i = 0; i < SWF.Control.DefaultController.ModalForms.Count; i++)
             {
-                string c_type = System.Windows.Forms.Control.DefaultController.ModalForms[i].GetType().ToString().Replace("System.Windows.Forms", "SWF");
-                string c_name = System.Windows.Forms.Control.DefaultController.ModalForms[i].Name;
+                string c_type = SWF.Control.DefaultController.ModalForms[i].GetType().ToString().Replace("System.Windows.Forms", "SWF");
+                string c_name = SWF.Control.DefaultController.ModalForms[i].Name;
                 if (c_name == null) c_name = "";
                 if (!String.IsNullOrEmpty(_filter))
                 {
@@ -55,7 +62,7 @@ namespace Views
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
                     var w = AppControl.ShowWindow();
-                    (w as AppControl).Control = System.Windows.Forms.Control.DefaultController.ModalForms[i];
+                    (w as AppControl).Control = SWF.Control.DefaultController.ModalForms[i];
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));
@@ -63,10 +70,10 @@ namespace Views
             }
             GUILayout.Space(24);
             GUILayout.Label("Forms");
-            for (int i = 0; i < System.Windows.Forms.Control.DefaultController.Forms.Count; i++)
-            {
-                string c_type = System.Windows.Forms.Control.DefaultController.Forms[i].GetType().ToString().Replace("System.Windows.Forms", "SWF");
-                string c_name = System.Windows.Forms.Control.DefaultController.Forms[i].Name;
+            for (int i = 0; i < SWF.Control.DefaultController.Forms.Count; i++)
+            { 
+                string c_type = SWF.Control.DefaultController.Forms[i].GetType().ToString().Replace("System.Windows.Forms", "SWF");
+                string c_name = SWF.Control.DefaultController.Forms[i].Name;
                 if (c_name == null) c_name = "";
                 if (!String.IsNullOrEmpty(_filter))
                 {
@@ -78,18 +85,18 @@ namespace Views
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
                     var w = AppControl.ShowWindow();
-                    (w as AppControl).Control = System.Windows.Forms.Control.DefaultController.Forms[i];
+                    (w as AppControl).Control = SWF.Control.DefaultController.Forms[i];
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));
                 GUILayout.EndHorizontal();
             }
             GUILayout.Space(24);
-            GUILayout.Label("UWF_Context");
-            for (int i = 0; i < System.Windows.Forms.Control.DefaultController.Contexts.Count; i++)
-            {
-                string c_type = System.Windows.Forms.Control.DefaultController.Contexts[i].GetType().ToString().Replace("System.Windows.Forms", "SWF");
-                string c_name = System.Windows.Forms.Control.DefaultController.Contexts[i].Name;
+            GUILayout.Label("uwfContext");
+            for (int i = 0; i < SWF.Control.DefaultController.Contexts.Count; i++)
+            {                   
+                string c_type = SWF.Control.DefaultController.Contexts[i].GetType().ToString().Replace("System.Windows.Forms", "SWF");
+                string c_name = SWF.Control.DefaultController.Contexts[i].Name;
                 if (c_name == null) c_name = "";
                 if (!String.IsNullOrEmpty(_filter))
                 {
@@ -101,7 +108,7 @@ namespace Views
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
                     var w = AppControl.ShowWindow();
-                    (w as AppControl).Control = System.Windows.Forms.Control.DefaultController.Contexts[i];
+                    (w as AppControl).Control = SWF.Control.DefaultController.Contexts[i];
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));
@@ -110,7 +117,7 @@ namespace Views
             GUILayout.Space(24);
             GUILayout.Label("Hovered Control");
 
-            var hoveredControl = System.Windows.Forms.Control.DefaultController.hoveredControl;
+            var hoveredControl = SWF.Control.DefaultController.hoveredControl;
             if (hoveredControl != null)
             {
                 string c_type = hoveredControl.GetType().ToString().Replace("System.Windows.Forms", "SWF");

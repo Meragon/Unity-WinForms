@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using UnityEngine;
+using System.Windows.Forms;
 
-namespace System.Drawing
+namespace Unity.Controls
 {
     public class BitmapText : Image
     {
         internal readonly Dictionary<int, BitmapChar> textSettings = new Dictionary<int, BitmapChar>();
         private readonly BitmapFont font;
 
+        public Color Color { get; set; }
         public float Scale { get; set; }
         public bool ShowRects { get; set; }
         public string Text { get; set; }
@@ -63,22 +64,22 @@ namespace System.Drawing
         public override void Apply()
         {
             var tSize = TextureSize;
-            uTexture = new Bitmap(tSize.Width, tSize.Height);
+            uTexture = Graphics.ApiGraphics.CreateTexture(tSize.Width, tSize.Height);
 
             if (tSize.Width == 0 || tSize.Height == 0)
                 return;
             
 
             // Clear texture with transparent color.
-            var uBackColor = Color.Transparent.ToUColor();
-            var clearColor = new Color32[uTexture.width * uTexture.height];
+            var uBackColor = Color.Transparent;
+            var clearColor = new Color[uTexture.Width * uTexture.Height];
             for (int i = 0; i < clearColor.Length; i++)
                 clearColor[i] = uBackColor;
-            uTexture.SetPixels32(clearColor);
+            uTexture.SetPixels(clearColor);
 
             int xOffset = 0;
             float cursorY = GetCursorY();
-            float cursorOffset = uTexture.height - cursorY;
+            float cursorOffset = uTexture.Height - cursorY;
 
             for (int i = 0; i < Text.Length; i++)
             {
@@ -100,29 +101,32 @@ namespace System.Drawing
 
                 if (cW > 0 && cH > 0)
                 {
-                    var charPixels = textC.Texture.uTexture.GetPixels32();
-                    var charTexture = new UnityEngine.Texture2D(textC.Texture.Width, textC.Texture.Height);
-                    charTexture.SetPixels32(charPixels);
+                    var charPixels = textC.Texture.uTexture.GetPixels();
+                    var charTexture = Graphics.ApiGraphics.CreateTexture(textC.Texture.Width, textC.Texture.Height);
+                    charTexture.SetPixels(charPixels);
                     charTexture.Apply();
 
                     // Scale texture if needed.
-                    if ((int)cW != charTexture.width || (int)cH != charTexture.height)
-                        TextureScaler.scale(charTexture, (int)cW, (int)cH);
+                    if ((int) cW != charTexture.Width || (int) cH != charTexture.Height)
+                    {
+                        // TODO: not working.
+                        //TextureScaler.scale(charTexture, (int) cW, (int) cH);
+                    }
 
-                    var blendedCharPixels = charTexture.GetPixels32();
+                    var blendedCharPixels = charTexture.GetPixels();
                     for (int p = 0; p < blendedCharPixels.Length; p++)
                     {
                         // BlendMode: Multiply
                         var origColor = blendedCharPixels[p];
-                        var bA = (float)(origColor.a * charColor.A) / (255 * 255);
-                        var bR = (float)(origColor.r * charColor.R) / (255 * 255);
-                        var bG = (float)(origColor.g * charColor.G) / (255 * 255);
-                        var bB = (float)(origColor.b * charColor.B) / (255 * 255);
+                        var bA = (origColor.A * charColor.A) / (255 * 255);
+                        var bR = (origColor.R * charColor.R) / (255 * 255);
+                        var bG = (origColor.G * charColor.G) / (255 * 255);
+                        var bB = (origColor.B * charColor.B) / (255 * 255);
                         if (bA > 0)
-                            blendedCharPixels[p] = new UnityEngine.Color(bR, bG, bB, bA);
+                            blendedCharPixels[p] = Color.FromArgb(bA, bR, bG, bB);
                     }
 
-                    uTexture.SetPixels32((int)cX, (int)(cursorOffset - bellowHeight), charTexture.width, charTexture.height, blendedCharPixels);
+                    uTexture.SetPixels((int)cX, (int)(cursorOffset - bellowHeight), charTexture.Width, charTexture.Height, blendedCharPixels);
                 }
 
                 xOffset += (int)cA;

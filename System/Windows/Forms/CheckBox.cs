@@ -14,13 +14,12 @@ namespace System.Windows.Forms
         public CheckBox()
         {
             BackColor = Color.White;
-            BorderColor = Color.FromArgb(112, 112, 112);
-            BorderHoverColor = Color.FromArgb(51, 153, 255);
-            BorderDisableColor = Color.FromArgb(188, 188, 188);
-            CanSelect = true;
-            DisableColor = Color.FromArgb(230, 230, 230);
+            uwfBorderColor = Color.FromArgb(112, 112, 112);
+            uwfBorderHoverColor = Color.FromArgb(51, 153, 255);
+            uwfBorderDisableColor = Color.FromArgb(188, 188, 188);
+            uwfDisableColor = Color.FromArgb(230, 230, 230);
             ForeColor = Color.Black;
-            HoverColor = Color.FromArgb(243, 249, 255);
+            uwfHoverColor = Color.FromArgb(243, 249, 255);
             Size = new Drawing.Size(128, 17);
             TextAlign = ContentAlignment.MiddleLeft;
 
@@ -33,27 +32,23 @@ namespace System.Windows.Forms
             CheckedChanged(this, new EventArgs());
         }
 
-        protected override void OnKeyUp(KeyEventArgs e)
-        {
-            base.OnKeyUp(e);
-        }
         protected override void OnPaint(PaintEventArgs e)
         {
             Graphics g = e.Graphics;
 
-            var backColor = DisableColor;
-            var borderColor = BorderDisableColor;
+            var backColor = uwfDisableColor;
+            borderPen.Color = uwfBorderDisableColor;
             if (Enabled)
             {
                 if (Hovered)
                 {
-                    backColor = HoverColor;
-                    borderColor = BorderHoverColor;
+                    backColor = uwfHoverColor;
+                    borderPen.Color = uwfBorderHoverColor;
                 }
                 else
                 {
                     backColor = BackColor;
-                    borderColor = BorderColor;
+                    borderPen.Color = uwfBorderColor;
                 }
             }
 
@@ -61,12 +56,12 @@ namespace System.Windows.Forms
             var checkRectY = Padding.Top + Height / 2 - 6;
             var checkRectWH = 12;
 
-            g.FillRectangle(backColor, checkRectX, checkRectY, checkRectWH, checkRectWH);
-            g.DrawRectangle(new Pen(borderColor), checkRectX, checkRectY, checkRectWH, checkRectWH);
+            g.uwfFillRectangle(backColor, checkRectX, checkRectY, checkRectWH, checkRectWH);
+            g.DrawRectangle(borderPen, checkRectX, checkRectY, checkRectWH, checkRectWH);
             if (Checked)
-                g.DrawTexture(ApplicationBehaviour.Resources.Images.Checked, checkRectX, checkRectY, checkRectWH, checkRectWH);
+                g.DrawImage(uwfAppOwner.Resources.Checked, checkRectX, checkRectY, checkRectWH, checkRectWH);
 
-            g.DrawString(Text, Font, new SolidBrush(ForeColor), checkRectX + checkRectWH + 4, Padding.Top + 0, Width - 20, Height, TextAlign);
+            g.uwfDrawString(Text, Font, ForeColor, checkRectX + checkRectWH + 4, Padding.Top + 0, Width - 20, Height, TextAlign);
         }
 
         public event EventHandler CheckedChanged = delegate { };

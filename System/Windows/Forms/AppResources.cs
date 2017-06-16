@@ -1,92 +1,127 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
-
+using System.Drawing;
+using uFont = UnityEngine.Font;
 using Image = UnityEngine.Texture2D;
 
-namespace System.Windows.Forms
+[Serializable]
+public class AppResources
 {
+    public List<uFont> Fonts;
+
+    public ReservedResources Images;
+
+    /// <summary>
+    /// System resources.
+    /// </summary>
     [Serializable]
-    public class AppResources
+    public struct ReservedResources
     {
-        public List<Font> Fonts;
+        [Tooltip("Form resize icon")]
+        public Image ArrowDown;
 
-        public ReservedResources Images;
+        [Tooltip("Form resize icon, MonthCalendar, TabControl")]
+        public Image ArrowLeft;
 
-        /// <summary>
-        /// System resources.
-        /// </summary>
-        [Serializable]
-        public struct ReservedResources
-        {
-            [Tooltip("Form resize icon")]
-            public Image ArrowDown;
+        [Tooltip("Form resize icon, MonthCalendar, TabControl")]
+        public Image ArrowRight;
 
-            [Tooltip("Form resize icon, MonthCalendar, TabControl")]
-            public Image ArrowLeft;
+        [Tooltip("Form resize icon")]
+        public Image ArrowUp;
 
-            [Tooltip("Form resize icon, MonthCalendar, TabControl")]
-            public Image ArrowRight;
+        public Image Circle;
 
-            [Tooltip("Form resize icon")]
-            public Image ArrowUp;
+        [Tooltip("Checkbox, ToolStripItem")]
+        public Image Checked;
 
-            public Image Circle;
+        [Tooltip("Form close button")]
+        public Image Close;
 
-            [Tooltip("Checkbox, ToolStripItem")]
-            public Image Checked;
+        public CursorImages Cursors;
 
-            [Tooltip("Form close button")]
-            public Image Close;
+        [Tooltip("ComboBox, VScrollBar")]
+        public Image CurvedArrowDown;
 
-            public CursorImages Cursors;
+        [Tooltip("HScrollBar")]
+        public Image CurvedArrowLeft;
 
-            [Tooltip("ComboBox, VScrollBar")]
-            public Image CurvedArrowDown;
+        [Tooltip("HScrollBar")]
+        public Image CurvedArrowRight;
 
-            [Tooltip("HScrollBar")]
-            public Image CurvedArrowLeft;
+        [Tooltip("VScrollBar")]
+        public Image CurvedArrowUp;
 
-            [Tooltip("HScrollBar")]
-            public Image CurvedArrowRight;
+        [Tooltip("ToolStripDropDown")]
+        public Image DropDownRightArrow;
 
-            [Tooltip("VScrollBar")]
-            public Image CurvedArrowUp;
+        [Tooltip("Form")]
+        public Image FormResize;
 
-            [Tooltip("ToolStripDropDown")]
-            public Image DropDownRightArrow;
+        [Tooltip("NumericUpDown")]
+        public Image NumericDown;
 
-            [Tooltip("Form")]
-            public Image FormResize;
+        [Tooltip("NumericUpDown")]
+        public Image NumericUp;
 
-            [Tooltip("NumericUpDown")]
-            public Image NumericDown;
+        [Tooltip("Tree")]
+        public Image TreeNodeCollapsed;
 
-            [Tooltip("NumericUpDown")]
-            public Image NumericUp;
+        [Tooltip("Tree")]
+        public Image TreeNodeExpanded;
+    }
 
-            [Tooltip("Tree")]
-            public Image TreeNodeCollapsed;
+    [Serializable]
+    public struct CursorImages
+    {
+        [Tooltip("Leave this field empty if you don't want to use your own cursor.")]
+        public Image Default;
 
-            [Tooltip("Tree")]
-            public Image TreeNodeExpanded;
-        }
+        public Image Hand;
+        public Image Help;
+        public Image HSplit;
+        public Image SizeAll;
+        public Image SizeNESW;
+        public Image SizeNS;
+        public Image SizeNWSE;
+        public Image SizeWE;
+        public Image VSplit;
+    }
+}
 
-        [Serializable]
-        public struct CursorImages
-        {
-            [Tooltip("Leave this field empty if you don't want to use your own cursor.")]
-            public Image Default;
+public class AppGdiImages
+{
+    public Bitmap ArrowDown;
+    public Bitmap ArrowLeft;
+    public Bitmap ArrowRight;
+    public Bitmap ArrowUp;
+    public Bitmap Circle;
+    public Bitmap Checked;
+    public Bitmap Close;
+    public CursorImages Cursors = new CursorImages();
+    public Bitmap CurvedArrowDown;
+    public Bitmap CurvedArrowLeft;
+    public Bitmap CurvedArrowRight;
+    public Bitmap CurvedArrowUp;
+    public Bitmap DropDownRightArrow;
+    public Bitmap FormResize;
+    public Bitmap NumericDown;
+    public Bitmap NumericUp;
+    public Bitmap TreeNodeCollapsed;
+    public Bitmap TreeNodeExpanded;
 
-            public Image Hand;
-            public Image Help;
-            public Image HSplit;
-            public Image SizeAll;
-            public Image SizeNESW;
-            public Image SizeNS;
-            public Image SizeNWSE;
-            public Image SizeWE;
-            public Image VSplit;
-        }
+    public struct CursorImages
+    {
+        public Bitmap Default;
+
+        public Bitmap Hand;
+        public Bitmap Help;
+        public Bitmap HSplit;
+        public Bitmap SizeAll;
+        public Bitmap SizeNESW;
+        public Bitmap SizeNS;
+        public Bitmap SizeNWSE;
+        public Bitmap SizeWE;
+        public Bitmap VSplit;
     }
 }

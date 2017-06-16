@@ -8,30 +8,18 @@ namespace System.Drawing
     [Serializable]
     public class Bitmap : Image
     {
-        public static implicit operator UnityEngine.Texture2D(Bitmap image)
+        private Bitmap()
         {
-            if (image == null) return null;
-            return image.uTexture;
+            
         }
-        public static implicit operator Bitmap(UnityEngine.Texture2D text)
+        public Bitmap(Image original)
         {
-            return new Bitmap(text);
-        }
-
-        public Bitmap(UnityEngine.Texture2D original)
-        {
-            Color = Color.White;
-            uTexture = original;
-        }
-        public Bitmap(UnityEngine.Texture2D original, Color color)
-        {
-            Color = color;
-            uTexture = original;
+            if (original != null)
+                uTexture = original.uTexture;
         }
         public Bitmap(int width, int height)
         {
-            Color = Color.White;
-            uTexture = new UnityEngine.Texture2D(width, height);
+            uTexture = Graphics.ApiGraphics.CreateTexture(width, height);
         }
 
         public override void Apply()
@@ -40,27 +28,35 @@ namespace System.Drawing
         }
         public void ClearColor(Color c, bool apply = true)
         {
-            var colors = new UnityEngine.Color32[Width * Height];
+            var colors = new Color[Width * Height];
             for (int i = 0; i < colors.Length; i++)
-                colors[i] = c.ToUColor();
-            uTexture.SetPixels32(colors);
+                colors[i] = c;
+            uTexture.SetPixels(colors);
             if (apply) Apply();
         }
         public Color GetPixel(int x, int y)
         {
-            return Color.FromUColor(uTexture.GetPixel(x, uTexture.height - y - 1));
+            return uTexture.GetPixel(x, uTexture.Height - y - 1);
         }
         public Color[] GetPixels(int x, int y, int w, int h)
         {
-            var ucs = uTexture.GetPixels(x, uTexture.height - y - 1, w, h);
+            var ucs = uTexture.GetPixels(x, uTexture.Height - y - 1, w, h);
             Color[] cs = new Color[ucs.Length];
             for (int i = 0; i < cs.Length; i++)
-                cs[i] = Color.FromUColor(ucs[i]);
+                cs[i] = ucs[i];
             return cs;
         }
         public void SetPixel(int x, int y, Color color)
         {
-            uTexture.SetPixel(x, uTexture.height - y - 1, color.ToUColor());
+            uTexture.SetPixel(x, uTexture.Height - y - 1, color);
+        }
+
+        public static Bitmap FromTexture(ITexture tex)
+        {
+            var bmp = new Bitmap();
+            bmp.uTexture = tex;
+
+            return bmp;
         }
     }
 }

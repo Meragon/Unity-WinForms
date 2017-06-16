@@ -13,10 +13,6 @@ namespace System.Windows.Forms
 {
     public class ListBox : ListControl
     {
-#if UNITY_EDITOR
-        private bool _toggleEditor;
-#endif
-
         private Color borderCurrentColor;
         private Color borderColor;
         private Color borderSelectColor;
@@ -29,7 +25,7 @@ namespace System.Windows.Forms
         private int itemHeight = DefaultItemHeight;
         private readonly ObjectCollection items;
         private string keyFilter = "";
-        private ApplicationBehaviour.invokeAction keyFilterIA;
+        private Unity.API.ApplicationBehaviour.invokeAction keyFilterIA;
         private float keyFilterResetTime = 3;
         private int visibleItemsCount = 0;
         private bool scrollAlwaysVisible;
@@ -158,7 +154,6 @@ namespace System.Windows.Forms
             BackColor = Color.White;
             BorderColor = Color.FromArgb(130, 135, 144);
             BorderSelectColor = Color.FromArgb(126, 180, 234);
-            CanSelect = true;
             DisabledColor = Color.Gray;
             DrawMode = DrawMode.Normal;
             DrawItem = InternalDrawItem;
@@ -188,7 +183,7 @@ namespace System.Windows.Forms
                 itemText = item.ToString();
 
             e.DrawBackground();
-            e.Graphics.DrawString(itemText, e.Font, e.ForeColor, e.Bounds.X, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height, ContentAlignment.MiddleLeft);
+            e.Graphics.uwfDrawString(itemText, e.Font, e.ForeColor, e.Bounds.X, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height, ContentAlignment.MiddleLeft);
             e.DrawFocusRectangle();
         }
         private void ResetItemHeight()
@@ -210,26 +205,26 @@ namespace System.Windows.Forms
         {
             switch (e.KeyCode)
             {
-                case KeyCode.DownArrow:
-                case KeyCode.RightArrow:
+                case Keys.Down:
+                case Keys.Right:
                     SelectItem(SelectedIndex + 1);
                     break;
-                case KeyCode.LeftArrow:
-                case KeyCode.UpArrow:
+                case Keys.Left:
+                case Keys.Up:
                     SelectItem(SelectedIndex - 1);
                     break;
 
-                case KeyCode.PageDown:
+                case Keys.PageDown:
                     SelectItem(SelectedIndex + visibleItemsCount - 1);
                     break;
-                case KeyCode.PageUp:
+                case Keys.PageUp:
                     SelectItem(SelectedIndex - visibleItemsCount + 1);
                     break;
 
-                case KeyCode.Home:
+                case Keys.Home:
                     SelectItem(0);
                     break;
-                case KeyCode.End:
+                case Keys.End:
                     SelectItem(Items.Count - 1);
                     break;
 
@@ -244,7 +239,7 @@ namespace System.Windows.Forms
                         SelectItem(itemIndex);
 
                         if (keyFilterIA == null)
-                            keyFilterIA = uwfAppOwner.Behaviour.Invoke(ResetKeyFilter, keyFilterResetTime);
+                            keyFilterIA = Unity.API.ApplicationBehaviour.Invoke(ResetKeyFilter, keyFilterResetTime);
                         keyFilterIA.Seconds = keyFilterResetTime;
                     }
                     break;
@@ -286,12 +281,12 @@ namespace System.Windows.Forms
         }
         protected override void OnMouseUp(MouseEventArgs e)
         {
-            base.OnMouseUp(e);
-
             var mclient = PointToClient(MousePosition);
             var itemIndex = IndexAt(mclient);
 
             SelectItem(itemIndex);
+
+            base.OnMouseUp(e);
         }
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -302,7 +297,7 @@ namespace System.Windows.Forms
             const int itemTextVerticalPadding = -3;
 
             // Paint list.
-            g.FillRectangle(BackColor, 0, 0, Width, Height);
+            g.uwfFillRectangle(BackColor, 0, 0, Width, Height);
             for (int i = 0; i < visibleItemsCount && i + ScrollIndex < Items.Count; i++)
             {
                 var itemIndex = i + ScrollIndex;
@@ -341,8 +336,8 @@ namespace System.Windows.Forms
 
                 if (DrawMode == DrawMode.Normal)
                 {
-                    g.FillRectangle(itemBackColor, borderOffset, itemY, fillWidth, ItemHeight);
-                    g.DrawString(
+                    g.uwfFillRectangle(itemBackColor, borderOffset, itemY, fillWidth, ItemHeight);
+                    g.uwfDrawString(
                         itemText,
                         Font,
                         itemForeColor,
@@ -366,51 +361,9 @@ namespace System.Windows.Forms
                 }
             }
         }
-        protected override object uwfOnPaintEditor(float width)
+        protected override void OnResize(EventArgs e)
         {
-            var control = base.uwfOnPaintEditor(width);
-
-#if UNITY_EDITOR
-
-            Editor.BeginGroup(width - 24);
-            Editor.BeginVertical();
-
-            _toggleEditor = Editor.Foldout("ListBox", _toggleEditor);
-            if (_toggleEditor)
-            {
-                Editor.Label("hoveredItem", hoveredItem);
-                Editor.Label("ItemHeight", ItemHeight);
-                Editor.Label("PreferredHeight", PreferredHeight);
-                Editor.ColorField("SelectionBackColor", SelectionBackColor, c => SelectionBackColor = c);
-                Editor.Label("SelectedIndex", SelectedIndex);
-                Editor.Label("ScrollIndex", ScrollIndex);
-                Editor.Label("visibleItemsCount", visibleItemsCount);
-
-                if (Editor.Button("AddItem"))
-                {
-                    Items.Add(Items.Count - 1);
-                }
-                if (Editor.Button("RefreshItems"))
-                {
-                    RefreshItems();
-                }
-                if (Editor.Button("RemoveSelectedItem") && SelectedIndex != -1)
-                {
-                    var itemIndex = SelectedIndex;
-                    SelectedIndex = -1;
-                    Items.RemoveAt(itemIndex);
-                }
-            }
-
-            Editor.EndVertical();
-            Editor.EndGroup();
-#endif
-
-            return control;
-        }
-        protected override void OnResize(Point delta)
-        {
-            base.OnResize(delta);
+            base.OnResize(e);
 
             if (IntegralHeight && integralHeightAdjust)
                 AdjustHeight();

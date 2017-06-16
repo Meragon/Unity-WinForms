@@ -33,12 +33,6 @@ namespace System.Drawing
         {
             return string.Format("[{0}, {1}, {2}]", Name, Size, Style);
         }
-
-        public static bool Exists(string fontName)
-        {
-            var fontList = System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Where(x => x.fontNames[0] == fontName).ToList();
-            return fontList.Count > 0;
-        }
     }
 
     [Flags]
@@ -47,9 +41,7 @@ namespace System.Drawing
         Regular = 0,
         Bold = 1,
         Italic = 2,
-        [Obsolete("it's not working")]
         Underline = 4,
-        [Obsolete("it's not working")]
         Strikeout = 8,
     }
 }

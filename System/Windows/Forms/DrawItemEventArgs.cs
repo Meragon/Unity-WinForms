@@ -53,7 +53,7 @@ namespace System.Windows.Forms
 
         public virtual void DrawBackground()
         {
-            Graphics.FillRectangle(BackColor, Bounds);
+            Graphics.uwfFillRectangle(BackColor, Bounds);
         }
         public virtual void DrawFocusRectangle()
         {

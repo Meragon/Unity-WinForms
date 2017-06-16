@@ -3,11 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Windows.Forms.Design;
 
 namespace System.Windows.Forms
 {
     [Serializable]
-    public class Control : Component, IDisposable
+    public class Control : Component
     {
         protected static Color defaultShadowColor = Color.FromArgb(12, 0, 0, 0);
 
@@ -22,28 +23,33 @@ namespace System.Windows.Forms
             }
         }
 
-        private bool _toggleEditor = true;
-        private bool _toggleFont;
-        private bool _toggleControls;
-        private bool _toggleSource;
-
-        private bool _uwfContext;
+        private AnchorStyles anchor = AnchorStyles.Top | AnchorStyles.Left;
+        private int clientHeight;
+        private int clientWidth;
         private ControlCollection _controls;
+        private ControlStyles controlStyle;
+        private Font font = SystemFonts.DefaultFont;
         internal bool selected;
         internal static Control lastSelected;
-        private Point _location;
-        private int _height;
+        private int height;
         internal bool hovered;
         internal bool mouseEntered;
         internal bool shouldFocus;
-        private bool _visible;
-        private int _width;
+        private bool _uwfContext;
+        private bool visible;
+        private int width;
+        private int x, y;
 
         public virtual bool AllowDrop { get; set; }
         public bool AlwaysFocused { get; set; }
-        public virtual AnchorStyles Anchor { get; set; }
+        public virtual AnchorStyles Anchor
+        {
+            get { return anchor; }
+            set { anchor = value; }
+        }
         public virtual bool AutoSize { get; set; }
-        public Color BackColor { get; set; }
+        public virtual Color BackColor { get; set; }
+        public virtual Image BackgroundImage { get; set; }
         public virtual ImageLayout BackgroundImageLayout { get; set; }
         public Rectangle Bounds
         {
@@ -54,24 +60,31 @@ namespace System.Windows.Forms
                 Size = new Size(value.Width, value.Height);
             }
         }
-        public bool CanSelect { get; set; }
-        public Rectangle ClientRectangle { get { return new Rectangle(0, 0, Width, Height); } }
+        public bool CanSelect
+        {
+            get { return CanSelectCore(); }
+        }
+        public Rectangle ClientRectangle { get { return new Rectangle(0, 0, clientWidth, clientHeight); } }
+        public Size ClientSize
+        {
+            get { return new Size(clientWidth, clientHeight); }
+            set { Size = value; }
+        }
         public ControlCollection Controls { get { return _controls; } set { _controls = value; } }
         public virtual Rectangle DisplayRectangle { get { return ClientRectangle; } }
         public bool Disposing { get; private set; }
         public bool Enabled { get; set; }
         public bool Focused { get { return selected; } }
-        public virtual Font Font { get; set; }
+        public virtual Font Font
+        {
+            get { return font; }
+            set { font = value; }
+        }
         public Color ForeColor { get; set; }
         public int Height
         {
-            get { return _height; }
-            set
-            {
-                var delta = new Point(0, _height - value);
-                _height = value;
-                RaiseOnResize(delta);
-            }
+            get { return height; }
+            set { this.SetBounds(this.x, this.y, this.width, value, BoundsSpecified.Height); }
         }
         public bool Hovered { get { return hovered; } }
         public bool IsDisposed { get; private set; }
@@ -82,12 +95,8 @@ namespace System.Windows.Forms
         }
         public Point Location
         {
-            get { return _location; }
-            set
-            {
-                _location = value;
-                OnLocationChanged(null);
-            }
+            get { return new Point(x, y); }
+            set { this.SetBounds(value.X, value.Y, this.width, this.height, BoundsSpecified.Location); }
         }
         public virtual Size MaximumSize { get; set; }
         public virtual Size MinimumSize { get; set; }
@@ -96,20 +105,8 @@ namespace System.Windows.Forms
         public Control Parent { get; set; }
         public Size Size
         {
-            get
-            {
-                return new Size(Width, Height);
-            }
-            set
-            {
-                int widthBuffer = _width;
-                int heightBuffer = _height;
-
-                _width = value.Width;
-                _height = value.Height;
-
-                RaiseOnResize(new Point(widthBuffer - value.Width, heightBuffer - value.Height));
-            }
+            get { return new Size(Width, Height); }
+            set { this.SetBounds(this.x, this.y, value.Width, value.Height, BoundsSpecified.Size); }
         }
         public int TabIndex { get; set; }
         public bool TabStop { get; set; }
@@ -122,24 +119,19 @@ namespace System.Windows.Forms
         }
         public bool Visible
         {
-            get { return _visible; }
+            get { return visible; }
             set
             {
-                bool changed = _visible != value;
-                _visible = value;
+                bool changed = visible != value;
+                visible = value;
                 if (changed)
                     VisibleChanged(this, new EventArgs());
             }
         }
         public int Width
         {
-            get { return _width; }
-            set
-            {
-                var delta = new Point(_width - value, 0);
-                _width = value;
-                RaiseOnResize(delta);
-            }
+            get { return width; }
+            set { this.SetBounds(this.x, this.y, value, this.height, BoundsSpecified.Width); }
         }
 
         public Application uwfAppOwner { get; internal set; }
@@ -160,10 +152,10 @@ namespace System.Windows.Forms
                 }
             }
         }
-        public bool uwfPreventChildDisposing { get; set; }
         public bool uwfShadowBox { get; set; }
         public DrawHandler uwfShadowHandler { get; set; }
 
+        internal IControlDesigner uwfDesigner { get; set; }
         internal Point uwfOffset { get; set; }
         internal string uwfSource { get; set; }
 
@@ -174,15 +166,15 @@ namespace System.Windows.Forms
             else if (DefaultController != null)
                 DefaultController.Run(this);
 
-            Anchor = AnchorStyles.Left | AnchorStyles.Top;
             Controls = new ControlCollection(this);
             Enabled = true;
-            Font = SystemFonts.DefaultFont;
             ForeColor = Color.Black;
             TabIndex = -1;
             TabStop = true;
             uwfAutoGroup = true;
-            _visible = true;
+            visible = true;
+
+            this.SetStyle(ControlStyles.UserPaint | ControlStyles.StandardClick | ControlStyles.Selectable | ControlStyles.StandardDoubleClick | ControlStyles.AllPaintingInWmPaint | ControlStyles.UseTextForAccessibility, true);
 
 #if UNITY_EDITOR
             var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
@@ -192,52 +184,54 @@ namespace System.Windows.Forms
 
         private void ParentResized(Point delta)
         {
+            if (Anchor == AnchorStyles.None) return;
+
             bool an_right = (Anchor & AnchorStyles.Right) == AnchorStyles.Right;
             bool an_bottom = (Anchor & AnchorStyles.Bottom) == AnchorStyles.Bottom;
             bool an_left = (Anchor & AnchorStyles.Left) == AnchorStyles.Left;
             bool an_top = (Anchor & AnchorStyles.Top) == AnchorStyles.Top;
 
-            if (Anchor != AnchorStyles.None)
+            int nextX = x;
+            int nextY = y;
+            int nextWidth = width;
+            int nextHeight = height;
+
+            if (an_right)
+                nextX -= delta.X;
+            else
+                delta = new Point(0, delta.Y);
+
+            if (an_bottom)
+                nextY -= delta.Y;
+            else
+                delta = new Point(delta.X, 0);
+
+            if (an_left)
             {
-                int prevWidth = _width;
-                int prevHeight = _height;
-
                 if (an_right)
-                    Location = new Point(Location.X - delta.X, Location.Y);
-                else
-                    delta = new Point(0, delta.Y);
-                if (an_bottom)
-                    Location = new Point(Location.X, Location.Y - delta.Y);
-                else
-                    delta = new Point(delta.X, 0);
-                if (an_left)
                 {
-                    if (an_right)
-                    {
-                        Location = new Point(Location.X + delta.X, Location.Y);
-                        _width = Size.Width - delta.X;
-                        delta = new Point(delta.X, delta.Y);
-                    }
+                    nextX += delta.X;
+                    nextWidth -= delta.X;
                 }
-                if (an_top)
-                {
-                    if (an_bottom)
-                    {
-                        Location = new Point(Location.X, Location.Y + delta.Y);
-                        _height = Size.Height - delta.Y;
-                        delta = new Point(delta.X, delta.Y);
-                    }
-                }
-
-                // Reset delta for childs.
-                if (prevWidth - _width == 0)
-                    delta = new Point(0, delta.Y);
-                if (prevHeight - _height == 0)
-                    delta = new Point(delta.X, 0);
-
-                if ((an_left && an_right) || (an_top && an_bottom))
-                    RaiseOnResize(delta);
             }
+            if (an_top)
+            {
+                if (an_bottom)
+                {
+                    nextY += delta.Y;
+                    nextHeight -= delta.Y;
+                }
+            }
+
+            UpdateBounds(nextX, nextY, nextWidth, nextHeight);
+        }
+        private void ResizeChilds(Point delta)
+        {
+            if (delta == Point.Empty) return;
+            if (Controls == null) return;
+
+            for (int i = 0; i < Controls.Count; i++)
+                Controls[i].ParentResized(delta);
         }
 
         public void BringToFront()
@@ -265,34 +259,6 @@ namespace System.Windows.Forms
                 }
             }
         }
-        public new virtual void Dispose()
-        {
-            if (IsDisposed) return;
-
-            Disposing = true;
-            OnDisposing(this, EventArgs.Empty);
-
-            if (uwfPreventChildDisposing == false)
-            {
-                for (; Controls.Count > 0;)
-                    Controls[0].Dispose();
-
-                Controls.Clear();
-            }
-
-            if (Parent != null)
-            {
-                int self = Parent.Controls.FindIndex(x => x == this);
-                if (self > -1)
-                    Parent.Controls.RemoveAt(self);
-            }
-
-            if (uwfContext)
-                uwfAppOwner.Contexts.Remove(this);
-
-            Disposed(this, null);
-            IsDisposed = true;
-        }
         public DragDropEffects DoDragDrop(object data, DragDropEffects allowedEffects, DragDropRenderHandler render = null)
         {
             Application.DoDragDrop(data, allowedEffects, render);
@@ -310,26 +276,32 @@ namespace System.Windows.Forms
         {
             // Dunno.
         }
+        public void PerformLayout()
+        {
+
+        }
         public Point PointToClient(Point p)
         {
-            return PointToClient(new PointF(p.X, p.Y));
-        }
-        public PointF PointToClient(PointF p)
-        {
-            if (Parent != null)
-                p = Parent.PointToClient(p);
+            var parent = Parent;
+            if (parent != null)
+                p = parent.PointToClient(p);
 
-            p.X -= Location.X + uwfOffset.X;
-            p.Y -= Location.Y + uwfOffset.Y;
+            var location = Location;
+            var localuwfOffset = uwfOffset;
+
+            p.Offset(-location.X - localuwfOffset.X, -location.Y - localuwfOffset.Y);
             return p;
         }
         public Point PointToScreen(Point p)
         {
-            if (Parent != null)
-                p = Parent.PointToScreen(p);
+            var parent = Parent;
+            if (parent != null)
+                p = parent.PointToScreen(p);
 
-            p.X += Location.X + uwfOffset.X;
-            p.Y += Location.Y + uwfOffset.Y;
+            var location = Location;
+            var localuwfOffset = uwfOffset;
+
+            p.Offset(location.X + localuwfOffset.X, location.Y + localuwfOffset.Y);
             return p;
         }
         public virtual void Refresh()
@@ -337,6 +309,10 @@ namespace System.Windows.Forms
 
         }
         public void ResumeLayout()
+        {
+
+        }
+        public void ResumeLayout(bool performLayout)
         {
 
         }
@@ -353,11 +329,59 @@ namespace System.Windows.Forms
             selected = true;
             lastSelected = this;
         }
+        public void SetBounds(int argX, int argY, int argWidth, int argHeight)
+        {
+            if (this.x != argX || this.y != argY || (this.width != argWidth || this.height != argHeight))
+                this.SetBoundsCore(argX, argY, argWidth, argHeight, BoundsSpecified.All);
+        }
+        public void SetBounds(int argX, int argY, int argWidth, int argHeight, BoundsSpecified specified)
+        {
+            if ((specified & BoundsSpecified.X) == BoundsSpecified.None)
+                argX = this.x;
+            if ((specified & BoundsSpecified.Y) == BoundsSpecified.None)
+                argY = this.y;
+            if ((specified & BoundsSpecified.Width) == BoundsSpecified.None)
+                argWidth = this.width;
+            if ((specified & BoundsSpecified.Height) == BoundsSpecified.None)
+                argHeight = this.height;
+            if (this.x != argX || this.y != argY || (this.width != argWidth || this.height != argHeight))
+                this.SetBoundsCore(argX, argY, argWidth, argHeight, specified);
+        }
         public void SuspendLayout()
         {
             // dunno.
         }
 
+        protected override void Dispose(bool release_all)
+        {
+            if (IsDisposed) return;
+
+            Disposing = true;
+            OnDisposing(this, EventArgs.Empty);
+
+            if (release_all)
+            {
+                for (; Controls.Count > 0;)
+                    Controls[0].Dispose();
+
+                Controls.Clear();
+            }
+
+            if (Parent != null)
+            {
+                int self = Parent.Controls.FindIndex(x => x == this);
+                if (self > -1)
+                    Parent.Controls.RemoveAt(self);
+            }
+
+            if (uwfContext)
+                uwfAppOwner.Contexts.Remove(this);
+
+            Disposed(this, EventArgs.Empty);
+            IsDisposed = true;
+
+            base.Dispose(release_all);
+        }
         protected void InvokeGotFocus(Control toInvoke, EventArgs e)
         {
             if (toInvoke == null) return;
@@ -372,6 +396,10 @@ namespace System.Windows.Forms
         protected virtual void OnClick(EventArgs e)
         {
             Click(this, e);
+        }
+        protected virtual void OnClientSizeChanged(EventArgs e)
+        {
+            ClientSizeChanged(this, e);
         }
         protected virtual void OnDoubleClick(EventArgs e)
         {
@@ -454,7 +482,7 @@ namespace System.Windows.Forms
         }
         protected virtual void OnMouseUp(MouseEventArgs e)
         {
-
+            MouseUp(this, e);
         }
         protected virtual void OnMouseWheel(MouseEventArgs e)
         {
@@ -471,204 +499,97 @@ namespace System.Windows.Forms
         {
 
         }
-        protected virtual void OnResize(Point delta)
+        protected virtual void OnResize(EventArgs e)
         {
-
-
+            Resize(this, e);
         }
         protected virtual void OnTextChanged(EventArgs e)
         {
             TextChanged(this, e);
         }
+        protected virtual void SetBoundsCore(int argX, int argY, int argWidth, int argHeight, BoundsSpecified specified)
+        {
+            if (this.x == argX && this.y == argY && (this.width == argWidth && this.height == argHeight))
+                return;
 
+            if (this.Parent != null)
+                this.Parent.SuspendLayout();
+
+            this.UpdateBounds(argX, argY, argWidth, argHeight);
+
+            if (this.Parent != null)
+                this.Parent.ResumeLayout(true);
+        }
+        protected virtual void SetClientSizeCore(int argX, int argY)
+        {
+            this.Size = this.SizeFromClientSize(argX, argY);
+            this.clientWidth = argX;
+            this.clientHeight = argY;
+            this.OnClientSizeChanged(EventArgs.Empty);
+        }
+        protected void SetStyle(ControlStyles flag, bool value)
+        {
+            this.controlStyle = value ? this.controlStyle | flag : this.controlStyle & ~flag;
+        }
+        protected virtual void OnSizeChanged(EventArgs e)
+        {
+            OnResize(EventArgs.Empty);
+            SizeChanged(this, e);
+        }
+        protected virtual Size SizeFromClientSize(Size clientSize)
+        {
+            return this.SizeFromClientSize(clientSize.Width, clientSize.Height);
+        }
+        protected void UpdateBounds(int argX, int argY, int argWidth, int argHeight)
+        {
+            int cWidth = argWidth;
+            int cHeight = argHeight;
+            this.UpdateBounds(argX, argY, argWidth, argHeight, cWidth, cHeight);
+        }
+        protected void UpdateBounds(int argX, int argY, int argWidth, int argHeight, int argClientWidth, int argClientHeight)
+        {
+            int widthBuffer = this.width;
+            int heightBuffer = this.height;
+
+            bool locationFlag = this.x != argX || this.y != argY;
+            bool sizeFlag = this.Width != argWidth || this.Height != argHeight || this.clientWidth != argClientWidth || this.clientHeight != argClientHeight;
+
+            this.x = argX;
+            this.y = argY;
+            this.width = argWidth;
+            this.height = argHeight;
+            this.clientWidth = argClientWidth;
+            this.clientHeight = argClientHeight;
+
+            if (locationFlag)
+                this.OnLocationChanged(EventArgs.Empty);
+            if (!sizeFlag)
+                return;
+
+            var delta = new Point(widthBuffer - argWidth, heightBuffer - argHeight);
+            ResizeChilds(delta);
+
+            this.OnSizeChanged(EventArgs.Empty);
+            this.OnClientSizeChanged(EventArgs.Empty);
+        }
         protected virtual void uwfChildGotFocus(Control child)
         {
             if (Parent == null) return;
 
             Parent.uwfChildGotFocus(child);
         }
-        protected virtual object uwfOnPaintEditor(float width)
+
+        internal virtual bool CanSelectCore()
         {
-            System.Windows.Forms.Control controlToSet = null;
-
-            Editor.BeginGroup(width - 24);
-
-            _toggleEditor = Editor.Foldout("Control (" + GetType().Name + ")", _toggleEditor);
-            if (_toggleEditor)
+            if ((this.controlStyle & ControlStyles.Selectable) != ControlStyles.Selectable)
+                return false;
+            for (Control control = this; control != null; control = control.Parent)
             {
-                var editorAllowDrop = Editor.BooleanField("AllowDrop", this.AllowDrop);
-                if (editorAllowDrop.Changed) this.AllowDrop = editorAllowDrop;
-
-                var editorAlwaysFocused = Editor.BooleanField("AlwaysFocused", this.AlwaysFocused);
-                if (editorAlwaysFocused.Changed) this.AlwaysFocused = editorAlwaysFocused;
-
-                var editorAnchor = Editor.EnumField("Anchor", this.Anchor);
-                if (editorAnchor.Changed) this.Anchor = (AnchorStyles)editorAnchor.Value;
-
-                var editorAutoSize = Editor.BooleanField("AutoSize", this.AutoSize);
-                if (editorAutoSize.Changed) this.AutoSize = editorAutoSize;
-
-                Editor.ColorField("BackColor", this.BackColor, (c) => { this.BackColor = c; });
-
-                var editorBackgroundImageLayout = Editor.EnumField("BackgroundImageLayout", this.BackgroundImageLayout);
-                if (editorBackgroundImageLayout.Changed) this.BackgroundImageLayout = (ImageLayout)editorBackgroundImageLayout.Value;
-
-                var editorCanSelect = Editor.BooleanField("CanSelect", CanSelect);
-                if (editorCanSelect.Changed)
-                    CanSelect = editorCanSelect.Value;
-
-                Editor.Label("ClientRectangle", this.ClientRectangle);
-
-                if (this.Controls != null && this.Controls.Count > 0)
-                {
-                    _toggleControls = Editor.Foldout("Controls (" + this.Controls.Count.ToString() + ")", _toggleControls);
-                    if (_toggleControls)
-                    {
-                        Editor.BeginGroup(width - 32);
-                        for (int i = 0; i < this.Controls.Count; i++)
-                        {
-                            var childControl = this.Controls[i];
-                            if (Editor.Button(childControl.Name, childControl.GetType().Name))
-                                controlToSet = childControl;
-                        }
-                        Editor.EndGroup();
-                    }
-                }
-
-                Editor.Label("DisplayRectangle", this.DisplayRectangle);
-                Editor.Label("Disposing", this.Disposing);
-
-                var editorEnabled = Editor.BooleanField("Enabled", this.Enabled);
-                if (editorEnabled.Changed) Enabled = editorEnabled;
-
-                Editor.Label("Focused", this.Focused);
-
-                _toggleFont = Editor.Foldout("Font", _toggleFont);
-                if (_toggleFont)
-                {
-                    int selectedFont = -1;
-                    float size = 12;
-                    if (this.Font != null)
-                        size = this.Font.Size;
-                    System.Drawing.FontStyle style = System.Drawing.FontStyle.Regular;
-                    if (this.Font != null)
-                        style = this.Font.Style;
-                    List<string> fonts = new List<string>();
-                    for (int i = 0; i < System.Windows.Forms.ApplicationBehaviour.Resources.Fonts.Count; i++)
-                    {
-                        fonts.Add(System.Windows.Forms.ApplicationBehaviour.Resources.Fonts[i].fontNames[0]);
-                        if (this.Font != null && this.Font.Name.ToLower() == System.Windows.Forms.ApplicationBehaviour.Resources.Fonts[i].fontNames[0].ToLower())
-                            selectedFont = i;
-                    }
-
-                    var editorFont = Editor.Popup("      Font", selectedFont, fonts.ToArray());
-                    if (editorFont.Changed)
-                        this.Font = new System.Drawing.Font(System.Windows.Forms.ApplicationBehaviour.Resources.Fonts[editorFont].fontNames[0], size);
-
-                    var editorFontSize = Editor.Slider("      Size", size, 8, 128);
-                    if (editorFontSize.Changed)
-                    {
-                        if (this.Font == null)
-                            this.Font = new System.Drawing.Font("Arial", editorFontSize);
-                        else
-                            this.Font = new System.Drawing.Font(this.Font.Name, editorFontSize);
-                    }
-
-                    var editorFontStyle = Editor.EnumField("      Style", style);
-                    if (editorFontStyle.Changed)
-                    {
-                        if (this.Font == null)
-                            this.Font = new System.Drawing.Font("Arial", editorFontSize, (System.Drawing.FontStyle)editorFontStyle.Value);
-                        else
-                            this.Font = new System.Drawing.Font(this.Font.Name, editorFontSize, (System.Drawing.FontStyle)editorFontStyle.Value);
-                    }
-                }
-
-                Editor.ColorField("ForeColor", this.ForeColor, (c) => { this.ForeColor = c; });
-
-                var editorHeight = Editor.Slider("Height", this.Height, 0, 4096);
-                if (editorHeight.Changed) Height = (int)editorHeight.Value;
-
-                Editor.Label("Hovered", this.Hovered);
-
-                Editor.Label("IsDisposed", this.IsDisposed.ToString());
-
-                var editorLocation = Editor.IntField("Location", this.Location.X, this.Location.Y);
-                if (editorLocation.Changed) Location = new Point(editorLocation.Value[0], editorLocation.Value[1]);
-
-                var editorMaximumSize = Editor.IntField("MaximumSize", this.MaximumSize.Width, this.MaximumSize.Height);
-                if (editorMaximumSize.Changed) this.MaximumSize = new Drawing.Size(editorMaximumSize.Value[0], editorMaximumSize.Value[1]);
-
-                var editorMinimumSize = Editor.IntField("MinimumSize", this.MinimumSize.Width, this.MinimumSize.Height);
-                if (editorMinimumSize.Changed) this.MinimumSize = new Drawing.Size(editorMinimumSize.Value[0], editorMinimumSize.Value[1]);
-
-                var editorName = Editor.TextField("Name", Name ?? "");
-                if (editorName.Changed) this.Name = editorName;
-
-                var editorPadding = Editor.IntField("Padding", this.Padding.Left, this.Padding.Top, this.Padding.Right, this.Padding.Bottom);
-                if (editorPadding.Changed)
-                    Padding = new Forms.Padding(editorPadding.Value[0], editorPadding.Value[3], editorPadding.Value[2], editorPadding.Value[1]);
-
-                if (this.Parent != null)
-                {
-                    if (Editor.Button("Parent", this.Parent.GetType().Name))
-                        controlToSet = this.Parent;
-                }
-                else
-                    Editor.Label("Parent", "null");
-
-                var editorSize = Editor.IntField("Size", this.Size.Width, this.Size.Height);
-                if (editorSize.Changed) this.Size = new Drawing.Size(editorSize.Value[0], editorSize.Value[1]);
-
-                var editorTabIndex = Editor.Slider("TabIndex", this.TabIndex, 0, 255);
-                if (editorTabIndex.Changed) this.TabIndex = (int)editorTabIndex.Value;
-
-                var editorTabStop = Editor.BooleanField("TabStop", TabStop);
-                if (editorTabStop.Changed)
-                    TabStop = editorTabStop.Value;
-
-                string tagText = "null";
-                if (Tag != null)
-                    tagText = string.Format("[{0}] {1}", Tag.GetType().Name, Tag.ToString());
-                Editor.Label("Tag", tagText);
-
-                var editorText = Editor.TextField("Text", Text ?? "");
-                if (editorText.Changed) this.Text = editorText;
-
-                Editor.Label("Type", this.GetType());
-
-                var editorVisible = Editor.BooleanField("Visible", this.Visible);
-                if (editorVisible.Changed) this.Visible = editorVisible;
-
-                var editorWidth = Editor.Slider("Width", this.Width, 0, 4096);
-                if (editorWidth.Changed) this.Width = (int)editorWidth.Value;
-
-                Editor.NewLine(1);
-
-                Editor.Label("uwfBatches", uwfBatches);
-                Editor.Label("uwfContext", this.uwfContext);
-                Editor.Label("uwfOffset", uwfOffset);
-
-                var editorShadowBox = Editor.BooleanField("uwfShadowBox", this.uwfShadowBox);
-                if (editorShadowBox.Changed) uwfShadowBox = editorShadowBox;
-
-                _toggleSource = Editor.Foldout("uwfSource", _toggleSource);
-                if (_toggleSource) Editor.Label(this.uwfSource);
-
-                Editor.NewLine(1);
-
-                if (Editor.Button("BringToFront()")) BringToFront();
-                if (Editor.Button("Dispose()")) Dispose();
-                if (Editor.Button("Focus()")) Focus();
-                if (Editor.Button("Refresh()")) Refresh();
-                if (Editor.Button("Select()")) Select();
+                if (!control.Enabled || !control.Visible)
+                    return false;
             }
-
-            Editor.EndGroup();
-
-            return controlToSet;
+            return true;
         }
-
         internal Form FindFormInternal()
         {
             Control cur = this;
@@ -733,9 +654,8 @@ namespace System.Windows.Forms
         internal void RaiseOnMouseUp(MouseEventArgs e)
         {
             OnMouseUp(e);
-            MouseUp(this, e);
 
-            if (uwfAppOwner != null && ApplicationBehaviour.ShowControlProperties && Application.ShowCallback != null)
+            if (uwfAppOwner != null && Unity.API.ApplicationBehaviour.ShowControlProperties && Application.ShowCallback != null)
                 Application.ShowCallback.Invoke(this);
         }
         internal void RaiseOnMouseWheel(MouseEventArgs e)
@@ -749,7 +669,10 @@ namespace System.Windows.Forms
         }
         internal void RaiseOnKeyPress(KeyEventArgs e)
         {
-            OnKeyPress(e);
+            OnKeyPress(e); // TODO: KeyPressEventArgs?
+            KeyPress(this, new KeyPressEventArgs(KeyHelper.GetLastInputChar()));
+
+            uwfKeyPress(this, e);
         }
         internal void RaiseOnKeyUp(KeyEventArgs e)
         {
@@ -758,7 +681,6 @@ namespace System.Windows.Forms
         }
         internal void RaiseOnPaint(PaintEventArgs e)
         {
-            e.Graphics.Control = this;
             uwfBatches = 0;
 
             if (uwfShadowBox)
@@ -767,78 +689,60 @@ namespace System.Windows.Forms
                 {
                     uwfShadowHandler = (pArgs) =>
                     {
-                        var psLoc = PointToScreen(Point.Zero);
+                        var psLoc = PointToScreen(Point.Empty);
                         int shX = psLoc.X + 6;
                         int shY = psLoc.Y + 6;
                         var shadowColor = defaultShadowColor;
-                        pArgs.Graphics.FillRectangle(shadowColor, shX + 6, shY + 6, Width - 12, Height - 12);
-                        pArgs.Graphics.FillRectangle(shadowColor, shX + 5, shY + 5, Width - 10, Height - 10);
-                        pArgs.Graphics.FillRectangle(shadowColor, shX + 4, shY + 4, Width - 8, Height - 8);
-                        pArgs.Graphics.FillRectangle(shadowColor, shX + 3, shY + 3, Width - 6, Height - 6);
-                        pArgs.Graphics.FillRectangle(shadowColor, shX + 2, shY + 2, Width - 4, Height - 4);
+                        var localWidth = Width;
+                        var localHeight = Height;
+                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 6, shY + 6, localWidth - 12, localHeight - 12);
+                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 5, shY + 5, localWidth - 10, localHeight - 10);
+                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 4, shY + 4, localWidth - 8, localHeight - 8);
+                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 3, shY + 3, localWidth - 6, localHeight - 6);
+                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 2, shY + 2, localWidth - 4, localHeight - 4);
                     };
                 }
 
-                uwfShadowHandler.Invoke(e);
+                uwfShadowHandler(e);
             }
 
             if (uwfAutoGroup)
-            {
-                int gx = e.ClipRectangle.X;
-                int gy = e.ClipRectangle.Y;
-
-                if (gx != 0 && gy != 9) // Reset?
-                    e.ClipRectangle = new Rectangle(0, 0, Screen.PrimaryScreen.WorkingArea.Width, Screen.PrimaryScreen.WorkingArea.Height);
-
-                e.Graphics.Group = new Drawing.Rectangle(gx, gy, Width, Height);
                 e.Graphics.GroupBegin(this);
-            }
+
             OnPaintBackground(e);
             OnPaint(e);
-            if (Controls != null)
-                for (int i = 0; i < Controls.Count; i++)
-                {
-                    var childControl = Controls[i];
-                    if (Application.ControlIsVisible(childControl) == false) continue;
 
-                    var currentAbspos = childControl.PointToScreen(Point.Zero);
-                    if (currentAbspos.X + childControl.Width < 0 || currentAbspos.X > Screen.PrimaryScreen.WorkingArea.Width ||
-                    currentAbspos.Y + childControl.Height < 0 || currentAbspos.Y > Screen.PrimaryScreen.WorkingArea.Height)
+            var controls = Controls;
+            if (controls != null)
+            {
+                var screenRect = Screen.PrimaryScreen.WorkingArea;
+                for (int i = 0; i < controls.Count; i++)
+                {
+                    var childControl = controls[i];
+                    if (Application.ControlIsVisible(childControl) == false) continue;
+                    
+                    var currentAbspos = childControl.PointToScreen(Point.Empty);
+                    var currentAbsposX = currentAbspos.X;
+                    var currentAbsposY = currentAbspos.Y;
+
+                    if (currentAbsposX + childControl.width < 0 ||
+                        currentAbsposX > screenRect.Width ||
+                        currentAbsposY + childControl.height < 0 ||
+                        currentAbsposY > screenRect.Height)
                         continue;
 
-                    e.Graphics.Control = childControl;
                     childControl.RaiseOnPaint(e);
                 }
-            e.Graphics.Control = this;
-            if (Application.Debug)
-            {
-                e.Graphics.DrawString(GetType().Name, Font, Brushes.White, 3, 1, 256, 32);
-                e.Graphics.DrawString(GetType().Name, Font, Brushes.White, 5, 3, 256, 32);
-                e.Graphics.DrawString(GetType().Name, Font, Brushes.DarkRed, 4, 2, 256, 32);
-
-                var outlinePen = Pens.DarkRed;
-                if (Focused) outlinePen = new Pen(SystemColors.Highlight);
-                e.Graphics.DrawRectangle(outlinePen, 0, 0, Width, Height);
             }
+
             OnLatePaint(e);
+
             if (uwfAutoGroup)
                 e.Graphics.GroupEnd();
-
-            e.Graphics.Control = null;
         }
-        internal object RaiseOnPaintEditor(float width)
+        internal Size SizeFromClientSize(int argWidth, int argHeight)
         {
-            return uwfOnPaintEditor(width);
-        }
-        internal void RaiseOnResize(Point delta)
-        {
-            if (delta != Point.Zero)
-                if (Controls != null)
-                    for (int i = 0; i < Controls.Count; i++)
-                        Controls[i].ParentResized(delta);
-
-            OnResize(delta);
-            Resize(this, null);
+            return new Size(argWidth, argHeight);
         }
         internal void uwfAddjustSizeToScreen(Size delta)
         {
@@ -846,6 +750,7 @@ namespace System.Windows.Forms
         }
 
         public event EventHandler Click = delegate { };
+        public event EventHandler ClientSizeChanged = delegate { };
         public new event EventHandler Disposed = delegate { };
         public event DragEventHandler DragDrop = delegate { };
         public event DragEventHandler DragEnter = delegate { };
@@ -854,6 +759,7 @@ namespace System.Windows.Forms
         public event EventHandler LocationChanged = delegate { };
         public event EventHandler LostFocus = delegate { };
         public event KeyEventHandler KeyDown = delegate { };
+        public event KeyPressEventHandler KeyPress = delegate { };
         public event KeyEventHandler KeyUp = delegate { };
         public event MouseEventHandler MouseDown = delegate { };
         public event EventHandler MouseEnter = delegate { };
@@ -862,8 +768,11 @@ namespace System.Windows.Forms
         public event MouseEventHandler MouseUp = delegate { };
         public event EventHandler OnDisposing = delegate { };
         public event EventHandler Resize = delegate { };
+        public event EventHandler SizeChanged = delegate { };
         public event EventHandler TextChanged = delegate { };
         public event EventHandler VisibleChanged = delegate { };
+
+        public event KeyEventHandler uwfKeyPress = delegate { };
 
         public delegate void DrawHandler(PaintEventArgs e);
         public delegate void ResizeHandler(Point delta);

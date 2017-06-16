@@ -40,7 +40,6 @@ namespace System.Windows.Forms
             BackColor = Color.FromArgb(250, 250, 250);
             BorderColor = Color.LightGray;
             BorderHoverColor = Color.FromArgb(126, 180, 234);
-            CanSelect = true;
             TextAlign = HorizontalAlignment.Left;
             ForeColor = Color.Black;
             Padding = new Padding(2, 0, 2, 0);
@@ -59,15 +58,25 @@ namespace System.Windows.Forms
             var textW = Width - Padding.Horizontal;
             var textH = Height - Padding.Vertical;
 
-            g.FillRectangle(BackColor, 0, 0, Width, Height);
+            g.uwfFillRectangle(BackColor, 0, 0, Width, Height);
 
             if (Enabled && Focused)
             {
                 var _tempText = "";
+
+                if (shouldFocus)
+                    g.uwfFocusNext();
+
                 if (!Multiline)
-                    _tempText = g.DrawTextField(Text, Font, ForeColor, textX, textY, textW, textH, TextAlign);
+                    _tempText = g.uwfDrawTextField(Text, Font, ForeColor, textX, textY, textW, textH, TextAlign);
                 else
-                    _tempText = g.DrawTextArea(Text, Font, ForeColor, textX, textY, textW, textH);
+                    _tempText = g.uwfDrawTextArea(Text, Font, ForeColor, textX, textY, textW, textH);
+
+                if (shouldFocus)
+                {
+                    shouldFocus = false;
+                    g.uwfFocus();
+                }
 
                 if (ReadOnly == false && string.Equals(Text, _tempText) == false)
                     Text = _tempText;
@@ -75,35 +84,12 @@ namespace System.Windows.Forms
             else
             {
                 if (Multiline)
-                    g.DrawString(Text, Font, ForeColor, textX, textY, textW, textH, ContentAlignment.TopLeft);
+                    g.uwfDrawString(Text, Font, ForeColor, textX, textY, textW, textH, ContentAlignment.TopLeft);
                 else
-                    g.DrawString(Text, Font, ForeColor, textX, textY, textW, textH, TextAlign);
+                    g.uwfDrawString(Text, Font, ForeColor, textX, textY, textW, textH, TextAlign);
             }
 
             g.DrawRectangle(_borderPen, 0, 0, Width, Height);
-        }
-        protected override object uwfOnPaintEditor(float width)
-        {
-            var control = base.uwfOnPaintEditor(width);
-
-#if UNITY_EDITOR
-
-            Editor.NewLine(1);
-            Editor.ColorField("BorderColor", BorderColor, (c) => { BorderColor = c; });
-            Editor.ColorField("BorderHoverColor", BorderHoverColor, (c) => { BorderHoverColor = c; });
-
-            var editorMultiline = Editor.BooleanField("Multiline", Multiline);
-            if (editorMultiline.Changed)
-                Multiline = editorMultiline.Value;
-
-            var editorReadonly = Editor.BooleanField("ReadOnly", ReadOnly);
-            if (editorReadonly.Changed)
-                ReadOnly = editorReadonly.Value;
-
-            Editor.Label("TextAlign", TextAlign);
-#endif
-
-            return control;
         }
     }
 }
