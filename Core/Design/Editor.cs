@@ -23,7 +23,10 @@ namespace System.Drawing
             _nameWidth = 160;
             _contentWidth = width - _nameWidth;
 
-            UnityEngine.GUILayout.BeginVertical(style);
+            if (string.IsNullOrEmpty(style))
+                UnityEngine.GUILayout.BeginVertical();
+            else
+                UnityEngine.GUILayout.BeginVertical(style);
         }
         public static void BeginHorizontal()
         {
