@@ -92,7 +92,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (this.index + 1 >= 0)
+                if (this.index - 1 >= 0)
                     return this.parent.Nodes[this.index - 1];
 
                 return null;

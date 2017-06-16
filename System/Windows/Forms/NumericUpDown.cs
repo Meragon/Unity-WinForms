@@ -88,9 +88,9 @@ namespace System.Windows.Forms
                 ButtonIncrease.Size = new Size(14, 8);
                 ButtonIncrease.Name = "_numericButtonIncrease";
                 ButtonIncrease.BackColor = Color.FromArgb(236, 236, 236);
-                ButtonIncrease.BorderColor = Color.FromArgb(172, 172, 172);
-                ButtonIncrease.HoverColor = Color.FromArgb(228, 241, 252);
-                ButtonIncrease.BorderHoverColor = Color.FromArgb(126, 180, 234);
+                ButtonIncrease.uwfBorderColor = Color.FromArgb(172, 172, 172);
+                ButtonIncrease.uwfHoverColor = Color.FromArgb(228, 241, 252);
+                ButtonIncrease.uwfBorderHoverColor = Color.FromArgb(126, 180, 234);
                 ButtonIncrease.Image = uwfAppOwner.Resources.NumericUp;
                 ButtonIncrease.Click += delegate { if (Enabled) Value += Increment; };
 
@@ -100,9 +100,9 @@ namespace System.Windows.Forms
                 ButtonDecrease.Size = new Drawing.Size(14, 8);
                 ButtonDecrease.Name = "_numericButtonDecrease";
                 ButtonDecrease.BackColor = Color.FromArgb(236, 236, 236);
-                ButtonDecrease.BorderColor = Color.FromArgb(172, 172, 172);
-                ButtonDecrease.HoverColor = Color.FromArgb(228, 241, 252);
-                ButtonDecrease.BorderHoverColor = Color.FromArgb(126, 180, 234);
+                ButtonDecrease.uwfBorderColor = Color.FromArgb(172, 172, 172);
+                ButtonDecrease.uwfHoverColor = Color.FromArgb(228, 241, 252);
+                ButtonDecrease.uwfBorderHoverColor = Color.FromArgb(126, 180, 234);
                 ButtonDecrease.Image = uwfAppOwner.Resources.NumericDown;
                 ButtonDecrease.Click += delegate { if (Enabled) Value -= Increment; };
 

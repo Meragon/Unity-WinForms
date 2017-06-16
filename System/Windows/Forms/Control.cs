@@ -49,6 +49,7 @@ namespace System.Windows.Forms
         }
         public virtual bool AutoSize { get; set; }
         public virtual Color BackColor { get; set; }
+        public virtual Image BackgroundImage { get; set; }
         public virtual ImageLayout BackgroundImageLayout { get; set; }
         public Rectangle Bounds
         {
@@ -481,7 +482,7 @@ namespace System.Windows.Forms
         }
         protected virtual void OnMouseUp(MouseEventArgs e)
         {
-
+            MouseUp(this, e);
         }
         protected virtual void OnMouseWheel(MouseEventArgs e)
         {
@@ -653,7 +654,6 @@ namespace System.Windows.Forms
         internal void RaiseOnMouseUp(MouseEventArgs e)
         {
             OnMouseUp(e);
-            MouseUp(this, e);
 
             if (uwfAppOwner != null && Unity.API.ApplicationBehaviour.ShowControlProperties && Application.ShowCallback != null)
                 Application.ShowCallback.Invoke(this);
@@ -703,7 +703,7 @@ namespace System.Windows.Forms
                     };
                 }
 
-                uwfShadowHandler.Invoke(e);
+                uwfShadowHandler(e);
             }
 
             if (uwfAutoGroup)
@@ -720,12 +720,15 @@ namespace System.Windows.Forms
                 {
                     var childControl = controls[i];
                     if (Application.ControlIsVisible(childControl) == false) continue;
-
+                    
                     var currentAbspos = childControl.PointToScreen(Point.Empty);
-                    if (currentAbspos.X + childControl.Width < 0 ||
-                        currentAbspos.X > screenRect.Width ||
-                        currentAbspos.Y + childControl.Height < 0 ||
-                        currentAbspos.Y > screenRect.Height)
+                    var currentAbsposX = currentAbspos.X;
+                    var currentAbsposY = currentAbspos.Y;
+
+                    if (currentAbsposX + childControl.width < 0 ||
+                        currentAbsposX > screenRect.Width ||
+                        currentAbsposY + childControl.height < 0 ||
+                        currentAbsposY > screenRect.Height)
                         continue;
 
                     childControl.RaiseOnPaint(e);

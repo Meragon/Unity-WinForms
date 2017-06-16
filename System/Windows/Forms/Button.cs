@@ -8,14 +8,8 @@ using System.Drawing;
 namespace System.Windows.Forms
 {
     [Serializable]
-    public class Button : Control, IButtonControl
+    public class Button : ButtonBase, IButtonControl
     {
-        internal Color currentBackColor;
-        private float cBackColorA;
-        private float cBackColorR;
-        private float cBackColorG;
-        private float cBackColorB;
-        protected Pen borderPen;
         private DialogResult dialogResult;
 
         public virtual DialogResult DialogResult
@@ -23,44 +17,10 @@ namespace System.Windows.Forms
             get { return dialogResult; }
             set { dialogResult = value; }
         }
-        public Color BorderColor { get; set; }
-        public Color BorderDisableColor { get; set; }
-        public Color BorderHoverColor { get; set; }
-        public Color BorderSelectColor { get; set; }
-        public Color DisableColor { get; set; }
-        public Color HoverColor { get; set; }
-        public Bitmap Image { get; set; }
-        public Bitmap ImageHover { get; set; }
-        public Color ImageColor { get; set; }
-        public Color ImageHoverColor { get; set; }
-        public ContentAlignment TextAlign { get; set; }
-        
-        public bool UseVisualStyleBackColor;
 
         public Button()
         {
-            BackColor = Color.FromArgb(234, 234, 234);
-            BackgroundImageLayout = ImageLayout.Center;
-            BorderColor = Color.FromArgb(172, 172, 172);
-            BorderDisableColor = Color.FromArgb(217, 217, 217);
-            BorderHoverColor = Color.FromArgb(126, 180, 234);
-            BorderSelectColor = Color.FromArgb(51, 153, 255);
-            DisableColor = Color.FromArgb(239, 239, 239);
-            ForeColor = Color.FromArgb(64, 64, 64);
-            ImageColor = Color.White;
-            ImageHoverColor = Color.White;
-            HoverColor = Color.FromArgb(223, 238, 252);
-            TextAlign = ContentAlignment.MiddleCenter;
-            Size = new Drawing.Size(75, 23);
-
             this.SetStyle(ControlStyles.StandardClick | ControlStyles.StandardDoubleClick, false);
-
-            borderPen = new Pen(BorderColor);
-            currentBackColor = BackColor;
-            cBackColorA = currentBackColor.A;
-            cBackColorR = currentBackColor.R;
-            cBackColorG = currentBackColor.G;
-            cBackColorB = currentBackColor.B;
         }
 
         public void NotifyDefault(bool value)
@@ -84,86 +44,10 @@ namespace System.Windows.Forms
 
             base.OnClick(e);
         }
-        protected override void OnKeyUp(KeyEventArgs e)
+
+        public override string ToString()
         {
-            base.OnKeyUp(e);
-            if (e.KeyCode == Keys.Space || e.KeyCode == Keys.Return)
-                PerformClick();
-        }
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            Graphics g = e.Graphics;
-
-            var enabled = Enabled;
-            var height = Height;
-            var width = Width;
-
-            // Back.
-            if (enabled)
-            {
-                if (Hovered == false)
-                    MathHelper.ColorLerp(BackColor, 5, ref cBackColorA, ref cBackColorR, ref cBackColorG, ref cBackColorB);
-                else
-                    MathHelper.ColorLerp(HoverColor, 5, ref cBackColorA, ref cBackColorR, ref cBackColorG, ref cBackColorB);
-            }
-            else
-                MathHelper.ColorLerp(DisableColor, 5, ref cBackColorA, ref cBackColorR, ref cBackColorG, ref cBackColorB);
-
-            currentBackColor = Color.FromArgb((int)cBackColorA, (int)cBackColorR, (int)cBackColorG, (int)cBackColorB);
-
-            g.uwfFillRectangle(currentBackColor, 0, 0, width, height);
-
-            // Border.
-            if (enabled == false)
-                borderPen.Color = BorderDisableColor;
-            else if (Hovered)
-                borderPen.Color = BorderHoverColor;
-            else if (Focused)
-                borderPen.Color = BorderSelectColor;
-            else
-                borderPen.Color = BorderColor;
-
-            g.DrawRectangle(borderPen, 0, 0, width, height);
-
-            if (Image != null && Image.uTexture != null)
-            {
-                var imageToPaint = Image;
-                var imageColorToPaint = ImageColor;
-                if (Hovered)
-                {
-                    if (ImageHover != null)
-                        imageToPaint = ImageHover;
-                    imageColorToPaint = ImageHoverColor;
-                }
-                switch (BackgroundImageLayout)
-                {
-                    default:
-                    case ImageLayout.None:
-                        g.uwfDrawImage(imageToPaint, imageColorToPaint, 0, 0, imageToPaint.Width, imageToPaint.Height);
-                        break;
-                    case ImageLayout.Center:
-                        g.uwfDrawImage(imageToPaint, imageColorToPaint,
-                            width / 2 - imageToPaint.Width / 2,
-                            height / 2 - imageToPaint.Height / 2,
-                            imageToPaint.Width,
-                            imageToPaint.Height);
-                        break;
-                    case ImageLayout.Stretch:
-                        g.uwfDrawImage(imageToPaint, imageColorToPaint, 0, 0, width, height);
-                        break;
-                    case ImageLayout.Zoom:
-                        // TODO: not working.
-                        break;
-                }
-            }
-            var textColor = ForeColor;
-            if (enabled == false) textColor = ForeColor + Color.FromArgb(0, 128, 128, 128);
-            var padding = Padding;
-            g.uwfDrawString(Text, Font, textColor,
-                    padding.Left,
-                    padding.Top,
-                    width - padding.Horizontal,
-                    height - padding.Vertical, TextAlign);
+            return base.ToString() + ", Text: " + this.Text;
         }
     }
 }

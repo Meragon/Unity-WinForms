@@ -281,12 +281,12 @@ namespace System.Windows.Forms
         }
         protected override void OnMouseUp(MouseEventArgs e)
         {
-            base.OnMouseUp(e);
-
             var mclient = PointToClient(MousePosition);
             var itemIndex = IndexAt(mclient);
 
             SelectItem(itemIndex);
+
+            base.OnMouseUp(e);
         }
         protected override void OnPaint(PaintEventArgs e)
         {

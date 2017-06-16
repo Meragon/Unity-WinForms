@@ -52,7 +52,7 @@ namespace System.Windows.Forms
         protected ToolStripItem()
         {
             Enabled = true;
-            Font = new Font("Arial", 12);
+            Font = SystemFonts.DefaultFont;
             ForeColor = Color.FromArgb(64, 64, 64);
             HoverColor = Color.FromArgb(64, 200, 200, 200);
             HoverPadding = new Size(2, 2);
@@ -105,7 +105,7 @@ namespace System.Windows.Forms
 
             g.uwfFillRectangle(BackColor, ex, ey, ew, eh);
             if (Image != null)
-                g.uwfDrawImage(Image, ImageColor, ex + 6, ey + 4, 12, 12);
+                g.uwfDrawImage(Image, ImageColor, ex + 10, ey + 4, 12, 12);
             if (Enabled)
             {
                 var rect = Rectangle.Inflate(e.ClipRectangle, -HoverPadding.Width, -HoverPadding.Height);
@@ -137,7 +137,7 @@ namespace System.Windows.Forms
                 g.uwfDrawString(Text, Font, textColor, ex, ey, ew, eh, TextAlign);
             }
             else
-                g.uwfDrawString(Text, Font, textColor, ex + 32, ey, ew, eh, TextAlign);
+                g.uwfDrawString(Text, Font, textColor, ex + 40, ey, ew, eh, TextAlign);
         }
 
         internal void RaiseClick()
@@ -376,9 +376,9 @@ namespace System.Windows.Forms
                 int rectWH = e.ClipRectangle.Height - 8;
                 int checkedWH = e.ClipRectangle.Height - 12;
 
-                e.Graphics.uwfFillRectangle(HoverColor, e.ClipRectangle.X + 4, e.ClipRectangle.Y + 4, rectWH, rectWH);
-                e.Graphics.DrawRectangle(selectPen, e.ClipRectangle.X + 4, e.ClipRectangle.Y + 4, rectWH, rectWH);
-                e.Graphics.DrawImage(Unity.API.ApplicationBehaviour.GdiImages.Checked, e.ClipRectangle.X + 6, e.ClipRectangle.Y + 6, checkedWH, checkedWH);
+                e.Graphics.uwfFillRectangle(HoverColor, e.ClipRectangle.X + 8, e.ClipRectangle.Y + 4, rectWH, rectWH);
+                e.Graphics.DrawRectangle(selectPen, e.ClipRectangle.X + 8, e.ClipRectangle.Y + 4, rectWH, rectWH);
+                e.Graphics.DrawImage(Unity.API.ApplicationBehaviour.GdiImages.Checked, e.ClipRectangle.X + 10, e.ClipRectangle.Y + 6, checkedWH, checkedWH);
             }
 
             if (!String.IsNullOrEmpty(ShortcutKeys))

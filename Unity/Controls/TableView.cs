@@ -556,10 +556,10 @@ namespace System.Windows.Forms
             public TableColumnButton(TableView t, TableButtonStyle style)
             {
                 BackColor = style.BackColor;
-                HoverColor = style.HoverColor;
-                BorderColor = style.BorderColor;
-                BorderHoverColor = style.BorderHoverColor;
-                BorderSelectColor = style.BorderSelectColor;
+                uwfHoverColor = style.HoverColor;
+                uwfBorderColor = style.BorderColor;
+                uwfBorderHoverColor = style.BorderHoverColor;
+                uwfBorderSelectColor = style.BorderSelectColor;
                 Padding = new Padding(8, 0, 8, 0);
                 ResizeWidth = 8;
                 Size = new Size(t.ColumnsDefaultWidth, 20);
@@ -747,10 +747,10 @@ namespace System.Windows.Forms
             public TableRowButton(TableButtonStyle style)
             {
                 BackColor = style.BackColor;
-                HoverColor = style.HoverColor;
-                BorderColor = style.BorderColor;
-                BorderHoverColor = style.BorderHoverColor;
-                BorderSelectColor = style.BorderSelectColor;
+                uwfHoverColor = style.HoverColor;
+                uwfBorderColor = style.BorderColor;
+                uwfBorderHoverColor = style.BorderHoverColor;
+                uwfBorderSelectColor = style.BorderSelectColor;
                 Padding = new Padding(8, 0, 8, 0);
                 Size = new Size(100, 20);
                 TabStop = false;

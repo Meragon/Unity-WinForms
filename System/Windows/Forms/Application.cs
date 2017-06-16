@@ -731,19 +731,5 @@ namespace System.Windows.Forms
             Down,
             Up
         }
-
-        private class _HotKey
-        {
-            public Control hWnd { get; private set; }
-            public int Id { get; private set; }
-            public Keys Key { get; private set; }
-
-            public _HotKey(Control hwnd, int id, Keys key)
-            {
-                this.hWnd = hwnd;
-                this.Id = id;
-                this.Key = key;
-            }
-        }
     }
 }

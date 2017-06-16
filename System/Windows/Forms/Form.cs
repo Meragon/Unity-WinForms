@@ -156,16 +156,16 @@ namespace System.Windows.Forms
                 CloseButton.Image = uwfAppOwner.Resources.Close;
             else
                 CloseButton.Text = "X";
-            CloseButton.HoverColor = System.Drawing.Color.FromArgb(64, 252, 252, 252);
-            CloseButton.BorderHoverColor = System.Drawing.Color.Transparent;
+            CloseButton.uwfHoverColor = System.Drawing.Color.FromArgb(64, 252, 252, 252);
+            CloseButton.uwfBorderHoverColor = System.Drawing.Color.Transparent;
             CloseButton.Location = new Point(Width - 32, 1);
             CloseButton.Name = "buttonClose";
             CloseButton.BackColor = System.Drawing.Color.FromArgb(0, 238, 238, 242);
-            CloseButton.BorderColor = System.Drawing.Color.Transparent;
+            CloseButton.uwfBorderColor = System.Drawing.Color.Transparent;
             CloseButton.Size = new System.Drawing.Size(24, 16);
             CloseButton.ForeColor = System.Drawing.Color.FromArgb(64, 64, 64);
-            CloseButton.ImageColor = Color.FromArgb(64, 64, 64);
-            CloseButton.ImageHoverColor = Color.FromArgb(128, 128, 128);
+            CloseButton.uwfImageColor = Color.FromArgb(64, 64, 64);
+            CloseButton.uwfImageHoverColor = Color.FromArgb(128, 128, 128);
 
             CloseButton.BringToFront();
             CloseButton.Click += (o, e) => { Close(); };

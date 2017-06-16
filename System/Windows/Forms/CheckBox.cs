@@ -14,12 +14,12 @@ namespace System.Windows.Forms
         public CheckBox()
         {
             BackColor = Color.White;
-            BorderColor = Color.FromArgb(112, 112, 112);
-            BorderHoverColor = Color.FromArgb(51, 153, 255);
-            BorderDisableColor = Color.FromArgb(188, 188, 188);
-            DisableColor = Color.FromArgb(230, 230, 230);
+            uwfBorderColor = Color.FromArgb(112, 112, 112);
+            uwfBorderHoverColor = Color.FromArgb(51, 153, 255);
+            uwfBorderDisableColor = Color.FromArgb(188, 188, 188);
+            uwfDisableColor = Color.FromArgb(230, 230, 230);
             ForeColor = Color.Black;
-            HoverColor = Color.FromArgb(243, 249, 255);
+            uwfHoverColor = Color.FromArgb(243, 249, 255);
             Size = new Drawing.Size(128, 17);
             TextAlign = ContentAlignment.MiddleLeft;
 
@@ -36,19 +36,19 @@ namespace System.Windows.Forms
         {
             Graphics g = e.Graphics;
 
-            var backColor = DisableColor;
-            borderPen.Color = BorderDisableColor;
+            var backColor = uwfDisableColor;
+            borderPen.Color = uwfBorderDisableColor;
             if (Enabled)
             {
                 if (Hovered)
                 {
-                    backColor = HoverColor;
-                    borderPen.Color = BorderHoverColor;
+                    backColor = uwfHoverColor;
+                    borderPen.Color = uwfBorderHoverColor;
                 }
                 else
                 {
                     backColor = BackColor;
-                    borderPen.Color = BorderColor;
+                    borderPen.Color = uwfBorderColor;
                 }
             }
 

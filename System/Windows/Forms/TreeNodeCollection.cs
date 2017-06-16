@@ -22,7 +22,7 @@ namespace System.Windows.Forms
             get
             {
                 if (index < 0 || index >= items.Count)
-                    throw new ArgumentOutOfRangeException("index");
+                    throw new ArgumentOutOfRangeException("index " + index);
                 return items[index];
             }
             set

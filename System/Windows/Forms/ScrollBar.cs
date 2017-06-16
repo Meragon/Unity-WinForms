@@ -99,23 +99,23 @@ namespace System.Windows.Forms
             var imageHoverColor = Color.Black;
 
             addButton = new RepeatButton();
-            addButton.BorderHoverColor = borderHoverColor;
-            addButton.BorderDisableColor = borderColor;
-            addButton.HoverColor = backHoverColor;
-            addButton.ImageColor = imageColor;
-            addButton.ImageHoverColor = imageHoverColor;
-            addButton.BorderColor = borderColor;
+            addButton.uwfBorderHoverColor = borderHoverColor;
+            addButton.uwfBorderDisableColor = borderColor;
+            addButton.uwfHoverColor = backHoverColor;
+            addButton.uwfImageColor = imageColor;
+            addButton.uwfImageHoverColor = imageHoverColor;
+            addButton.uwfBorderColor = borderColor;
             addButton.BackColor = backColor;
             addButton.Click += (s, a) => { DoScroll(ScrollEventType.SmallIncrement); };
             Controls.Add(addButton);
 
             subtractButton = new RepeatButton();
-            subtractButton.BorderHoverColor = borderHoverColor;
-            subtractButton.BorderDisableColor = borderColor;
-            subtractButton.HoverColor = backHoverColor;
-            subtractButton.ImageColor = imageColor;
-            subtractButton.ImageHoverColor = imageHoverColor;
-            subtractButton.BorderColor = borderColor;
+            subtractButton.uwfBorderHoverColor = borderHoverColor;
+            subtractButton.uwfBorderDisableColor = borderColor;
+            subtractButton.uwfHoverColor = backHoverColor;
+            subtractButton.uwfImageColor = imageColor;
+            subtractButton.uwfImageHoverColor = imageHoverColor;
+            subtractButton.uwfBorderColor = borderColor;
             subtractButton.BackColor = backColor;
             subtractButton.Click += (s, a) => { DoScroll(ScrollEventType.SmallDecrement); };
             Controls.Add(subtractButton);

@@ -71,7 +71,7 @@ namespace System.Windows.Forms
             buttonBack.Image = FolderNavBack;
             buttonBack.Location = new Point(Padding.Left, uwfHeaderHeight + Padding.Top);
             buttonBack.BackColor = Color.Transparent;
-            buttonBack.BorderColor = Color.Transparent;
+            buttonBack.uwfBorderColor = Color.Transparent;
             buttonBack.Size = new Size(22, 22);
             if (buttonBack.Image == null) buttonBack.Text = "◀";
             buttonBack.Click += (sender, args) => ButtonBack();
@@ -88,7 +88,7 @@ namespace System.Windows.Forms
             buttonUp.Image = FolderNavUp;
             buttonUp.Location = new Point(buttonBack.Location.X + buttonBack.Width + 8, buttonBack.Location.Y);
             buttonUp.BackColor = Color.Transparent;
-            buttonUp.BorderColor = Color.Transparent;
+            buttonUp.uwfBorderColor = Color.Transparent;
             buttonUp.Size = new Drawing.Size(22, 22);
             if (buttonUp.Image == null) buttonUp.Text = "▲";
             buttonUp.Click += (sender, args) => ButtonUp();
@@ -102,10 +102,10 @@ namespace System.Windows.Forms
             buttonRefresh = new Button();
             buttonRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             buttonRefresh.Image = FolderNavRefresh;
-            buttonRefresh.ImageColor = Color.FromArgb(64, 64, 64);
-            buttonRefresh.ImageHoverColor = buttonRefresh.ImageColor;
+            buttonRefresh.uwfImageColor = Color.FromArgb(64, 64, 64);
+            buttonRefresh.uwfImageHoverColor = buttonRefresh.uwfImageColor;
             buttonRefresh.BackColor = Color.Transparent;
-            buttonRefresh.BorderColor = Color.Transparent;
+            buttonRefresh.uwfBorderColor = Color.Transparent;
             buttonRefresh.Size = new Size(22, 22);
             buttonRefresh.Location = new Point(Width - Padding.Right - buttonRefresh.Width, buttonUp.Location.Y);
             buttonRefresh.Click += (sender, args) => ButtonRefresh();
@@ -807,24 +807,24 @@ namespace System.Windows.Forms
                     Path = path;
 
                     BackColor = Color.Transparent;
-                    BorderColor = Color.Transparent;
+                    uwfBorderColor = Color.Transparent;
                     ForeColor = Color.FromArgb(47, 47, 47);
-                    HoverColor = Color.FromArgb(229, 243, 251);
+                    uwfHoverColor = Color.FromArgb(229, 243, 251);
                     Padding = new Padding(4, 0, 4, 0);
                     TextAlign = ContentAlignment.MiddleLeft;
 
                     var arrowButton = new Button();
                     arrowButton.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
                     arrowButton.BackColor = BackColor;
-                    arrowButton.BorderColor = BorderColor;
-                    arrowButton.HoverColor = HoverColor;
+                    arrowButton.uwfBorderColor = uwfBorderColor;
+                    arrowButton.uwfHoverColor = uwfHoverColor;
                     arrowButton.Width = 15;
                     arrowButton.Height = Height;
                     arrowButton.Location = new Point(Width - arrowButton.Width, 0);
                     arrowButton.Text = "";
                     arrowButton.Image = Unity.API.ApplicationBehaviour.GdiImages.ArrowRight;
-                    arrowButton.ImageColor = Color.Gray;
-                    arrowButton.ImageHoverColor = Color.Gray;
+                    arrowButton.uwfImageColor = Color.Gray;
+                    arrowButton.uwfImageHoverColor = Color.Gray;
 
                     Controls.Add(arrowButton);
                 }

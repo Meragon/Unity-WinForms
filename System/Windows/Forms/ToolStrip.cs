@@ -13,6 +13,7 @@ namespace System.Windows.Forms
         private readonly Pen borderPen = new Pen(Color.Transparent);
         private readonly ToolStripItemCollection _items;
         private readonly PaintEventArgs p_args;
+        private readonly Pen verticalLinePen = new Pen(Color.FromArgb(215, 215, 215));
 
         public ToolStrip()
         {
@@ -172,7 +173,7 @@ namespace System.Windows.Forms
             p_args.Graphics.FillRectangle(brushBack, 0, 0, Width, Height);
 
             if (Orientation == Forms.Orientation.Vertical)
-                p_args.Graphics.DrawLine(new Drawing.Pen(Drawing.Color.FromArgb(215, 215, 215)), 24, 2, 24, Height - 2);
+                p_args.Graphics.DrawLine(verticalLinePen, 30, 2, 30, Height - 2);
 
             for (int i = 0, x = Padding.Left, y = Padding.Top; i < _items.Count; i++)
             {

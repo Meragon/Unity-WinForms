@@ -17,13 +17,13 @@ namespace System.Drawing
 
         public static bool WinFormsCompatible { get; set; }
 
-        public static void BeginGroup(float width)
+        public static void BeginGroup(float width, string style = "Box")
         {
             _width = width;
             _nameWidth = 160;
             _contentWidth = width - _nameWidth;
 
-            UnityEngine.GUILayout.BeginVertical("Box");
+            UnityEngine.GUILayout.BeginVertical(style);
         }
         public static void BeginHorizontal()
         {

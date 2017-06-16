@@ -101,9 +101,9 @@ namespace System.Windows.Forms
             btn.Size = new Size(page.Width, HeaderHeight);
             btn.Location = new Point(page.Offset, 0);
             btn.BackColor = Color.FromArgb(204, 206, 219);
-            btn.BorderColor = Color.Transparent;
-            btn.BorderHoverColor = Color.Transparent;
-            btn.BorderSelectColor = Color.Transparent;
+            btn.uwfBorderColor = Color.Transparent;
+            btn.uwfBorderHoverColor = Color.Transparent;
+            btn.uwfBorderSelectColor = Color.Transparent;
 
             btn.Click += (object sender, EventArgs e) =>
             {
@@ -120,13 +120,13 @@ namespace System.Windows.Forms
             if (!active)
             {
                 header.BackColor = Color.FromArgb(0, 204, 206, 219);
-                header.HoverColor = Color.FromArgb(238, 238, 242);
+                header.uwfHoverColor = Color.FromArgb(238, 238, 242);
                 header.ForeColor = Color.DarkGray;
             }
             else
             {
                 header.BackColor = Color.FromArgb(204, 206, 219);
-                header.HoverColor = header.BackColor;
+                header.uwfHoverColor = header.BackColor;
                 header.ForeColor = Color.FromArgb(64, 64, 64);
             }
         }

@@ -17,8 +17,8 @@ namespace System.Windows.Forms
 
             Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             Image = img;
-            ImageColor = Color.White;
-            ImageHoverColor = Color.FromArgb(0, 122, 204);
+            uwfImageColor = Color.White;
+            uwfImageHoverColor = Color.FromArgb(0, 122, 204);
             Text = "";
             Height = img.Height;
             Width = img.Width;
