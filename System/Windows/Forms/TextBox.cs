@@ -50,7 +50,7 @@ namespace System.Windows.Forms
         {
             base.OnPaint(e);
 
-            _borderPen.Color = Hovered ? BorderHoverColor : BorderColor;
+            _borderPen.Color = uwfHovered ? BorderHoverColor : BorderColor;
 
             var g = e.Graphics;
             var textX = Padding.Left;

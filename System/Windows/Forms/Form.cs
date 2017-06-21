@@ -10,7 +10,7 @@ namespace System.Windows.Forms
     [Serializable]
     public class Form : ContainerControl, IResizableControl
     {
-        protected readonly Pen borderPen;
+        private readonly Pen borderPen;
 
         private Button _closeButton;
         private Action<Form, DialogResult> _dialogCallback;
@@ -31,11 +31,6 @@ namespace System.Windows.Forms
         internal bool dialog;
 
         public IButtonControl AcceptButton { get; set; }
-        public Color BorderColor
-        {
-            get { return borderPen.Color; }
-            set { borderPen.Color = value; }
-        }
         public Button CloseButton { get { return _closeButton; } }
         public bool ControlBox
         {
@@ -67,6 +62,7 @@ namespace System.Windows.Forms
         }
         public DialogResult DialogResult { get; set; }
         public bool IsModal { get { return uwfAppOwner.ModalForms.Contains(this); } }
+        public FormBorderStyle FormBorderStyle { get; set; }
         public bool KeyPreview { get; set; }
         public MenuStrip MainMenuStrip { get { return _mainMenuStrip; } set { _mainMenuStrip = value; } }
         public SizeGripStyle SizeGripStyle
@@ -97,6 +93,11 @@ namespace System.Windows.Forms
             }
         }
 
+        public Color uwfBorderColor
+        {
+            get { return borderPen.Color; }
+            set { borderPen.Color = value; }
+        }
         public Color uwfHeaderColor { get; set; }
         public Font uwfHeaderFont { get; set; }
         public int uwfHeaderHeight { get; set; }
@@ -104,7 +105,6 @@ namespace System.Windows.Forms
         public ContentAlignment uwfHeaderTextAlign { get; set; }
         public Color uwfHeaderTextColor { get; set; }
         public bool uwfMovable { get; set; }
-        public bool uwfResizable { get; set; }
 
         public Form()
         {
@@ -114,8 +114,9 @@ namespace System.Windows.Forms
             uwfHeaderPadding = new Padding(32, 0, 32, 0);
 
             BackColor = Color.FromArgb(238, 238, 242);
-            BorderColor = Color.FromArgb(204, 206, 219);
+            uwfBorderColor = Color.FromArgb(204, 206, 219);
             Font = new Font("Arial", 14);
+            FormBorderStyle = FormBorderStyle.Sizable;
             Location = nextLocation;
             uwfHeaderColor = Color.FromArgb(238, 238, 242);
             uwfHeaderFont = Font;
@@ -124,7 +125,6 @@ namespace System.Windows.Forms
             ControlBox = true;
             MinimumSize = new Drawing.Size(128, 48);
             uwfMovable = true;
-            uwfResizable = true;
             uwfShadowBox = true;
             Size = new Size(334, 260);
             Visible = false;
@@ -185,7 +185,7 @@ namespace System.Windows.Forms
         {
             #region ResizeComponent
 
-            if (resizeType != ControlResizeTypes.None && uwfResizable)
+            if (resizeType != ControlResizeTypes.None && (FormBorderStyle == FormBorderStyle.Sizable || FormBorderStyle == FormBorderStyle.SizableToolWindow))
             {
                 int estimatedWidth = 0;
                 int estimatedHeight = 0;
@@ -277,7 +277,7 @@ namespace System.Windows.Forms
         }
         public virtual ControlResizeTypes GetResizeAt(Point mclient)
         {
-            if (!uwfResizable) return ControlResizeTypes.None;
+            if (!(FormBorderStyle == FormBorderStyle.Sizable || FormBorderStyle == FormBorderStyle.SizableToolWindow)) return ControlResizeTypes.None;
 
             var r_type = ControlResizeTypes.None;
 
@@ -431,9 +431,9 @@ namespace System.Windows.Forms
             g.uwfDrawString(Text, uwfHeaderFont, uwfHeaderTextColor, headerPadding.Left, headerPadding.Top, Width - headerPadding.Horizontal, headerHeight - headerPadding.Vertical, uwfHeaderTextAlign);
             g.uwfFillRectangle(BackColor, 0, headerHeight, Width, Height - headerHeight);
         }
-        protected override void OnLatePaint(PaintEventArgs e)
+        protected override void uwfOnLatePaint(PaintEventArgs e)
         {
-            base.OnLatePaint(e);
+            base.uwfOnLatePaint(e);
 
             e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }

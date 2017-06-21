@@ -61,7 +61,7 @@ namespace Unity.Controls
             this.font = font;
             this.Scale = 1f;
         }
-        public override void Apply()
+        public void Apply()
         {
             var tSize = TextureSize;
             uTexture = Graphics.ApiGraphics.CreateTexture(tSize.Width, tSize.Height);

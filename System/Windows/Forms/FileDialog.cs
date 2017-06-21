@@ -19,6 +19,7 @@ namespace System.Windows.Forms
 
         internal FileRenderer fileRenderer;
 
+        private readonly Pen borderPen;
         private readonly bool handleFormSize;
 
         protected Button buttonOk;
@@ -51,6 +52,8 @@ namespace System.Windows.Forms
 #if !UNITY_STANDALONE && !UNITY_ANDROID
             throw new NotSupportedException();
 #endif
+            borderPen = new Pen(uwfBorderColor);
+
             BackColor = Color.White;
             Filter = "All files|*.*";
             MinimumSize = new Drawing.Size(240, 240);
@@ -629,7 +632,7 @@ namespace System.Windows.Forms
 #if UNITY_STANDALONE
                 Size = new Drawing.Size(320, 120);
                 Location = new Point(Screen.PrimaryScreen.WorkingArea.Width / 2 - Width / 2, Screen.PrimaryScreen.WorkingArea.Height / 2 - Height / 2);
-                uwfResizable = false;
+                FormBorderStyle = FormBorderStyle.FixedSingle;
                 Text = "Properties: ";
 
                 if (System.IO.File.Exists(path) == false) return;

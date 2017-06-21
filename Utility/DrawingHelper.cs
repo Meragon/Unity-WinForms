@@ -22,6 +22,10 @@ namespace System.Drawing
         {
             return new Point(p1.X + (int)p2.X, p1.Y + (int)p2.Y);
         }
+        public static void Apply(this Bitmap bitmap)
+        {
+            bitmap.uTexture.Apply();
+        }
         public static int Distance(this Point p1, Point to)
         {
             return (int)Math.Sqrt(Math.Pow(to.X - p1.X, 2) + Math.Pow(to.Y - p1.Y, 2));

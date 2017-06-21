@@ -10,8 +10,7 @@ namespace System.Windows.Forms.Design
 {
     public class ControlDesigner : IControlDesigner
     {
-        private objectEditor editor;
-        private bool toggleEditor = true;
+        private readonly objectEditor editor;
 
         public Control Control { get; set; }
 
@@ -29,6 +28,7 @@ namespace System.Windows.Forms.Design
 
             Control controlToSet = null;
 
+            Editor.SetBackColor(Color.White);
             Editor.BeginGroup(width - 24, "");
 
             controlToSet = editor.Draw();
@@ -40,6 +40,7 @@ namespace System.Windows.Forms.Design
 
         private class controlProperty
         {
+            public readonly List<objectEditor> arrayEditors = new List<objectEditor>();
             public objectEditor editor;
             public bool expanded;
             public PropertyInfo info;
@@ -51,6 +52,7 @@ namespace System.Windows.Forms.Design
             private readonly object obj;
             private readonly List<controlProperty> props;
             private readonly string name;
+            private int rgb = 255;
 
             public bool toggleEditor;
 
@@ -67,6 +69,9 @@ namespace System.Windows.Forms.Design
                 for (int i = 0; i < pList.Count; i++)
                 {
                     var p = pList[i];
+                    if (p.DeclaringType == typeof(Delegate)) continue;
+                    if (p.Name == "Item") continue; // this[] will throw an exception.
+
                     var cp = new controlProperty()
                     {
                         info = p,
@@ -99,13 +104,15 @@ namespace System.Windows.Forms.Design
                     return null;
                 }
 
-                Editor.BeginVertical("Box");
                 toggleEditor = Editor.Foldout(name, toggleEditor);
+                var style = toggleEditor ? "Box" : null;
+                Editor.BeginVertical(style);
                 if (toggleEditor)
                 {
                     // Fields.
                     if (fields.Count > 0)
                     {
+                        Editor.SetBackColor(Color.AliceBlue);
                         Editor.BeginVertical("Box");
                         for (int i = 0; i < fields.Count; i++)
                         {
@@ -119,6 +126,9 @@ namespace System.Windows.Forms.Design
                     }
 
                     // Properties.
+                    Editor.SetBackColor(Color.White);
+                    if (toggleEditor)
+                        Editor.SetBackColor(Color.FromArgb(rgb, rgb, rgb));
                     for (int i = 0; i < props.Count; i++)
                     {
                         var tc = Draw(props[i]);
@@ -127,6 +137,7 @@ namespace System.Windows.Forms.Design
                     }
 
                     // Methods.
+                    Editor.SetBackColor(Color.White);
                     if (methods.Count > 0)
                     {
                         Editor.NewLine(1);
@@ -140,21 +151,33 @@ namespace System.Windows.Forms.Design
                     }
                 }
                 Editor.EndVertical();
+
+                if (toggleEditor)
+                    Editor.NewLine(1);
+
                 return control;
             }
             public Control Draw(controlProperty p)
             {
                 Control controlToSet = null;
+
+                if (p.info.CanRead == false) return null;
+
                 var val = p.info.GetValue(obj, null);
                 Type type = null;
                 if (val != null)
                     type = val.GetType();
+                else
+                {
+                    Editor.Label(p.info.Name, "null");
+                    return null;
+                }
 
                 // Array & List.
                 if (val is string == false)
-                    if ((type != null && type.IsArray) || val is IEnumerable)
+                    if (type.IsArray || val is IEnumerable)
                     {
-                        Editor.BeginVertical("Box");
+                        Editor.BeginVertical();
                         p.expanded = Editor.Foldout(p.info.Name, p.expanded);
                         if (p.expanded)
                         {
@@ -170,10 +193,16 @@ namespace System.Windows.Forms.Design
                                 }
                                 else
                                 {
-                                    if (p.editor == null)
-                                        p.editor = new objectEditor(e, arrayIndex.ToString());
+                                    if (arrayIndex >= p.arrayEditors.Count)
+                                    {
+                                        var aEditor = new objectEditor(e, arrayIndex.ToString());
+                                        aEditor.rgb = rgb - 25;
+                                        if (aEditor.rgb < 128)
+                                            aEditor.rgb = 128;
+                                        p.arrayEditors.Add(aEditor);
+                                    }
 
-                                    p.editor.Draw();
+                                    p.arrayEditors[arrayIndex].Draw();
                                 }
                                 arrayIndex++;
                             }
@@ -183,16 +212,20 @@ namespace System.Windows.Forms.Design
                     }
 
                 // If there is no Set() method then skip.
+                var canSet = true;
                 var pSetMethod = p.info.GetSetMethod(true);
                 if (pSetMethod == null || pSetMethod.IsPrivate)
-                {
-                    Editor.Label(p.info.Name, val);
-                    return null;
-                }
+                    canSet = false;
 
                 // Other editors.
                 if (val is bool)
                 {
+                    if (canSet == false)
+                    {
+                        Editor.Label(p.info.Name, val);
+                        return null;
+                    }
+
                     var bVal = (bool)val;
                     var ebVal = Editor.BooleanField(p.info.Name, bVal);
                     if (ebVal.Changed)
@@ -206,11 +239,23 @@ namespace System.Windows.Forms.Design
                 }
                 else if (val is Color)
                 {
+                    if (canSet == false)
+                    {
+                        Editor.Label(p.info.Name, val);
+                        return null;
+                    }
+
                     var colorVal = (Color)val;
                     Editor.ColorField(p.info.Name, colorVal, c => p.info.SetValue(obj, c, null));
                 }
                 else if (val is string)
                 {
+                    if (canSet == false)
+                    {
+                        Editor.Label(p.info.Name, val);
+                        return null;
+                    }
+
                     var stringtVal = (string)val;
                     var esVal = Editor.TextField(p.info.Name, stringtVal);
                     if (esVal.Changed)
@@ -218,25 +263,62 @@ namespace System.Windows.Forms.Design
                 }
                 else if (val is int)
                 {
-                    var eiVal = Editor.IntField(p.info.Name, (int) val);
+                    if (canSet == false)
+                    {
+                        Editor.Label(p.info.Name, val);
+                        return null;
+                    }
+
+                    var eiVal = Editor.IntField(p.info.Name, (int)val);
                     if (eiVal.Changed)
                         p.info.SetValue(obj, eiVal.Value[0], null);
                 }
                 else if (val is byte || val is sbyte || val is short || val is ushort || val is uint || val is long || val is ulong || val is float || val is double)
                 {
+                    if (canSet == false)
+                    {
+                        Editor.Label(p.info.Name, val);
+                        return null;
+                    }
+
                     // TODO: editors for common types (like for int ^up there).
                     Editor.Label(p.info.Name, val);
                 }
                 else if (val is Enum)
                 {
-                    var eeVal = Editor.EnumField(p.info.Name, (Enum)val);
-                    if (eeVal.Changed)
-                        p.info.SetValue(obj, eeVal.Value, null);
+                    if (canSet == false)
+                    {
+                        Editor.Label(p.info.Name, val);
+                        return null;
+                    }
+                    
+                    var enumHasFlagAttribute = val.GetType().GetCustomAttributes(typeof(FlagsAttribute), false).Length > 0;
+                    var enumOptions = Enum.GetNames(val.GetType());
+
+                    if (enumHasFlagAttribute)
+                    {
+                        // TODO: not gonna work with 'None' flag.
+                        // https://forum.unity3d.com/threads/editorguilayout-enummaskfield-doesnt-use-enums-values.233332/
+                        var eeVal = Editor.MaskField(p.info.Name, Convert.ToInt32(val), enumOptions);
+                        if (eeVal.Changed)
+                            p.info.SetValue(obj, eeVal.Value, null);
+                    }
+                    else
+                    {
+                        var eeVal = Editor.EnumField(p.info.Name, (Enum)val);
+                        if (eeVal.Changed)
+                            p.info.SetValue(obj, eeVal.Value, null);
+                    }
                 }
                 else if (val != null)
                 {
                     if (p.editor == null)
+                    {
                         p.editor = new objectEditor(val, p.info.Name);
+                        p.editor.rgb = rgb - 25;
+                        if (p.editor.rgb < 128)
+                            p.editor.rgb = 128;
+                    }
 
                     p.editor.Draw();
                 }

@@ -21,18 +21,14 @@ namespace System.Drawing
         {
             uTexture = Graphics.ApiGraphics.CreateTexture(width, height);
         }
-
-        public override void Apply()
-        {
-            uTexture.Apply();
-        }
+        
         public void ClearColor(Color c, bool apply = true)
         {
             var colors = new Color[Width * Height];
             for (int i = 0; i < colors.Length; i++)
                 colors[i] = c;
             uTexture.SetPixels(colors);
-            if (apply) Apply();
+            if (apply) this.Apply();
         }
         public Color GetPixel(int x, int y)
         {

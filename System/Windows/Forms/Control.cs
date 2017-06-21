@@ -12,7 +12,7 @@ namespace System.Windows.Forms
     {
         protected static Color defaultShadowColor = Color.FromArgb(12, 0, 0, 0);
 
-        public static Application DefaultController { get; set; }
+        public static Application uwfDefaultController { get; set; }
         public static Point MousePosition
         {
             get
@@ -86,7 +86,6 @@ namespace System.Windows.Forms
             get { return height; }
             set { this.SetBounds(this.x, this.y, this.width, value, BoundsSpecified.Height); }
         }
-        public bool Hovered { get { return hovered; } }
         public bool IsDisposed { get; private set; }
         public int Left
         {
@@ -134,10 +133,10 @@ namespace System.Windows.Forms
             set { this.SetBounds(this.x, this.y, value, this.height, BoundsSpecified.Width); }
         }
 
-        public Application uwfAppOwner { get; internal set; }
-        public bool uwfAutoGroup { get; set; } // GUI.BeingGroup(...) & GUI.EndGroup()
-        public int uwfBatches { get; internal set; }
-        public virtual bool uwfContext // Close on click control.
+        internal Application uwfAppOwner;
+        internal bool uwfAutoGroup;
+        internal int uwfBatches;
+        internal virtual bool uwfContext // Close on click control.
         {
             get { return _uwfContext; }
             set
@@ -152,19 +151,19 @@ namespace System.Windows.Forms
                 }
             }
         }
-        public bool uwfShadowBox { get; set; }
-        public DrawHandler uwfShadowHandler { get; set; }
-
-        internal IControlDesigner uwfDesigner { get; set; }
-        internal Point uwfOffset { get; set; }
-        internal string uwfSource { get; set; }
+        internal bool uwfHovered { get { return hovered; } }
+        internal bool uwfShadowBox;
+        internal DrawHandler uwfShadowHandler;
+        internal IControlDesigner uwfDesigner;
+        internal Point uwfOffset;
+        internal string uwfSource;
 
         public Control()
         {
             if (Parent != null && Parent.uwfAppOwner != null)
                 Parent.uwfAppOwner.Run(this);
-            else if (DefaultController != null)
-                DefaultController.Run(this);
+            else if (uwfDefaultController != null)
+                uwfDefaultController.Run(this);
 
             Controls = new ControlCollection(this);
             Enabled = true;
@@ -436,10 +435,6 @@ namespace System.Windows.Forms
         {
 
         }
-        protected virtual void OnLatePaint(PaintEventArgs e)
-        {
-
-        }
         protected virtual void OnLocationChanged(EventArgs e)
         {
             LocationChanged(this, EventArgs.Empty);
@@ -572,11 +567,16 @@ namespace System.Windows.Forms
             this.OnSizeChanged(EventArgs.Empty);
             this.OnClientSizeChanged(EventArgs.Empty);
         }
+
         protected virtual void uwfChildGotFocus(Control child)
         {
             if (Parent == null) return;
 
             Parent.uwfChildGotFocus(child);
+        }
+        protected virtual void uwfOnLatePaint(PaintEventArgs e)
+        {
+
         }
 
         internal virtual bool CanSelectCore()
@@ -735,7 +735,7 @@ namespace System.Windows.Forms
                 }
             }
 
-            OnLatePaint(e);
+            uwfOnLatePaint(e);
 
             if (uwfAutoGroup)
                 e.Graphics.GroupEnd();

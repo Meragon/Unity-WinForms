@@ -15,8 +15,9 @@ namespace System.Drawing
 
         internal void GroupBegin(Control control)
         {
-            var x = control.Location.X + control.uwfOffset.X;
-            var y = control.Location.Y + control.uwfOffset.Y;
+            var co = control.uwfOffset;
+            var x = control.Location.X + co.X;
+            var y = control.Location.Y + co.Y;
             var w = control.ClientSize.Width;
             var h = control.ClientSize.Height;
 

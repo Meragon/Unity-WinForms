@@ -41,9 +41,9 @@ namespace System.Drawing
                 return true;
             return false;
         }
-        
+
         public static readonly Color Empty = new Color(0, 0, 0, 0) { _isEmpty = true };
-        
+
         public bool IsEmpty { get { return _isEmpty; } }
 
         public static Color AliceBlue { get { return Color.FromArgb(0xF0, 0xF8, 0xFF); } }
@@ -201,32 +201,6 @@ namespace System.Drawing
             if (a < 0) a = 0;
             return new Color((byte)a, (byte)r, (byte)g, (byte)b);
         }
-        public static Color FromHsb(byte hue, byte saturation, byte brigthness)
-        {
-            double dh = (double)hue / 255;
-            double ds = (double)saturation / 255;
-            double db = (double)brigthness / 255;
-            return FromHsb(dh, ds, db);
-        }
-        public static Color FromHsb(double hue, double saturation, double brigthness)
-        {
-            double r = 0, g = 0, b = 0;
-            if (brigthness != 0)
-            {
-                if (saturation == 0)
-                    r = g = b = brigthness;
-                else
-                {
-                    double temp2 = _GetTemp2(hue, saturation, brigthness);
-                    double temp1 = 2.0f * brigthness - temp2;
-
-                    r = _GetColorComponent(temp1, temp2, hue + 1.0f / 3.0f);
-                    g = _GetColorComponent(temp1, temp2, hue);
-                    b = _GetColorComponent(temp1, temp2, hue - 1.0f / 3.0f);
-                }
-            }
-            return Color.FromArgb((int)(255 * r), (int)(255 * g), (int)(255 * b));
-        }
 
         private Color(byte a, byte r, byte g, byte b)
         {
@@ -244,7 +218,7 @@ namespace System.Drawing
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
-            return obj is Color && Equals((Color) obj);
+            return obj is Color && Equals((Color)obj);
         }
         public float GetBrightness()
         {
@@ -376,36 +350,6 @@ namespace System.Drawing
         public override string ToString()
         {
             return "{ R: " + R.ToString() + "; G: " + G.ToString() + "; B: " + B.ToString() + "; A: " + A.ToString() + " }";
-        }
-
-        private static double _GetColorComponent(double temp1, double temp2, double temp3)
-        {
-            temp3 = _MoveIntoRange(temp3);
-            if (temp3 < 1.0f / 6.0f)
-                return temp1 + (temp2 - temp1) * 6.0f * temp3;
-            else if (temp3 < 0.5f)
-                return temp2;
-            else if (temp3 < 2.0f / 3.0f)
-                return temp1 + ((temp2 - temp1) * ((2.0f / 3.0f) - temp3) * 6.0f);
-            else
-                return temp1;
-        }
-        private static double _GetTemp2(double h, double s, double l)
-        {
-            double temp2;
-            if (l < 0.5f)
-                temp2 = l * (1.0f + s);
-            else
-                temp2 = l + s - (l * s);
-            return temp2;
-        }
-        private static double _MoveIntoRange(double temp3)
-        {
-            if (temp3 < 0.0f)
-                temp3 += 1.0f;
-            else if (temp3 > 1.0f)
-                temp3 -= 1.0f;
-            return temp3;
         }
     }
 }

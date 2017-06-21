@@ -24,9 +24,9 @@ namespace System.Windows.Forms
             Size = new Size(168, 286);
             TabIndex = -1;
         }
-        protected override void OnLatePaint(PaintEventArgs e)
+        protected override void uwfOnLatePaint(PaintEventArgs e)
         {
-            base.OnLatePaint(e);
+            base.uwfOnLatePaint(e);
             e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
         protected override void OnPaint(PaintEventArgs e)

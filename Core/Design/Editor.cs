@@ -41,7 +41,10 @@ namespace System.Drawing
         }
         public static void BeginVertical(string style)
         {
-            UnityEngine.GUILayout.BeginVertical(style);
+            if (string.IsNullOrEmpty(style))
+                UnityEngine.GUILayout.BeginVertical();
+            else
+                UnityEngine.GUILayout.BeginVertical(style);
         }
         public static void BeginVertical(GUIStyle style)
         {
@@ -196,6 +199,23 @@ namespace System.Drawing
 
             return new EditorValue<int[]>(intBuffer, changed);
         }
+        public static EditorValue<int> MaskField(string name, int value, string[] options)
+        {
+            UnityEngine.GUILayout.BeginHorizontal();
+            UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
+            var buffer = value;
+            if (WinFormsCompatible)
+            {
+
+            }
+#if UNITY_EDITOR
+            else
+                buffer = UnityEditor.EditorGUILayout.MaskField(value, options);
+#endif
+            UnityEngine.GUILayout.EndHorizontal();
+
+            return new EditorValue<int>(buffer, buffer != value);
+        }
         public static void NewLine(int cnt)
         {
             for (int i = 0; i < cnt; i++)
@@ -265,6 +285,11 @@ namespace System.Drawing
         public static bool Toggle(string name, bool value)
         {
             return UnityEngine.GUILayout.Toggle(value, name, UnityEngine.GUILayout.Width(_width));
+        }
+
+        public static void SetBackColor(Color color)
+        {
+            GUI.backgroundColor = color.ToUnityColor();
         }
     }
 

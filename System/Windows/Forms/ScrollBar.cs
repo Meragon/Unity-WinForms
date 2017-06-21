@@ -408,7 +408,7 @@ namespace System.Windows.Forms
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            if (Hovered || scrollDraging)
+            if (uwfHovered || scrollDraging)
                 scrollDestinationColor = ScrollHoverColor;
             else
                 scrollDestinationColor = ScrollColor;

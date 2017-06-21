@@ -245,9 +245,9 @@ namespace System.Windows.Forms
                     break;
             }
         }
-        protected override void OnLatePaint(PaintEventArgs e)
+        protected override void uwfOnLatePaint(PaintEventArgs e)
         {
-            base.OnLatePaint(e);
+            base.uwfOnLatePaint(e);
 
             e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }

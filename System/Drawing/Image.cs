@@ -14,8 +14,6 @@ namespace System.Drawing
         public Size Size { get { return new Size(Width, Height); } }
         public object Tag { get; set; }
         public int Width { get { return uTexture.Width; } }
-        
-        public abstract void Apply();
     }
 
     public interface ITexture

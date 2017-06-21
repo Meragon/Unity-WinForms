@@ -225,18 +225,18 @@ namespace System.Windows.Forms
                 switch (DropDownStyle)
                 {
                     case ComboBoxStyle.DropDown:
-                        if (Focused || Hovered)
+                        if (Focused || uwfHovered)
                         {
                             backColor = HoverColor;
                             borderColor = BorderColorHovered;
                         }
                         break;
                     case ComboBoxStyle.DropDownList:
-                        backColor = Focused || Hovered ? HoverColorDropDownList : BackColorDropDownList;
+                        backColor = Focused || uwfHovered ? HoverColorDropDownList : BackColorDropDownList;
                         break;
                 }
 
-                if (Focused || Hovered)
+                if (Focused || uwfHovered)
                     borderColor = BorderColorHovered;
             }
             else
@@ -274,7 +274,7 @@ namespace System.Windows.Forms
                     else
                         g.uwfDrawString(Text, Font, ForeColor, 5, 0, Width - downButtonWidth, Height);
 
-                    if (Hovered)
+                    if (uwfHovered)
                     {
                         var bRect = GetButtonRect();
                         var mclient = PointToClient(MousePosition);

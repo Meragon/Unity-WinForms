@@ -10,17 +10,39 @@ namespace System.Windows.Forms
 {
     public class ColorPicker : Button
     {
-        private readonly Pen _borderPen;
-        private ColorPickerForm _currentForm;
-        
-        public Color Color { get; set; }
+        private Color borderColor;
+        private Color color;
+        private readonly Pen cpBorderPen = new Pen(Color.FromArgb(172, 172, 172));
+        private readonly SolidBrush cpColorBrush = new SolidBrush(Color.White);
+        private readonly SolidBrush cpAlphaBackBrush = new SolidBrush(Color.Black);
+        private readonly SolidBrush cpAlphaFrontBrush = new SolidBrush(Color.White);
+
+        public Color BorderColor
+        {
+            get { return borderColor; }
+            set
+            {
+                borderColor = value;
+                cpBorderPen.Color = value;
+            }
+        }
+        public Color BorderHoverColor { get; set; }
+        public Color Color
+        {
+            get { return color; }
+            set
+            {
+                color = value;
+                cpColorBrush.Color = Color.FromArgb(255, value);
+            }
+        }
 
         public ColorPicker()
         {
+            BorderColor = Color.FromArgb(172, 172, 172);
+            BorderHoverColor = Color.FromArgb(126, 180, 234);
             Color = Color.White;
             Size = new Size(128, 20);
-
-            _borderPen = new Pen(uwfBorderColor);
         }
 
         protected virtual void OnColorChanged(object sender, EventArgs e)
@@ -29,35 +51,35 @@ namespace System.Windows.Forms
         }
         protected override void OnMouseClick(MouseEventArgs e)
         {
-            if (_currentForm == null)
+            var colorPickerForm = new ColorPickerForm(this);
+            colorPickerForm.Color = Color;
+            colorPickerForm.ColorChanged += (object sender, EventArgs args) =>
             {
-                _currentForm = new ColorPickerForm(this);
-                _currentForm.Color = Color;
-                _currentForm.ColorChanged += (object sender, EventArgs args) =>
-                {
-                    Color = ((ColorPickerForm)sender).Color;
-                    OnColorChanged(this, args);
-                };
-                _currentForm.OnDisposing += (object sender, EventArgs args) =>
-                {
-                    _currentForm = null;
-                };
-                _currentForm.ShowDialog();
-            }
-            _currentForm.BringToFront();
+                Color = ((ColorPickerForm)sender).Color;
+                OnColorChanged(this, args);
+            };
+            colorPickerForm.ShowDialog();
+        }
+        protected override void OnMouseEnter(EventArgs e)
+        {
+            base.OnMouseEnter(e);
+
+            cpBorderPen.Color = BorderHoverColor;
+        }
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            base.OnMouseLeave(e);
+
+            cpBorderPen.Color = BorderColor;
         }
         protected override void OnPaint(PaintEventArgs e)
         {
             float alphaWidth = (float)Width * ((float)Color.A / 255);
 
-            var borderColor = uwfBorderColor;
-            if (Hovered) borderColor = uwfBorderHoverColor;
-            _borderPen.Color = borderColor;
-
-            e.Graphics.uwfFillRectangle(Color.FromArgb(255, Color), 0, 0, Width, Height - 3);
-            e.Graphics.uwfFillRectangle(Color.Black, 0, Height - 3, Width, 3);
-            e.Graphics.uwfFillRectangle(Color.White, 0, Height - 3, alphaWidth, 3);
-            e.Graphics.DrawRectangle(_borderPen, 0, 0, Width, Height);
+            e.Graphics.FillRectangle(cpColorBrush, 0, 0, Width, Height - 3);
+            e.Graphics.FillRectangle(cpAlphaBackBrush, 0, Height - 3, Width, 3);
+            e.Graphics.FillRectangle(cpAlphaFrontBrush, 0, Height - 3, alphaWidth, 3);
+            e.Graphics.DrawRectangle(cpBorderPen, 0, 0, Width, Height);
         }
 
         public event EventHandler ColorChanged = delegate { };
@@ -65,6 +87,7 @@ namespace System.Windows.Forms
 
     public class ColorPickerForm : Form
     {
+        private readonly Pen borderPen;
         private ColorPicker _owner;
 
         private Color _color;
@@ -113,13 +136,14 @@ namespace System.Windows.Forms
         public ColorPickerForm(ColorPicker owner)
         {
             _owner = owner;
+            borderPen = new Pen(Color.FromArgb(204, 206, 219));
 
             BackColor = Color.White;
             Size = new Size(188, 272);
             Location = new Point(
                 Screen.PrimaryScreen.WorkingArea.Width / 2 - Width / 2,
                 Screen.PrimaryScreen.WorkingArea.Height / 2 - Height / 2);
-            uwfResizable = false;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             Text = "Pick a color";
             KeyPreview = true;
             TopMost = true;
@@ -243,7 +267,7 @@ namespace System.Windows.Forms
             _lNumeric.Value = (int)(_bsPicker.Brightness * 255);
             _lNumeric.ValueChanged += _lNumeric_ValueChanged;
 
-            Color rgbColor = Color.FromHsb(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
+            Color rgbColor = ColorTranslatorEx.FromHsb(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
 
             _rNumeric.ValueChanged -= _rNumeric_ValueChanged;
             _rNumeric.Value = rgbColor.R;
@@ -264,7 +288,7 @@ namespace System.Windows.Forms
             _sNumeric.Value = (int)(_bsPicker.Saturation * 255);
             _sNumeric.ValueChanged += _sNumeric_ValueChanged;
 
-            Color rgbColor = Color.FromHsb(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
+            Color rgbColor = ColorTranslatorEx.FromHsb(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
 
             _rNumeric.ValueChanged -= _rNumeric_ValueChanged;
             _rNumeric.Value = rgbColor.R;
@@ -287,7 +311,7 @@ namespace System.Windows.Forms
             _hNumeric.Value = (int)(_huePicker.Hue * 255);
             _hNumeric.ValueChanged += _hNumeric_ValueChanged;
 
-            Color rgbColor = Color.FromHsb(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
+            Color rgbColor = ColorTranslatorEx.FromHsb(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
 
             _rNumeric.ValueChanged -= _rNumeric_ValueChanged;
             _rNumeric.Value = rgbColor.R;
@@ -404,6 +428,9 @@ namespace System.Windows.Forms
 
         private class BrightnessSaturationPicker : Button
         {
+            private readonly Pen borderPen = new Pen(Drawing.Color.White);
+            private readonly Pen cursorPen = new Pen(Drawing.Color.White);
+
             private float _brightness;
             private readonly Bitmap _image;
             private float _hueValue;
@@ -436,17 +463,16 @@ namespace System.Windows.Forms
                 _image = new Bitmap(w, h);
                 _UpdateImage();
 
-                uwfAppOwner.UpClick += Application_UpClick;
+                MouseHook.MouseUp += MouseHookUpHandler;
             }
 
-            void Application_UpClick(object sender, MouseEventArgs e)
+            private void MouseHookUpHandler(object sender, MouseEventArgs e)
             {
                 if (_mouseDown)
                     UpdateValues();
 
                 _mouseDown = false;
             }
-
             private void _UpdateImage()
             {
                 double hue = _hueValue;
@@ -462,7 +488,7 @@ namespace System.Windows.Forms
                         luminosity = 1f - (float)k / _image.Height;
 
                         // HSL to RGB convertion.
-                        Color pixelColor = Color.FromHsb(hue, saturation, luminosity);
+                        Color pixelColor = ColorTranslatorEx.FromHsb(hue, saturation, luminosity);
                         _image.SetPixel(i, k, pixelColor);
                     }
                     _image.Apply();
@@ -497,7 +523,8 @@ namespace System.Windows.Forms
 
             protected override void Dispose(bool release_all)
             {
-                uwfAppOwner.UpClick -= Application_UpClick;
+                MouseHook.MouseUp -= MouseHookUpHandler;
+
                 base.Dispose(release_all);
             }
             protected override void OnMouseDown(MouseEventArgs e)
@@ -529,11 +556,13 @@ namespace System.Windows.Forms
                 if (_image != null)
                     e.Graphics.DrawImage(_image, 0, 0, Width, Height);
 
-                e.Graphics.DrawRectangle(new Pen(Color.White), Saturation * Width - 2, Height - Brightness * Height - 2, 4, 4);
+                e.Graphics.DrawRectangle(cursorPen, Saturation * Width - 2, Height - Brightness * Height - 2, 4, 4);
 
                 var borderColor = uwfBorderColor;
-                if (Hovered) borderColor = uwfBorderHoverColor;
-                e.Graphics.DrawRectangle(new Pen(borderColor), 0, 0, Width, Height);
+                if (uwfHovered) borderColor = uwfBorderHoverColor;
+                borderPen.Color = borderColor;
+
+                e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
             }
 
             public event EventHandler BrightnessChanged = delegate { };
@@ -542,6 +571,8 @@ namespace System.Windows.Forms
 
         private class HuePicker : Button
         {
+            private readonly Pen borderPen = new Pen(Drawing.Color.White);
+            private readonly Pen cursorPen = new Pen(Drawing.Color.White);
             private readonly Bitmap _image;
             private float _hue;
 
@@ -576,13 +607,13 @@ namespace System.Windows.Forms
                         hue = (float)k / _image.Height;
 
                         // HSL to RGB convertion.
-                        var pixelColor = Color.FromHsb(hue, saturation, luminosity);
+                        var pixelColor = ColorTranslatorEx.FromHsb(hue, saturation, luminosity);
                         _image.SetPixel(i, k, pixelColor);
                     }
                     _image.Apply();
                 }
             }
-            
+
             protected override void OnMouseUp(MouseEventArgs e)
             {
                 Hue = (float)e.Y / Height;
@@ -593,14 +624,15 @@ namespace System.Windows.Forms
             }
             protected override void OnPaint(PaintEventArgs e)
             {
+                var borderColor = uwfBorderColor;
+                if (uwfHovered) borderColor = uwfBorderHoverColor;
+                borderPen.Color = borderColor;
+
                 if (_image != null)
                     e.Graphics.DrawImage(_image, 0, 0, Width, Height);
 
-                e.Graphics.DrawLine(new Pen(Color.White), 0, Hue * Height, Width, Hue * Height);
-
-                var borderColor = uwfBorderColor;
-                if (Hovered) borderColor = uwfBorderHoverColor;
-                e.Graphics.DrawRectangle(new Pen(borderColor), 0, 0, Width, Height);
+                e.Graphics.DrawLine(cursorPen, 0, Hue * Height, Width, Hue * Height);
+                e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
             }
 
             public event EventHandler HueChanged = delegate { };
@@ -645,7 +677,7 @@ namespace System.Windows.Forms
                 }
                 _image.Apply();
             }
-            
+
             protected override void OnMouseDown(MouseEventArgs e)
             {
                 if (e.Button == MouseButtons.Left)
@@ -665,7 +697,7 @@ namespace System.Windows.Forms
                 var x = mclient.X;
                 if (x <= 0) x = 0;
                 if (x > Width) x = Width;
-                
+
                 Alpha = (float)x / Width;
                 if (Alpha < 0) Alpha = 0;
                 if (Alpha > 1) Alpha = 1;
@@ -676,7 +708,7 @@ namespace System.Windows.Forms
             protected override void OnPaint(PaintEventArgs e)
             {
                 var borderColor = uwfBorderColor;
-                if (Hovered) borderColor = uwfBorderHoverColor;
+                if (uwfHovered) borderColor = uwfBorderHoverColor;
 
                 _borderPen.Color = borderColor;
 

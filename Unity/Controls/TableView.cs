@@ -95,10 +95,11 @@ namespace System.Windows.Forms
         }
         private void EnsureVisibleChild(Control child)
         {
-            bool horizontalScroll_Left = child.Location.X + child.uwfOffset.X < 0;
-            bool horizontalScroll_Right = child.Location.X + child.uwfOffset.X + child.Width > Width;
-            bool verticalScroll_Top = child.Location.Y + child.uwfOffset.Y < 0;
-            bool verticalScroll_Bottom = child.Location.Y + child.uwfOffset.Y + child.Height > Height;
+            var childOffset = child.uwfOffset;
+            bool horizontalScroll_Left = child.Location.X + childOffset.X < 0;
+            bool horizontalScroll_Right = child.Location.X + childOffset.X + child.Width > Width;
+            bool verticalScroll_Top = child.Location.Y + childOffset.Y < 0;
+            bool verticalScroll_Bottom = child.Location.Y + childOffset.Y + child.Height > Height;
 
             if (hScroll != null && Width > 0 && (horizontalScroll_Left || horizontalScroll_Right))
             {
@@ -136,18 +137,27 @@ namespace System.Windows.Forms
                 var c = Controls[i];
                 if (c is ScrollBar) continue;
 
-                c.uwfOffset = new Point(offsetX, c.uwfOffset.Y);
+                var offset = c.uwfOffset;
+                c.uwfOffset = new Point(offsetX, offset.Y);
             }
         }
         private void ResetHOffset()
         {
             for (int i = 0; i < Controls.Count; i++)
-                Controls[i].uwfOffset = new Point(0, Controls[i].uwfOffset.Y);
+            {
+                var c = Controls[i];
+                var co = c.uwfOffset;
+                c.uwfOffset = new Point(0, co.Y);
+            }
         }
         private void ResetVOffset()
         {
             for (int i = 0; i < Controls.Count; i++)
-                Controls[i].uwfOffset = new Point(Controls[i].uwfOffset.X, 0);
+            {
+                var c = Controls[i];
+                var co = c.uwfOffset;
+                c.uwfOffset = new Point(co.X, 0);
+            }
         }
         private void VScroll_ValueChanged(object sender, EventArgs e)
         {
@@ -157,7 +167,8 @@ namespace System.Windows.Forms
                 var c = Controls[i];
                 if (c is ScrollBar) continue;
 
-                c.uwfOffset = new Point(c.uwfOffset.X, offseY);
+                var co = c.uwfOffset;
+                c.uwfOffset = new Point(co.X, offseY);
             }
         }
         private void UpdateScrolls()
@@ -404,7 +415,7 @@ namespace System.Windows.Forms
             if (vScroll != null)
                 vScroll.RaiseOnMouseWheel(e);
         }
-        protected override void OnLatePaint(PaintEventArgs e)
+        protected override void uwfOnLatePaint(PaintEventArgs e)
         {
             e.Graphics.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
         }

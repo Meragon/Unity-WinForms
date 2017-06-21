@@ -82,7 +82,7 @@ namespace Unity.API
             _controller.Resources = GdiImages;
             _controller.UpdatePaintClipRect();
 
-            Control.DefaultController = _controller;
+            Control.uwfDefaultController = _controller;
         }
         private void Update()
         {

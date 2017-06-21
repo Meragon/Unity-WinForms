@@ -109,10 +109,11 @@ namespace System.Windows.Forms
         {
             if (control.Visible == false) return false;
 
+            var co = control.uwfOffset;
             var controlLocationX = control.Location.X;
             var controlLocationY = control.Location.Y;
-            var controluwfOffsetX = control.uwfOffset.X;
-            var controluwfOffsetY = control.uwfOffset.Y;
+            var controluwfOffsetX = co.X;
+            var controluwfOffsetY = co.Y;
             var controlWidth = control.Width;
             var controlHeight = control.Height;
 
@@ -482,10 +483,18 @@ namespace System.Windows.Forms
                 _ProcessControl(new PointF(mouseX, mouseY), hoveredControl, false);
 
             if (_mouseEvent == MouseEvents.Down)
-                DownClick(hoveredControl, new MouseEventArgs(_mouseButton, 1, (int)mouseX, (int)mouseY, 0));
+            {
+                var downArgs = new MouseEventArgs(_mouseButton, 1, (int) mouseX, (int) mouseY, 0);
+                DownClick(hoveredControl, downArgs);
+                MouseHook.RaiseMouseDown(hoveredControl, downArgs);
+            }
 
             if (_mouseEvent == MouseEvents.Up)
-                UpClick(hoveredControl, new MouseEventArgs(_mouseButton, 1, (int)mouseX, (int)mouseY, 0));
+            {
+                var upArgs = new MouseEventArgs(_mouseButton, 1, (int) mouseX, (int) mouseY, 0);
+                UpClick(hoveredControl, upArgs);
+                MouseHook.RaiseMouseUp(hoveredControl, upArgs);
+            }
         }
         public void ProccessMouse(System.Drawing.PointF mousePosition)
         {

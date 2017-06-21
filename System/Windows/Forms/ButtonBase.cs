@@ -14,8 +14,7 @@ namespace System.Windows.Forms
         private int imageIndex;
         private ImageList imageList;
         private ContentAlignment textAlign = ContentAlignment.MiddleCenter;
-
-        protected Pen borderPen = new Pen(Color.Transparent);
+        private readonly Pen borderPen = new Pen(Color.Transparent);
         
         public FlatStyle FlatStyle
         {
@@ -94,7 +93,7 @@ namespace System.Windows.Forms
             switch (flatStyle)
             {
                 case FlatStyle.Flat:
-                    if (Hovered) backColorToDraw = Color.FromArgb(32, 0, 0, 0);
+                    if (uwfHovered) backColorToDraw = Color.FromArgb(32, 0, 0, 0);
                     borderColorToDraw = Color.Black;
                     break;
                 case FlatStyle.Popup:
@@ -104,14 +103,14 @@ namespace System.Windows.Forms
                 case FlatStyle.System:
                     // Back.
                     if (enabled)
-                        backColorToDraw = Hovered == false ? BackColor : uwfHoverColor;
+                        backColorToDraw = uwfHovered == false ? BackColor : uwfHoverColor;
                     else
                         backColorToDraw = uwfDisableColor;
 
                     // Border.
                     if (enabled == false)
                         borderColorToDraw = uwfBorderDisableColor;
-                    else if (Hovered)
+                    else if (uwfHovered)
                         borderColorToDraw = uwfBorderHoverColor;
                     else if (Focused)
                         borderColorToDraw = uwfBorderSelectColor;
@@ -130,7 +129,7 @@ namespace System.Windows.Forms
             {
                 var backgroundImage = BackgroundImage;
                 var imageColorToPaint = uwfImageColor;
-                if (Hovered)
+                if (uwfHovered)
                 {
                     if (uwfImageHover != null)
                         backgroundImage = uwfImageHover;
@@ -170,7 +169,7 @@ namespace System.Windows.Forms
                 var imageWidth = imageToPaint.Width;
                 var imageHeight = imageToPaint.Height;
                 var imageColorToPaint = uwfImageColor;
-                if (Hovered)
+                if (uwfHovered)
                 {
                     if (uwfImageHover != null)
                         imageToPaint = uwfImageHover;

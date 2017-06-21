@@ -9,6 +9,8 @@ namespace System.Windows.Forms
 {
     public class CheckBox : Button
     {
+        private Pen borderPen = new Pen(Color.Transparent);
+
         public bool Checked { get; set; }
 
         public CheckBox()
@@ -40,7 +42,7 @@ namespace System.Windows.Forms
             borderPen.Color = uwfBorderDisableColor;
             if (Enabled)
             {
-                if (Hovered)
+                if (uwfHovered)
                 {
                     backColor = uwfHoverColor;
                     borderPen.Color = uwfBorderHoverColor;
