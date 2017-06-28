@@ -47,7 +47,7 @@ namespace System.Windows.Forms
         public Bitmap ImageFile { get; set; }
         public Bitmap ImageFolder { get; set; }
 
-        protected FileDialog()
+        internal FileDialog()
         {
 #if !UNITY_STANDALONE && !UNITY_ANDROID
             throw new NotSupportedException();
@@ -258,32 +258,32 @@ namespace System.Windows.Forms
                 contextMenu.Items.Add(itemSep);
 
                 ToolStripMenuItem itemProperties = new ToolStripMenuItem("Properties");
-                itemProperties.Click += (sender2, args) => { new FormFileInfo(fileRenderer.currentPath + "/" + textBoxFilename.Text).Show(); };
+                itemProperties.Click += (sender2, args) => { new FormFileInfo(fileRenderer.currentPath + "/" + textBoxFilename.Text).ShowDialog(); };
                 contextMenu.Items.Add(itemProperties);
 
                 contextMenu.Show(null, MousePosition);
             }
         }
-        protected override void OnKeyPress(KeyEventArgs e)
+        protected override void OnKeyPress(KeyPressEventArgs e)
         {
             base.OnKeyPress(e);
-            if (e.KeyCode == Keys.Escape)
+            if (e.uwfKeyArgs.KeyCode == Keys.Escape)
             {
                 DialogResult = DialogResult.Cancel;
                 Close();
             }
 
             // Next folder.
-            if (e.KeyCode == Keys.Return)
+            if (e.uwfKeyArgs.KeyCode == Keys.Return)
                 fileRenderer.Next();
 
             // Refresh directory.
-            if (e.KeyCode == Keys.F5)
+            if (e.uwfKeyArgs.KeyCode == Keys.F5)
                 ButtonRefresh();
 
-            if (e.Alt)
+            if (e.uwfKeyArgs.Alt)
             {
-                switch (e.KeyCode)
+                switch (e.uwfKeyArgs.KeyCode)
                 {
                     case Keys.Left: ButtonBack(); break;
                     case Keys.Up: ButtonUp(); break;

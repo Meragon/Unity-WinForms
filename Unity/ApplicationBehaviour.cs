@@ -1,46 +1,59 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Windows.Forms;
-using Color = UnityEngine.Color;
-using UE = UnityEngine;
-
-namespace Unity.API
+﻿namespace Unity.API
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Drawing;
+    using System.Windows.Forms;
+
+    using Color = UnityEngine.Color;
+    using UE = UnityEngine;
+
     public sealed class ApplicationBehaviour : UE.MonoBehaviour
     {
-        private static UE.Texture2D _defaultSprite;
+        public AppResources Resources;
+
+        private static readonly List<invokeAction> actions = new List<invokeAction>();
+        private static UE.Texture2D defaultSprite;
+
+        private Application controller;
+        private float lastWidth;
+        private float lastHeight;
+        private bool paused;
 
         public static UE.Texture2D DefaultSprite
         {
             get
             {
-                if (_defaultSprite != null) return _defaultSprite;
+                if (defaultSprite != null) return defaultSprite;
 
-                _defaultSprite = new UE.Texture2D(32, 32);
-                for (int i = 0; i < _defaultSprite.height; i++)
-                    for (int k = 0; k < _defaultSprite.width; k++)
-                        _defaultSprite.SetPixel(k, i, Color.white);
-                _defaultSprite.Apply();
-                return _defaultSprite;
+                defaultSprite = new UE.Texture2D(32, 32);
+                for (int i = 0; i < defaultSprite.height; i++)
+                    for (int k = 0; k < defaultSprite.width; k++)
+                        defaultSprite.SetPixel(k, i, Color.white);
+                defaultSprite.Apply();
+                return defaultSprite;
             }
         }
         public static AppGdiImages GdiImages { get; private set; }
         public static AppResources gResources { get; private set; }
 
-        public AppResources _Resources;
-        public static bool ShowControlProperties { get; set; }
+        internal static invokeAction Invoke(Action a, float seconds)
+        {
+            if (a == null) return null;
 
-        private static readonly List<invokeAction> actions = new List<invokeAction>();
-        private Application _controller;
-        private float _lastWidth;
-        private float _lastHeight;
-        private bool _paused;
+            var ia = new invokeAction()
+                         {
+                             Action = a,
+                             Seconds = seconds
+                         };
+
+            actions.Add(ia);
+            return ia;
+        }
 
         private void Awake()
         {
-            gResources = _Resources;
+            gResources = this.Resources;
 
             Graphics.ApiGraphics = ApiHolder.Graphics;
 
@@ -75,34 +88,40 @@ namespace Unity.API
             GdiImages.Cursors.SizeWE = gResources.Images.Cursors.SizeWE.ToBitmap();
             GdiImages.Cursors.VSplit = gResources.Images.Cursors.VSplit.ToBitmap();
 
-            _lastWidth = UE.Screen.width;
-            _lastHeight = UE.Screen.height;
+            this.lastWidth = UE.Screen.width;
+            this.lastHeight = UE.Screen.height;
 
-            _controller = new Application();
-            _controller.Resources = GdiImages;
-            _controller.UpdatePaintClipRect();
+            this.controller = new Application();
+            this.controller.Resources = GdiImages;
+            this.controller.UpdatePaintClipRect();
 
-            Control.uwfDefaultController = _controller;
+            Control.uwfDefaultController = this.controller;
+
+            MouseHook.MouseUp += (sender, args) =>
+            {
+                if (Views.AppControl.Self != null)
+                    Views.AppControl.Self.Control = sender as Control;
+            };
         }
         private void Update()
         {
-            if (_controller != null)
+            if (this.controller != null)
             {
-                if (_lastWidth != UE.Screen.width || _lastHeight != UE.Screen.height)
+                if (this.lastWidth != UE.Screen.width || this.lastHeight != UE.Screen.height)
                 {
                     Size deltaSize = new Size(
-                        (int)(_lastWidth - UE.Screen.width),
-                        (int)(_lastHeight - UE.Screen.height));
-                    for (int i = 0; i < _controller.ModalForms.Count; i++)
-                        _controller.ModalForms[i].uwfAddjustSizeToScreen(deltaSize);
-                    for (int i = 0; i < _controller.Forms.Count; i++)
-                        _controller.Forms[i].uwfAddjustSizeToScreen(deltaSize);
-                    _controller.UpdatePaintClipRect();
+                        (int)(this.lastWidth - UE.Screen.width),
+                        (int)(this.lastHeight - UE.Screen.height));
+                    for (int i = 0; i < this.controller.ModalForms.Count; i++)
+                        this.controller.ModalForms[i].uwfAddjustSizeToScreen(deltaSize);
+                    for (int i = 0; i < this.controller.Forms.Count; i++)
+                        this.controller.Forms[i].uwfAddjustSizeToScreen(deltaSize);
+                    this.controller.UpdatePaintClipRect();
                 }
-                _lastWidth = UE.Screen.width;
-                _lastHeight = UE.Screen.height;
+                this.lastWidth = UE.Screen.width;
+                this.lastHeight = UE.Screen.height;
 
-                _controller.Update();
+                this.controller.Update();
             }
 
             for (int i = 0; i < actions.Count; i++)
@@ -118,18 +137,18 @@ namespace Unity.API
         }
         private void OnApplicationFocus(bool focusStatus)
         {
-            _paused = !focusStatus;
+            this.paused = !focusStatus;
 
             UE.Cursor.visible = Cursor.IsVisible;
         }
         private void OnGUI()
         {
-            if (_controller == null) return;
+            if (this.controller == null) return;
 
-            if (_paused == false)
+            if (this.paused == false)
             {
                 // Mouse.
-                _controller.ProccessMouse(UE.Input.mousePosition.x, UE.Screen.height - UE.Input.mousePosition.y);
+                this.controller.ProccessMouse(UE.Input.mousePosition.x, UE.Screen.height - UE.Input.mousePosition.y);
 
                 // Keys.
                 if (UE.Event.current.keyCode != UE.KeyCode.None)
@@ -143,25 +162,11 @@ namespace Unity.API
 
                     var keyEventType = (Application.KeyEvents)(UE.Event.current.type - 3);
                     if (keyEventType == Application.KeyEvents.Down || keyEventType == Application.KeyEvents.Up)
-                        _controller.ProccessKeys(keyArgs, keyEventType);
+                        this.controller.ProccessKeys(keyArgs, keyEventType);
                 }
             }
 
-            _controller.Redraw();
-        }
-
-        internal static invokeAction Invoke(Action a, float seconds)
-        {
-            if (a == null) return null;
-
-            var ia = new invokeAction()
-            {
-                Action = a,
-                Seconds = seconds
-            };
-
-            actions.Add(ia);
-            return ia;
+            this.controller.Redraw();
         }
 
         internal class invokeAction

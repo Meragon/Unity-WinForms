@@ -49,8 +49,8 @@ namespace System.Windows.Forms
             _control = control;
             control.MouseEnter += control_MouseEnter;
             control.MouseLeave += control_MouseLeave;
-            control.OnDisposing += control_OnDisposing;
-            control.VisibleChanged += control_OnDisposing;
+            control.Disposed += control_Disposed;
+            control.VisibleChanged += control_Disposed;
             _text = caption;
         }
 
@@ -67,7 +67,7 @@ namespace System.Windows.Forms
                 Show(_text, position);
             }
         }
-        void control_OnDisposing(object sender, EventArgs e)
+        void control_Disposed(object sender, EventArgs e)
         {
             if (_instance != null && _instance == this)
                 _instance = null;

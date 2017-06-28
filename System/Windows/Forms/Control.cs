@@ -12,17 +12,6 @@ namespace System.Windows.Forms
     {
         protected static Color defaultShadowColor = Color.FromArgb(12, 0, 0, 0);
 
-        public static Application uwfDefaultController { get; set; }
-        public static Point MousePosition
-        {
-            get
-            {
-                return new Point(
-                    (int)(UnityEngine.Input.mousePosition.x / Application.ScaleX),
-                    (int)((UnityEngine.Screen.height - UnityEngine.Input.mousePosition.y) / Application.ScaleY));
-            }
-        }
-
         private AnchorStyles anchor = AnchorStyles.Top | AnchorStyles.Left;
         private int clientHeight;
         private int clientWidth;
@@ -39,6 +28,17 @@ namespace System.Windows.Forms
         private bool visible;
         private int width;
         private int x, y;
+
+        public static Application uwfDefaultController { get; set; }
+        public static Point MousePosition
+        {
+            get
+            {
+                return new Point(
+                    (int)(UnityEngine.Input.mousePosition.x / Application.ScaleX),
+                    (int)((UnityEngine.Screen.height - UnityEngine.Input.mousePosition.y) / Application.ScaleY));
+            }
+        }
 
         public virtual bool AllowDrop { get; set; }
         public bool AlwaysFocused { get; set; }
@@ -80,7 +80,7 @@ namespace System.Windows.Forms
             get { return font; }
             set { font = value; }
         }
-        public Color ForeColor { get; set; }
+        public virtual Color ForeColor { get; set; }
         public int Height
         {
             get { return height; }
@@ -356,7 +356,6 @@ namespace System.Windows.Forms
             if (IsDisposed) return;
 
             Disposing = true;
-            OnDisposing(this, EventArgs.Empty);
 
             if (release_all)
             {
@@ -427,7 +426,7 @@ namespace System.Windows.Forms
         {
 
         }
-        protected virtual void OnKeyPress(KeyEventArgs e)
+        protected virtual void OnKeyPress(KeyPressEventArgs e)
         {
 
         }
@@ -654,9 +653,6 @@ namespace System.Windows.Forms
         internal void RaiseOnMouseUp(MouseEventArgs e)
         {
             OnMouseUp(e);
-
-            if (uwfAppOwner != null && Unity.API.ApplicationBehaviour.ShowControlProperties && Application.ShowCallback != null)
-                Application.ShowCallback.Invoke(this);
         }
         internal void RaiseOnMouseWheel(MouseEventArgs e)
         {
@@ -667,12 +663,12 @@ namespace System.Windows.Forms
             OnKeyDown(e);
             KeyDown(this, e);
         }
-        internal void RaiseOnKeyPress(KeyEventArgs e)
+        internal void RaiseOnKeyPress(KeyPressEventArgs e)
         {
             OnKeyPress(e); // TODO: KeyPressEventArgs?
-            KeyPress(this, new KeyPressEventArgs(KeyHelper.GetLastInputChar()));
+            KeyPress(this, e);
 
-            uwfKeyPress(this, e);
+            uwfKeyPress(this, e.uwfKeyArgs);
         }
         internal void RaiseOnKeyUp(KeyEventArgs e)
         {
@@ -766,7 +762,6 @@ namespace System.Windows.Forms
         public event EventHandler MouseHover = delegate { };
         public event EventHandler MouseLeave = delegate { };
         public event MouseEventHandler MouseUp = delegate { };
-        public event EventHandler OnDisposing = delegate { };
         public event EventHandler Resize = delegate { };
         public event EventHandler SizeChanged = delegate { };
         public event EventHandler TextChanged = delegate { };

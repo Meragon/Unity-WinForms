@@ -1,38 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
-    public class CheckBox : Button
-    {
-        private Pen borderPen = new Pen(Color.Transparent);
+    using System.Drawing;
 
-        public bool Checked { get; set; }
+    public class CheckBox : ButtonBase
+    {
+        private readonly Pen borderPen = new Pen(Color.Transparent);
 
         public CheckBox()
         {
             BackColor = Color.White;
+            ForeColor = Color.Black;
+            Size = new Drawing.Size(128, 17);
+            TextAlign = ContentAlignment.MiddleLeft;
+
             uwfBorderColor = Color.FromArgb(112, 112, 112);
             uwfBorderHoverColor = Color.FromArgb(51, 153, 255);
             uwfBorderDisableColor = Color.FromArgb(188, 188, 188);
             uwfDisableColor = Color.FromArgb(230, 230, 230);
-            ForeColor = Color.Black;
             uwfHoverColor = Color.FromArgb(243, 249, 255);
-            Size = new Drawing.Size(128, 17);
-            TextAlign = ContentAlignment.MiddleLeft;
 
             Click += CheckBox_Click;
         }
 
-        void CheckBox_Click(object sender, EventArgs e)
-        {
-            Checked = !Checked;
-            CheckedChanged(this, new EventArgs());
-        }
+        public event EventHandler CheckedChanged = delegate { };
+
+        public bool Checked { get; set; }
 
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -66,6 +58,10 @@ namespace System.Windows.Forms
             g.uwfDrawString(Text, Font, ForeColor, checkRectX + checkRectWH + 4, Padding.Top + 0, Width - 20, Height, TextAlign);
         }
 
-        public event EventHandler CheckedChanged = delegate { };
+        private void CheckBox_Click(object sender, EventArgs e)
+        {
+            Checked = !Checked;
+            CheckedChanged(this, new EventArgs());
+        }
     }
 }

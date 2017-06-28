@@ -23,6 +23,8 @@ namespace System.Windows.Forms
             ForeColor = Color.Gray;
             Size = new Size(168, 286);
             TabIndex = -1;
+
+            SetStyle(ControlStyles.Selectable, false);
         }
         protected override void uwfOnLatePaint(PaintEventArgs e)
         {

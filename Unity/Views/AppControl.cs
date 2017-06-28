@@ -9,7 +9,7 @@ using UnityEditor;
 
 namespace Views
 {
-    public class AppControl : EditorWindow
+    public class AppControl : EditorWindow, IDisposable
     {
         private static AppControl _self;
         public static AppControl Self
@@ -76,6 +76,11 @@ namespace Views
 
             if (control is System.Windows.Forms.Control) Control = control as System.Windows.Forms.Control;
             UnityEngine.GUILayout.EndScrollView();
+        }
+
+        public void Dispose()
+        {
+            if (_control != null) _control.Dispose();
         }
     }
 }

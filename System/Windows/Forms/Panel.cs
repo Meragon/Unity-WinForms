@@ -11,10 +11,15 @@ namespace System.Windows.Forms
     {
         protected readonly Pen borderPen = new Pen(Color.White);
 
-        public Color BorderColor
+        public Color uwfBorderColor
         {
             get { return borderPen.Color; }
             set { borderPen.Color = value; }
+        }
+
+        public Panel()
+        {
+            SetStyle(ControlStyles.Selectable | ControlStyles.AllPaintingInWmPaint, false);
         }
 
         protected override void OnPaint(PaintEventArgs e)

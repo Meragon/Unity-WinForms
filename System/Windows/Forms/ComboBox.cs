@@ -115,9 +115,12 @@ namespace System.Windows.Forms
             return res;
         }
 
-        protected override void OnKeyPress(KeyEventArgs e)
+        protected override void OnKeyPress(KeyPressEventArgs args)
         {
-            base.OnKeyDown(e);
+            base.OnKeyPress(args);
+
+            var e = args.uwfKeyArgs;
+
             switch (e.KeyCode)
             {
                 case Keys.Down:
@@ -377,7 +380,7 @@ namespace System.Windows.Forms
                 listBox.Location = new Point(gpoint.X, gpoint.Y + Height);
                 listBox.MouseUp += ListBoxOnMouseUp;
                 listBox.KeyDown += ListBoxOnKeyDown;
-                listBox.OnDisposing += ListBoxOnOnDisposing;
+                listBox.Disposed += ListBoxOnDisposed;
             }
             else
                 listBoxOpened = false;
@@ -398,7 +401,7 @@ namespace System.Windows.Forms
 
             ApplySelectedItem();
         }
-        private void ListBoxOnOnDisposing(object sender, EventArgs eventArgs)
+        private void ListBoxOnDisposed(object sender, EventArgs eventArgs)
         {
             var clientRect = new System.Drawing.Rectangle(0, 0, Width, Height);
             var contains = clientRect.Contains(PointToClient(MousePosition));
@@ -409,7 +412,7 @@ namespace System.Windows.Forms
 
             listBox.MouseUp -= ListBoxOnMouseUp;
             listBox.KeyDown -= ListBoxOnKeyDown;
-            listBox.OnDisposing -= ListBoxOnOnDisposing;
+            listBox.Disposed -= ListBoxOnDisposed;
 
             listBox = null;
         }

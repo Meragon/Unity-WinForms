@@ -10,6 +10,8 @@ namespace System.Windows.Forms
         public char KeyChar { get; set; }
         public bool Handled { get; set; }
 
+        public KeyEventArgs uwfKeyArgs;
+
         public KeyPressEventArgs(char keyChar)
         {
             this.KeyChar = keyChar;

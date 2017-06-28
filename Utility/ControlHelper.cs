@@ -42,19 +42,6 @@ namespace System.Windows.Forms
                 }
             }
         }
-
-        /// <summary>
-        /// Sets button's back and border colors for normal and hover state to specified color.
-        /// </summary>
-        /// <param name="button"></param>
-        public static void ClearColor(this Button button, Color clearColor)
-        {
-            button.BackColor = clearColor;
-            button.uwfBorderColor = clearColor;
-            button.uwfHoverColor = clearColor;
-            button.uwfBorderHoverColor = clearColor;
-            button.uwfBorderSelectColor = clearColor;
-        }
         public static void FillToBottom(this Control control, int offset = 0)
         {
             if (control.Parent == null) return;
@@ -69,7 +56,9 @@ namespace System.Windows.Forms
         {
 #if UNITY_WEBGL || UNITY_WEBPLAYER
             UnityEngine.Application.ExternalEval("window.open(\"" +  url + "\")"); // with popup blocking...
-#else
+#endif
+
+#if UNITY_STANDALONE
             UnityEngine.Application.OpenURL(url);
 #endif
         }

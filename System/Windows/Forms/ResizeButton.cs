@@ -25,7 +25,11 @@ namespace System.Windows.Forms
 
             SetStyle(ControlStyles.Selectable, false);
 
-            this.ClearColor(Color.Transparent);
+            BackColor = Color.Transparent;
+            uwfBorderColor = Color.Transparent;
+            uwfHoverColor = Color.Transparent;
+            uwfBorderHoverColor = Color.Transparent;
+            uwfBorderSelectColor = Color.Transparent;
 
             uwfAppOwner.UpClick += Owner_UpClick;
         }

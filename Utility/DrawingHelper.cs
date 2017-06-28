@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define UNITY_GDI
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,7 +26,9 @@ namespace System.Drawing
         }
         public static void Apply(this Bitmap bitmap)
         {
+#if UNITY_GDI
             bitmap.uTexture.Apply();
+#endif
         }
         public static int Distance(this Point p1, Point to)
         {

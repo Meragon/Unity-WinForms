@@ -201,9 +201,9 @@ namespace System.Windows.Forms
             if (DrawItem != null)
                 DrawItem(this, e);
         }
-        protected override void OnKeyPress(KeyEventArgs e)
+        protected override void OnKeyPress(KeyPressEventArgs e)
         {
-            switch (e.KeyCode)
+            switch (e.uwfKeyArgs.KeyCode)
             {
                 case Keys.Down:
                 case Keys.Right:

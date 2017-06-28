@@ -69,7 +69,7 @@ namespace System.Windows.Forms
             };
 
             form.Controls.Add(formButton_Ok);
-            form.Show();
+            form.ShowDialog();
 
             Last = form;
 

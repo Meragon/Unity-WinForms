@@ -5,7 +5,7 @@ using System.Text;
 
 namespace System.Drawing
 {
-    public class ColorTranslatorEx
+    public static class ColorTranslatorEx
     {
         public static Color FromHsb(byte hue, byte saturation, byte brigthness)
         {
@@ -33,7 +33,10 @@ namespace System.Drawing
             }
             return Color.FromArgb((int)(255 * r), (int)(255 * g), (int)(255 * b));
         }
-
+        public static string ToHexString(this Color c)
+        {
+            return c.R.ToString("X2") + c.G.ToString("X2") + c.B.ToString("X2") + c.A.ToString("X2");
+        }
 
         private static double _GetColorComponent(double temp1, double temp2, double temp3)
         {

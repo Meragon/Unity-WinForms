@@ -298,7 +298,7 @@ namespace System.Windows.Forms
                     }
                 }
 
-                _dropDownToolStrip.OnDisposing += (object sender, EventArgs args) =>
+                _dropDownToolStrip.Disposed += (object sender, EventArgs args) =>
                 {
                     var clientRect = new System.Drawing.Rectangle(x, y, Width, Height);
                     var contains = clientRect.Contains(Parent.PointToClient(Control.MousePosition));

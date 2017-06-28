@@ -326,9 +326,12 @@ namespace System.Windows.Forms
         {
             if (this.onDrawNode != null) this.onDrawNode(this, e);
         }
-        protected override void OnKeyPress(KeyEventArgs e)
+        protected override void OnKeyPress(KeyPressEventArgs args)
         {
-            base.OnKeyPress(e);
+            base.OnKeyPress(args);
+
+            var e = args.uwfKeyArgs;
+
             if (e.Modifiers == Keys.None)
             {
                 switch (e.KeyCode)

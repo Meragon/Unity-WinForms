@@ -70,7 +70,6 @@ namespace System.Windows.Forms
                     _scaleY = 1f;
             }
         }
-        internal static Action<Control> ShowCallback { get; set; }
         internal bool TabSwitching { get; set; }
 
         private static bool Contains(Control parent, Control child)
@@ -300,7 +299,10 @@ namespace System.Windows.Forms
                     if (_currentKeyDown == Keys.None || _currentKeyDown != args.KeyCode)
                         keyControl.RaiseOnKeyDown(args);
 
-                    keyControl.RaiseOnKeyPress(args);
+                    var pressArgs = new KeyPressEventArgs(KeyHelper.GetLastInputChar());
+                    pressArgs.uwfKeyArgs = args;
+
+                    keyControl.RaiseOnKeyPress(pressArgs);
 
                     // Tab switching through controls.
                     if (TabSwitching && Event.current.keyCode == KeyCode.Tab)

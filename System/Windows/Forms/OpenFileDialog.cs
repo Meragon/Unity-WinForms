@@ -5,7 +5,7 @@ using System.Text;
 
 namespace System.Windows.Forms
 {
-    public class OpenFileDialog : FileDialog
+    public sealed class OpenFileDialog : FileDialog
     {
         public OpenFileDialog()
         {

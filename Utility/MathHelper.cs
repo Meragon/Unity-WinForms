@@ -120,7 +120,8 @@ namespace System.Windows.Forms
             // It is expected that 0 < amount < 1
             // If amount < 0, return value1
             // If amount > 1, return value2
-            float result = MathHelper.Clamp(amount * UnityEngine.Time.deltaTime, 0f, 1f);
+            float deltaTime = swfHelper.GetDeltaTime();
+            float result = MathHelper.Clamp(amount * deltaTime, 0f, 1f);
             result = MathHelper.Hermite(value1, 0f, value2, 0f, result);
 
             return result;
