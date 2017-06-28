@@ -5,6 +5,7 @@
     public class CheckBox : ButtonBase
     {
         private readonly Pen borderPen = new Pen(Color.Transparent);
+        private CheckState checkState;
 
         public CheckBox()
         {
@@ -24,8 +25,31 @@
 
         public event EventHandler CheckedChanged = delegate { };
 
-        public bool Checked { get; set; }
+        public bool Checked
+        {
+            get { return this.checkState != CheckState.Unchecked; }
+            set { this.CheckState = value ? CheckState.Checked : CheckState.Unchecked; }
+        }
+        public CheckState CheckState
+        {
+            get
+            {
+                return this.checkState;
+            }
+            set
+            {
+                if (this.checkState != value)
+                {
+                    this.checkState = value;
+                    OnCheckedChanged(EventArgs.Empty);
+                }
+            }
+        }
 
+        protected virtual void OnCheckedChanged(EventArgs e)
+        {
+            CheckedChanged(this, e);
+        }
         protected override void OnPaint(PaintEventArgs e)
         {
             Graphics g = e.Graphics;

@@ -97,11 +97,13 @@
 
             Control.uwfDefaultController = this.controller;
 
+#if UNITY_EDITOR
             MouseHook.MouseUp += (sender, args) =>
             {
                 if (Views.AppControl.Self != null)
                     Views.AppControl.Self.Control = sender as Control;
             };
+#endif
         }
         private void Update()
         {
