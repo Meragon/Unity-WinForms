@@ -60,8 +60,8 @@ namespace System.Windows.Forms
 
         public Cursor(Bitmap resource)
         {
-            this.HotSpot = new Point();
-            this.Size = new Size(32, 32);
+            HotSpot = new Point();
+            Size = new Size(32, 32);
 
             image = resource;
         }

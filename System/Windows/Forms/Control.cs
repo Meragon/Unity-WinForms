@@ -84,18 +84,18 @@ namespace System.Windows.Forms
         public int Height
         {
             get { return height; }
-            set { this.SetBounds(this.x, this.y, this.width, value, BoundsSpecified.Height); }
+            set { SetBounds(x, y, width, value, BoundsSpecified.Height); }
         }
         public bool IsDisposed { get; private set; }
         public int Left
         {
-            get { return this.Location.X; }
+            get { return Location.X; }
             set { Location = new Point(value, Location.Y); }
         }
         public Point Location
         {
             get { return new Point(x, y); }
-            set { this.SetBounds(value.X, value.Y, this.width, this.height, BoundsSpecified.Location); }
+            set { SetBounds(value.X, value.Y, width, height, BoundsSpecified.Location); }
         }
         public virtual Size MaximumSize { get; set; }
         public virtual Size MinimumSize { get; set; }
@@ -105,7 +105,7 @@ namespace System.Windows.Forms
         public Size Size
         {
             get { return new Size(Width, Height); }
-            set { this.SetBounds(this.x, this.y, value.Width, value.Height, BoundsSpecified.Size); }
+            set { SetBounds(x, y, value.Width, value.Height, BoundsSpecified.Size); }
         }
         public int TabIndex { get; set; }
         public bool TabStop { get; set; }
@@ -113,7 +113,7 @@ namespace System.Windows.Forms
         public virtual string Text { get; set; }
         public int Top
         {
-            get { return this.Location.Y; }
+            get { return Location.Y; }
             set { Location = new Point(Location.X, value); }
         }
         public bool Visible
@@ -130,7 +130,7 @@ namespace System.Windows.Forms
         public int Width
         {
             get { return width; }
-            set { this.SetBounds(this.x, this.y, value, this.height, BoundsSpecified.Width); }
+            set { SetBounds(x, y, value, height, BoundsSpecified.Width); }
         }
 
         internal Application uwfAppOwner;
@@ -173,7 +173,7 @@ namespace System.Windows.Forms
             uwfAutoGroup = true;
             visible = true;
 
-            this.SetStyle(ControlStyles.UserPaint | ControlStyles.StandardClick | ControlStyles.Selectable | ControlStyles.StandardDoubleClick | ControlStyles.AllPaintingInWmPaint | ControlStyles.UseTextForAccessibility, true);
+            SetStyle(ControlStyles.UserPaint | ControlStyles.StandardClick | ControlStyles.Selectable | ControlStyles.StandardDoubleClick | ControlStyles.AllPaintingInWmPaint | ControlStyles.UseTextForAccessibility, true);
 
 #if UNITY_EDITOR
             var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
@@ -246,15 +246,15 @@ namespace System.Windows.Forms
             var form = this as Form ?? Application.GetRootControl(this) as Form;
             if (form != null)
             {
-                if (this.uwfAppOwner.Forms.Contains(form))
+                if (uwfAppOwner.Forms.Contains(form))
                 {
-                    this.uwfAppOwner.Forms.Remove(form);
-                    this.uwfAppOwner.Forms.Add(form);
+                    uwfAppOwner.Forms.Remove(form);
+                    uwfAppOwner.Forms.Add(form);
                 }
                 else if (form.IsModal)
                 {
-                    this.uwfAppOwner.ModalForms.Remove(form);
-                    this.uwfAppOwner.ModalForms.Add(form);
+                    uwfAppOwner.ModalForms.Remove(form);
+                    uwfAppOwner.ModalForms.Add(form);
                 }
             }
         }
@@ -330,21 +330,21 @@ namespace System.Windows.Forms
         }
         public void SetBounds(int argX, int argY, int argWidth, int argHeight)
         {
-            if (this.x != argX || this.y != argY || (this.width != argWidth || this.height != argHeight))
-                this.SetBoundsCore(argX, argY, argWidth, argHeight, BoundsSpecified.All);
+            if (x != argX || y != argY || (width != argWidth || height != argHeight))
+                SetBoundsCore(argX, argY, argWidth, argHeight, BoundsSpecified.All);
         }
         public void SetBounds(int argX, int argY, int argWidth, int argHeight, BoundsSpecified specified)
         {
             if ((specified & BoundsSpecified.X) == BoundsSpecified.None)
-                argX = this.x;
+                argX = x;
             if ((specified & BoundsSpecified.Y) == BoundsSpecified.None)
-                argY = this.y;
+                argY = y;
             if ((specified & BoundsSpecified.Width) == BoundsSpecified.None)
-                argWidth = this.width;
+                argWidth = width;
             if ((specified & BoundsSpecified.Height) == BoundsSpecified.None)
-                argHeight = this.height;
-            if (this.x != argX || this.y != argY || (this.width != argWidth || this.height != argHeight))
-                this.SetBoundsCore(argX, argY, argWidth, argHeight, specified);
+                argHeight = height;
+            if (x != argX || y != argY || (width != argWidth || height != argHeight))
+                SetBoundsCore(argX, argY, argWidth, argHeight, specified);
         }
         public void SuspendLayout()
         {
@@ -503,27 +503,27 @@ namespace System.Windows.Forms
         }
         protected virtual void SetBoundsCore(int argX, int argY, int argWidth, int argHeight, BoundsSpecified specified)
         {
-            if (this.x == argX && this.y == argY && (this.width == argWidth && this.height == argHeight))
+            if (x == argX && y == argY && (width == argWidth && height == argHeight))
                 return;
 
-            if (this.Parent != null)
-                this.Parent.SuspendLayout();
+            if (Parent != null)
+                Parent.SuspendLayout();
 
-            this.UpdateBounds(argX, argY, argWidth, argHeight);
+            UpdateBounds(argX, argY, argWidth, argHeight);
 
-            if (this.Parent != null)
-                this.Parent.ResumeLayout(true);
+            if (Parent != null)
+                Parent.ResumeLayout(true);
         }
         protected virtual void SetClientSizeCore(int argX, int argY)
         {
-            this.Size = this.SizeFromClientSize(argX, argY);
-            this.clientWidth = argX;
-            this.clientHeight = argY;
-            this.OnClientSizeChanged(EventArgs.Empty);
+            Size = SizeFromClientSize(argX, argY);
+            clientWidth = argX;
+            clientHeight = argY;
+            OnClientSizeChanged(EventArgs.Empty);
         }
         protected void SetStyle(ControlStyles flag, bool value)
         {
-            this.controlStyle = value ? this.controlStyle | flag : this.controlStyle & ~flag;
+            controlStyle = value ? controlStyle | flag : controlStyle & ~flag;
         }
         protected virtual void OnSizeChanged(EventArgs e)
         {
@@ -532,39 +532,39 @@ namespace System.Windows.Forms
         }
         protected virtual Size SizeFromClientSize(Size clientSize)
         {
-            return this.SizeFromClientSize(clientSize.Width, clientSize.Height);
+            return SizeFromClientSize(clientSize.Width, clientSize.Height);
         }
         protected void UpdateBounds(int argX, int argY, int argWidth, int argHeight)
         {
             int cWidth = argWidth;
             int cHeight = argHeight;
-            this.UpdateBounds(argX, argY, argWidth, argHeight, cWidth, cHeight);
+            UpdateBounds(argX, argY, argWidth, argHeight, cWidth, cHeight);
         }
         protected void UpdateBounds(int argX, int argY, int argWidth, int argHeight, int argClientWidth, int argClientHeight)
         {
-            int widthBuffer = this.width;
-            int heightBuffer = this.height;
+            int widthBuffer = width;
+            int heightBuffer = height;
 
-            bool locationFlag = this.x != argX || this.y != argY;
-            bool sizeFlag = this.Width != argWidth || this.Height != argHeight || this.clientWidth != argClientWidth || this.clientHeight != argClientHeight;
+            bool locationFlag = x != argX || y != argY;
+            bool sizeFlag = Width != argWidth || Height != argHeight || clientWidth != argClientWidth || clientHeight != argClientHeight;
 
-            this.x = argX;
-            this.y = argY;
-            this.width = argWidth;
-            this.height = argHeight;
-            this.clientWidth = argClientWidth;
-            this.clientHeight = argClientHeight;
+            x = argX;
+            y = argY;
+            width = argWidth;
+            height = argHeight;
+            clientWidth = argClientWidth;
+            clientHeight = argClientHeight;
 
             if (locationFlag)
-                this.OnLocationChanged(EventArgs.Empty);
+                OnLocationChanged(EventArgs.Empty);
             if (!sizeFlag)
                 return;
 
             var delta = new Point(widthBuffer - argWidth, heightBuffer - argHeight);
             ResizeChilds(delta);
 
-            this.OnSizeChanged(EventArgs.Empty);
-            this.OnClientSizeChanged(EventArgs.Empty);
+            OnSizeChanged(EventArgs.Empty);
+            OnClientSizeChanged(EventArgs.Empty);
         }
 
         protected virtual void uwfChildGotFocus(Control child)
@@ -580,7 +580,7 @@ namespace System.Windows.Forms
 
         internal virtual bool CanSelectCore()
         {
-            if ((this.controlStyle & ControlStyles.Selectable) != ControlStyles.Selectable)
+            if ((controlStyle & ControlStyles.Selectable) != ControlStyles.Selectable)
                 return false;
             for (Control control = this; control != null; control = control.Parent)
             {

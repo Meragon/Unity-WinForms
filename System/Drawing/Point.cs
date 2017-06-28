@@ -57,15 +57,15 @@ namespace System.Drawing
         }
         public Point(Size sz)
         {
-            this.x = sz.Width;
-            this.y = sz.Height;
+            x = sz.Width;
+            y = sz.Height;
         }
         public Point(int dw)
         {
             unchecked
             {
-                this.x = (short)LOWORD(dw);
-                this.y = (short)HIWORD(dw);
+                x = (short)LOWORD(dw);
+                y = (short)HIWORD(dw);
             }
         }
 

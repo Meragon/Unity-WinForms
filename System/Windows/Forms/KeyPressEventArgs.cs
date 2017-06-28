@@ -14,7 +14,7 @@ namespace System.Windows.Forms
 
         public KeyPressEventArgs(char keyChar)
         {
-            this.KeyChar = keyChar;
+            KeyChar = keyChar;
         }
     }
 }

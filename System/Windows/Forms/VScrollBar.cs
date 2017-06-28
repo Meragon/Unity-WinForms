@@ -12,20 +12,20 @@ namespace System.Windows.Forms
 
         public VScrollBar()
         {
-            this.scrollOrientation = ScrollOrientation.VerticalScroll;
-            this.Size = new Size(15, 80);
+            scrollOrientation = ScrollOrientation.VerticalScroll;
+            Size = new Size(15, 80);
 
-            this.subtractButton.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            this.subtractButton.Image = uwfAppOwner.Resources.CurvedArrowUp;
-            this.subtractButton.Location = new Point(0, 0);
-            this.subtractButton.Size = ButtonSize;
+            subtractButton.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            subtractButton.Image = uwfAppOwner.Resources.CurvedArrowUp;
+            subtractButton.Location = new Point(0, 0);
+            subtractButton.Size = ButtonSize;
 
-            this.addButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            this.addButton.Image = uwfAppOwner.Resources.CurvedArrowDown;
-            this.addButton.Location = new Point(0, Height - ButtonSize.Height);
-            this.addButton.Size = ButtonSize;
+            addButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            addButton.Image = uwfAppOwner.Resources.CurvedArrowDown;
+            addButton.Location = new Point(0, Height - ButtonSize.Height);
+            addButton.Size = ButtonSize;
 
-            this.Refresh();
+            Refresh();
         }
     }
 }

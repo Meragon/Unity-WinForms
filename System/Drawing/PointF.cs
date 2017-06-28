@@ -62,7 +62,7 @@ namespace System.Drawing
         {
             if (!(obj is PointF)) return false;
             PointF comp = (PointF)obj;
-            return comp.X == this.X && comp.Y == this.Y && comp.GetType() == this.GetType();
+            return comp.X == X && comp.Y == Y && comp.GetType() == GetType();
         }
         public override int GetHashCode()
         {

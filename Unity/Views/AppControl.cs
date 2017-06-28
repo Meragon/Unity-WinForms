@@ -7,7 +7,7 @@ using System.Windows.Forms.Design;
 using UnityEngine;
 using UnityEditor;
 
-namespace Views
+namespace Unity.Views
 {
     public class AppControl : EditorWindow, IDisposable
     {

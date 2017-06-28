@@ -19,7 +19,7 @@ namespace System.Windows.Forms
         public int Right { get { return right; } set { right = value; } }
         public Size Size
         {
-            get { return new Size(this.Horizontal, this.Vertical); }
+            get { return new Size(Horizontal, Vertical); }
         }
         public int Top { get { return top; } set { top = value; } }
         public int Vertical { get { return top + bottom; } }
@@ -49,10 +49,10 @@ namespace System.Windows.Forms
         {
             left = bottom = right = top = 0;
 
-            this.left = all;
-            this.bottom = all;
-            this.right = all;
-            this.top = all;
+            left = all;
+            bottom = all;
+            right = all;
+            top = all;
         }
         public Padding(int left, int bottom, int right, int top)
         {

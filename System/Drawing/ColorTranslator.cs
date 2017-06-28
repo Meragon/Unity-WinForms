@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace System.Drawing
+﻿namespace System.Drawing
 {
     public sealed class ColorTranslator
     {
@@ -30,16 +25,14 @@ namespace System.Drawing
                     result = Color.FromArgb(
                     Convert.ToInt32(htmlColor.Substring(0, 2), 16),
                     Convert.ToInt32(htmlColor.Substring(2, 2), 16),
-                    Convert.ToInt32(htmlColor.Substring(4, 2), 16)
-                    );
+                    Convert.ToInt32(htmlColor.Substring(4, 2), 16));
                     break;
                 case 8: // argb.
                     result = Color.FromArgb(
                     Convert.ToInt32(htmlColor.Substring(0, 2), 16),
                     Convert.ToInt32(htmlColor.Substring(2, 2), 16),
                     Convert.ToInt32(htmlColor.Substring(4, 2), 16),
-                    Convert.ToInt32(htmlColor.Substring(6, 2), 16)
-                    );
+                    Convert.ToInt32(htmlColor.Substring(6, 2), 16));
                     break;
             }
 

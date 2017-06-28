@@ -29,7 +29,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (this.Nodes.Count == 0) return null;
+                if (Nodes.Count == 0) return null;
 
                 return Nodes[0];
             }
@@ -62,7 +62,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (this.Nodes.Count == 0) return null;
+                if (Nodes.Count == 0) return null;
 
                 return Nodes[Nodes.Count - 1];
             }
@@ -72,8 +72,8 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (this.index + 1 < this.parent.Nodes.Count)
-                    return this.parent.Nodes[this.index + 1];
+                if (index + 1 < parent.Nodes.Count)
+                    return parent.Nodes[index + 1];
 
                 return null;
             }
@@ -92,8 +92,8 @@ namespace System.Windows.Forms
         {
             get
             {
-                if (this.index - 1 >= 0)
-                    return this.parent.Nodes[this.index - 1];
+                if (index - 1 >= 0)
+                    return parent.Nodes[index - 1];
 
                 return null;
             }
@@ -116,17 +116,17 @@ namespace System.Windows.Forms
         }
         public TreeNode(string text) : this(text, null)
         {
-            this.Text = text;
+            Text = text;
         }
         public TreeNode(string text, TreeNode[] children)
         {
-            this.BackColor = Color.Transparent;
-            this.Enabled = true;
-            this.ForeColor = DEFAULT_FORE_COLOR;
-            this.ImageColor = Color.White;
-            this.Text = text;
+            BackColor = Color.Transparent;
+            Enabled = true;
+            ForeColor = DEFAULT_FORE_COLOR;
+            ImageColor = Color.White;
+            Text = text;
             if (children != null)
-                this.Nodes.AddRange(children);
+                Nodes.AddRange(children);
         }
 
         private static int _GetVisibleNodesAmount(TreeNode node, int currentAmount)
@@ -205,20 +205,20 @@ namespace System.Windows.Forms
         }
         public void Remove()
         {
-            this.Remove(true);
+            Remove(true);
         }
         internal void Remove(bool notify)
         {
             for (int i = 0; i < Nodes.Count; i++)
-                this.Nodes[i].Remove(false);
+                Nodes[i].Remove(false);
 
-            if (this.parent != null)
+            if (parent != null)
             {
-                this.parent.Nodes.RemoveAt(index);
-                this.parent = null;
+                parent.Nodes.RemoveAt(index);
+                parent = null;
             }
 
-            this.treeView = null;
+            treeView = null;
         }
         public void Toggle()
         {
@@ -228,7 +228,7 @@ namespace System.Windows.Forms
 
         public override string ToString()
         {
-            return "TreeNode: " + ((this.Text == null) ? "" : this.Text);
+            return "TreeNode: " + ((Text == null) ? "" : Text);
         }
     }
 }

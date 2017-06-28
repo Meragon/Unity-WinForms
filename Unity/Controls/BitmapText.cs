@@ -57,9 +57,9 @@ namespace Unity.Controls
 
         public BitmapText(BitmapFont font)
         {
-            this.Color = Color.White;
+            Color = Color.White;
             this.font = font;
-            this.Scale = 1f;
+            Scale = 1f;
         }
         public void Apply()
         {
@@ -194,8 +194,8 @@ namespace Unity.Controls
             }
             public BitmapChar(Color c, float scale)
             {
-                this.ForeColor = c;
-                this.Scale = scale;
+                ForeColor = c;
+                Scale = scale;
             }
         }
     }

@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-
-namespace System.Windows.Forms.Design
+﻿namespace System.Windows.Forms.Design
 {
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Drawing;
+    using System.Linq;
+    using System.Reflection;
+
     public class ControlDesigner : IControlDesigner
     {
         private readonly objectEditor editor;
-
-        public Control Control { get; set; }
 
         public ControlDesigner(Control c)
         {
@@ -22,11 +18,13 @@ namespace System.Windows.Forms.Design
             editor.toggleEditor = true;
         }
 
+        public Control Control { get; set; }
+
         public virtual object Draw(int width, int height)
         {
             if (Control == null) return null;
 
-            Control controlToSet = null;
+            Control controlToSet;
 
             Editor.SetBackColor(Color.White);
             Editor.BeginGroup(width - 24, "");
@@ -47,14 +45,14 @@ namespace System.Windows.Forms.Design
         }
         private class objectEditor
         {
+            public bool toggleEditor;
+
             private readonly List<FieldInfo> fields;
             private readonly List<MethodInfo> methods;
             private readonly object obj;
             private readonly List<controlProperty> props;
             private readonly string name;
             private int rgb = 255;
-
-            public bool toggleEditor;
 
             public objectEditor(object o, string objName)
             {

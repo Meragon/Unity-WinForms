@@ -11,8 +11,8 @@ namespace System.Windows.Forms
     {
         public ScrollableControl()
         {
-            this.SetStyle(ControlStyles.ContainerControl, true);
-            this.SetStyle(ControlStyles.AllPaintingInWmPaint, false);
+            SetStyle(ControlStyles.ContainerControl, true);
+            SetStyle(ControlStyles.AllPaintingInWmPaint, false);
         }
     }
 }

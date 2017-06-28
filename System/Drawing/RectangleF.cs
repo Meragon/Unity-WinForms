@@ -69,8 +69,8 @@ namespace System.Drawing
             get { return new SizeF(Width, Height); }
             set
             {
-                this.Width = value.Width;
-                this.Height = value.Height;
+                Width = value.Width;
+                Height = value.Height;
             }
         }
         public float Top
@@ -102,10 +102,10 @@ namespace System.Drawing
         }
         public RectangleF(PointF location, SizeF size)
         {
-            this.x = location.X;
-            this.y = location.Y;
-            this.width = size.Width;
-            this.height = size.Height;
+            x = location.X;
+            y = location.Y;
+            width = size.Width;
+            height = size.Height;
         }
 
         public bool Equals(RectangleF other)
@@ -119,10 +119,10 @@ namespace System.Drawing
         }
         public bool Contains(float x, float y)
         {
-            return this.X <= x &&
-            x < this.X + this.Width &&
-            this.Y <= y &&
-            y < this.Y + this.Height;
+            return X <= x &&
+            x < X + Width &&
+            Y <= y &&
+            y < Y + Height;
         }
         public bool Contains(PointF pt)
         {
@@ -130,10 +130,10 @@ namespace System.Drawing
         }
         public bool Contains(RectangleF rect)
         {
-            return this.X <= rect.X &&
-                   rect.X + rect.Width <= this.X + this.Width &&
-                   this.Y <= rect.Y &&
-                   rect.Y + rect.Height <= this.Y + this.Height;
+            return X <= rect.X &&
+                   rect.X + rect.Width <= X + Width &&
+                   Y <= rect.Y &&
+                   rect.Y + rect.Height <= Y + Height;
         }
         public override int GetHashCode()
         {
@@ -148,10 +148,10 @@ namespace System.Drawing
         }
         public void Inflate(float x, float y)
         {
-            this.X -= x;
-            this.Y -= y;
-            this.Width += 2 * x;
-            this.Height += 2 * y;
+            X -= x;
+            Y -= y;
+            Width += 2 * x;
+            Height += 2 * y;
         }
         public void Inflate(SizeF size)
         {
@@ -161,17 +161,17 @@ namespace System.Drawing
         {
             RectangleF result = RectangleF.Intersect(rect, this);
 
-            this.X = result.X;
-            this.Y = result.Y;
-            this.Width = result.Width;
-            this.Height = result.Height;
+            X = result.X;
+            Y = result.Y;
+            Width = result.Width;
+            Height = result.Height;
         }
         public bool IntersectsWith(RectangleF rect)
         {
-            return rect.X < this.X + this.Width &&
-                   this.X < rect.X + rect.Width &&
-                   rect.Y < this.Y + this.Height &&
-                   this.Y < rect.Y + rect.Height;
+            return rect.X < X + Width &&
+                   X < rect.X + rect.Width &&
+                   rect.Y < Y + Height &&
+                   Y < rect.Y + rect.Height;
         }
         public void Offset(PointF pos)
         {
@@ -179,8 +179,8 @@ namespace System.Drawing
         }
         public void Offset(float x, float y)
         {
-            this.X += x;
-            this.Y += y;
+            X += x;
+            Y += y;
         }
         public override string ToString()
         {

@@ -742,7 +742,7 @@ namespace System.Windows.Forms
                     }
             }
 
-            private enum resizeTypes : byte
+            private enum resizeTypes
             {
                 None,
                 Down,

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
     public static class swfHelper
     {

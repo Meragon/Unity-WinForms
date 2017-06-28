@@ -273,7 +273,7 @@ namespace System.Windows.Forms
             }
 
             if (dialog && _dialogCallback != null)
-                _dialogCallback.Invoke(this, this.DialogResult);
+                _dialogCallback.Invoke(this, DialogResult);
         }
         public virtual ControlResizeTypes GetResizeAt(Point mclient)
         {
@@ -360,7 +360,7 @@ namespace System.Windows.Forms
 
             Shown(this, null);
 
-            return this.DialogResult;
+            return DialogResult;
         }
 
         public event FormClosingEventHandler FormClosing = delegate { };

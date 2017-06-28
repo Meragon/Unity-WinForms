@@ -20,19 +20,19 @@
 
         public Font(string familyName, float emSize)
         {
-            this.name = familyName;
+            name = familyName;
             Size = emSize;
         }
         public Font(string familyName, float emSize, FontStyle style)
         {
-            this.name = familyName;
+            name = familyName;
             this.style = style;
             Size = emSize;
         }
 
-        public string Name { get { return this.name; } }
+        public string Name { get { return name; } }
         public float Size { get; set; }
-        public FontStyle Style { get { return this.style; } }
+        public FontStyle Style { get { return style; } }
 
         public override string ToString()
         {

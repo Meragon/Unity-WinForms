@@ -21,9 +21,9 @@
 
         public object Clone()
         {
-            var pen = new Pen(this.Color);
-            pen.DashStyle = this.DashStyle;
-            pen.Width = this.Width;
+            var pen = new Pen(Color);
+            pen.DashStyle = DashStyle;
+            pen.Width = Width;
             return pen;
         }
         public void Dispose()

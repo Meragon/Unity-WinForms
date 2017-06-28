@@ -54,21 +54,21 @@ namespace System.Windows.Forms
             vScrollBar.ValueChanged += VScrollBarOnValueChanged;
             Controls.Add(vScrollBar);
 
-            this.BackColor = Color.White;
-            this.BorderColor = Color.FromArgb(130, 135, 144);
-            this.ImageList = new ImageList();
-            this.ItemHeight = 22;
-            this.Padding = new Padding(4);
-            this.root = new TreeNode(this);
-            this.root.Expand();
-            this.Resize += TreeView_Resize;
-            this.ScrollBarColor = Color.FromArgb(222, 222, 230);
-            this.ScrollBarHoverColor = Color.FromArgb(136, 136, 136);
-            this.ScrollSpeed = 2;
-            this.SelectionColor = Color.FromArgb(187, 222, 251);
-            this.SelectionHoverColor = Color.FromArgb(221, 238, 253);
-            this.Size = new Size(121, 97);
-            this.SmoothScrolling = true;
+            BackColor = Color.White;
+            BorderColor = Color.FromArgb(130, 135, 144);
+            ImageList = new ImageList();
+            ItemHeight = 22;
+            Padding = new Padding(4);
+            root = new TreeNode(this);
+            root.Expand();
+            Resize += TreeView_Resize;
+            ScrollBarColor = Color.FromArgb(222, 222, 230);
+            ScrollBarHoverColor = Color.FromArgb(136, 136, 136);
+            ScrollSpeed = 2;
+            SelectionColor = Color.FromArgb(187, 222, 251);
+            SelectionHoverColor = Color.FromArgb(221, 238, 253);
+            Size = new Size(121, 97);
+            SmoothScrolling = true;
 
             Nodes = new TreeNodeCollection(root);
             scrollNodeList = new List<TreeNode>();
@@ -324,7 +324,7 @@ namespace System.Windows.Forms
         }
         protected virtual void OnDrawNode(DrawTreeNodeEventArgs e)
         {
-            if (this.onDrawNode != null) this.onDrawNode(this, e);
+            if (onDrawNode != null) onDrawNode(this, e);
         }
         protected override void OnKeyPress(KeyPressEventArgs args)
         {

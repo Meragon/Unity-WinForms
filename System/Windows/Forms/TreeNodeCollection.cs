@@ -30,7 +30,7 @@ namespace System.Windows.Forms
                 if (index < 0 || index >= items.Count)
                     throw new ArgumentOutOfRangeException("index");
 
-                value.parent = this.owner;
+                value.parent = owner;
                 value.index = index;
                 items[index] = value;
             }
@@ -42,7 +42,7 @@ namespace System.Windows.Forms
                 if (string.IsNullOrEmpty(key))
                     return null;
 
-                int index = this.IndexOfKey(key);
+                int index = IndexOfKey(key);
                 if (IsValidIndex(index))
                     return this[index];
 
@@ -63,17 +63,17 @@ namespace System.Windows.Forms
             if (node == null)
                 throw new ArgumentNullException("node");
             if (node is TreeNode)
-                return this.Add((TreeNode)node);
-            return this.Add(node.ToString()).index;
+                return Add((TreeNode)node);
+            return Add(node.ToString()).index;
         }
         bool IList.Contains(object node)
         {
-            return node is TreeNode && this.Contains((TreeNode)node);
+            return node is TreeNode && Contains((TreeNode)node);
         }
         int IList.IndexOf(object node)
         {
             if (node is TreeNode)
-                return this.IndexOf((TreeNode)node);
+                return IndexOf((TreeNode)node);
 
             return -1;
         }
@@ -81,7 +81,7 @@ namespace System.Windows.Forms
         {
             if (node is TreeNode)
             {
-                this.Insert(index, (TreeNode)node);
+                Insert(index, (TreeNode)node);
                 return;
             }
             throw new ArgumentException(node.ToString());
@@ -90,7 +90,7 @@ namespace System.Windows.Forms
         void IList.Remove(object node)
         {
             if (node is TreeNode)
-                this.Remove((TreeNode)node);
+                Remove((TreeNode)node);
         }
         object IList.this[int index]
         {
@@ -113,7 +113,7 @@ namespace System.Windows.Forms
 
             if (node.parent != null) node.Remove();
 
-            node.parent = this.owner;
+            node.parent = owner;
             node.index = items.Count;
 
             items.Add(node);
@@ -142,14 +142,14 @@ namespace System.Windows.Forms
         public virtual TreeNode Add(string text)
         {
             TreeNode node = new TreeNode(text);
-            this.Add(node);
+            Add(node);
             return node;
         }
         public virtual TreeNode Add(string key, string text)
         {
             TreeNode node = new TreeNode(text);
             node.Name = key;
-            this.Add(node);
+            Add(node);
             return node;
         }
         public virtual void AddRange(TreeNode[] nodes)
@@ -172,12 +172,12 @@ namespace System.Windows.Forms
         }
         public bool Contains(TreeNode node)
         {
-            return this.IndexOf(node) != -1;
+            return IndexOf(node) != -1;
         }
         public void CopyTo(Array dest, int index)
         {
-            if (this.Count > 0)
-                Array.Copy(items.ToArray(), 0, dest, index, this.Count);
+            if (Count > 0)
+                Array.Copy(items.ToArray(), 0, dest, index, Count);
         }
         public IEnumerator GetEnumerator()
         {
@@ -185,7 +185,7 @@ namespace System.Windows.Forms
         }
         public int IndexOf(TreeNode node)
         {
-            for (int i = 0; i < this.Count; i++)
+            for (int i = 0; i < Count; i++)
                 if (this[i] == node)
                     return i;
 
@@ -207,7 +207,7 @@ namespace System.Windows.Forms
             if (node == null)
                 throw new ArgumentNullException("node");
 
-            node.parent = this.owner;
+            node.parent = owner;
             node.index = index;
             items.Insert(index, node);
 

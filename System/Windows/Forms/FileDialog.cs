@@ -208,8 +208,8 @@ namespace System.Windows.Forms
 
             fileRenderer.filesTree.NodeMouseClick += filesTree_NodeMouseClick;
 
-            this.AcceptButton = buttonOk;
-            this.Shown += FileDialog_Shown;
+            AcceptButton = buttonOk;
+            Shown += FileDialog_Shown;
         }
 
         protected virtual void ButtonBack()

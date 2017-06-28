@@ -144,21 +144,21 @@ namespace System.Windows.Forms
             {
                 if (value is Image)
                 {
-                    this.Add((Image)value);
-                    return this.Count - 1;
+                    Add((Image)value);
+                    return Count - 1;
                 }
 
                 return -1;
             }
             bool IList.Contains(object image)
             {
-                return image is Image && this.Contains((Image)image);
+                return image is Image && Contains((Image)image);
             }
             int IList.IndexOf(object image)
             {
                 if (image is Image)
                 {
-                    return this.IndexOf((Image)image);
+                    return IndexOf((Image)image);
                 }
                 return -1;
             }
@@ -174,7 +174,7 @@ namespace System.Windows.Forms
             {
                 if (image is Image)
                 {
-                    this.Remove((Image)image);
+                    Remove((Image)image);
                 }
             }
             object IList.this[int index]

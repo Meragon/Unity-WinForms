@@ -16,7 +16,7 @@ namespace System.Drawing
 
         public override object Clone()
         {
-            var brush = new SolidBrush(this.Color);
+            var brush = new SolidBrush(Color);
             return brush;
         }
     }

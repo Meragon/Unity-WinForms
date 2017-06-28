@@ -53,7 +53,7 @@
 
         private void Awake()
         {
-            gResources = this.Resources;
+            gResources = Resources;
 
             Graphics.ApiGraphics = ApiHolder.Graphics;
 
@@ -88,14 +88,14 @@
             GdiImages.Cursors.SizeWE = gResources.Images.Cursors.SizeWE.ToBitmap();
             GdiImages.Cursors.VSplit = gResources.Images.Cursors.VSplit.ToBitmap();
 
-            this.lastWidth = UE.Screen.width;
-            this.lastHeight = UE.Screen.height;
+            lastWidth = UE.Screen.width;
+            lastHeight = UE.Screen.height;
 
-            this.controller = new Application();
-            this.controller.Resources = GdiImages;
-            this.controller.UpdatePaintClipRect();
+            controller = new Application();
+            controller.Resources = GdiImages;
+            controller.UpdatePaintClipRect();
 
-            Control.uwfDefaultController = this.controller;
+            Control.uwfDefaultController = controller;
 
 #if UNITY_EDITOR
             MouseHook.MouseUp += (sender, args) =>
@@ -107,23 +107,23 @@
         }
         private void Update()
         {
-            if (this.controller != null)
+            if (controller != null)
             {
-                if (this.lastWidth != UE.Screen.width || this.lastHeight != UE.Screen.height)
+                if (lastWidth != UE.Screen.width || lastHeight != UE.Screen.height)
                 {
                     Size deltaSize = new Size(
-                        (int)(this.lastWidth - UE.Screen.width),
-                        (int)(this.lastHeight - UE.Screen.height));
-                    for (int i = 0; i < this.controller.ModalForms.Count; i++)
-                        this.controller.ModalForms[i].uwfAddjustSizeToScreen(deltaSize);
-                    for (int i = 0; i < this.controller.Forms.Count; i++)
-                        this.controller.Forms[i].uwfAddjustSizeToScreen(deltaSize);
-                    this.controller.UpdatePaintClipRect();
+                        (int)(lastWidth - UE.Screen.width),
+                        (int)(lastHeight - UE.Screen.height));
+                    for (int i = 0; i < controller.ModalForms.Count; i++)
+                        controller.ModalForms[i].uwfAddjustSizeToScreen(deltaSize);
+                    for (int i = 0; i < controller.Forms.Count; i++)
+                        controller.Forms[i].uwfAddjustSizeToScreen(deltaSize);
+                    controller.UpdatePaintClipRect();
                 }
-                this.lastWidth = UE.Screen.width;
-                this.lastHeight = UE.Screen.height;
+                lastWidth = UE.Screen.width;
+                lastHeight = UE.Screen.height;
 
-                this.controller.Update();
+                controller.Update();
             }
 
             for (int i = 0; i < actions.Count; i++)
@@ -139,18 +139,18 @@
         }
         private void OnApplicationFocus(bool focusStatus)
         {
-            this.paused = !focusStatus;
+            paused = !focusStatus;
 
             UE.Cursor.visible = Cursor.IsVisible;
         }
         private void OnGUI()
         {
-            if (this.controller == null) return;
+            if (controller == null) return;
 
-            if (this.paused == false)
+            if (paused == false)
             {
                 // Mouse.
-                this.controller.ProccessMouse(UE.Input.mousePosition.x, UE.Screen.height - UE.Input.mousePosition.y);
+                controller.ProccessMouse(UE.Input.mousePosition.x, UE.Screen.height - UE.Input.mousePosition.y);
 
                 // Keys.
                 if (UE.Event.current.keyCode != UE.KeyCode.None)
@@ -164,11 +164,11 @@
 
                     var keyEventType = (Application.KeyEvents)(UE.Event.current.type - 3);
                     if (keyEventType == Application.KeyEvents.Down || keyEventType == Application.KeyEvents.Up)
-                        this.controller.ProccessKeys(keyArgs, keyEventType);
+                        controller.ProccessKeys(keyArgs, keyEventType);
                 }
             }
 
-            this.controller.Redraw();
+            controller.Redraw();
         }
 
         internal class invokeAction

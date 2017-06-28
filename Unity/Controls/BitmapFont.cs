@@ -100,11 +100,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.descriptionField;
+                    return descriptionField;
                 }
                 set
                 {
-                    this.descriptionField = value;
+                    descriptionField = value;
                 }
             }
 
@@ -113,11 +113,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.metricsField;
+                    return metricsField;
                 }
                 set
                 {
-                    this.metricsField = value;
+                    metricsField = value;
                 }
             }
 
@@ -126,11 +126,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.textureField;
+                    return textureField;
                 }
                 set
                 {
-                    this.textureField = value;
+                    textureField = value;
                 }
             }
 
@@ -140,11 +140,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.charsField;
+                    return charsField;
                 }
                 set
                 {
-                    this.charsField = value;
+                    charsField = value;
                 }
             }
 
@@ -154,11 +154,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.typeField;
+                    return typeField;
                 }
                 set
                 {
-                    this.typeField = value;
+                    typeField = value;
                 }
             }
         }
@@ -180,11 +180,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.sizeField;
+                    return sizeField;
                 }
                 set
                 {
-                    this.sizeField = value;
+                    sizeField = value;
                 }
             }
 
@@ -194,11 +194,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.familyField;
+                    return familyField;
                 }
                 set
                 {
-                    this.familyField = value;
+                    familyField = value;
                 }
             }
 
@@ -208,11 +208,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.styleField;
+                    return styleField;
                 }
                 set
                 {
-                    this.styleField = value;
+                    styleField = value;
                 }
             }
         }
@@ -234,11 +234,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.ascenderField;
+                    return ascenderField;
                 }
                 set
                 {
-                    this.ascenderField = value;
+                    ascenderField = value;
                 }
             }
 
@@ -248,11 +248,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.heightField;
+                    return heightField;
                 }
                 set
                 {
-                    this.heightField = value;
+                    heightField = value;
                 }
             }
 
@@ -262,11 +262,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.descenderField;
+                    return descenderField;
                 }
                 set
                 {
-                    this.descenderField = value;
+                    descenderField = value;
                 }
             }
         }
@@ -288,11 +288,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.widthField;
+                    return widthField;
                 }
                 set
                 {
-                    this.widthField = value;
+                    widthField = value;
                 }
             }
 
@@ -302,11 +302,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.heightField;
+                    return heightField;
                 }
                 set
                 {
-                    this.heightField = value;
+                    heightField = value;
                 }
             }
 
@@ -316,11 +316,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.fileField;
+                    return fileField;
                 }
                 set
                 {
-                    this.fileField = value;
+                    fileField = value;
                 }
             }
         }
@@ -344,11 +344,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.offsetField;
+                    return offsetField;
                 }
                 set
                 {
-                    this.offsetField = value;
+                    offsetField = value;
                 }
             }
 
@@ -358,11 +358,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.rectField;
+                    return rectField;
                 }
                 set
                 {
-                    this.rectField = value;
+                    rectField = value;
                 }
             }
 
@@ -372,11 +372,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.advanceField;
+                    return advanceField;
                 }
                 set
                 {
-                    this.advanceField = value;
+                    advanceField = value;
                 }
             }
 
@@ -386,11 +386,11 @@ namespace Unity.Controls
             {
                 get
                 {
-                    return this.idField;
+                    return idField;
                 }
                 set
                 {
-                    this.idField = value;
+                    idField = value;
                 }
             }
         }

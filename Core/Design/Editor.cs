@@ -1,311 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using Unity.API;
-using UnityEngine;
-
-namespace System.Drawing
+﻿namespace System.Drawing
 {
-    public class Editor
-    {
-        private static float _width { get; set; }
-        private static float _nameWidth { get; set; }
-        private static float _contentWidth { get; set; }
-        private static readonly string[] boolOnOff = { "On", "Off" };
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.Windows.Forms;
 
-        public static bool WinFormsCompatible { get; set; }
+    using Unity.API;
 
-        public static void BeginGroup(float width, string style = "Box")
-        {
-            _width = width;
-            _nameWidth = 160;
-            _contentWidth = width - _nameWidth;
-
-            if (string.IsNullOrEmpty(style))
-                UnityEngine.GUILayout.BeginVertical();
-            else
-                UnityEngine.GUILayout.BeginVertical(style);
-        }
-        public static void BeginHorizontal()
-        {
-            if (_width > 0)
-                UnityEngine.GUILayout.BeginHorizontal(UnityEngine.GUILayout.Width(_width));
-            else
-                UnityEngine.GUILayout.BeginHorizontal();
-        }
-        public static void BeginVertical()
-        {
-            UnityEngine.GUILayout.BeginVertical();
-        }
-        public static void BeginVertical(string style)
-        {
-            if (string.IsNullOrEmpty(style))
-                UnityEngine.GUILayout.BeginVertical();
-            else
-                UnityEngine.GUILayout.BeginVertical(style);
-        }
-        public static void BeginVertical(GUIStyle style)
-        {
-            UnityEngine.GUILayout.BeginVertical(style);
-        }
-        public static void EndGroup()
-        {
-            UnityEngine.GUILayout.EndVertical();
-        }
-        public static void EndHorizontal()
-        {
-            UnityEngine.GUILayout.EndHorizontal();
-        }
-        public static void EndVertical()
-        {
-            UnityEngine.GUILayout.EndVertical();
-        }
-
-        public static EditorValue<bool> BooleanField(string name, bool value)
-        {
-            UnityEngine.GUILayout.BeginHorizontal();
-            UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            var boolBuffer = UnityEngine.GUILayout.Toolbar(value ? 0 : 1, boolOnOff, UnityEngine.GUILayout.Width(_contentWidth)) != 1;
-            UnityEngine.GUILayout.EndHorizontal();
-
-            return new EditorValue<bool>(boolBuffer, boolBuffer != value);
-        }
-        public static bool Button(string name, string text)
-        {
-            if (name == null)
-                name = "null";
-
-            UnityEngine.GUILayout.BeginHorizontal();
-            UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            var boolResult = UnityEngine.GUILayout.Button(text, UnityEngine.GUILayout.Width(_contentWidth));
-            UnityEngine.GUILayout.EndHorizontal();
-
-            return boolResult;
-        }
-        public static bool Button(string text)
-        {
-            return UnityEngine.GUILayout.Button(text);
-        }
-        public static bool Button(string text, int width)
-        {
-            return UnityEngine.GUILayout.Button(text, UnityEngine.GUILayout.Width(width));
-        }
-        public static void ColorField(string name, Color value, Action<Color> setColor)
-        {
-            UnityEngine.GUILayout.BeginHorizontal();
-            UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            Color colorBuffer = value;
-            if (WinFormsCompatible)
-            {
-                if (Button(value.ToString()))
-                {
-                    ColorPicker colorPicker = new ColorPicker();
-                    ColorPickerForm colorForm = new ColorPickerForm(colorPicker);
-                    colorForm.Color = value;
-                    colorForm.Show();
-                    colorForm.ColorChanged += (s, a) =>
-                    {
-                        if (setColor != null)
-                            setColor.Invoke(colorForm.Color);
-                    };
-                }
-            }
-#if UNITY_EDITOR
-            else
-            {
-                colorBuffer = UnityEditor.EditorGUILayout.ColorField(value.ToUnityColor(), UnityEngine.GUILayout.Width(_contentWidth)).ToColor();
-                if (colorBuffer != value && setColor != null)
-                    setColor.Invoke(colorBuffer);
-            }
-#endif
-            UnityEngine.GUILayout.EndHorizontal();
-        }
-        public static EditorValue<Enum> EnumField(string name, Enum value)
-        {
-            UnityEngine.GUILayout.BeginHorizontal();
-            UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            var enumBuffer = value;
-            if (WinFormsCompatible)
-            {
-
-            }
-#if UNITY_EDITOR
-            else
-                enumBuffer = UnityEditor.EditorGUILayout.EnumPopup(value, UnityEngine.GUILayout.Width(_contentWidth));
-#endif
-            UnityEngine.GUILayout.EndHorizontal();
-
-            return new EditorValue<Enum>(enumBuffer, enumBuffer != value);
-        }
-        public static bool Foldout(string name, bool value)
-        {
-            if (WinFormsCompatible)
-            {
-                return Toggle(name, value);
-            }
-#if UNITY_EDITOR
-            else
-                return UnityEditor.EditorGUILayout.Foldout(value, name);
-#endif
-            return false;
-        }
-        public static void Header(string text)
-        {
-            UnityEngine.GUI.skin.label.fontStyle = UnityEngine.FontStyle.Bold;
-            UnityEngine.GUI.skin.label.alignment = UnityEngine.TextAnchor.MiddleCenter;
-            UnityEngine.GUI.Label(new UnityEngine.Rect(0, 0, _width, 36), text);
-
-            UnityEngine.GUI.skin.label.fontStyle = UnityEngine.FontStyle.Normal;
-            UnityEngine.GUI.skin.label.alignment = UnityEngine.TextAnchor.UpperLeft;
-        }
-        public static void Label(object value)
-        {
-            if (value != null)
-                UnityEngine.GUILayout.Label(value.ToString());
-        }
-        public static void Label(string name, object value)
-        {
-            string valueString = "null";
-            if (value != null) valueString = value.ToString();
-            UnityEngine.GUILayout.BeginHorizontal();
-            UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            UnityEngine.GUILayout.Label(valueString, UnityEngine.GUILayout.Width(_contentWidth));
-            UnityEngine.GUILayout.EndHorizontal();
-        }
-        public static EditorValue<int[]> IntField(string name, params int[] value)
-        {
-            UnityEngine.GUILayout.BeginHorizontal();
-            UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-
-            bool changed = false;
-            int[] intBuffer = new int[value.Length];
-            for (int i = 0; i < value.Length; i++)
-            {
-                if (WinFormsCompatible)
-                {
-                    var valueBuffer = UnityEngine.GUILayout.TextField(value[i].ToString(), UnityEngine.GUILayout.Width(_contentWidth / value.Length));
-                    int.TryParse(valueBuffer, out intBuffer[i]);
-                }
-#if UNITY_EDITOR
-                else
-                    intBuffer[i] = UnityEditor.EditorGUILayout.IntField(value[i], UnityEngine.GUILayout.Width(_contentWidth / value.Length - value.Length));
-#endif
-                if (intBuffer[i] != value[i])
-                    changed = true;
-            }
-            UnityEngine.GUILayout.EndHorizontal();
-
-            return new EditorValue<int[]>(intBuffer, changed);
-        }
-        public static EditorValue<int> MaskField(string name, int value, string[] options)
-        {
-            UnityEngine.GUILayout.BeginHorizontal();
-            UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            var buffer = value;
-            if (WinFormsCompatible)
-            {
-
-            }
-#if UNITY_EDITOR
-            else
-                buffer = UnityEditor.EditorGUILayout.MaskField(value, options);
-#endif
-            UnityEngine.GUILayout.EndHorizontal();
-
-            return new EditorValue<int>(buffer, buffer != value);
-        }
-        public static void NewLine(int cnt)
-        {
-            for (int i = 0; i < cnt; i++)
-                UnityEngine.GUILayout.Label("");
-        }
-        public static EditorValue<UnityEngine.Object> ObjectField(string name, UnityEngine.Object value, Type type)
-        {
-            UnityEngine.GUILayout.BeginHorizontal();
-            UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            UnityEngine.Object objectBuffer = value;
-            if (WinFormsCompatible)
-            {
-
-            }
-#if UNITY_EDITOR
-            else
-                objectBuffer = UnityEditor.EditorGUILayout.ObjectField(value, type, UnityEngine.GUILayout.Width(_contentWidth));
-#endif
-            UnityEngine.GUILayout.EndHorizontal();
-
-            return new EditorValue<UnityEngine.Object>(objectBuffer, objectBuffer != value);
-        }
-        public static EditorValue<int> Popup(string name, int index, string[] values)
-        {
-            UnityEngine.GUILayout.BeginHorizontal();
-            UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            int intBuffer = 0;
-            if (WinFormsCompatible)
-            {
-
-            }
-#if UNITY_EDITOR
-            else
-                intBuffer = UnityEditor.EditorGUILayout.Popup(index, values, UnityEngine.GUILayout.Width(_contentWidth - 8));
-#endif
-            UnityEngine.GUILayout.EndHorizontal();
-
-            return new EditorValue<int>(intBuffer, intBuffer != index);
-        }
-        public static EditorValue<float> Slider(string name, float value, float min, float max)
-        {
-            UnityEngine.GUILayout.BeginHorizontal();
-            UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            float floatBuffer = value;
-            if (WinFormsCompatible)
-            {
-                floatBuffer = UnityEngine.GUILayout.HorizontalSlider(value, min, max, UnityEngine.GUILayout.Width(_contentWidth - 96));
-                UnityEngine.GUILayout.TextField(floatBuffer.ToString(), UnityEngine.GUILayout.Width(32));
-            }
-#if UNITY_EDITOR
-            else
-                floatBuffer = UnityEditor.EditorGUILayout.Slider(value, min, max, UnityEngine.GUILayout.Width(_contentWidth));
-#endif
-            UnityEngine.GUILayout.EndHorizontal();
-
-            return new EditorValue<float>(floatBuffer, floatBuffer != value);
-        }
-        public static EditorValue<string> TextField(string name, string value)
-        {
-            UnityEngine.GUILayout.BeginHorizontal();
-            UnityEngine.GUILayout.Label(name + ":", UnityEngine.GUILayout.Width(_nameWidth));
-            var textBuffer = UnityEngine.GUILayout.TextField(value, UnityEngine.GUILayout.Width(_contentWidth));
-            UnityEngine.GUILayout.EndHorizontal();
-
-            return new EditorValue<string>(textBuffer, textBuffer != value);
-        }
-        public static bool Toggle(string name, bool value)
-        {
-            return UnityEngine.GUILayout.Toggle(value, name, UnityEngine.GUILayout.Width(_width));
-        }
-
-        public static void SetBackColor(Color color)
-        {
-            GUI.backgroundColor = color.ToUnityColor();
-        }
-    }
+    using UnityEngine;
 
     public struct EditorValue<T>
     {
-        private bool _changed;
-        private T _value;
-
-        public bool Changed { get { return _changed; } }
-        public T Value { get { return _value; } }
+        private readonly bool changed;
+        private readonly T fvalue;
 
         public EditorValue(T value, bool changed)
         {
-            _value = value;
-            _changed = changed;
+            fvalue = value;
+            this.changed = changed;
         }
+
+        public bool Changed { get { return changed; } }
+        public T Value { get { return fvalue; } }
 
         public static bool operator ==(EditorValue<T> left, EditorValue<T> right)
         {
@@ -332,13 +47,311 @@ namespace System.Drawing
             return new EditorValue<T>(value, true);
         }
 
+        public bool Equals(EditorValue<T> other)
+        {
+            return changed == other.changed && EqualityComparer<T>.Default.Equals(fvalue, other.fvalue);
+        }
         public override bool Equals(object obj)
         {
-            return base.Equals(obj);
+            if (ReferenceEquals(null, obj)) return false;
+            return obj is EditorValue<T> && Equals((EditorValue<T>)obj);
         }
         public override int GetHashCode()
         {
-            return base.GetHashCode();
+            unchecked
+            {
+                return (changed.GetHashCode() * 397) ^ EqualityComparer<T>.Default.GetHashCode(fvalue);
+            }
+        }
+    }
+
+    public class Editor
+    {
+        private static readonly string[] boolOnOff = { "On", "Off" };
+
+        public static bool WinFormsCompatible { get; set; }
+
+        private static float _width { get; set; }
+        private static float _nameWidth { get; set; }
+        private static float _contentWidth { get; set; }
+
+        public static void BeginGroup(float width, string style = "Box")
+        {
+            _width = width;
+            _nameWidth = 160;
+            _contentWidth = width - _nameWidth;
+
+            if (string.IsNullOrEmpty(style))
+                GUILayout.BeginVertical();
+            else
+                GUILayout.BeginVertical(style);
+        }
+        public static void BeginHorizontal()
+        {
+            if (_width > 0)
+                GUILayout.BeginHorizontal(GUILayout.Width(_width));
+            else
+                GUILayout.BeginHorizontal();
+        }
+        public static void BeginVertical()
+        {
+            GUILayout.BeginVertical();
+        }
+        public static void BeginVertical(string style)
+        {
+            if (string.IsNullOrEmpty(style))
+                GUILayout.BeginVertical();
+            else
+                GUILayout.BeginVertical(style);
+        }
+        public static void BeginVertical(GUIStyle style)
+        {
+            GUILayout.BeginVertical(style);
+        }
+        public static void EndGroup()
+        {
+            GUILayout.EndVertical();
+        }
+        public static void EndHorizontal()
+        {
+            GUILayout.EndHorizontal();
+        }
+        public static void EndVertical()
+        {
+            GUILayout.EndVertical();
+        }
+        public static EditorValue<bool> BooleanField(string name, bool value)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name + ":", GUILayout.Width(_nameWidth));
+            var boolBuffer = GUILayout.Toolbar(value ? 0 : 1, boolOnOff, GUILayout.Width(_contentWidth)) != 1;
+            GUILayout.EndHorizontal();
+
+            return new EditorValue<bool>(boolBuffer, boolBuffer != value);
+        }
+        public static bool Button(string name, string text)
+        {
+            if (name == null)
+                name = "null";
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name + ":", GUILayout.Width(_nameWidth));
+            var boolResult = GUILayout.Button(text, GUILayout.Width(_contentWidth));
+            GUILayout.EndHorizontal();
+
+            return boolResult;
+        }
+        public static bool Button(string text)
+        {
+            return GUILayout.Button(text);
+        }
+        public static bool Button(string text, int width)
+        {
+            return GUILayout.Button(text, GUILayout.Width(width));
+        }
+        public static void ColorField(string name, Color value, Action<Color> setColor)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name + ":", GUILayout.Width(_nameWidth));
+            Color colorBuffer = value;
+            if (WinFormsCompatible)
+            {
+                if (Button(value.ToString()))
+                {
+                    ColorPicker colorPicker = new ColorPicker();
+                    ColorPickerForm colorForm = new ColorPickerForm(colorPicker);
+                    colorForm.Color = value;
+                    colorForm.Show();
+                    colorForm.ColorChanged += (s, a) =>
+                    {
+                        if (setColor != null)
+                            setColor.Invoke(colorForm.Color);
+                    };
+                }
+            }
+
+#if UNITY_EDITOR
+            else
+            {
+                colorBuffer = UnityEditor.EditorGUILayout.ColorField(value.ToUnityColor(), GUILayout.Width(_contentWidth)).ToColor();
+                if (colorBuffer != value && setColor != null)
+                    setColor.Invoke(colorBuffer);
+            }
+
+#endif
+            GUILayout.EndHorizontal();
+        }
+        public static EditorValue<Enum> EnumField(string name, Enum value)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name + ":", GUILayout.Width(_nameWidth));
+            var enumBuffer = value;
+            if (WinFormsCompatible)
+            {
+            }
+
+#if UNITY_EDITOR
+            else
+                enumBuffer = UnityEditor.EditorGUILayout.EnumPopup(value, GUILayout.Width(_contentWidth));
+#endif
+            GUILayout.EndHorizontal();
+
+            return new EditorValue<Enum>(enumBuffer, !Equals(enumBuffer, value));
+        }
+        public static bool Foldout(string name, bool value)
+        {
+            if (WinFormsCompatible)
+            {
+                return Toggle(name, value);
+            }
+
+#if UNITY_EDITOR
+            else
+                return UnityEditor.EditorGUILayout.Foldout(value, name);
+#endif
+            return false;
+        }
+        public static void Header(string text)
+        {
+            GUI.skin.label.fontStyle = UnityEngine.FontStyle.Bold;
+            GUI.skin.label.alignment = TextAnchor.MiddleCenter;
+            GUI.Label(new Rect(0, 0, _width, 36), text);
+
+            GUI.skin.label.fontStyle = UnityEngine.FontStyle.Normal;
+            GUI.skin.label.alignment = TextAnchor.UpperLeft;
+        }
+        public static void Label(object value)
+        {
+            if (value != null)
+                GUILayout.Label(value.ToString());
+        }
+        public static void Label(string name, object value)
+        {
+            string valueString = "null";
+            if (value != null) valueString = value.ToString();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name + ":", GUILayout.Width(_nameWidth));
+            GUILayout.Label(valueString, GUILayout.Width(_contentWidth));
+            GUILayout.EndHorizontal();
+        }
+        public static EditorValue<int[]> IntField(string name, params int[] value)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name + ":", GUILayout.Width(_nameWidth));
+
+            bool changed = false;
+            int[] intBuffer = new int[value.Length];
+            for (int i = 0; i < value.Length; i++)
+            {
+                if (WinFormsCompatible)
+                {
+                    var valueBuffer = GUILayout.TextField(value[i].ToString(), GUILayout.Width(_contentWidth / value.Length));
+                    int.TryParse(valueBuffer, out intBuffer[i]);
+                }
+
+#if UNITY_EDITOR
+                else
+                    intBuffer[i] = UnityEditor.EditorGUILayout.IntField(value[i], GUILayout.Width(_contentWidth / value.Length - value.Length));
+#endif
+                if (intBuffer[i] != value[i])
+                    changed = true;
+            }
+
+            GUILayout.EndHorizontal();
+
+            return new EditorValue<int[]>(intBuffer, changed);
+        }
+        public static EditorValue<int> MaskField(string name, int value, string[] options)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name + ":", GUILayout.Width(_nameWidth));
+            var buffer = value;
+            if (WinFormsCompatible)
+            {
+            }
+
+#if UNITY_EDITOR
+            else
+                buffer = UnityEditor.EditorGUILayout.MaskField(value, options);
+#endif
+            GUILayout.EndHorizontal();
+
+            return new EditorValue<int>(buffer, buffer != value);
+        }
+        public static void NewLine(int cnt)
+        {
+            for (int i = 0; i < cnt; i++)
+                GUILayout.Label(string.Empty);
+        }
+        public static EditorValue<Object> ObjectField(string name, UnityEngine.Object value, Type type)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name + ":", GUILayout.Width(_nameWidth));
+            var objectBuffer = value;
+            if (WinFormsCompatible)
+            {
+            }
+
+#if UNITY_EDITOR
+            else
+                objectBuffer = UnityEditor.EditorGUILayout.ObjectField(value, type, GUILayout.Width(_contentWidth));
+#endif
+            GUILayout.EndHorizontal();
+
+            return new EditorValue<Object>(objectBuffer, objectBuffer != value);
+        }
+        public static EditorValue<int> Popup(string name, int index, string[] values)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name + ":", GUILayout.Width(_nameWidth));
+            int intBuffer = 0;
+            if (WinFormsCompatible)
+            {
+            }
+
+#if UNITY_EDITOR
+            else
+                intBuffer = UnityEditor.EditorGUILayout.Popup(index, values, GUILayout.Width(_contentWidth - 8));
+#endif
+            GUILayout.EndHorizontal();
+
+            return new EditorValue<int>(intBuffer, intBuffer != index);
+        }
+        public static EditorValue<float> Slider(string name, float value, float min, float max)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name + ":", GUILayout.Width(_nameWidth));
+            float floatBuffer = value;
+            if (WinFormsCompatible)
+            {
+                floatBuffer = GUILayout.HorizontalSlider(value, min, max, GUILayout.Width(_contentWidth - 96));
+                GUILayout.TextField(floatBuffer.ToString(CultureInfo.InvariantCulture), GUILayout.Width(32));
+            }
+
+#if UNITY_EDITOR
+            else
+                floatBuffer = UnityEditor.EditorGUILayout.Slider(value, min, max, GUILayout.Width(_contentWidth));
+#endif
+            GUILayout.EndHorizontal();
+
+            return new EditorValue<float>(floatBuffer, floatBuffer != value);
+        }
+        public static EditorValue<string> TextField(string name, string value)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(name + ":", GUILayout.Width(_nameWidth));
+            var textBuffer = GUILayout.TextField(value, GUILayout.Width(_contentWidth));
+            GUILayout.EndHorizontal();
+
+            return new EditorValue<string>(textBuffer, textBuffer != value);
+        }
+        public static bool Toggle(string name, bool value)
+        {
+            return GUILayout.Toggle(value, name, GUILayout.Width(_width));
+        }
+        public static void SetBackColor(Color color)
+        {
+            GUI.backgroundColor = color.ToUnityColor();
         }
     }
 }

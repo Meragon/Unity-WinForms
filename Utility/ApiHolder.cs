@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing.API;
-using System.Linq;
-using System.Text;
-using Unity.API;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing.API;
+
+    using Unity.API;
+
     /// <summary>
     /// Replace with your own implementation if needed.
     /// </summary>

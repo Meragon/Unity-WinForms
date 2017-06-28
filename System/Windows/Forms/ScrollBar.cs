@@ -164,7 +164,7 @@ namespace System.Windows.Forms
 
             UpdateScrollRect();
 
-            ScrollEventArgs se = new ScrollEventArgs(type, oldValue, newValue, this.scrollOrientation);
+            ScrollEventArgs se = new ScrollEventArgs(type, oldValue, newValue, scrollOrientation);
             OnScroll(se);
             Value = se.NewValue;
         }

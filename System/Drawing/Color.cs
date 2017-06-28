@@ -1,50 +1,21 @@
-﻿using System;
-
-namespace System.Drawing
+﻿namespace System.Drawing
 {
     [Serializable]
     public struct Color : IEquatable<Color>
     {
-        private bool _isEmpty;
-        private readonly byte _a, _r, _g, _b;
+        public static readonly Color Empty = new Color(0, 0, 0, 0) { isEmpty = true };
 
-        public byte A { get { return _a; } }
-        public byte R { get { return _r; } }
-        public byte G { get { return _g; } }
-        public byte B { get { return _b; } }
+        private readonly byte a, r, g, b;
+        private bool isEmpty;
 
-        public static Color operator +(Color left, Color right)
+        private Color(byte a, byte r, byte g, byte b)
         {
-            int a = left.A + right.A; a = a > 255 ? 255 : a;
-            int r = left.R + right.R; r = r > 255 ? 255 : r;
-            int g = left.G + right.G; g = g > 255 ? 255 : g;
-            int b = left.B + right.B; b = b > 255 ? 255 : b;
-            return Color.FromArgb(a, r, g, b);
+            this.a = a;
+            this.r = r;
+            this.g = g;
+            this.b = b;
+            isEmpty = false;
         }
-        public static Color operator -(Color left, Color right)
-        {
-            int a = left.A - right.A; a = a < 0 ? 0 : a;
-            int r = left.R - right.R; r = r < 0 ? 0 : r;
-            int g = left.G - right.G; g = g < 0 ? 0 : g;
-            int b = left.B - right.B; b = b < 0 ? 0 : b;
-            return Color.FromArgb(a, r, g, b);
-        }
-        public static bool operator !=(Color left, Color right)
-        {
-            if (left._a != right._a || left._r != right._r || left._g != right._g || left._b != right._b)
-                return true;
-            return false;
-        }
-        public static bool operator ==(Color left, Color right)
-        {
-            if (left._a == right._a && left._r == right._r && left._g == right._g && left._b == right._b)
-                return true;
-            return false;
-        }
-
-        public static readonly Color Empty = new Color(0, 0, 0, 0) { _isEmpty = true };
-
-        public bool IsEmpty { get { return _isEmpty; } }
 
         public static Color AliceBlue { get { return Color.FromArgb(0xF0, 0xF8, 0xFF); } }
         public static Color AntiqueWhie { get { return Color.FromArgb(0xFA, 0xEB, 0xD7); } }
@@ -188,6 +159,41 @@ namespace System.Drawing
         public static Color Yellow { get { return Color.FromArgb(0xFF, 0xFF, 0x00); } }
         public static Color YellowGreen { get { return Color.FromArgb(0x9A, 0xCD, 0x32); } }
 
+        public bool IsEmpty { get { return isEmpty; } }
+        public byte A { get { return a; } }
+        public byte R { get { return r; } }
+        public byte G { get { return g; } }
+        public byte B { get { return b; } }
+
+        public static Color operator +(Color left, Color right)
+        {
+            int a = left.A + right.A; a = a > 255 ? 255 : a;
+            int r = left.R + right.R; r = r > 255 ? 255 : r;
+            int g = left.G + right.G; g = g > 255 ? 255 : g;
+            int b = left.B + right.B; b = b > 255 ? 255 : b;
+            return Color.FromArgb(a, r, g, b);
+        }
+        public static Color operator -(Color left, Color right)
+        {
+            int a = left.A - right.A; a = a < 0 ? 0 : a;
+            int r = left.R - right.R; r = r < 0 ? 0 : r;
+            int g = left.G - right.G; g = g < 0 ? 0 : g;
+            int b = left.B - right.B; b = b < 0 ? 0 : b;
+            return Color.FromArgb(a, r, g, b);
+        }
+        public static bool operator !=(Color left, Color right)
+        {
+            if (left.a != right.a || left.r != right.r || left.g != right.g || left.b != right.b)
+                return true;
+            return false;
+        }
+        public static bool operator ==(Color left, Color right)
+        {
+            if (left.a == right.a && left.r == right.r && left.g == right.g && left.b == right.b)
+                return true;
+            return false;
+        }
+
         public static Color FromArgb(int alpha, Color baseColor)
         {
             return Color.FromArgb(alpha, baseColor.R, baseColor.G, baseColor.B);
@@ -202,18 +208,9 @@ namespace System.Drawing
             return new Color((byte)a, (byte)r, (byte)g, (byte)b);
         }
 
-        private Color(byte a, byte r, byte g, byte b)
-        {
-            _a = a;
-            _r = r;
-            _g = g;
-            _b = b;
-            _isEmpty = false;
-        }
-
         public bool Equals(Color other)
         {
-            return _isEmpty == other._isEmpty && _a == other._a && _r == other._r && _g == other._g && _b == other._b;
+            return isEmpty == other.isEmpty && a == other.a && r == other.r && g == other.g && b == other.b;
         }
         public override bool Equals(object obj)
         {
@@ -222,9 +219,9 @@ namespace System.Drawing
         }
         public float GetBrightness()
         {
-            float num = (float)this.R / 255f;
-            float num2 = (float)this.G / 255f;
-            float num3 = (float)this.B / 255f;
+            float num = (float)R / 255f;
+            float num2 = (float)G / 255f;
+            float num3 = (float)B / 255f;
             float num4 = num;
             float num5 = num;
             if (num2 > num4)
@@ -249,23 +246,23 @@ namespace System.Drawing
         {
             unchecked
             {
-                var hashCode = _isEmpty.GetHashCode();
-                hashCode = (hashCode * 397) ^ _a.GetHashCode();
-                hashCode = (hashCode * 397) ^ _r.GetHashCode();
-                hashCode = (hashCode * 397) ^ _g.GetHashCode();
-                hashCode = (hashCode * 397) ^ _b.GetHashCode();
+                var hashCode = isEmpty.GetHashCode();
+                hashCode = (hashCode * 397) ^ a.GetHashCode();
+                hashCode = (hashCode * 397) ^ r.GetHashCode();
+                hashCode = (hashCode * 397) ^ g.GetHashCode();
+                hashCode = (hashCode * 397) ^ b.GetHashCode();
                 return hashCode;
             }
         }
         public float GetHue()
         {
-            if (this.R == this.G && this.G == this.B)
+            if (R == G && G == B)
             {
                 return 0f;
             }
-            float fR = (float)this.R / 255f;
-            float fG = (float)this.G / 255f;
-            float fB = (float)this.B / 255f;
+            float fR = (float)R / 255f;
+            float fG = (float)G / 255f;
+            float fB = (float)B / 255f;
             float num4 = 0f;
             float num5 = fR;
             float num6 = fR;
@@ -307,9 +304,9 @@ namespace System.Drawing
         }
         public float GetSaturation()
         {
-            float num = (float)this.R / 255f;
-            float num2 = (float)this.G / 255f;
-            float num3 = (float)this.B / 255f;
+            float num = (float)R / 255f;
+            float num2 = (float)G / 255f;
+            float num3 = (float)B / 255f;
             float result = 0f;
             float num4 = num;
             float num5 = num;

@@ -27,20 +27,20 @@
 
         public bool Checked
         {
-            get { return this.checkState != CheckState.Unchecked; }
-            set { this.CheckState = value ? CheckState.Checked : CheckState.Unchecked; }
+            get { return checkState != CheckState.Unchecked; }
+            set { CheckState = value ? CheckState.Checked : CheckState.Unchecked; }
         }
         public CheckState CheckState
         {
             get
             {
-                return this.checkState;
+                return checkState;
             }
             set
             {
-                if (this.checkState != value)
+                if (checkState != value)
                 {
-                    this.checkState = value;
+                    checkState = value;
                     OnCheckedChanged(EventArgs.Empty);
                 }
             }

@@ -166,13 +166,13 @@ namespace System.Windows.Forms
             }
             public ItemEntity Add(object value)
             {
-                if (this.items == null)
+                if (items == null)
                     throw new NullReferenceException("items");
 
                 ItemEntity item = new ItemEntity();
                 item.Value = value;
                 item.Text = value.ToString();
-                this.items.Add(item);
+                items.Add(item);
                 return item;
             }
             public void Clear()

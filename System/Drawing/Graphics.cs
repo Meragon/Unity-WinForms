@@ -1,14 +1,12 @@
-﻿using UnityEngine;
-using System;
-using System.Collections.Generic;
-using System.Drawing.API;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using Unity.API;
-
-namespace System.Drawing
+﻿namespace System.Drawing
 {
+    using System.Drawing.API;
+    using System.Windows.Forms;
+
+    using Unity.API;
+
+    using UnityEngine;
+
     public sealed class Graphics : IDeviceContext, IDisposable
     {
         internal static IApiGraphics ApiGraphics { get; set; }

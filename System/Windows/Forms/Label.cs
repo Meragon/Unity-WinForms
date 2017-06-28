@@ -20,8 +20,8 @@ namespace System.Windows.Forms
             TabStop = false;
             TextAlign = ContentAlignment.TopLeft;
 
-            this.SetStyle(ControlStyles.FixedHeight | ControlStyles.Selectable, false);
-            this.SetStyle(ControlStyles.ResizeRedraw, true);
+            SetStyle(ControlStyles.FixedHeight | ControlStyles.Selectable, false);
+            SetStyle(ControlStyles.ResizeRedraw, true);
         }
 
         protected override void OnPaint(PaintEventArgs e)

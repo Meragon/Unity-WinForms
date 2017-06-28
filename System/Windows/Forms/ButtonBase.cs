@@ -1,21 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     public class ButtonBase : Control
     {
+        internal Color uwfBorderColor = Color.FromArgb(172, 172, 172);
+        internal Color uwfBorderDisableColor = Color.FromArgb(217, 217, 217);
+        internal Color uwfBorderHoverColor = Color.FromArgb(126, 180, 234);
+        internal Color uwfBorderSelectColor = Color.FromArgb(51, 153, 255);
+        internal Color uwfDisableColor = Color.FromArgb(239, 239, 239);
+        internal Color uwfHoverColor = Color.FromArgb(223, 238, 252);
+        internal Bitmap uwfImageHover;
+        internal Color uwfImageColor = Color.White;
+        internal Color uwfImageHoverColor = Color.White;
+
+        private const float IMAGE_BORDER_OFFSET = 2f;
+
+        private readonly Pen borderPen = new Pen(Color.Transparent);
+
         private FlatStyle flatStyle = FlatStyle.Standard;
         private Bitmap imageFromList;
         private ContentAlignment imageAlign = ContentAlignment.MiddleCenter;
         private int imageIndex;
         private ImageList imageList;
         private ContentAlignment textAlign = ContentAlignment.MiddleCenter;
-        private readonly Pen borderPen = new Pen(Color.Transparent);
-        
+
+        public ButtonBase()
+        {
+            BackColor = Color.FromArgb(234, 234, 234);
+            BackgroundImageLayout = ImageLayout.Center;
+            ForeColor = Color.FromArgb(64, 64, 64);
+            Size = new Size(75, 23);
+        }
+
         public FlatStyle FlatStyle
         {
             get { return flatStyle; }
@@ -53,28 +70,10 @@ namespace System.Windows.Forms
             set { textAlign = value; }
         }
 
-        internal Color uwfBorderColor = Color.FromArgb(172, 172, 172);
-        internal Color uwfBorderDisableColor = Color.FromArgb(217, 217, 217);
-        internal Color uwfBorderHoverColor = Color.FromArgb(126, 180, 234);
-        internal Color uwfBorderSelectColor = Color.FromArgb(51, 153, 255);
-        internal Color uwfDisableColor = Color.FromArgb(239, 239, 239);
-        internal Color uwfHoverColor = Color.FromArgb(223, 238, 252);
-        internal Bitmap uwfImageHover;
-        internal Color uwfImageColor = Color.White;
-        internal Color uwfImageHoverColor = Color.White;
-
-        public ButtonBase()
-        {
-            BackColor = Color.FromArgb(234, 234, 234);
-            BackgroundImageLayout = ImageLayout.Center;
-            ForeColor = Color.FromArgb(64, 64, 64);
-            Size = new Size(75, 23);
-        }
-
         protected override void OnKeyUp(KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Space || e.KeyCode == Keys.Return)
-                this.OnClick(EventArgs.Empty);
+                OnClick(EventArgs.Empty);
 
             base.OnKeyUp(e);
         }
@@ -123,7 +122,22 @@ namespace System.Windows.Forms
 
             g.uwfFillRectangle(backColorToDraw, 0, 0, width, height);
             g.DrawRectangle(borderPen, 0, 0, width, height);
+            DrawBackgroundImage(g);
+            DrawImage(g);
 
+            // Text.
+            var textColor = ForeColor;
+            if (enabled == false) textColor = ForeColor + Color.FromArgb(0, 128, 128, 128);
+            var padding = Padding;
+            g.uwfDrawString(Text, Font, textColor,
+                    padding.Left,
+                    padding.Top,
+                    width - padding.Horizontal,
+                    height - padding.Vertical, textAlign);
+        }
+
+        private void DrawBackgroundImage(Graphics g)
+        {
             // Background image.
             if (BackgroundImage != null)
             {
@@ -145,90 +159,80 @@ namespace System.Windows.Forms
                         break;
                     case ImageLayout.Center:
                         g.uwfDrawImage(backgroundImage, imageColorToPaint,
-                            width / 2 - backgroundImage.Width / 2,
-                            height / 2 - backgroundImage.Height / 2,
+                            Width / 2 - backgroundImage.Width / 2,
+                            Height / 2 - backgroundImage.Height / 2,
                             backgroundImage.Width,
                             backgroundImage.Height);
                         break;
                     case ImageLayout.Stretch:
-                        g.uwfDrawImage(backgroundImage, imageColorToPaint, 0, 0, width, height);
+                        g.uwfDrawImage(backgroundImage, imageColorToPaint, 0, 0, Width, Height);
                         break;
                     case ImageLayout.Zoom:
                         // TODO: not working.
                         break;
                 }
             }
-
+        }
+        private void DrawImage(Graphics g)
+        {
             // Image.
             var imageToPaint = Image;
             if (imageFromList != null)
                 imageToPaint = imageFromList;
 
-            if (imageToPaint != null)
+            if (imageToPaint == null) return;
+
+            var imageWidth = imageToPaint.Width;
+            var imageHeight = imageToPaint.Height;
+            var imageColorToPaint = uwfImageColor;
+            if (uwfHovered)
             {
-                var imageWidth = imageToPaint.Width;
-                var imageHeight = imageToPaint.Height;
-                var imageColorToPaint = uwfImageColor;
-                if (uwfHovered)
-                {
-                    if (uwfImageHover != null)
-                        imageToPaint = uwfImageHover;
-                    imageColorToPaint = uwfImageHoverColor;
-                }
-
-                float ix = 0, iy = 0;
-                const float borderOffset = 2f;
-
-                switch (imageAlign)
-                {
-                    case ContentAlignment.BottomCenter:
-                    case ContentAlignment.BottomLeft:
-                    case ContentAlignment.BottomRight:
-                        iy = Height - imageHeight - borderOffset;
-                        break;
-                    case ContentAlignment.MiddleCenter:
-                    case ContentAlignment.MiddleLeft:
-                    case ContentAlignment.MiddleRight:
-                        iy = Height / 2f - imageHeight / 2f;
-                        break;
-                    case ContentAlignment.TopCenter:
-                    case ContentAlignment.TopLeft:
-                    case ContentAlignment.TopRight:
-                        iy = borderOffset;
-                        break;
-                }
-
-                switch (imageAlign)
-                {
-                    case ContentAlignment.BottomCenter:
-                    case ContentAlignment.MiddleCenter:
-                    case ContentAlignment.TopCenter:
-                        ix = Width / 2f - imageWidth / 2f;
-                        break;
-                    case ContentAlignment.BottomLeft:
-                    case ContentAlignment.MiddleLeft:
-                    case ContentAlignment.TopLeft:
-                        ix = borderOffset;
-                        break;
-                    case ContentAlignment.BottomRight:
-                    case ContentAlignment.MiddleRight:
-                    case ContentAlignment.TopRight:
-                        ix = Width - imageWidth - borderOffset;
-                        break;
-                }
-
-                g.uwfDrawImage(imageToPaint, imageColorToPaint, ix, iy, imageWidth, imageHeight);
+                if (uwfImageHover != null)
+                    imageToPaint = uwfImageHover;
+                imageColorToPaint = uwfImageHoverColor;
             }
 
-            // Text.
-            var textColor = ForeColor;
-            if (enabled == false) textColor = ForeColor + Color.FromArgb(0, 128, 128, 128);
-            var padding = Padding;
-            g.uwfDrawString(Text, Font, textColor,
-                    padding.Left,
-                    padding.Top,
-                    width - padding.Horizontal,
-                    height - padding.Vertical, textAlign);
+            float ix = 0, iy = 0;
+
+            switch (imageAlign)
+            {
+                case ContentAlignment.BottomCenter:
+                case ContentAlignment.BottomLeft:
+                case ContentAlignment.BottomRight:
+                    iy = Height - imageHeight - IMAGE_BORDER_OFFSET;
+                    break;
+                case ContentAlignment.MiddleCenter:
+                case ContentAlignment.MiddleLeft:
+                case ContentAlignment.MiddleRight:
+                    iy = Height / 2f - imageHeight / 2f;
+                    break;
+                case ContentAlignment.TopCenter:
+                case ContentAlignment.TopLeft:
+                case ContentAlignment.TopRight:
+                    iy = IMAGE_BORDER_OFFSET;
+                    break;
+            }
+
+            switch (imageAlign)
+            {
+                case ContentAlignment.BottomCenter:
+                case ContentAlignment.MiddleCenter:
+                case ContentAlignment.TopCenter:
+                    ix = Width / 2f - imageWidth / 2f;
+                    break;
+                case ContentAlignment.BottomLeft:
+                case ContentAlignment.MiddleLeft:
+                case ContentAlignment.TopLeft:
+                    ix = IMAGE_BORDER_OFFSET;
+                    break;
+                case ContentAlignment.BottomRight:
+                case ContentAlignment.MiddleRight:
+                case ContentAlignment.TopRight:
+                    ix = Width - imageWidth - IMAGE_BORDER_OFFSET;
+                    break;
+            }
+
+            g.uwfDrawImage(imageToPaint, imageColorToPaint, ix, iy, imageWidth, imageHeight);
         }
     }
 }

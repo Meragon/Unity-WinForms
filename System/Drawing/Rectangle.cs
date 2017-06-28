@@ -39,8 +39,8 @@ namespace System.Drawing
             get { return new Size(Width, Height); }
             set
             {
-                this.Width = value.Width;
-                this.Height = value.Height;
+                Width = value.Width;
+                Height = value.Height;
             }
         }
         public int Top { get { return y; } }
@@ -68,23 +68,23 @@ namespace System.Drawing
         }
         public Rectangle(Point location, Size size)
         {
-            this.x = location.X;
-            this.y = location.Y;
-            this.width = size.Width;
-            this.height = size.Height;
+            x = location.X;
+            y = location.Y;
+            width = size.Width;
+            height = size.Height;
         }
         
         public bool Contains(int x, int y)
         {
-            return this.X <= x && x < this.X + this.Width && this.Y <= y && y < this.Y + this.Height;
+            return X <= x && x < X + Width && Y <= y && y < Y + Height;
         }
         public bool Contains(Point pt)
         {
-            return this.Contains(pt.X, pt.Y);
+            return Contains(pt.X, pt.Y);
         }
         public bool Contains(Rectangle rect)
         {
-            return this.X <= rect.X && rect.X + rect.Width <= this.X + this.Width && this.Y <= rect.Y && rect.Y + rect.Height <= this.Y + this.Height;
+            return X <= rect.X && rect.X + rect.Width <= X + Width && Y <= rect.Y && rect.Y + rect.Height <= Y + Height;
         }
         public bool Equals(Rectangle other)
         {
@@ -109,10 +109,10 @@ namespace System.Drawing
         }
         public void Inflate(int width, int height)
         {
-            this.X -= width;
-            this.Y -= height;
-            this.Width += 2 * width;
-            this.Height += 2 * height;
+            X -= width;
+            Y -= height;
+            Width += 2 * width;
+            Height += 2 * height;
         }
         public void Inflate(Size size)
         {
@@ -121,14 +121,14 @@ namespace System.Drawing
         public void Intersect(Rectangle rect)
         {
             Rectangle rectangle = Rectangle.Intersect(rect, this);
-            this.X = rectangle.X;
-            this.Y = rectangle.Y;
-            this.Width = rectangle.Width;
-            this.Height = rectangle.Height;
+            X = rectangle.X;
+            Y = rectangle.Y;
+            Width = rectangle.Width;
+            Height = rectangle.Height;
         }
         public bool IntersectsWith(Rectangle rect)
         {
-            return rect.X < this.X + this.Width && this.X < rect.X + rect.Width && rect.Y < this.Y + this.Height && this.Y < rect.Y + rect.Height;
+            return rect.X < X + Width && X < rect.X + rect.Width && rect.Y < Y + Height && Y < rect.Y + rect.Height;
         }
         public void Offset(Point pos)
         {
@@ -136,8 +136,8 @@ namespace System.Drawing
         }
         public void Offset(int x, int y)
         {
-            this.X += x;
-            this.Y += y;
+            X += x;
+            Y += y;
         }
         public override string ToString()
         {

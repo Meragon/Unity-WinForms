@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEditor;
 using SWF = System.Windows.Forms;
 
-namespace Views
+namespace Unity.Views
 {
     public class AppControlList : EditorWindow
     {

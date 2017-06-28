@@ -1,17 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace System.Drawing
+﻿namespace System.Drawing
 {
     [Serializable]
     public class Bitmap : Image
     {
-        private Bitmap()
-        {
-            
-        }
         public Bitmap(Image original)
         {
             if (original != null)
@@ -21,7 +12,19 @@ namespace System.Drawing
         {
             uTexture = Graphics.ApiGraphics.CreateTexture(width, height);
         }
-        
+
+        private Bitmap()
+        {
+        }
+
+        public static Bitmap FromTexture(ITexture tex)
+        {
+            var bmp = new Bitmap();
+            bmp.uTexture = tex;
+
+            return bmp;
+        }
+
         public void ClearColor(Color c, bool apply = true)
         {
             var colors = new Color[Width * Height];
@@ -45,14 +48,6 @@ namespace System.Drawing
         public void SetPixel(int x, int y, Color color)
         {
             uTexture.SetPixel(x, uTexture.Height - y - 1, color);
-        }
-
-        public static Bitmap FromTexture(ITexture tex)
-        {
-            var bmp = new Bitmap();
-            bmp.uTexture = tex;
-
-            return bmp;
         }
     }
 }

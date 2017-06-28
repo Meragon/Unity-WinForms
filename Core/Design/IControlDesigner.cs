@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace System.Windows.Forms.Design
+﻿namespace System.Windows.Forms.Design
 {
     public interface IControlDesigner
     {

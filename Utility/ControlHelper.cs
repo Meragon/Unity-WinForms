@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     /// <summary>
     /// Additional methods for designing and managing controls.
     /// </summary>
@@ -66,8 +62,7 @@ namespace System.Windows.Forms
         {
             f.Location = new Point(
                 (Screen.PrimaryScreen.WorkingArea.Width - f.Width) / 2,
-                (Screen.PrimaryScreen.WorkingArea.Height - f.Height) / 2
-                );
+                (Screen.PrimaryScreen.WorkingArea.Height - f.Height) / 2);
         }
     }
 }

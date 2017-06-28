@@ -20,7 +20,7 @@ namespace System.Windows.Forms
 
         public Button()
         {
-            this.SetStyle(ControlStyles.StandardClick | ControlStyles.StandardDoubleClick, false);
+            SetStyle(ControlStyles.StandardClick | ControlStyles.StandardDoubleClick, false);
         }
 
         public void NotifyDefault(bool value)
@@ -47,7 +47,7 @@ namespace System.Windows.Forms
 
         public override string ToString()
         {
-            return base.ToString() + ", Text: " + this.Text;
+            return base.ToString() + ", Text: " + Text;
         }
     }
 }

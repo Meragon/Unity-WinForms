@@ -16,7 +16,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                return this.backColor;
+                return backColor;
             }
         }
         public Rectangle Bounds { get; private set; }
@@ -25,7 +25,7 @@ namespace System.Windows.Forms
         {
             get
             {
-                return this.foreColor;
+                return foreColor;
             }
         }
 
@@ -38,10 +38,10 @@ namespace System.Windows.Forms
 
         public DrawItemEventArgs(Graphics graphics, Font font, Rectangle rect, int index, DrawItemState state)
         {
-            this.Graphics = graphics;
-            this.Font = font;
-            this.Bounds = rect;
-            this.Index = index;
+            Graphics = graphics;
+            Font = font;
+            Bounds = rect;
+            Index = index;
             this.state = state;
         }
         public DrawItemEventArgs(Graphics graphics, Font font, Rectangle rect, int index, DrawItemState state,

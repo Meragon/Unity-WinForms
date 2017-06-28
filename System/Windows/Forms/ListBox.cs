@@ -479,12 +479,12 @@ namespace System.Windows.Forms
             public ObjectCollection(ListBox owner, ObjectCollection value)
             {
                 this.owner = owner;
-                this.AddRange(value);
+                AddRange(value);
             }
             public ObjectCollection(ListBox owner, object[] value)
             {
                 this.owner = owner;
-                this.AddRange(value);
+                AddRange(value);
             }
 
             public int Count { get { return items.Count; } }
