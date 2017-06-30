@@ -1,18 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     public abstract class ScrollBar : Control
     {
+        internal Button addButton;
+        internal Button subtractButton;
+
+        protected ScrollOrientation scrollOrientation;
+
+        private readonly int minScrollSize = 17;
+
         private int largeChange = 10;
         private int maximum = 100;
         private int minimum = 0;
-        private readonly int minScrollSize = 17;
         private bool scrollCanDrag;
         private Color scrollCurrentColor;
         private float scrollCurrentColorA;
@@ -23,13 +24,53 @@ namespace System.Windows.Forms
         private Point scrollDragStartLocation;
         private Point scrollDragRectOffset;
         private bool scrollDraging;
-        protected ScrollOrientation scrollOrientation;
         private Rectangle scrollRect;
         private int smallChange = 1;
         private int value = 0;
 
-        internal Button addButton;
-        internal Button subtractButton;
+        protected ScrollBar()
+        {
+            BackColor = Color.FromArgb(240, 240, 240);
+            ScrollColor = SystemColors.ScrollBar;
+            ScrollHoverColor = Color.FromArgb(166, 166, 166);
+            scrollCurrentColor = ScrollColor;
+            scrollCurrentColorA = scrollCurrentColor.A;
+            scrollCurrentColorR = scrollCurrentColor.R;
+            scrollCurrentColorG = scrollCurrentColor.G;
+            scrollCurrentColorB = scrollCurrentColor.B;
+
+            var backColor = Color.FromArgb(240, 240, 240);
+            var backHoverColor = Color.FromArgb(218, 218, 218);
+            var borderColor = Color.Transparent;
+            var borderHoverColor = Color.Transparent;
+            var imageColor = Color.FromArgb(96, 96, 96);
+            var imageHoverColor = Color.Black;
+
+            addButton = new RepeatButton();
+            addButton.uwfBorderHoverColor = borderHoverColor;
+            addButton.uwfBorderDisableColor = borderColor;
+            addButton.uwfHoverColor = backHoverColor;
+            addButton.uwfImageColor = imageColor;
+            addButton.uwfImageHoverColor = imageHoverColor;
+            addButton.uwfBorderColor = borderColor;
+            addButton.BackColor = backColor;
+            addButton.Click += (s, a) => { DoScroll(ScrollEventType.SmallIncrement); };
+            Controls.Add(addButton);
+
+            subtractButton = new RepeatButton();
+            subtractButton.uwfBorderHoverColor = borderHoverColor;
+            subtractButton.uwfBorderDisableColor = borderColor;
+            subtractButton.uwfHoverColor = backHoverColor;
+            subtractButton.uwfImageColor = imageColor;
+            subtractButton.uwfImageHoverColor = imageHoverColor;
+            subtractButton.uwfBorderColor = borderColor;
+            subtractButton.BackColor = backColor;
+            subtractButton.Click += (s, a) => { DoScroll(ScrollEventType.SmallDecrement); };
+            Controls.Add(subtractButton);
+
+            uwfAppOwner.UpClick += Owner_UpClick;
+            uwfAppOwner.UpdateEvent += Owner_UpdateEvent;
+        }
 
         public int LargeChange
         {
@@ -78,50 +119,6 @@ namespace System.Windows.Forms
                     OnValueChanged(EventArgs.Empty);
                 }
             }
-        }
-
-        protected ScrollBar()
-        {
-            BackColor = Color.FromArgb(240, 240, 240);
-            ScrollColor = Color.FromArgb(205, 205, 205);
-            ScrollHoverColor = Color.FromArgb(166, 166, 166);
-            scrollCurrentColor = ScrollColor;
-            scrollCurrentColorA = scrollCurrentColor.A;
-            scrollCurrentColorR = scrollCurrentColor.R;
-            scrollCurrentColorG = scrollCurrentColor.G;
-            scrollCurrentColorB = scrollCurrentColor.B;
-
-            var backColor = Color.FromArgb(240, 240, 240);
-            var backHoverColor = Color.FromArgb(218, 218, 218);
-            var borderColor = Color.Transparent;
-            var borderHoverColor = Color.Transparent;
-            var imageColor = Color.FromArgb(96, 96, 96);
-            var imageHoverColor = Color.Black;
-
-            addButton = new RepeatButton();
-            addButton.uwfBorderHoverColor = borderHoverColor;
-            addButton.uwfBorderDisableColor = borderColor;
-            addButton.uwfHoverColor = backHoverColor;
-            addButton.uwfImageColor = imageColor;
-            addButton.uwfImageHoverColor = imageHoverColor;
-            addButton.uwfBorderColor = borderColor;
-            addButton.BackColor = backColor;
-            addButton.Click += (s, a) => { DoScroll(ScrollEventType.SmallIncrement); };
-            Controls.Add(addButton);
-
-            subtractButton = new RepeatButton();
-            subtractButton.uwfBorderHoverColor = borderHoverColor;
-            subtractButton.uwfBorderDisableColor = borderColor;
-            subtractButton.uwfHoverColor = backHoverColor;
-            subtractButton.uwfImageColor = imageColor;
-            subtractButton.uwfImageHoverColor = imageHoverColor;
-            subtractButton.uwfBorderColor = borderColor;
-            subtractButton.BackColor = backColor;
-            subtractButton.Click += (s, a) => { DoScroll(ScrollEventType.SmallDecrement); };
-            Controls.Add(subtractButton);
-
-            uwfAppOwner.UpClick += Owner_UpClick;
-            uwfAppOwner.UpdateEvent += Owner_UpdateEvent;
         }
 
         internal void DoScroll(ScrollEventType type)

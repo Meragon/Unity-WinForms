@@ -1,8 +1,6 @@
-﻿using System;
-namespace System.Drawing
+﻿namespace System.Drawing
 {
-    public interface IDeviceContext
+    public interface IDeviceContext : IDisposable
     {
-
     }
 }

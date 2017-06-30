@@ -1,26 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     public class TreeNode
     {
-        private TreeNodeCollection nodes;
+        public static readonly Color DEFAULT_FORE_COLOR = Color.FromArgb(42, 42, 42);
 
         internal int index;
         internal TreeNode parent;
         internal TreeView treeView;
+        internal TreeNodeCollection nodes;
 
         private bool expanded;
         private int imageIndex = -1;
         private int imageIndex_collapsed = -1;
         private int imageIndex_expanded = -1;
         private bool visible = true;
-
-        public static readonly Color DEFAULT_FORE_COLOR = Color.FromArgb(42, 42, 42);
 
         public Color BackColor { get; set; }
         public Rectangle Bounds { get; internal set; }
@@ -85,7 +80,6 @@ namespace System.Windows.Forms
                 if (nodes == null) nodes = new TreeNodeCollection(this);
                 return nodes;
             }
-            internal set { nodes = value; }
         }
         public TreeNode Parent { get { return parent; } }
         public TreeNode PrevNode

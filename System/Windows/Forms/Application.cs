@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using UnityEngine;
-
-using Graphics = System.Drawing.Graphics;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Collections.Generic;
+    using System.Drawing;
+    using System.Linq;
+
+    using UnityEngine;
+
+    using Graphics = System.Drawing.Graphics;
+
     public class Application
     {
         internal static bool _dragndrop;
@@ -37,7 +36,16 @@ namespace System.Windows.Forms
         internal Control hoveredControl;
         internal readonly List<Form> ModalForms = new List<Form>();
         internal AppGdiImages Resources;
-        
+
+        public Application()
+        {
+            TabSwitching = true;
+            _paintEventArgs = new PaintEventArgs();
+            _paintEventArgs.Graphics = new Graphics();
+
+            Cursor.Current = Cursors.Default;
+        }
+
         internal static bool IsDraging { get { return _dragndrop; } }
         internal static bool IsStandalone
         {
@@ -323,15 +331,6 @@ namespace System.Windows.Forms
         internal void UpdatePaintClipRect()
         {
             _paintEventArgs.ClipRectangle = new Drawing.Rectangle(0, 0, Screen.PrimaryScreen.WorkingArea.Width, Screen.PrimaryScreen.WorkingArea.Height);
-        }
-
-        public Application()
-        {
-            TabSwitching = true;
-            _paintEventArgs = new PaintEventArgs();
-            _paintEventArgs.Graphics = new Graphics();
-
-            Cursor.Current = Cursors.Default;
         }
 
         public void ProccessKeys(KeyEventArgs args, KeyEvents keyEventType)

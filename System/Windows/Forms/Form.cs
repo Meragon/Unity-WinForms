@@ -1,37 +1,69 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.ComponentModel;
+    using System.Drawing;
+
     [Serializable]
     public class Form : ContainerControl, IResizableControl
     {
-        private readonly Pen borderPen;
-
-        private Button _closeButton;
-        private Action<Form, DialogResult> _dialogCallback;
-        private MenuStrip _mainMenuStrip;
-        private static Point nextLocation = new Point(128, 64);
-        private bool _windowMove = false;
-        private Point _windowMove_StartPosition;
-        
-        private ControlResizeTypes resizeType;
-        private Size _resizeOriginal;
-        private Point _resizePosition;
-        private Point _resizeDelta;
-        private const int _resizeOffset = 8;
-        private SizeGripStyle sizeGripStyle;
-        protected Button uwfSizeGripRenderer;
-        private bool _topMost;
-
         internal bool dialog;
 
+        protected Button uwfSizeGripRenderer;
+
+        private const int RESIZE_OFFSET = 8;
+        private static Point nextLocation = new Point(128, 64);
+        private readonly Pen borderPen;
+
+        private Button closeButton;
+        private Action<Form, DialogResult> dialogCallback;
+        private MenuStrip mainMenuStrip;
+        private bool windowMove;
+        private Point windowMove_StartPosition;
+        private ControlResizeTypes resizeType;
+        private Size resizeOriginal;
+        private Point resizePosition;
+        private Point resizeDelta;
+        private SizeGripStyle sizeGripStyle;
+        private bool topMost;
+
+        public Form()
+        {
+            borderPen = new Pen(Color.White);
+
+            BackColor = Color.FromArgb(238, 238, 242);
+            ControlBox = true;
+            Font = SystemFonts.uwfArial_14;
+            FormBorderStyle = FormBorderStyle.Sizable;
+            Location = nextLocation;
+            MinimumSize = new Size(128, 48);
+            Size = new Size(334, 260);
+            Visible = false;
+
+            uwfBorderColor = Color.FromArgb(204, 206, 219);
+            uwfHeaderColor = Color.FromArgb(238, 238, 242);
+            uwfHeaderFont = Font;
+            uwfHeaderHeight = 24;
+            uwfHeaderPadding = new Padding(32, 0, 32, 0);
+            uwfHeaderTextColor = Color.FromArgb(64, 64, 64);
+            uwfHeaderTextAlign = ContentAlignment.MiddleLeft;
+            uwfMovable = true;
+            uwfShadowBox = true;
+            uwfAppOwner.UpClick += _Application_UpClick;
+            uwfAppOwner.UpdateEvent += Owner_UpdateEvent;
+
+            var workingArea = Screen.PrimaryScreen.WorkingArea;
+            nextLocation = new Point(nextLocation.X + 26, nextLocation.Y + 26);
+            if (nextLocation.X + Width > workingArea.Width - 32)
+                nextLocation = new Point(32, nextLocation.Y);
+            if (nextLocation.Y + Height > workingArea.Height - 32)
+                nextLocation = new Point(nextLocation.X, 32);
+        }
+
+        public event FormClosingEventHandler FormClosing = delegate { };
+        public event EventHandler Shown = delegate { };
+
         public IButtonControl AcceptButton { get; set; }
-        public Button CloseButton { get { return _closeButton; } }
+        public Button CloseButton { get { return closeButton; } }
         public bool ControlBox
         {
             get
@@ -55,7 +87,7 @@ namespace System.Windows.Forms
                         Controls.RemoveAt(index);
 
                         CloseButton.Dispose();
-                        _closeButton = null;
+                        closeButton = null;
                     }
                 }
             }
@@ -64,7 +96,7 @@ namespace System.Windows.Forms
         public bool IsModal { get { return uwfAppOwner.ModalForms.Contains(this); } }
         public FormBorderStyle FormBorderStyle { get; set; }
         public bool KeyPreview { get; set; }
-        public MenuStrip MainMenuStrip { get { return _mainMenuStrip; } set { _mainMenuStrip = value; } }
+        public MenuStrip MainMenuStrip { get { return mainMenuStrip; } set { mainMenuStrip = value; } }
         public SizeGripStyle SizeGripStyle
         {
             get { return sizeGripStyle; }
@@ -85,10 +117,10 @@ namespace System.Windows.Forms
         public override string Text { get; set; }
         public bool TopMost
         {
-            get { return _topMost; }
+            get { return topMost; }
             set
             {
-                _topMost = value;
+                topMost = value;
                 uwfAppOwner.Forms.Sort();
             }
         }
@@ -106,49 +138,193 @@ namespace System.Windows.Forms
         public Color uwfHeaderTextColor { get; set; }
         public bool uwfMovable { get; set; }
 
-        public Form()
+        public void Close()
         {
-            borderPen = new Pen(Color.White);
+            var fc_args = new FormClosingEventArgs(CloseReason.UserClosing, false);
+            var oc_args = new CancelEventArgs(false);
+            OnClosing(oc_args);
+            if (oc_args.Cancel) return;
+            FormClosing(this, fc_args);
+            if (!fc_args.Cancel)
+            {
+                OnClosed(null);
+                Dispose();
+            }
 
-            uwfHeaderHeight = 24;
-            uwfHeaderPadding = new Padding(32, 0, 32, 0);
+            if (dialog && dialogCallback != null)
+                dialogCallback.Invoke(this, DialogResult);
+        }
+        public virtual ControlResizeTypes GetResizeAt(Point mclient)
+        {
+            if (!(FormBorderStyle == FormBorderStyle.Sizable || FormBorderStyle == FormBorderStyle.SizableToolWindow)) return ControlResizeTypes.None;
 
-            BackColor = Color.FromArgb(238, 238, 242);
-            uwfBorderColor = Color.FromArgb(204, 206, 219);
-            Font = new Font("Arial", 14);
-            FormBorderStyle = FormBorderStyle.Sizable;
-            Location = nextLocation;
-            uwfHeaderColor = Color.FromArgb(238, 238, 242);
-            uwfHeaderFont = Font;
-            uwfHeaderTextColor = Color.FromArgb(64, 64, 64);
-            uwfHeaderTextAlign = ContentAlignment.MiddleLeft;
-            ControlBox = true;
-            MinimumSize = new Drawing.Size(128, 48);
-            uwfMovable = true;
-            uwfShadowBox = true;
-            Size = new Size(334, 260);
+            var r_type = ControlResizeTypes.None;
+
+            // Left side.
+            if (mclient.X < RESIZE_OFFSET)
+            {
+                r_type = ControlResizeTypes.Left;
+                if (mclient.Y < RESIZE_OFFSET)
+                    r_type = ControlResizeTypes.LeftUp;
+                else if (mclient.Y > Height - RESIZE_OFFSET)
+                    r_type = ControlResizeTypes.LeftDown;
+            }
+            else if (mclient.X > Width - RESIZE_OFFSET)
+            {
+                // Right side.
+                r_type = ControlResizeTypes.Right;
+                if (mclient.Y < RESIZE_OFFSET)
+                    r_type = ControlResizeTypes.RightUp;
+                else if (mclient.Y > Height - RESIZE_OFFSET)
+                    r_type = ControlResizeTypes.RightDown;
+            }
+            else if (mclient.Y < RESIZE_OFFSET)
+                r_type = ControlResizeTypes.Up;
+            else if (mclient.Y > Height - RESIZE_OFFSET)
+                r_type = ControlResizeTypes.Down;
+
+            return r_type;
+        }
+        public void Hide()
+        {
             Visible = false;
+        }
+        public void SetResize(ControlResizeTypes resize)
+        {
+            resizeType = resize;
+            resizeDelta = MousePosition;
+            resizeOriginal = Size;
+            resizePosition = Location;
 
-            uwfAppOwner.UpClick += _Application_UpClick;
-            uwfAppOwner.UpdateEvent += Owner_UpdateEvent;
+            switch (resize)
+            {
+                case ControlResizeTypes.None:
+                    Application.activeResizeControl = null;
+                    break;
 
-            nextLocation = new Point(nextLocation.X + 26, nextLocation.Y + 26);
-            if (nextLocation.X + Width > Screen.PrimaryScreen.WorkingArea.Width - 32)
-                nextLocation = new Point(32, nextLocation.Y);
-            if (nextLocation.Y + Height > Screen.PrimaryScreen.WorkingArea.Height - 32)
-                nextLocation = new Point(nextLocation.X, 32);
+                default:
+                    Application.activeResizeControl = this;
+                    break;
+            }
+        }
+        public void Show(bool fShouldFocus = true)
+        {
+            Visible = true;
+
+            int self = uwfAppOwner.Forms.FindIndex(x => x == this);
+            if (self == -1)
+                uwfAppOwner.Forms.Add(this);
+
+            if (fShouldFocus)
+            {
+                Focus();
+                _SelectFirstControl();
+            }
+
+            Shown(this, null);
+        }
+        public DialogResult ShowDialog(Action<Form, DialogResult> onClosed = null)
+        {
+            dialog = true;
+            dialogCallback = onClosed;
+
+            Visible = true;
+
+            int self = uwfAppOwner.ModalForms.FindIndex(x => x == this);
+            if (self == -1)
+                uwfAppOwner.ModalForms.Add(this);
+
+            Focus();
+            _SelectFirstControl();
+
+            Shown(this, null);
+
+            return DialogResult;
+        }
+
+        protected override void Dispose(bool release_all)
+        {
+            if (IsModal == false)
+                uwfAppOwner.Forms.Remove(this);
+            else
+                uwfAppOwner.ModalForms.Remove(this);
+            base.Dispose(release_all);
+        }
+        protected virtual void OnClosed(EventArgs e)
+        {
+        }
+        protected virtual void OnClosing(CancelEventArgs e)
+        {
+        }
+        protected virtual void OnLoad(EventArgs e)
+        {
+        }
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            base.OnMouseDown(e);
+
+            if (e.Button == MouseButtons.Left)
+            {
+                resizeType = GetResizeAt(e.Location);
+                SetResize(resizeType);
+
+                if (resizeType == ControlResizeTypes.None)
+                {
+                    // Move then.
+                    if (uwfMovable)
+                        if (e.Location.Y < uwfHeaderHeight)
+                        {
+                            windowMove_StartPosition = e.Location;
+                            windowMove = true;
+                        }
+                }
+            }
+        }
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            base.OnMouseMove(e);
+            if (windowMove)
+            {
+                if (Parent == null)
+                    Location = PointToScreen(e.Location).Subtract(windowMove_StartPosition);
+                else
+                    Location = Parent.PointToClient(PointToScreen(e.Location).Subtract(windowMove_StartPosition));
+            }
+            else
+                GetResizeAt(e.Location);
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var g = e.Graphics;
+
+            var headerHeight = uwfHeaderHeight;
+            var headerPadding = uwfHeaderPadding;
+
+            g.uwfFillRectangle(uwfHeaderColor, 0, 0, Width, headerHeight);
+            g.uwfDrawString(Text, uwfHeaderFont, uwfHeaderTextColor, headerPadding.Left, headerPadding.Top, Width - headerPadding.Horizontal, headerHeight - headerPadding.Vertical, uwfHeaderTextAlign);
+            g.uwfFillRectangle(BackColor, 0, headerHeight, Width, Height - headerHeight);
+        }
+        protected override void uwfOnLatePaint(PaintEventArgs e)
+        {
+            base.uwfOnLatePaint(e);
+
+            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+        }
+        protected override void SetBoundsCore(int x, int y, int width, int height, BoundsSpecified specified)
+        {
+            base.SetBoundsCore(x, y, width, height, specified);
         }
 
         private void _Application_UpClick(object sender, MouseEventArgs e)
         {
-            _windowMove = false;
+            windowMove = false;
             resizeType = ControlResizeTypes.None;
             if (Application.activeResizeControl == this)
                 Application.activeResizeControl = null;
         }
         private void _MakeButtonClose()
         {
-            _closeButton = new formSystemButton();
+            closeButton = new formSystemButton();
 
             CloseButton.Anchor = AnchorStyles.Right;
             CloseButton.Text = "";
@@ -193,43 +369,43 @@ namespace System.Windows.Forms
                 switch (resizeType)
                 {
                     case ControlResizeTypes.Right:
-                        estimatedWidth = _resizeOriginal.Width + (MousePosition.X - _resizeDelta.X);
-                        estimatedHeight = _resizeOriginal.Height;
+                        estimatedWidth = resizeOriginal.Width + (MousePosition.X - resizeDelta.X);
+                        estimatedHeight = resizeOriginal.Height;
                         break;
                     case ControlResizeTypes.Down:
-                        estimatedWidth = _resizeOriginal.Width;
-                        estimatedHeight = _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y);
+                        estimatedWidth = resizeOriginal.Width;
+                        estimatedHeight = resizeOriginal.Height + (MousePosition.Y - resizeDelta.Y);
                         break;
                     case ControlResizeTypes.RightDown:
-                        estimatedWidth = _resizeOriginal.Width + (MousePosition.X - _resizeDelta.X);
-                        estimatedHeight = _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y);
+                        estimatedWidth = resizeOriginal.Width + (MousePosition.X - resizeDelta.X);
+                        estimatedHeight = resizeOriginal.Height + (MousePosition.Y - resizeDelta.Y);
                         break;
                     case ControlResizeTypes.Left:
-                        Location = new Point(_resizePosition.X + (MousePosition.X - _resizeDelta.X), _resizePosition.Y);
-                        estimatedWidth = _resizeOriginal.Width + _resizePosition.X - Location.X;
-                        estimatedHeight = _resizeOriginal.Height;
+                        Location = new Point(resizePosition.X + (MousePosition.X - resizeDelta.X), resizePosition.Y);
+                        estimatedWidth = resizeOriginal.Width + resizePosition.X - Location.X;
+                        estimatedHeight = resizeOriginal.Height;
                         break;
                     case ControlResizeTypes.Up:
-                        Location = new Point(_resizePosition.X, _resizePosition.Y + (MousePosition.Y - _resizeDelta.Y));
-                        estimatedWidth = _resizeOriginal.Width;
-                        estimatedHeight = _resizeOriginal.Height + _resizePosition.Y - Location.Y;
+                        Location = new Point(resizePosition.X, resizePosition.Y + (MousePosition.Y - resizeDelta.Y));
+                        estimatedWidth = resizeOriginal.Width;
+                        estimatedHeight = resizeOriginal.Height + resizePosition.Y - Location.Y;
                         break;
                     case ControlResizeTypes.LeftUp:
                         Location = new Point(
-                            _resizePosition.X + (MousePosition.X - _resizeDelta.X),
-                            _resizePosition.Y + (MousePosition.Y - _resizeDelta.Y));
-                        estimatedWidth = _resizeOriginal.Width + _resizePosition.X - Location.X;
-                        estimatedHeight = _resizeOriginal.Height + _resizePosition.Y - Location.Y;
+                            resizePosition.X + (MousePosition.X - resizeDelta.X),
+                            resizePosition.Y + (MousePosition.Y - resizeDelta.Y));
+                        estimatedWidth = resizeOriginal.Width + resizePosition.X - Location.X;
+                        estimatedHeight = resizeOriginal.Height + resizePosition.Y - Location.Y;
                         break;
                     case ControlResizeTypes.RightUp:
-                        Location = new Point(_resizePosition.X, _resizePosition.Y + (MousePosition.Y - _resizeDelta.Y));
-                        estimatedWidth = _resizeOriginal.Width + (MousePosition.X - _resizeDelta.X);
-                        estimatedHeight = _resizeOriginal.Height + _resizePosition.Y - Location.Y;
+                        Location = new Point(resizePosition.X, resizePosition.Y + (MousePosition.Y - resizeDelta.Y));
+                        estimatedWidth = resizeOriginal.Width + (MousePosition.X - resizeDelta.X);
+                        estimatedHeight = resizeOriginal.Height + resizePosition.Y - Location.Y;
                         break;
                     case ControlResizeTypes.LeftDown:
-                        Location = new Point(_resizePosition.X + (MousePosition.X - _resizeDelta.X), _resizePosition.Y);
-                        estimatedWidth = _resizeOriginal.Width + _resizePosition.X - Location.X;
-                        estimatedHeight = _resizeOriginal.Height + (MousePosition.Y - _resizeDelta.Y);
+                        Location = new Point(resizePosition.X + (MousePosition.X - resizeDelta.X), resizePosition.Y);
+                        estimatedWidth = resizeOriginal.Width + resizePosition.X - Location.X;
+                        estimatedHeight = resizeOriginal.Height + (MousePosition.Y - resizeDelta.Y);
                         break;
                 }
 
@@ -259,189 +435,6 @@ namespace System.Windows.Forms
                 }
         }
 
-        public void Close()
-        {
-            var fc_args = new FormClosingEventArgs(CloseReason.UserClosing, false);
-            var oc_args = new CancelEventArgs(false);
-            OnClosing(oc_args);
-            if (oc_args.Cancel) return;
-            FormClosing(this, fc_args);
-            if (!fc_args.Cancel)
-            {
-                OnClosed(null);
-                Dispose();
-            }
-
-            if (dialog && _dialogCallback != null)
-                _dialogCallback.Invoke(this, DialogResult);
-        }
-        public virtual ControlResizeTypes GetResizeAt(Point mclient)
-        {
-            if (!(FormBorderStyle == FormBorderStyle.Sizable || FormBorderStyle == FormBorderStyle.SizableToolWindow)) return ControlResizeTypes.None;
-
-            var r_type = ControlResizeTypes.None;
-
-            // Left side.
-            if (mclient.X < _resizeOffset)
-            {
-                r_type = ControlResizeTypes.Left;
-                if (mclient.Y < _resizeOffset)
-                    r_type = ControlResizeTypes.LeftUp;
-                else if (mclient.Y > Height - _resizeOffset)
-                    r_type = ControlResizeTypes.LeftDown;
-            }
-            else if (mclient.X > Width - _resizeOffset)
-            {
-                // Right side.
-                r_type = ControlResizeTypes.Right;
-                if (mclient.Y < _resizeOffset)
-                    r_type = ControlResizeTypes.RightUp;
-                else if (mclient.Y > Height - _resizeOffset)
-                    r_type = ControlResizeTypes.RightDown;
-            }
-            else if (mclient.Y < _resizeOffset)
-                r_type = ControlResizeTypes.Up;
-            else if (mclient.Y > Height - _resizeOffset)
-                r_type = ControlResizeTypes.Down;
-
-            return r_type;
-        }
-        public void Hide()
-        {
-            Visible = false;
-        }
-        public void SetResize(ControlResizeTypes resize)
-        {
-            resizeType = resize;
-            _resizeDelta = MousePosition;
-            _resizeOriginal = Size;
-            _resizePosition = Location;
-
-            switch (resize)
-            {
-                case ControlResizeTypes.None:
-                    Application.activeResizeControl = null;
-                    break;
-
-                default:
-                    Application.activeResizeControl = this;
-                    break;
-            }
-        }
-        public void Show(bool fShouldFocus = true)
-        {
-            Visible = true;
-
-            int self = uwfAppOwner.Forms.FindIndex(x => x == this);
-            if (self == -1)
-                uwfAppOwner.Forms.Add(this);
-
-            if (fShouldFocus)
-            {
-                Focus();
-                _SelectFirstControl();
-            }
-
-            Shown(this, null);
-        }
-        public DialogResult ShowDialog(Action<Form, DialogResult> onClosed = null)
-        {
-            dialog = true;
-            _dialogCallback = onClosed;
-
-            Visible = true;
-
-            int self = uwfAppOwner.ModalForms.FindIndex(x => x == this);
-            if (self == -1)
-                uwfAppOwner.ModalForms.Add(this);
-
-            Focus();
-            _SelectFirstControl();
-
-            Shown(this, null);
-
-            return DialogResult;
-        }
-
-        public event FormClosingEventHandler FormClosing = delegate { };
-        public event EventHandler Shown = delegate { };
-
-        protected override void Dispose(bool release_all)
-        {
-            if (IsModal == false)
-                uwfAppOwner.Forms.Remove(this);
-            else
-                uwfAppOwner.ModalForms.Remove(this);
-            base.Dispose(release_all);
-        }
-        protected virtual void OnClosed(EventArgs e)
-        {
-
-        }
-        protected virtual void OnClosing(CancelEventArgs e)
-        {
-
-        }
-        protected virtual void OnLoad(EventArgs e)
-        {
-
-        }
-        protected override void OnMouseDown(MouseEventArgs e)
-        {
-            base.OnMouseDown(e);
-
-            if (e.Button == MouseButtons.Left)
-            {
-                resizeType = GetResizeAt(e.Location);
-                SetResize(resizeType);
-
-                if (resizeType == ControlResizeTypes.None)
-                {
-                    // Move then.
-                    if (uwfMovable)
-                        if (e.Location.Y < uwfHeaderHeight)
-                        {
-                            _windowMove_StartPosition = e.Location;
-                            _windowMove = true;
-                        }
-                }
-            }
-        }
-        protected override void OnMouseMove(MouseEventArgs e)
-        {
-            base.OnMouseMove(e);
-            if (_windowMove)
-            {
-                if (Parent == null)
-                    Location = PointToScreen(e.Location).Subtract(_windowMove_StartPosition);
-                else
-                    Location = Parent.PointToClient(PointToScreen(e.Location).Subtract(_windowMove_StartPosition));
-            }
-            else
-                GetResizeAt(e.Location);
-        }
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            var g = e.Graphics;
-
-            var headerHeight = uwfHeaderHeight;
-            var headerPadding = uwfHeaderPadding;
-
-            g.uwfFillRectangle(uwfHeaderColor, 0, 0, Width, headerHeight);
-            g.uwfDrawString(Text, uwfHeaderFont, uwfHeaderTextColor, headerPadding.Left, headerPadding.Top, Width - headerPadding.Horizontal, headerHeight - headerPadding.Vertical, uwfHeaderTextAlign);
-            g.uwfFillRectangle(BackColor, 0, headerHeight, Width, Height - headerHeight);
-        }
-        protected override void uwfOnLatePaint(PaintEventArgs e)
-        {
-            base.uwfOnLatePaint(e);
-
-            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
-        }
-        protected override void SetBoundsCore(int x, int y, int width, int height, BoundsSpecified specified)
-        {
-            base.SetBoundsCore(x, y, width, height, specified);
-        }
-
         private class formSystemButton : Button
         {
             public formSystemButton()
@@ -450,6 +443,4 @@ namespace System.Windows.Forms
             }
         }
     }
-
-    public delegate void FormClosingEventHandler(object sender, FormClosingEventArgs e);
 }

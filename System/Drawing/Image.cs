@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace System.Drawing
+﻿namespace System.Drawing
 {
-    [Serializable]
     public abstract class Image
     {
-        internal ITexture uTexture { get; set; }
-        
         public int Height { get { return uTexture.Height; } }
         public Size Size { get { return new Size(Width, Height); } }
         public object Tag { get; set; }
         public int Width { get { return uTexture.Width; } }
+
+        internal ITexture uTexture { get; set; }
     }
 
     public interface ITexture

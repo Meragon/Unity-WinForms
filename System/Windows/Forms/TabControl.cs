@@ -31,6 +31,7 @@ namespace System.Windows.Forms
             }
         }
         public Color BorderColor { get; set; }
+        public new ControlCollection Controls { get; private set; }
         public new Rectangle DisplayRectangle
         {
             get
@@ -642,7 +643,7 @@ namespace System.Windows.Forms
             void ICollection.CopyTo(Array array, int index)
             {
                 if (Count > 0)
-                    System.Array.Copy(owner.Controls.ToArray(), 0, array, index, Count);
+                    owner.Controls.CopyTo(array, index);
             }
         }
 

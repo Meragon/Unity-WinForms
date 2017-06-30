@@ -1,33 +1,94 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Windows.Forms.Design;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Drawing;
+    using System.Windows.Forms.Design;
+
     [Serializable]
     public class Control : Component
     {
+        internal static Control lastSelected;
+
+        internal bool selected;
+        internal bool hovered;
+        internal bool mouseEntered;
+        internal bool shouldFocus;
+
+        internal Application uwfAppOwner;
+        internal bool uwfAutoGroup;
+        internal int uwfBatches;
+        internal bool uwfShadowBox;
+        internal DrawHandler uwfShadowHandler;
+        internal IControlDesigner uwfDesigner;
+        internal Point uwfOffset;
+        internal string uwfSource;
+
         protected static Color defaultShadowColor = Color.FromArgb(12, 0, 0, 0);
+
+        private readonly ControlCollection controls;
 
         private AnchorStyles anchor = AnchorStyles.Top | AnchorStyles.Left;
         private int clientHeight;
         private int clientWidth;
-        private ControlCollection _controls;
         private ControlStyles controlStyle;
-        private Font font = SystemFonts.DefaultFont;
-        internal bool selected;
-        internal static Control lastSelected;
+        private Font font = SystemFonts.uwfArial_12;
         private int height;
-        internal bool hovered;
-        internal bool mouseEntered;
-        internal bool shouldFocus;
-        private bool _uwfContext;
+        private bool fuwfContext;
         private bool visible;
         private int width;
         private int x, y;
+
+        public Control()
+        {
+            if (Parent != null && Parent.uwfAppOwner != null)
+                Parent.uwfAppOwner.Run(this);
+            else if (uwfDefaultController != null)
+                uwfDefaultController.Run(this);
+
+            controls = new ControlCollection(this);
+            Enabled = true;
+            ForeColor = Color.Black;
+            TabIndex = -1;
+            TabStop = true;
+            uwfAutoGroup = true;
+            visible = true;
+
+            SetStyle(ControlStyles.UserPaint | ControlStyles.StandardClick | ControlStyles.Selectable | ControlStyles.StandardDoubleClick | ControlStyles.AllPaintingInWmPaint | ControlStyles.UseTextForAccessibility, true);
+
+#if UNITY_EDITOR
+            var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
+            uwfSource = stackTrace;
+#endif
+        }
+
+        public delegate void DrawHandler(PaintEventArgs e);
+        public delegate void ResizeHandler(Point delta);
+
+        public event EventHandler Click = delegate { };
+        public event EventHandler ClientSizeChanged = delegate { };
+        public new event EventHandler Disposed = delegate { };
+        public event DragEventHandler DragDrop = delegate { };
+        public event DragEventHandler DragEnter = delegate { };
+        public event EventHandler DragLeave = delegate { };
+        public event EventHandler GotFocus = delegate { };
+        public event EventHandler LocationChanged = delegate { };
+        public event EventHandler LostFocus = delegate { };
+        public event KeyEventHandler KeyDown = delegate { };
+        public event KeyPressEventHandler KeyPress = delegate { };
+        public event KeyEventHandler KeyUp = delegate { };
+        public event MouseEventHandler MouseDown = delegate { };
+        public event EventHandler MouseEnter = delegate { };
+        public event EventHandler MouseHover = delegate { };
+        public event EventHandler MouseLeave = delegate { };
+        public event MouseEventHandler MouseUp = delegate { };
+        public event EventHandler Resize = delegate { };
+        public event EventHandler SizeChanged = delegate { };
+        public event EventHandler TextChanged = delegate { };
+        public event EventHandler VisibleChanged = delegate { };
+
+        public event KeyEventHandler uwfKeyPress = delegate { };
 
         public static Application uwfDefaultController { get; set; }
         public static Point MousePosition
@@ -70,7 +131,7 @@ namespace System.Windows.Forms
             get { return new Size(clientWidth, clientHeight); }
             set { Size = value; }
         }
-        public ControlCollection Controls { get { return _controls; } set { _controls = value; } }
+        public ControlCollection Controls { get { return controls; } }
         public virtual Rectangle DisplayRectangle { get { return ClientRectangle; } }
         public bool Disposing { get; private set; }
         public bool Enabled { get; set; }
@@ -133,105 +194,22 @@ namespace System.Windows.Forms
             set { SetBounds(x, y, value, height, BoundsSpecified.Width); }
         }
 
-        internal Application uwfAppOwner;
-        internal bool uwfAutoGroup;
-        internal int uwfBatches;
         internal virtual bool uwfContext // Close on click control.
         {
-            get { return _uwfContext; }
+            get { return fuwfContext; }
             set
             {
-                if (_uwfContext != value)
+                if (fuwfContext != value)
                 {
-                    _uwfContext = value;
-                    if (_uwfContext)
+                    fuwfContext = value;
+                    if (fuwfContext)
                         uwfAppOwner.Contexts.Add(this);
                     else
                         uwfAppOwner.Contexts.Remove(this);
                 }
             }
         }
-        internal bool uwfHovered { get { return hovered; } }
-        internal bool uwfShadowBox;
-        internal DrawHandler uwfShadowHandler;
-        internal IControlDesigner uwfDesigner;
-        internal Point uwfOffset;
-        internal string uwfSource;
-
-        public Control()
-        {
-            if (Parent != null && Parent.uwfAppOwner != null)
-                Parent.uwfAppOwner.Run(this);
-            else if (uwfDefaultController != null)
-                uwfDefaultController.Run(this);
-
-            Controls = new ControlCollection(this);
-            Enabled = true;
-            ForeColor = Color.Black;
-            TabIndex = -1;
-            TabStop = true;
-            uwfAutoGroup = true;
-            visible = true;
-
-            SetStyle(ControlStyles.UserPaint | ControlStyles.StandardClick | ControlStyles.Selectable | ControlStyles.StandardDoubleClick | ControlStyles.AllPaintingInWmPaint | ControlStyles.UseTextForAccessibility, true);
-
-#if UNITY_EDITOR
-            var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
-            uwfSource = stackTrace;
-#endif
-        }
-
-        private void ParentResized(Point delta)
-        {
-            if (Anchor == AnchorStyles.None) return;
-
-            bool an_right = (Anchor & AnchorStyles.Right) == AnchorStyles.Right;
-            bool an_bottom = (Anchor & AnchorStyles.Bottom) == AnchorStyles.Bottom;
-            bool an_left = (Anchor & AnchorStyles.Left) == AnchorStyles.Left;
-            bool an_top = (Anchor & AnchorStyles.Top) == AnchorStyles.Top;
-
-            int nextX = x;
-            int nextY = y;
-            int nextWidth = width;
-            int nextHeight = height;
-
-            if (an_right)
-                nextX -= delta.X;
-            else
-                delta = new Point(0, delta.Y);
-
-            if (an_bottom)
-                nextY -= delta.Y;
-            else
-                delta = new Point(delta.X, 0);
-
-            if (an_left)
-            {
-                if (an_right)
-                {
-                    nextX += delta.X;
-                    nextWidth -= delta.X;
-                }
-            }
-            if (an_top)
-            {
-                if (an_bottom)
-                {
-                    nextY += delta.Y;
-                    nextHeight -= delta.Y;
-                }
-            }
-
-            UpdateBounds(nextX, nextY, nextWidth, nextHeight);
-        }
-        private void ResizeChilds(Point delta)
-        {
-            if (delta == Point.Empty) return;
-            if (Controls == null) return;
-
-            for (int i = 0; i < Controls.Count; i++)
-                Controls[i].ParentResized(delta);
-        }
+        internal bool uwfHovered { get { return hovered; } }        
 
         public void BringToFront()
         {
@@ -269,7 +247,6 @@ namespace System.Windows.Forms
         }
         public void Invalidate()
         {
-
         }
         public void Invalidate(Rectangle rc)
         {
@@ -277,7 +254,6 @@ namespace System.Windows.Forms
         }
         public void PerformLayout()
         {
-
         }
         public Point PointToClient(Point p)
         {
@@ -305,15 +281,12 @@ namespace System.Windows.Forms
         }
         public virtual void Refresh()
         {
-
         }
         public void ResumeLayout()
         {
-
         }
         public void ResumeLayout(bool performLayout)
         {
-
         }
         public void Select()
         {
@@ -349,233 +322,6 @@ namespace System.Windows.Forms
         public void SuspendLayout()
         {
             // dunno.
-        }
-
-        protected override void Dispose(bool release_all)
-        {
-            if (IsDisposed) return;
-
-            Disposing = true;
-
-            if (release_all)
-            {
-                for (; Controls.Count > 0;)
-                    Controls[0].Dispose();
-
-                Controls.Clear();
-            }
-
-            if (Parent != null)
-            {
-                int self = Parent.Controls.FindIndex(x => x == this);
-                if (self > -1)
-                    Parent.Controls.RemoveAt(self);
-            }
-
-            if (uwfContext)
-                uwfAppOwner.Contexts.Remove(this);
-
-            Disposed(this, EventArgs.Empty);
-            IsDisposed = true;
-
-            base.Dispose(release_all);
-        }
-        protected void InvokeGotFocus(Control toInvoke, EventArgs e)
-        {
-            if (toInvoke == null) return;
-            toInvoke.OnGotFocus(e);
-        }
-        protected void InvokeLostFocus(Control toInvoke, EventArgs e)
-        {
-            if (toInvoke == null)
-                return;
-            toInvoke.OnLostFocus(e);
-        }
-        protected virtual void OnClick(EventArgs e)
-        {
-            Click(this, e);
-        }
-        protected virtual void OnClientSizeChanged(EventArgs e)
-        {
-            ClientSizeChanged(this, e);
-        }
-        protected virtual void OnDoubleClick(EventArgs e)
-        {
-
-        }
-        protected virtual void OnDragDrop(DragEventArgs drgevent)
-        {
-            DragDrop(this, drgevent);
-        }
-        protected virtual void OnDragEnter(DragEventArgs drgevent)
-        {
-            DragEnter(this, drgevent);
-        }
-        protected virtual void OnDragLeave(EventArgs e)
-        {
-            DragLeave(this, e);
-        }
-        protected virtual void OnGotFocus(EventArgs e)
-        {
-            if (Parent != null)
-                Parent.uwfChildGotFocus(this);
-
-            GotFocus(this, e);
-        }
-        protected virtual void OnKeyDown(KeyEventArgs e)
-        {
-
-        }
-        protected virtual void OnKeyPress(KeyPressEventArgs e)
-        {
-
-        }
-        protected virtual void OnKeyUp(KeyEventArgs e)
-        {
-
-        }
-        protected virtual void OnLocationChanged(EventArgs e)
-        {
-            LocationChanged(this, EventArgs.Empty);
-        }
-        protected virtual void OnLostFocus(EventArgs e)
-        {
-            LostFocus(this, e);
-        }
-        protected virtual void OnMouseClick(MouseEventArgs e)
-        {
-            Click(this, e);
-        }
-        protected virtual void OnMouseDoubleClick(MouseEventArgs e)
-        {
-
-        }
-        protected virtual void OnMouseDown(MouseEventArgs e)
-        {
-            Focus();
-            MouseDown(this, e);
-        }
-        protected virtual void OnMouseEnter(EventArgs e)
-        {
-            MouseEnter(this, e);
-            if (Enabled)
-                hovered = true;
-        }
-        protected virtual void OnMouseHover(EventArgs e)
-        {
-            MouseHover(this, e);
-        }
-        protected virtual void OnMouseLeave(EventArgs e)
-        {
-            MouseLeave(this, e);
-            hovered = false;
-        }
-        protected virtual void OnMouseMove(MouseEventArgs e)
-        {
-
-        }
-        protected virtual void OnMouseUp(MouseEventArgs e)
-        {
-            MouseUp(this, e);
-        }
-        protected virtual void OnMouseWheel(MouseEventArgs e)
-        {
-            // TODO: should I raise in parent?
-            // remove base call if you have stack overflow.
-            if (Parent != null)
-                Parent.RaiseOnMouseWheel(e);
-        }
-        protected virtual void OnPaint(PaintEventArgs e)
-        {
-
-        }
-        protected virtual void OnPaintBackground(PaintEventArgs pevent)
-        {
-
-        }
-        protected virtual void OnResize(EventArgs e)
-        {
-            Resize(this, e);
-        }
-        protected virtual void OnTextChanged(EventArgs e)
-        {
-            TextChanged(this, e);
-        }
-        protected virtual void SetBoundsCore(int argX, int argY, int argWidth, int argHeight, BoundsSpecified specified)
-        {
-            if (x == argX && y == argY && (width == argWidth && height == argHeight))
-                return;
-
-            if (Parent != null)
-                Parent.SuspendLayout();
-
-            UpdateBounds(argX, argY, argWidth, argHeight);
-
-            if (Parent != null)
-                Parent.ResumeLayout(true);
-        }
-        protected virtual void SetClientSizeCore(int argX, int argY)
-        {
-            Size = SizeFromClientSize(argX, argY);
-            clientWidth = argX;
-            clientHeight = argY;
-            OnClientSizeChanged(EventArgs.Empty);
-        }
-        protected void SetStyle(ControlStyles flag, bool value)
-        {
-            controlStyle = value ? controlStyle | flag : controlStyle & ~flag;
-        }
-        protected virtual void OnSizeChanged(EventArgs e)
-        {
-            OnResize(EventArgs.Empty);
-            SizeChanged(this, e);
-        }
-        protected virtual Size SizeFromClientSize(Size clientSize)
-        {
-            return SizeFromClientSize(clientSize.Width, clientSize.Height);
-        }
-        protected void UpdateBounds(int argX, int argY, int argWidth, int argHeight)
-        {
-            int cWidth = argWidth;
-            int cHeight = argHeight;
-            UpdateBounds(argX, argY, argWidth, argHeight, cWidth, cHeight);
-        }
-        protected void UpdateBounds(int argX, int argY, int argWidth, int argHeight, int argClientWidth, int argClientHeight)
-        {
-            int widthBuffer = width;
-            int heightBuffer = height;
-
-            bool locationFlag = x != argX || y != argY;
-            bool sizeFlag = Width != argWidth || Height != argHeight || clientWidth != argClientWidth || clientHeight != argClientHeight;
-
-            x = argX;
-            y = argY;
-            width = argWidth;
-            height = argHeight;
-            clientWidth = argClientWidth;
-            clientHeight = argClientHeight;
-
-            if (locationFlag)
-                OnLocationChanged(EventArgs.Empty);
-            if (!sizeFlag)
-                return;
-
-            var delta = new Point(widthBuffer - argWidth, heightBuffer - argHeight);
-            ResizeChilds(delta);
-
-            OnSizeChanged(EventArgs.Empty);
-            OnClientSizeChanged(EventArgs.Empty);
-        }
-
-        protected virtual void uwfChildGotFocus(Control child)
-        {
-            if (Parent == null) return;
-
-            Parent.uwfChildGotFocus(child);
-        }
-        protected virtual void uwfOnLatePaint(PaintEventArgs e)
-        {
-
         }
 
         internal virtual bool CanSelectCore()
@@ -708,7 +454,6 @@ namespace System.Windows.Forms
             OnPaintBackground(e);
             OnPaint(e);
 
-            var controls = Controls;
             if (controls != null)
             {
                 var screenRect = Screen.PrimaryScreen.WorkingArea;
@@ -716,7 +461,7 @@ namespace System.Windows.Forms
                 {
                     var childControl = controls[i];
                     if (Application.ControlIsVisible(childControl) == false) continue;
-                    
+
                     var currentAbspos = childControl.PointToScreen(Point.Empty);
                     var currentAbsposX = currentAbspos.X;
                     var currentAbsposY = currentAbspos.Y;
@@ -745,126 +490,292 @@ namespace System.Windows.Forms
             ParentResized(new Point(delta.Width, delta.Height));
         }
 
-        public event EventHandler Click = delegate { };
-        public event EventHandler ClientSizeChanged = delegate { };
-        public new event EventHandler Disposed = delegate { };
-        public event DragEventHandler DragDrop = delegate { };
-        public event DragEventHandler DragEnter = delegate { };
-        public event EventHandler DragLeave = delegate { };
-        public event EventHandler GotFocus = delegate { };
-        public event EventHandler LocationChanged = delegate { };
-        public event EventHandler LostFocus = delegate { };
-        public event KeyEventHandler KeyDown = delegate { };
-        public event KeyPressEventHandler KeyPress = delegate { };
-        public event KeyEventHandler KeyUp = delegate { };
-        public event MouseEventHandler MouseDown = delegate { };
-        public event EventHandler MouseEnter = delegate { };
-        public event EventHandler MouseHover = delegate { };
-        public event EventHandler MouseLeave = delegate { };
-        public event MouseEventHandler MouseUp = delegate { };
-        public event EventHandler Resize = delegate { };
-        public event EventHandler SizeChanged = delegate { };
-        public event EventHandler TextChanged = delegate { };
-        public event EventHandler VisibleChanged = delegate { };
-
-        public event KeyEventHandler uwfKeyPress = delegate { };
-
-        public delegate void DrawHandler(PaintEventArgs e);
-        public delegate void ResizeHandler(Point delta);
-
-        public class ControlCollection : IEnumerator<Control>, IEnumerable<Control>, IList
+        protected override void Dispose(bool release_all)
         {
-            private readonly List<Control> _items = new List<Control>();
-            private readonly Control _owner;
+            if (IsDisposed) return;
+
+            Disposing = true;
+
+            if (release_all)
+            {
+                for (; Controls.Count > 0;)
+                    Controls[0].Dispose();
+
+                Controls.Clear();
+            }
+
+            if (Parent != null)
+            {
+                int self = Parent.Controls.FindIndex(control => control == this);
+                if (self > -1)
+                    Parent.Controls.RemoveAt(self);
+            }
+
+            if (uwfContext)
+                uwfAppOwner.Contexts.Remove(this);
+
+            Disposed(this, EventArgs.Empty);
+            IsDisposed = true;
+
+            base.Dispose(release_all);
+        }
+        protected void InvokeGotFocus(Control toInvoke, EventArgs e)
+        {
+            if (toInvoke == null) return;
+            toInvoke.OnGotFocus(e);
+        }
+        protected void InvokeLostFocus(Control toInvoke, EventArgs e)
+        {
+            if (toInvoke == null)
+                return;
+            toInvoke.OnLostFocus(e);
+        }
+        protected virtual void OnClick(EventArgs e)
+        {
+            Click(this, e);
+        }
+        protected virtual void OnClientSizeChanged(EventArgs e)
+        {
+            ClientSizeChanged(this, e);
+        }
+        protected virtual void OnDoubleClick(EventArgs e)
+        {
+        }
+        protected virtual void OnDragDrop(DragEventArgs drgevent)
+        {
+            DragDrop(this, drgevent);
+        }
+        protected virtual void OnDragEnter(DragEventArgs drgevent)
+        {
+            DragEnter(this, drgevent);
+        }
+        protected virtual void OnDragLeave(EventArgs e)
+        {
+            DragLeave(this, e);
+        }
+        protected virtual void OnGotFocus(EventArgs e)
+        {
+            if (Parent != null)
+                Parent.uwfChildGotFocus(this);
+
+            GotFocus(this, e);
+        }
+        protected virtual void OnKeyDown(KeyEventArgs e)
+        {
+        }
+        protected virtual void OnKeyPress(KeyPressEventArgs e)
+        {
+        }
+        protected virtual void OnKeyUp(KeyEventArgs e)
+        {
+        }
+        protected virtual void OnLocationChanged(EventArgs e)
+        {
+            LocationChanged(this, EventArgs.Empty);
+        }
+        protected virtual void OnLostFocus(EventArgs e)
+        {
+            LostFocus(this, e);
+        }
+        protected virtual void OnMouseClick(MouseEventArgs e)
+        {
+            Click(this, e);
+        }
+        protected virtual void OnMouseDoubleClick(MouseEventArgs e)
+        {
+        }
+        protected virtual void OnMouseDown(MouseEventArgs e)
+        {
+            Focus();
+            MouseDown(this, e);
+        }
+        protected virtual void OnMouseEnter(EventArgs e)
+        {
+            MouseEnter(this, e);
+            if (Enabled)
+                hovered = true;
+        }
+        protected virtual void OnMouseHover(EventArgs e)
+        {
+            MouseHover(this, e);
+        }
+        protected virtual void OnMouseLeave(EventArgs e)
+        {
+            MouseLeave(this, e);
+            hovered = false;
+        }
+        protected virtual void OnMouseMove(MouseEventArgs e)
+        {
+        }
+        protected virtual void OnMouseUp(MouseEventArgs e)
+        {
+            MouseUp(this, e);
+        }
+        protected virtual void OnMouseWheel(MouseEventArgs e)
+        {
+            // TODO: should I raise in parent?
+            // remove base call if you have stack overflow.
+            if (Parent != null)
+                Parent.RaiseOnMouseWheel(e);
+        }
+        protected virtual void OnPaint(PaintEventArgs e)
+        {
+        }
+        protected virtual void OnPaintBackground(PaintEventArgs pevent)
+        {
+        }
+        protected virtual void OnResize(EventArgs e)
+        {
+            Resize(this, e);
+        }
+        protected virtual void OnTextChanged(EventArgs e)
+        {
+            TextChanged(this, e);
+        }
+        protected virtual void SetBoundsCore(int argX, int argY, int argWidth, int argHeight, BoundsSpecified specified)
+        {
+            if (x == argX && y == argY && (width == argWidth && height == argHeight))
+                return;
+
+            if (Parent != null)
+                Parent.SuspendLayout();
+
+            UpdateBounds(argX, argY, argWidth, argHeight);
+
+            if (Parent != null)
+                Parent.ResumeLayout(true);
+        }
+        protected virtual void SetClientSizeCore(int argX, int argY)
+        {
+            Size = SizeFromClientSize(argX, argY);
+            clientWidth = argX;
+            clientHeight = argY;
+            OnClientSizeChanged(EventArgs.Empty);
+        }
+        protected void SetStyle(ControlStyles flag, bool value)
+        {
+            controlStyle = value ? controlStyle | flag : controlStyle & ~flag;
+        }
+        protected virtual void OnSizeChanged(EventArgs e)
+        {
+            OnResize(EventArgs.Empty);
+            SizeChanged(this, e);
+        }
+        protected virtual Size SizeFromClientSize(Size clientSize)
+        {
+            return SizeFromClientSize(clientSize.Width, clientSize.Height);
+        }
+        protected void UpdateBounds(int argX, int argY, int argWidth, int argHeight)
+        {
+            int cWidth = argWidth;
+            int cHeight = argHeight;
+            UpdateBounds(argX, argY, argWidth, argHeight, cWidth, cHeight);
+        }
+        protected void UpdateBounds(int argX, int argY, int argWidth, int argHeight, int argClientWidth, int argClientHeight)
+        {
+            int widthBuffer = width;
+            int heightBuffer = height;
+
+            bool locationFlag = x != argX || y != argY;
+            bool sizeFlag = Width != argWidth || Height != argHeight || clientWidth != argClientWidth || clientHeight != argClientHeight;
+
+            x = argX;
+            y = argY;
+            width = argWidth;
+            height = argHeight;
+            clientWidth = argClientWidth;
+            clientHeight = argClientHeight;
+
+            if (locationFlag)
+                OnLocationChanged(EventArgs.Empty);
+            if (!sizeFlag)
+                return;
+
+            var delta = new Point(widthBuffer - argWidth, heightBuffer - argHeight);
+            ResizeChilds(delta);
+
+            OnSizeChanged(EventArgs.Empty);
+            OnClientSizeChanged(EventArgs.Empty);
+        }
+
+        protected virtual void uwfChildGotFocus(Control child)
+        {
+            if (Parent == null) return;
+
+            Parent.uwfChildGotFocus(child);
+        }
+        protected virtual void uwfOnLatePaint(PaintEventArgs e)
+        {
+        }
+
+        private void ParentResized(Point delta)
+        {
+            if (Anchor == AnchorStyles.None) return;
+
+            bool an_right = (Anchor & AnchorStyles.Right) == AnchorStyles.Right;
+            bool an_bottom = (Anchor & AnchorStyles.Bottom) == AnchorStyles.Bottom;
+            bool an_left = (Anchor & AnchorStyles.Left) == AnchorStyles.Left;
+            bool an_top = (Anchor & AnchorStyles.Top) == AnchorStyles.Top;
+
+            int nextX = x;
+            int nextY = y;
+            int nextWidth = width;
+            int nextHeight = height;
+
+            if (an_right)
+                nextX -= delta.X;
+            else
+                delta = new Point(0, delta.Y);
+
+            if (an_bottom)
+                nextY -= delta.Y;
+            else
+                delta = new Point(delta.X, 0);
+
+            if (an_left)
+            {
+                if (an_right)
+                {
+                    nextX += delta.X;
+                    nextWidth -= delta.X;
+                }
+            }
+            if (an_top)
+            {
+                if (an_bottom)
+                {
+                    nextY += delta.Y;
+                    nextHeight -= delta.Y;
+                }
+            }
+
+            UpdateBounds(nextX, nextY, nextWidth, nextHeight);
+        }
+        private void ResizeChilds(Point delta)
+        {
+            if (delta == Point.Empty) return;
+            if (Controls == null) return;
+
+            for (int i = 0; i < Controls.Count; i++)
+                Controls[i].ParentResized(delta);
+        }
+
+        public class ControlCollection : IList, ICloneable
+        {
+            private readonly List<Control> items = new List<Control>();
+            private readonly Control owner;
 
             public ControlCollection(Control owner)
             {
-                _owner = owner;
+                this.owner = owner;
             }
-
-            public virtual Control this[int index] { get { return _items[index]; } }
-
-            public int Count { get { return _items.Count; } }
-            public Control Owner { get { return _owner; } }
-
-            object IEnumerator.Current
-            {
-                get { return _items.GetEnumerator().Current; }
-            }
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return _items.GetEnumerator();
-            }
-            bool IEnumerator.MoveNext()
-            {
-                return _items.GetEnumerator().MoveNext();
-            }
-            public virtual void Add(Control value)
-            {
-                _items.Add(value);
-                value.Parent = _owner;
-            }
-            public virtual void AddRange(Control[] controls)
-            {
-                foreach (var c in controls)
-                {
-                    _items.Add(c);
-                    c.Parent = _owner;
-                }
-            }
-            public void Clear()
-            {
-                _items.Clear();
-            }
-            public bool Contains(Control control)
-            {
-                return _items.Contains(control);
-            }
+            
             public Control Current
             {
-                get { return _items.GetEnumerator().Current; }
+                get { return items.GetEnumerator().Current; }
             }
-            public void Dispose()
-            {
-                _items.GetEnumerator().Dispose();
-            }
-            public Control Find(Predicate<Control> match)
-            {
-                return _items.Find(match);
-            }
-            public List<Control> FindAll(Predicate<Control> match)
-            {
-                return _items.FindAll(match);
-            }
-            public int FindIndex(Predicate<Control> match)
-            {
-                return _items.FindIndex(match);
-            }
-            public IEnumerator<Control> GetEnumerator()
-            {
-                return _items.GetEnumerator();
-            }
-            public int IndexOf(Control control)
-            {
-                return _items.IndexOf(control);
-            }
-            public void Insert(int index, Control value)
-            {
-                _items.Insert(index, value);
-            }
-            public virtual void Remove(Control item)
-            {
-                _items.Remove(item);
-            }
-            public void RemoveAt(int index)
-            {
-                _items.RemoveAt(index);
-            }
-            public void Reset()
-            {
-
-            }
-
+            public int Count { get { return items.Count; } }
+            public Control Owner { get { return owner; } }
             bool IList.IsFixedSize
             {
                 get
@@ -893,17 +804,86 @@ namespace System.Windows.Forms
                     return null;
                 }
             }
+
             object IList.this[int index]
             {
                 get
                 {
-                    return _items[index];
+                    return items[index];
                 }
                 set
                 {
                     if (value is Control)
-                        _items[index] = (Control)value;
+                        items[index] = (Control)value;
                 }
+            }
+            public virtual Control this[int index] { get { return items[index]; } }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return items.GetEnumerator();
+            }
+            public virtual void Add(Control value)
+            {
+                items.Add(value);
+                value.Parent = owner;
+            }
+            public virtual void AddRange(Control[] controls)
+            {
+                foreach (var c in controls)
+                {
+                    items.Add(c);
+                    c.Parent = owner;
+                }
+            }
+            public void Clear()
+            {
+                items.Clear();
+            }
+            public bool Contains(Control control)
+            {
+                return items.Contains(control);
+            }
+            public void CopyTo(Array array, int index)
+            {
+                var controls = array as Control[];
+                if (controls != null)
+                    items.CopyTo(controls, index);
+            }
+            public Control Find(Predicate<Control> match)
+            {
+                return items.Find(match);
+            }
+            public List<Control> FindAll(Predicate<Control> match)
+            {
+                return items.FindAll(match);
+            }
+            public int FindIndex(Predicate<Control> match)
+            {
+                return items.FindIndex(match);
+            }
+            public IEnumerator<Control> GetEnumerator()
+            {
+                return items.GetEnumerator();
+            }
+            public int IndexOf(Control control)
+            {
+                return items.IndexOf(control);
+            }
+            public void Insert(int index, Control value)
+            {
+                items.Insert(index, value);
+            }
+            public virtual void Remove(Control item)
+            {
+                items.Remove(item);
+            }
+            public void RemoveAt(int index)
+            {
+                items.RemoveAt(index);
+            }
+            public void Reset()
+            {
             }
 
             int IList.Add(object value)
@@ -912,7 +892,7 @@ namespace System.Windows.Forms
                 if (control != null)
                 {
                     Add(control);
-                    return _items.Count - 1;
+                    return items.Count - 1;
                 }
                 return -1;
             }
@@ -920,33 +900,34 @@ namespace System.Windows.Forms
             {
                 var control = value as Control;
                 if (control != null)
-                    return _items.Contains(control);
+                    return items.Contains(control);
                 return false;
             }
             int IList.IndexOf(object value)
             {
                 var control = value as Control;
                 if (control != null)
-                    return _items.IndexOf(control);
+                    return items.IndexOf(control);
                 return -1;
             }
             void IList.Insert(int index, object value)
             {
                 var control = value as Control;
                 if (control != null)
-                    _items.Insert(index, control);
+                    items.Insert(index, control);
             }
             void IList.Remove(object value)
             {
                 var control = value as Control;
                 if (control != null)
-                    _items.Remove(control);
+                    items.Remove(control);
             }
-            public void CopyTo(Array array, int index)
+            object ICloneable.Clone()
             {
-                var controls = array as Control[];
-                if (controls != null)
-                    _items.CopyTo(controls, index);
+                var cc = new ControlCollection(owner);
+                
+                cc.items.AddRange(items);
+                return cc;
             }
         }
     }

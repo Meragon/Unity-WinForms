@@ -1,25 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-using System.Windows.Forms;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     public class Panel : ScrollableControl
     {
         protected readonly Pen borderPen = new Pen(Color.White);
+
+        public Panel()
+        {
+            SetStyle(ControlStyles.Selectable | ControlStyles.AllPaintingInWmPaint, false);
+        }
 
         public Color uwfBorderColor
         {
             get { return borderPen.Color; }
             set { borderPen.Color = value; }
-        }
-
-        public Panel()
-        {
-            SetStyle(ControlStyles.Selectable | ControlStyles.AllPaintingInWmPaint, false);
         }
 
         protected override void OnPaint(PaintEventArgs e)

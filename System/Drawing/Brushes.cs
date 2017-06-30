@@ -2,12 +2,12 @@
 {
     public sealed class Brushes
     {
-        public static SolidBrush Black { get { return new SolidBrush(Color.Black); } }
-        public static SolidBrush DarkGray { get { return new SolidBrush(Color.DarkGray); } }
-        public static SolidBrush DarkRed { get { return new SolidBrush(Color.DarkRed); } }
-        public static SolidBrush Gray { get { return new SolidBrush(Color.Gray); } }
-        public static SolidBrush IndianRed { get { return new SolidBrush(Color.IndianRed); } }
-        public static SolidBrush LightGray { get { return new SolidBrush(Color.LightGray); } }
-        public static SolidBrush White { get { return new SolidBrush(Color.White); } }
+        public static readonly SolidBrush Black = new SolidBrush(Color.Black);
+        public static readonly SolidBrush DarkGray = new SolidBrush(Color.DarkGray);
+        public static readonly SolidBrush DarkRed = new SolidBrush(Color.DarkRed);
+        public static readonly SolidBrush Gray = new SolidBrush(Color.Gray);
+        public static readonly SolidBrush IndianRed = new SolidBrush(Color.IndianRed);
+        public static readonly SolidBrush LightGray = new SolidBrush(Color.LightGray);
+        public static readonly SolidBrush White = new SolidBrush(Color.White);
     }
 }

@@ -1,20 +1,17 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Collections;
+    using System.Collections.Generic;
+
     public class TreeNodeCollection : IList, ICollection, IEnumerable
     {
-        private List<TreeNode> items = new List<TreeNode>();
-        private TreeNode owner;
+        private readonly List<TreeNode> items = new List<TreeNode>();
+        private readonly TreeNode owner;
 
         internal TreeNodeCollection(TreeNode owner)
         {
             this.owner = owner;
-            this.owner.Nodes = this;
+            this.owner.nodes = this;
         }
 
         public virtual TreeNode this[int index]

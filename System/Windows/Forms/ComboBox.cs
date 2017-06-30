@@ -1,29 +1,45 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-using UnityEngine;
-using Color = System.Drawing.Color;
-using Editor = System.Drawing.Editor;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Drawing;
+
     public class ComboBox : ListControl
     {
+        private const int DOWN_BUTTON_WIDTH = 17;
+
         private readonly Pen borderPen = new Pen(Color.Transparent);
         private readonly Pen downButtonBorderPen = new Pen(Color.Transparent);
-        private const int downButtonWidth = 17;
+
         private ComboBoxStyle dropDownStyle;
         private bool keyFlag;
         private string filter = string.Empty;
         private int itemHeight = 15;
         private ListBox listBox;
         private bool listBoxOpened;
-        private int _maxDropDownItems = 8;
+        private int maxDropDownItems = 8;
         private int selectedIndex = -1;
+
+        public ComboBox()
+        {
+            Items = new ObjectCollection(this);
+
+            AutoCompleteMode = AutoCompleteMode.None;
+            AutoCompleteSource = AutoCompleteSource.None;
+            BackColor = Color.White;
+            BackColorDropDownList = Color.FromArgb(235, 235, 235);
+            BorderColor = Color.DarkGray;
+            BorderColorDisabled = Color.FromArgb(217, 217, 217);
+            BorderColorHovered = Color.FromArgb(126, 180, 234);
+            DisabledColor = Color.FromArgb(239, 239, 239);
+            DropDownStyle = ComboBoxStyle.DropDown;
+            HoverColor = Color.White;
+            HoverColorDropDownList = Color.FromArgb(227, 240, 252);
+            Padding = new Padding(4, 0, 4, 0);
+            Size = new Size(121, 21);
+        }
+
+        public event EventHandler SelectedIndexChanged = delegate { };
 
         public AutoCompleteMode AutoCompleteMode { get; set; }
         public AutoCompleteSource AutoCompleteSource { get; set; }
@@ -56,8 +72,8 @@ namespace System.Windows.Forms
         public Color HoverColorDropDownList { get; set; }
         public int MaxDropDownItems
         {
-            get { return _maxDropDownItems; }
-            set { if (value > 1 && value <= 100) _maxDropDownItems = value; }
+            get { return maxDropDownItems; }
+            set { if (value > 1 && value <= 100) maxDropDownItems = value; }
         }
         public override int SelectedIndex
         {
@@ -84,27 +100,6 @@ namespace System.Windows.Forms
             set { SelectedIndex = Items.IndexOf(value); }
         }
         public bool WrapText { get; set; }
-
-        public ComboBox()
-        {
-            Items = new ObjectCollection(this);
-
-            AutoCompleteMode = AutoCompleteMode.None;
-            AutoCompleteSource = AutoCompleteSource.None;
-            BackColor = Color.White;
-            BackColorDropDownList = Color.FromArgb(235, 235, 235);
-            BorderColor = Color.DarkGray;
-            BorderColorDisabled = Color.FromArgb(217, 217, 217);
-            BorderColorHovered = Color.FromArgb(126, 180, 234);
-            DisabledColor = Color.FromArgb(239, 239, 239);
-            DropDownStyle = ComboBoxStyle.DropDown;
-            HoverColor = Color.White;
-            HoverColorDropDownList = Color.FromArgb(227, 240, 252);
-            Padding = new Padding(4, 0, 4, 0);
-            Size = new Size(121, 21);
-        }
-
-        public event EventHandler SelectedIndexChanged = delegate { };
 
         internal override bool FocusInternal()
         {
@@ -260,7 +255,7 @@ namespace System.Windows.Forms
 
                     if (Focused && Enabled)
                     {
-                        var filterBuffer = g.uwfDrawTextField(filter, Font, ForeColor, 2, 0, Width - downButtonWidth, Height,
+                        var filterBuffer = g.uwfDrawTextField(filter, Font, ForeColor, 2, 0, Width - DOWN_BUTTON_WIDTH, Height,
                             HorizontalAlignment.Left);
                         if (filterBuffer != filter)
                         {
@@ -275,7 +270,7 @@ namespace System.Windows.Forms
                         filter = filterBuffer;
                     }
                     else
-                        g.uwfDrawString(Text, Font, ForeColor, 5, 0, Width - downButtonWidth, Height);
+                        g.uwfDrawString(Text, Font, ForeColor, 5, 0, Width - DOWN_BUTTON_WIDTH, Height);
 
                     if (uwfHovered)
                     {
@@ -297,7 +292,7 @@ namespace System.Windows.Forms
                     }
                     break;
                 case ComboBoxStyle.DropDownList:
-                    g.uwfDrawString(Text, Font, ForeColor, 5, 0, Width - downButtonWidth, Height);
+                    g.uwfDrawString(Text, Font, ForeColor, 5, 0, Width - DOWN_BUTTON_WIDTH, Height);
                     break;
             }
 
@@ -387,7 +382,7 @@ namespace System.Windows.Forms
         }
         private Rectangle GetButtonRect()
         {
-            return new Rectangle(Width - downButtonWidth, 1, downButtonWidth, Height - 2);
+            return new Rectangle(Width - DOWN_BUTTON_WIDTH, 1, DOWN_BUTTON_WIDTH, Height - 2);
         }
         private void ListBoxOnMouseUp(object sender, MouseEventArgs mouseEventArgs)
         {
@@ -444,11 +439,11 @@ namespace System.Windows.Forms
         {
             private readonly List<int> disabledItems;
             private readonly List<object> items;
-            private ComboBox _owner;
+            private readonly ComboBox owner;
 
             public ObjectCollection(ComboBox owner)
             {
-                _owner = owner;
+                this.owner = owner;
                 disabledItems = new List<int>();
                 items = new List<object>();
             }

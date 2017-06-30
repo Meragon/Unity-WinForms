@@ -1,37 +1,35 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Collections.Specialized;
+    using System.Drawing;
+
     public sealed class ImageList
     {
-        private readonly ImageList.ImageCollection _images = new ImageCollection();
+        private readonly ImageCollection images = new ImageCollection();
 
-        public ImageList.ImageCollection Images { get { return _images; } }
+        public ImageCollection Images { get { return images; } }
 
         public sealed class ImageCollection : IList, ICollection, IEnumerable
         {
-            private readonly List<ImageInfo> _items = new List<ImageInfo>();
+            private readonly List<ImageInfo> items = new List<ImageInfo>();
 
-            public int Count { get { return _items.Count; } }
-            public bool Empty { get { return _items.Count == 0; } }
+            public int Count { get { return items.Count; } }
+            public bool Empty { get { return items.Count == 0; } }
             public bool IsReadOnly { get { return false; } }
             public StringCollection Keys
             {
                 get
                 {
                     StringCollection scollection = new StringCollection();
-                    for (int i = 0; i < _items.Count; i++)
+                    for (int i = 0; i < items.Count; i++)
                     {
-                        if (_items[i].Key == null)
+                        if (items[i].Key == null)
                             scollection.Add(string.Empty);
                         else
-                            scollection.Add(_items[i].Key);
+                            scollection.Add(items[i].Key);
                     }
                     return scollection;
                 }
@@ -39,14 +37,14 @@ namespace System.Windows.Forms
 
             public Image this[int index]
             {
-                get { return _items[index].Image; }
-                set { _items[index].Image = value; }
+                get { return items[index].Image; }
+                set { items[index].Image = value; }
             }
             public Image this[string key]
             {
                 get
                 {
-                    var item = _items.Find(x => x.Key == key);
+                    var item = items.Find(x => x.Key == key);
                     if (item == null) return null;
                     return item.Image;
                 }
@@ -54,90 +52,78 @@ namespace System.Windows.Forms
 
             public void Add(Image value)
             {
-                _items.Add(new ImageInfo(string.Empty, value));
+                items.Add(new ImageInfo(string.Empty, value));
             }
             public void Add(string key, Image image)
             {
-                _items.Add(new ImageInfo(key, image));
+                items.Add(new ImageInfo(key, image));
             }
             public void AddRange(Image[] images)
             {
                 for (int i = 0; i < images.Length; i++)
-                    _items.Add(new ImageInfo(string.Empty, images[i]));
+                    items.Add(new ImageInfo(string.Empty, images[i]));
             }
             public void Clear()
             {
-                _items.Clear();
+                items.Clear();
             }
             public bool Contains(Image image)
             {
-                return _items.Find(x => x.Image == image) != null;
+                return items.Find(x => x.Image == image) != null;
             }
             public bool ContainsKey(string key)
             {
-                return _items.Find(x => x.Key == key) != null;
+                return items.Find(x => x.Key == key) != null;
             }
             public IEnumerator GetEnumerator()
             {
-                return _items.GetEnumerator();
+                return items.GetEnumerator();
             }
             public int IndexOf(Image image)
             {
-                for (int i = 0; i < _items.Count; i++)
-                    if (image == _items[i].Image)
+                for (int i = 0; i < items.Count; i++)
+                    if (image == items[i].Image)
                         return i;
 
                 return -1;
             }
             public int IndexOfKey(string key)
             {
-                for (int i = 0; i < _items.Count; i++)
-                    if (key == _items[i].Key)
+                for (int i = 0; i < items.Count; i++)
+                    if (key == items[i].Key)
                         return i;
 
                 return -1;
             }
             public void Remove(Image image)
             {
-                for (int i = 0; i < _items.Count; i++)
+                for (int i = 0; i < items.Count; i++)
                 {
-                    if (image == _items[i].Image)
+                    if (image == items[i].Image)
                     {
-                        _items.RemoveAt(i);
+                        items.RemoveAt(i);
                         return;
                     }
                 }
             }
             public void RemoveAt(int index)
             {
-                _items.RemoveAt(index);
+                items.RemoveAt(index);
             }
             public void RemoveByKey(string key)
             {
-                for (int i = 0; i < _items.Count; i++)
+                for (int i = 0; i < items.Count; i++)
                 {
-                    if (key == _items[i].Key)
+                    if (key == items[i].Key)
                     {
-                        _items.RemoveAt(i);
+                        items.RemoveAt(i);
                         return;
                     }
                 }
             }
             public void SetKeyName(int index, string name)
             {
-                _items[index].Key = name;
-            }
-
-            internal class ImageInfo
-            {
-                public string Key { get; set; }
-                public Image Image { get; set; }
-
-                public ImageInfo(string key, Image image)
-                {
-                    Key = key;
-                    Image = image;
-                }
+                items[index].Key = name;
             }
 
             int IList.Add(object value)
@@ -209,6 +195,18 @@ namespace System.Windows.Forms
                 {
                     return this;
                 }
+            }
+
+            internal class ImageInfo
+            {
+                public ImageInfo(string key, Image image)
+                {
+                    Key = key;
+                    Image = image;
+                }
+
+                public string Key { get; set; }
+                public Image Image { get; set; }
             }
         }
     }
