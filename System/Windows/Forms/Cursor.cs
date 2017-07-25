@@ -1,17 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     public sealed class Cursor
     {
         private static Cursor current;
         private static Cursor currentSystem;
 
-        private Bitmap image;
+        private readonly Bitmap image;
+
+        public Cursor(Bitmap resource)
+        {
+            HotSpot = new Point();
+            Size = new Size(32, 32);
+
+            image = resource;
+        }
+
+        public enum PointPositionTypes
+        {
+            Start,
+            Middle,
+            End
+        }
 
         public static Cursor Current
         {
@@ -27,6 +38,14 @@ namespace System.Windows.Forms
                 UnityEngine.Cursor.visible = IsVisible;
             }
         }
+        public static Point Position
+        {
+            get { return Control.MousePosition; }
+        }
+
+        public Point HotSpot { get; set; }
+        public Size Size { get; private set; }
+
         internal static Cursor CurrentSystem
         {
             get { return currentSystem; }
@@ -50,20 +69,6 @@ namespace System.Windows.Forms
                     cursorVisible = current == null || current.image == null || current.image.uTexture == null;
                 return cursorVisible;
             }
-        }
-        public Point HotSpot { get; set; }
-        public static Point Position
-        {
-            get { return Control.MousePosition; }
-        }
-        public Size Size { get; private set; }
-
-        public Cursor(Bitmap resource)
-        {
-            HotSpot = new Point();
-            Size = new Size(32, 32);
-
-            image = resource;
         }
 
         public void SetHotspot(PointPositionTypes x, PointPositionTypes y)
@@ -96,13 +101,6 @@ namespace System.Windows.Forms
         public void Draw(Graphics g, Rectangle targetRect)
         {
             g.DrawImage(image, targetRect.X + HotSpot.X / Application.ScaleX, targetRect.Y + HotSpot.Y / Application.ScaleY, targetRect.Width, targetRect.Height);
-        }
-
-        public enum PointPositionTypes
-        {
-            Start,
-            Middle,
-            End
         }
     }
 }

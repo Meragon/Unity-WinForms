@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
     public sealed class Cursors
     {
-        private static AppGdiImages.CursorImages Images = Unity.API.ApplicationBehaviour.GdiImages.Cursors;
+        private static AppGdiImages.CursorImages images = Unity.API.ApplicationBehaviour.GdiImages.Cursors;
         
         private static Cursor defaultCursor = null;
         private static Cursor sizeAll = null;
@@ -25,7 +20,7 @@ namespace System.Windows.Forms
             get
             {
                 if (defaultCursor == null)
-                    defaultCursor = new Cursor(Images.Default);
+                    defaultCursor = new Cursor(images.Default);
                 return defaultCursor;
             }
         }
@@ -35,7 +30,7 @@ namespace System.Windows.Forms
             {
                 if (hand == null)
                 {
-                    hand = new Cursor(Images.Hand);
+                    hand = new Cursor(images.Hand);
                     hand.SetHotspot(Cursor.PointPositionTypes.Middle, Cursor.PointPositionTypes.Middle);
                 }
                 return hand;
@@ -46,7 +41,7 @@ namespace System.Windows.Forms
             get
             {
                 if (help == null)
-                    help = new Cursor(Images.Help);
+                    help = new Cursor(images.Help);
                 return help;
             }
         }
@@ -56,7 +51,7 @@ namespace System.Windows.Forms
             {
                 if (hSplit == null)
                 {
-                    hSplit = new Cursor(Images.HSplit);
+                    hSplit = new Cursor(images.HSplit);
                     HSplit.SetHotspot(Cursor.PointPositionTypes.Middle, Cursor.PointPositionTypes.Middle);
                 }
                 return hSplit;
@@ -68,7 +63,7 @@ namespace System.Windows.Forms
             {
                 if (sizeAll == null)
                 {
-                    sizeAll = new Cursor(Images.SizeAll);
+                    sizeAll = new Cursor(images.SizeAll);
                     sizeAll.SetHotspot(Cursor.PointPositionTypes.Middle, Cursor.PointPositionTypes.Middle);
                 }
                 return sizeAll;
@@ -80,7 +75,7 @@ namespace System.Windows.Forms
             {
                 if (sizeNESW == null)
                 {
-                    sizeNESW = new Cursor(Images.SizeNESW);
+                    sizeNESW = new Cursor(images.SizeNESW);
                     sizeNESW.SetHotspot(Cursor.PointPositionTypes.Middle, Cursor.PointPositionTypes.Middle);
                 }
                 return sizeNESW;
@@ -92,7 +87,7 @@ namespace System.Windows.Forms
             {
                 if (sizeNS == null)
                 {
-                    sizeNS = new Cursor(Images.SizeNS);
+                    sizeNS = new Cursor(images.SizeNS);
                     sizeNS.SetHotspot(Cursor.PointPositionTypes.Middle, Cursor.PointPositionTypes.Middle);
                 }
                 return sizeNS;
@@ -104,7 +99,7 @@ namespace System.Windows.Forms
             {
                 if (sizeNWSE == null)
                 {
-                    sizeNWSE = new Cursor(Images.SizeNWSE);
+                    sizeNWSE = new Cursor(images.SizeNWSE);
                     sizeNWSE.SetHotspot(Cursor.PointPositionTypes.Middle, Cursor.PointPositionTypes.Middle);
                 }
                 return sizeNWSE;
@@ -116,7 +111,7 @@ namespace System.Windows.Forms
             {
                 if (sizeWE == null)
                 {
-                    sizeWE = new Cursor(Images.SizeWE);
+                    sizeWE = new Cursor(images.SizeWE);
                     sizeWE.SetHotspot(Cursor.PointPositionTypes.Middle, Cursor.PointPositionTypes.Middle);
                 }
                 return sizeWE;
@@ -128,7 +123,7 @@ namespace System.Windows.Forms
             {
                 if (vSplit == null)
                 {
-                    vSplit = new Cursor(Images.VSplit);
+                    vSplit = new Cursor(images.VSplit);
                     vSplit.SetHotspot(Cursor.PointPositionTypes.Middle, Cursor.PointPositionTypes.Middle);
                 }
                 return vSplit;

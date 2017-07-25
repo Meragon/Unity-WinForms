@@ -1,28 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     [Serializable]
     public class Label : Control
     {
-        public ContentAlignment TextAlign { get; set; }
-
         public Label()
         {
             BackColor = Color.Transparent;
-            Padding = new Forms.Padding(4, 0, 8, 0);
-            Size = new Drawing.Size(128, 20);
+            Padding = new Padding(4, 0, 8, 0);
+            Size = new Size(128, 20);
             TabStop = false;
             TextAlign = ContentAlignment.TopLeft;
 
             SetStyle(ControlStyles.FixedHeight | ControlStyles.Selectable, false);
             SetStyle(ControlStyles.ResizeRedraw, true);
         }
+
+        public ContentAlignment TextAlign { get; set; }
 
         protected override void OnPaint(PaintEventArgs e)
         {

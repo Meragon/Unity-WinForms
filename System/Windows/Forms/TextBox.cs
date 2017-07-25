@@ -1,16 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     public class TextBox : Control
     {
-        private readonly Pen _borderPen;
-        private string _text;
+        private readonly Pen borderPen;
+        private string text;
+
+        public TextBox()
+        {
+            borderPen = new Pen(Color.White);
+            text = string.Empty;
+
+            BackColor = Color.FromArgb(250, 250, 250);
+            BorderColor = Color.LightGray;
+            BorderHoverColor = Color.FromArgb(126, 180, 234);
+            ForeColor = Color.Black;
+            Padding = new Padding(2, 0, 2, 0);
+            Size = new Size(128, 24);
+            TextAlign = HorizontalAlignment.Left;
+        }
 
         public Color BorderColor { get; set; }
         public Color BorderHoverColor { get; set; }
@@ -18,13 +27,13 @@ namespace System.Windows.Forms
         public bool ReadOnly { get; set; }
         public override string Text
         {
-            get { return _text; }
+            get { return text; }
             set
             {
-                var changed = _text != value;
-                _text = value;
-                if (_text == null)
-                    _text = "";
+                var changed = text != value;
+                text = value;
+                if (text == null)
+                    text = string.Empty;
 
                 if (changed)
                     OnTextChanged(EventArgs.Empty);
@@ -32,25 +41,11 @@ namespace System.Windows.Forms
         }
         public HorizontalAlignment TextAlign { get; set; }
 
-        public TextBox()
-        {
-            _borderPen = new Pen(Color.White);
-            _text = "";
-
-            BackColor = Color.FromArgb(250, 250, 250);
-            BorderColor = Color.LightGray;
-            BorderHoverColor = Color.FromArgb(126, 180, 234);
-            TextAlign = HorizontalAlignment.Left;
-            ForeColor = Color.Black;
-            Padding = new Padding(2, 0, 2, 0);
-            Size = new Size(128, 24);
-        }
-
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
 
-            _borderPen.Color = uwfHovered ? BorderHoverColor : BorderColor;
+            borderPen.Color = uwfHovered ? BorderHoverColor : BorderColor;
 
             var g = e.Graphics;
             var textX = Padding.Left;
@@ -62,15 +57,15 @@ namespace System.Windows.Forms
 
             if (Enabled && Focused)
             {
-                var _tempText = "";
+                string tempText;
 
                 if (shouldFocus)
                     g.uwfFocusNext();
 
                 if (!Multiline)
-                    _tempText = g.uwfDrawTextField(Text, Font, ForeColor, textX, textY, textW, textH, TextAlign);
+                    tempText = g.uwfDrawTextField(Text, Font, ForeColor, textX, textY, textW, textH, TextAlign);
                 else
-                    _tempText = g.uwfDrawTextArea(Text, Font, ForeColor, textX, textY, textW, textH);
+                    tempText = g.uwfDrawTextArea(Text, Font, ForeColor, textX, textY, textW, textH);
 
                 if (shouldFocus)
                 {
@@ -78,8 +73,8 @@ namespace System.Windows.Forms
                     g.uwfFocus();
                 }
 
-                if (ReadOnly == false && string.Equals(Text, _tempText) == false)
-                    Text = _tempText;
+                if (ReadOnly == false && string.Equals(Text, tempText) == false)
+                    Text = tempText;
             }
             else
             {
@@ -89,7 +84,7 @@ namespace System.Windows.Forms
                     g.uwfDrawString(Text, Font, ForeColor, textX, textY, textW, textH, TextAlign);
             }
 
-            g.DrawRectangle(_borderPen, 0, 0, Width, Height);
+            g.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
     }
 }

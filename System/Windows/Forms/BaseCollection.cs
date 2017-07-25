@@ -1,33 +1,30 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Collections;
+
     public class BaseCollection : IEnumerable, ICollection
     {
-        private ArrayList _list;
+        private readonly ArrayList list;
 
         public BaseCollection()
         {
-            _list = new ArrayList();
+            list = new ArrayList();
         }
 
-        public virtual int Count { get { return _list.Count; } }
-        public bool IsReadOnly { get { return _list.IsReadOnly; } }
-        public bool IsSynchronized { get { return _list.IsSynchronized; } }
-        protected virtual ArrayList List { get { return _list; } }
-        public object SyncRoot { get { return _list.SyncRoot; } }
+        public virtual int Count { get { return list.Count; } }
+        public bool IsReadOnly { get { return list.IsReadOnly; } }
+        public bool IsSynchronized { get { return list.IsSynchronized; } }
+        public object SyncRoot { get { return list.SyncRoot; } }
+
+        protected virtual ArrayList List { get { return list; } }
 
         public void CopyTo(Array ar, int index)
         {
-            _list.CopyTo(ar, index);
+            list.CopyTo(ar, index);
         }
         public IEnumerator GetEnumerator()
         {
-            return _list.GetEnumerator();
+            return list.GetEnumerator();
         }
     }
 }

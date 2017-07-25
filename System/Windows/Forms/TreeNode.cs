@@ -17,6 +17,27 @@
         private int imageIndex_expanded = -1;
         private bool visible = true;
 
+        public TreeNode(string text) : this(text, null)
+        {
+            Text = text;
+        }
+        public TreeNode(string text, TreeNode[] children)
+        {
+            nodes = new TreeNodeCollection(this);
+
+            BackColor = Color.Transparent;
+            Enabled = true;
+            ForeColor = DEFAULT_FORE_COLOR;
+            ImageColor = Color.White;
+            Text = text;
+            if (children != null)
+                nodes.AddRange(children);
+        }
+        internal TreeNode(TreeView treeView) : this(string.Empty)
+        {
+            this.treeView = treeView;
+        }
+
         public Color BackColor { get; set; }
         public Rectangle Bounds { get; internal set; }
         public bool Enabled { get; set; }
@@ -24,9 +45,9 @@
         {
             get
             {
-                if (Nodes.Count == 0) return null;
+                if (nodes.Count == 0) return null;
 
-                return Nodes[0];
+                return nodes[0];
             }
         }
         public Color ForeColor { get; set; }
@@ -57,9 +78,9 @@
         {
             get
             {
-                if (Nodes.Count == 0) return null;
+                if (nodes.Count == 0) return null;
 
-                return Nodes[Nodes.Count - 1];
+                return nodes[nodes.Count - 1];
             }
         }
         public string Name { get; set; }
@@ -75,11 +96,7 @@
         }
         public TreeNodeCollection Nodes
         {
-            get
-            {
-                if (nodes == null) nodes = new TreeNodeCollection(this);
-                return nodes;
-            }
+            get { return nodes; }
         }
         public TreeNode Parent { get { return parent; } }
         public TreeNode PrevNode
@@ -104,23 +121,77 @@
             }
         }
 
-        internal TreeNode(TreeView treeView) : this("")
+        public void Collapse()
         {
-            this.treeView = treeView;
+            expanded = false;
+            TreeView.Refresh();
         }
-        public TreeNode(string text) : this(text, null)
+        public void EnsureVisible()
         {
-            Text = text;
+            treeView.EnsureVisible(this);
         }
-        public TreeNode(string text, TreeNode[] children)
+        public void Expand()
         {
-            BackColor = Color.Transparent;
-            Enabled = true;
-            ForeColor = DEFAULT_FORE_COLOR;
-            ImageColor = Color.White;
-            Text = text;
-            if (children != null)
-                Nodes.AddRange(children);
+            expanded = true;
+            TreeView.Refresh();
+        }
+        public void ExpandAll()
+        {
+            ExpandAllInternal();
+            TreeView.Refresh();
+        }
+        public void Remove()
+        {
+            Remove(true);
+        }
+        public void Toggle()
+        {
+            if (expanded) Collapse();
+            else Expand();
+        }
+
+        public override string ToString()
+        {
+            return "TreeNode: " + (Text == null ? string.Empty : Text);
+        }
+
+        internal void CollapseInternal()
+        {
+            expanded = false;
+        }
+        internal void ExpandAllInternal()
+        {
+            expanded = true;
+            var nodesCount = Nodes.Count;
+            for (int i = 0; i < nodesCount; i++)
+            {
+                var node = Nodes[i];
+                if (node.IsExpanded) continue;
+
+                node.expanded = true;
+                node.ExpandAllInternal();
+            }
+        }
+        internal int GetXIndex()
+        {
+            return _GetXIndex(this, 0);
+        }
+        internal int GetYIndex()
+        {
+            return _GetYIndex(this, 0);
+        }
+        internal void Remove(bool notify)
+        {
+            for (int i = 0; i < Nodes.Count; i++)
+                Nodes[i].Remove(false);
+
+            if (parent != null)
+            {
+                parent.Nodes.RemoveAt(index);
+                parent = null;
+            }
+
+            treeView = null;
         }
 
         private static int _GetVisibleNodesAmount(TreeNode node, int currentAmount)
@@ -144,7 +215,7 @@
         {
             if (currentNode.parent == null) return currentY;
 
-            if (currentNode == TreeView.root) return currentY--;
+            if (currentNode == TreeView.root) return --currentY; // was currentY--, should check it.
 
             if (currentNode.parent != TreeView.root && currentNode.parent.IsVisible) currentY++;
 
@@ -152,77 +223,6 @@
                 currentY += _GetVisibleNodesAmount(currentNode.parent.Nodes[i], 0);
 
             return _GetYIndex(currentNode.parent, currentY);
-        }
-
-        public void Collapse()
-        {
-            expanded = false;
-            TreeView.Refresh();
-        }
-        internal void CollapseInternal()
-        {
-            expanded = false;
-        }
-        public void EnsureVisible()
-        {
-            treeView.EnsureVisible(this);
-        }
-        public void Expand()
-        {
-            expanded = true;
-            TreeView.Refresh();
-        }
-        public void ExpandAll()
-        {
-            ExpandAllInternal();
-            TreeView.Refresh();
-        }
-        internal void ExpandAllInternal()
-        {
-            expanded = true;
-            for (int i = 0; i < Nodes.Count; i++)
-            {
-                if (Nodes[i].IsExpanded == false)
-                {
-                    Nodes[i].expanded = true;
-                    Nodes[i].ExpandAllInternal();
-                }
-            }
-        }
-        internal int GetXIndex()
-        {
-            return _GetXIndex(this, 0);
-        }
-        internal int GetYIndex()
-        {
-            return _GetYIndex(this, 0);
-        }
-        public void Remove()
-        {
-            Remove(true);
-        }
-        internal void Remove(bool notify)
-        {
-            for (int i = 0; i < Nodes.Count; i++)
-                Nodes[i].Remove(false);
-
-            if (parent != null)
-            {
-                parent.Nodes.RemoveAt(index);
-                parent = null;
-            }
-
-            treeView = null;
-        }
-        public void Toggle()
-        {
-            if (expanded == true) Collapse();
-            else Expand();
-        }
-
-        public override string ToString()
-        {
-            return "TreeNode: " + ((Text == null) ? "" : Text);
         }
     }
 }

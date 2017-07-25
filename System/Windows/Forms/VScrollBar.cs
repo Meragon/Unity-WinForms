@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     public class VScrollBar : ScrollBar
     {
-        private readonly Size ButtonSize = new Size(15, 17);
+        private readonly Size buttonSize = new Size(15, 17);
 
         public VScrollBar()
         {
@@ -18,12 +14,12 @@ namespace System.Windows.Forms
             subtractButton.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             subtractButton.Image = uwfAppOwner.Resources.CurvedArrowUp;
             subtractButton.Location = new Point(0, 0);
-            subtractButton.Size = ButtonSize;
+            subtractButton.Size = buttonSize;
 
             addButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             addButton.Image = uwfAppOwner.Resources.CurvedArrowDown;
-            addButton.Location = new Point(0, Height - ButtonSize.Height);
-            addButton.Size = ButtonSize;
+            addButton.Location = new Point(0, Height - buttonSize.Height);
+            addButton.Size = buttonSize;
 
             Refresh();
         }
