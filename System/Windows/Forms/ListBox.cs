@@ -1,38 +1,63 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-using UnityEngine;
-using Color = System.Drawing.Color;
-
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Drawing;
+
     public class ListBox : ListControl
     {
+        public const int DefaultItemHeight = 13;
+
+        private readonly Pen borderPen = new Pen(Color.Black);
+        private readonly ObjectCollection items;
+        private readonly VScrollBar vScroll;
+
         private Color borderCurrentColor;
         private Color borderColor;
         private Color borderSelectColor;
         private int borderOffset = 2;
-        private readonly Pen borderPen = new Pen(Color.Black);
         private BorderStyle borderStyle = BorderStyle.Fixed3D;
         private int hoveredItem = -1;
         private bool integralHeight = true;
         private bool integralHeightAdjust = true;
         private int itemHeight = DefaultItemHeight;
-        private readonly ObjectCollection items;
         private string keyFilter = "";
         private Unity.API.ApplicationBehaviour.invokeAction keyFilterIA;
         private float keyFilterResetTime = 3;
         private int visibleItemsCount = 0;
         private bool scrollAlwaysVisible;
         private int selectedIndex = -1;
-        private readonly VScrollBar vScroll;
 
-        public const int DefaultItemHeight = 13;
+        public ListBox()
+        {
+            items = new ObjectCollection(this);
+
+            BackColor = Color.White;
+            BorderColor = Color.FromArgb(130, 135, 144);
+            BorderSelectColor = Color.FromArgb(126, 180, 234);
+            DisabledColor = Color.Gray;
+            DrawMode = DrawMode.Normal;
+            DrawItem = InternalDrawItem;
+            HoverColor = Color.FromArgb(221, 238, 253);
+            SelectionBackColor = SystemColors.Highlight;
+            SelectionDisabledColor = Color.FromArgb(101, 203, 255);
+            SelectionForeColor = SystemColors.HighlightText;
+            Size = new Size(120, 95);
+            WrapText = true;
+
+            vScroll = new VScrollBar();
+            vScroll.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
+            vScroll.Location = new Point(Width - vScroll.Width, 0);
+            vScroll.Height = Height;
+            vScroll.Visible = false;
+            Controls.Add(vScroll);
+
+            UpdateBorder();
+            UpdateBorderPen();
+        }
+
+        public event EventHandler SelectedIndexChanged = delegate { };
+        public event DrawItemEventHandler DrawItem;
 
         public Color BorderColor
         {
@@ -108,11 +133,6 @@ namespace System.Windows.Forms
                 RefreshItems();
             }
         }
-        internal int ScrollIndex
-        {
-            get { return vScroll.Value / ItemHeight; }
-            set { vScroll.Value = value * ItemHeight; }
-        }
         public override int SelectedIndex
         {
             get { return selectedIndex; }
@@ -147,53 +167,98 @@ namespace System.Windows.Forms
         public Color SelectionForeColor { get; set; }
         public bool WrapText { get; set; }
 
-        public ListBox()
+        internal int ScrollIndex
         {
-            items = new ObjectCollection(this);
+            get { return vScroll.Value / ItemHeight; }
+            set { vScroll.Value = value * ItemHeight; }
+        }
 
-            BackColor = Color.White;
-            BorderColor = Color.FromArgb(130, 135, 144);
-            BorderSelectColor = Color.FromArgb(126, 180, 234);
-            DisabledColor = Color.Gray;
-            DrawMode = DrawMode.Normal;
-            DrawItem = InternalDrawItem;
-            HoverColor = Color.FromArgb(221, 238, 253);
-            SelectionBackColor = SystemColors.Highlight;
-            SelectionDisabledColor = Color.FromArgb(101, 203, 255);
-            SelectionForeColor = SystemColors.HighlightText;
-            Size = new Size(120, 95);
-            WrapText = true;
+        public void AdjustHeight()
+        {
+            integralHeightAdjust = false;
+            Height = (int)(Math.Ceiling((float)Height / ItemHeight) * ItemHeight) + borderOffset * 2;
+            integralHeightAdjust = true;
+        }
+        public void EnsureVisible()
+        {
+            if (SelectedIndex < ScrollIndex)
+                ScrollIndex = SelectedIndex;
 
-            vScroll = new VScrollBar();
-            vScroll.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
-            vScroll.Location = new Point(Width - vScroll.Width, 0);
-            vScroll.Height = Height;
-            vScroll.Visible = false;
-            Controls.Add(vScroll);
+            if (SelectedIndex > ScrollIndex + visibleItemsCount - 1)
+                ScrollIndex = SelectedIndex - visibleItemsCount + 1;
 
-            UpdateBorder();
+            if (ScrollIndex < 0)
+                ScrollIndex = 0;
+        }
+
+        internal int FindItemIndex(Predicate<object> match)
+        {
+            for (int i = 0; i < Items.Count; i++)
+            {
+                var item = Items[i];
+                if (match(item)) return i;
+            }
+            return -1;
+        }
+        internal override bool FocusInternal()
+        {
+            var result = base.FocusInternal();
             UpdateBorderPen();
+            return result;
         }
+        internal int IndexAt(Point mclient)
+        {
+            return ScrollIndex + (int)((mclient.Y - borderOffset) / ItemHeight);
+        }
+        internal void SelectItem(int index)
+        {
+            if (index < 0 && Items.Count == 0) return;
 
-        private void InternalDrawItem(object sender, DrawItemEventArgs e)
-        {
-            var item = Items[e.Index];
-            var itemText = "";
-            if (item != null)
-                itemText = item.ToString();
+            if (index < 0) index = 0;
+            if (index >= Items.Count) index = Items.Count - 1;
 
-            e.DrawBackground();
-            e.Graphics.uwfDrawString(itemText, e.Font, e.ForeColor, e.Bounds.X, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height, ContentAlignment.MiddleLeft);
-            e.DrawFocusRectangle();
+            SelectedIndex = index;
+            EnsureVisible();
+            OnSelectedValueChanged(EventArgs.Empty);
         }
-        private void ResetItemHeight()
+        internal void RefreshItems()
         {
-            itemHeight = DefaultItemHeight;
+            visibleItemsCount = (int)Math.Ceiling((float)(Height - borderOffset * 2) / ItemHeight);
+
+            if (vScroll != null)
+            {
+                vScroll.Maximum = Items.Count * ItemHeight;
+                vScroll.SmallChange = ItemHeight;
+                vScroll.LargeChange = Height;
+                vScroll.Visible = ScrollAlwaysVisible || Height < PreferredHeight;
+            }
         }
-        private void ResetKeyFilter()
+        internal void UpdateBorder()
         {
-            keyFilter = "";
-            keyFilterIA = null;
+            switch (borderStyle)
+            {
+                case BorderStyle.None:
+                    borderOffset = 0;
+                    borderPen.Width = 0;
+                    vScroll.Location = new Point(Width - vScroll.Width, 0);
+                    vScroll.Height = Height;
+                    break;
+                case BorderStyle.FixedSingle:
+                case BorderStyle.Fixed3D:
+                    borderOffset = 2;
+                    borderPen.Width = 1;
+                    vScroll.Location = new Point(Width - vScroll.Width - borderOffset, borderOffset);
+                    vScroll.Height = Height - borderOffset * 2;
+                    break;
+            }
+        }
+        internal void UpdateBorderPen()
+        {
+            borderCurrentColor = BorderColor;
+            if (Focused || uwfContext)
+                borderCurrentColor = BorderSelectColor;
+
+            borderPen.Color = borderCurrentColor;
         }
 
         protected virtual void OnDrawItem(DrawItemEventArgs e)
@@ -375,96 +440,26 @@ namespace System.Windows.Forms
             SelectedIndexChanged(this, e);
         }
 
-        public void AdjustHeight()
+        private void InternalDrawItem(object sender, DrawItemEventArgs e)
         {
-            integralHeightAdjust = false;
-            Height = (int)(Math.Ceiling((float)Height / ItemHeight) * ItemHeight) + borderOffset * 2;
-            integralHeightAdjust = true;
-        }
-        public void EnsureVisible()
-        {
-            if (SelectedIndex < ScrollIndex)
-                ScrollIndex = SelectedIndex;
+            var item = Items[e.Index];
+            var itemText = "";
+            if (item != null)
+                itemText = item.ToString();
 
-            if (SelectedIndex > ScrollIndex + visibleItemsCount - 1)
-                ScrollIndex = SelectedIndex - visibleItemsCount + 1;
-
-            if (ScrollIndex < 0)
-                ScrollIndex = 0;
+            e.DrawBackground();
+            e.Graphics.uwfDrawString(itemText, e.Font, e.ForeColor, e.Bounds.X, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height, ContentAlignment.MiddleLeft);
+            e.DrawFocusRectangle();
         }
-
-        internal int FindItemIndex(Predicate<object> match)
+        private void ResetItemHeight()
         {
-            for (int i = 0; i < Items.Count; i++)
-            {
-                var item = Items[i];
-                if (match(item)) return i;
-            }
-            return -1;
+            itemHeight = DefaultItemHeight;
         }
-        internal override bool FocusInternal()
+        private void ResetKeyFilter()
         {
-            var result = base.FocusInternal();
-            UpdateBorderPen();
-            return result;
+            keyFilter = "";
+            keyFilterIA = null;
         }
-        internal int IndexAt(Point mclient)
-        {
-            return ScrollIndex + (int)((mclient.Y - borderOffset) / ItemHeight);
-        }
-        internal void SelectItem(int index)
-        {
-            if (index < 0 && Items.Count == 0) return;
-
-            if (index < 0) index = 0;
-            if (index >= Items.Count) index = Items.Count - 1;
-
-            SelectedIndex = index;
-            EnsureVisible();
-            OnSelectedValueChanged(EventArgs.Empty);
-        }
-        internal void RefreshItems()
-        {
-            visibleItemsCount = (int)Math.Ceiling((float)(Height - borderOffset * 2) / ItemHeight);
-
-            if (vScroll != null)
-            {
-                vScroll.Maximum = Items.Count * ItemHeight;
-                vScroll.SmallChange = ItemHeight;
-                vScroll.LargeChange = Height;
-                vScroll.Visible = ScrollAlwaysVisible || Height < PreferredHeight;
-            }
-        }
-        internal void UpdateBorder()
-        {
-            switch (borderStyle)
-            {
-                case BorderStyle.None:
-                    borderOffset = 0;
-                    borderPen.Width = 0;
-                    vScroll.Location = new Point(Width - vScroll.Width, 0);
-                    vScroll.Height = Height;
-                    break;
-                case BorderStyle.FixedSingle:
-                case BorderStyle.Fixed3D:
-                    borderOffset = 2;
-                    borderPen.Width = 1;
-                    vScroll.Location = new Point(Width - vScroll.Width - borderOffset, borderOffset);
-                    vScroll.Height = Height - borderOffset * 2;
-                    break;
-            }
-        }
-        internal void UpdateBorderPen()
-        {
-            borderCurrentColor = BorderColor;
-            if (Focused || uwfContext)
-                borderCurrentColor = BorderSelectColor;
-
-            borderPen.Color = borderCurrentColor;
-        }
-
-        public event EventHandler SelectedIndexChanged = delegate { };
-        public event DrawItemEventHandler DrawItem;
 
         public class ObjectCollection : IList
         {
@@ -506,14 +501,6 @@ namespace System.Windows.Forms
             {
                 get { return items[index]; }
                 set { items[index] = value; }
-            }
-
-            private int AddInternal(object item)
-            {
-                items.Add(item);
-                owner.RefreshItems();
-
-                return items.Count - 1;
             }
 
             public int Add(object item)
@@ -589,6 +576,14 @@ namespace System.Windows.Forms
             {
                 items.RemoveAt(index);
                 owner.RefreshItems();
+            }
+
+            private int AddInternal(object item)
+            {
+                items.Add(item);
+                owner.RefreshItems();
+
+                return items.Count - 1;
             }
         }
     }

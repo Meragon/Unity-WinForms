@@ -78,6 +78,7 @@
         public event KeyEventHandler KeyDown = delegate { };
         public event KeyPressEventHandler KeyPress = delegate { };
         public event KeyEventHandler KeyUp = delegate { };
+        public event MouseEventHandler MouseClick = delegate { };
         public event MouseEventHandler MouseDown = delegate { };
         public event EventHandler MouseEnter = delegate { };
         public event EventHandler MouseHover = delegate { };
@@ -370,6 +371,7 @@
         internal void RaiseOnMouseClick(MouseEventArgs e)
         {
             OnMouseClick(e);
+            OnClick(e);
         }
         internal void RaiseOnMouseDoubleClick(MouseEventArgs e)
         {
@@ -579,7 +581,7 @@
         }
         protected virtual void OnMouseClick(MouseEventArgs e)
         {
-            Click(this, e);
+            MouseClick(this, e);
         }
         protected virtual void OnMouseDoubleClick(MouseEventArgs e)
         {
