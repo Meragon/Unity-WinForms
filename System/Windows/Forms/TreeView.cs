@@ -7,6 +7,7 @@
 
     public class TreeView : Control
     {
+        internal int arrowSize = 16;
         internal TreeNode root;
 
         protected List<TreeNode> scrollNodeList;
@@ -394,12 +395,13 @@
 
                 if (arrowTexture != null)
                 {
-                    var arrowWidth = arrowTexture.Width;
-                    var arrowHeight = arrowTexture.Height;
+                    var arrowWidth = arrowSize;
+                    var arrowHeight = arrowSize;
                     graphics.DrawImage(arrowTexture, xOffset, nodeY + nodeBounds.Height / 2f - arrowHeight / 2f, arrowWidth, arrowHeight);
-                    xOffset += arrowWidth;
                 }
             }
+
+            xOffset += arrowSize;
 
             // Draw image.
             if (node.ImageIndex > -1)

@@ -414,7 +414,8 @@
                 }
                 else
                 {
-                    var itemRect = new Rectangle(borderOffset + 2,
+                    var itemRect = new Rectangle(
+                        borderOffset + 2,
                         itemY + itemTextVerticalPadding,
                         fillWidth,
                         ItemHeight);

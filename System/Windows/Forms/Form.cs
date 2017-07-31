@@ -326,27 +326,28 @@
         {
             closeButton = new formSystemButton();
 
-            CloseButton.Anchor = AnchorStyles.Right;
-            CloseButton.Text = "";
+            closeButton.Anchor = AnchorStyles.Right;
+            closeButton.Text = "";
             if (uwfAppOwner.Resources != null && uwfAppOwner.Resources.Close != null)
-                CloseButton.Image = uwfAppOwner.Resources.Close;
+                closeButton.Image = uwfAppOwner.Resources.Close;
             else
-                CloseButton.Text = "X";
-            CloseButton.uwfHoverColor = System.Drawing.Color.FromArgb(64, 252, 252, 252);
-            CloseButton.uwfBorderHoverColor = System.Drawing.Color.Transparent;
-            CloseButton.Location = new Point(Width - 32, 1);
-            CloseButton.Name = "buttonClose";
-            CloseButton.BackColor = System.Drawing.Color.FromArgb(0, 238, 238, 242);
-            CloseButton.uwfBorderColor = System.Drawing.Color.Transparent;
-            CloseButton.Size = new System.Drawing.Size(24, 16);
-            CloseButton.ForeColor = System.Drawing.Color.FromArgb(64, 64, 64);
-            CloseButton.uwfImageColor = Color.FromArgb(64, 64, 64);
-            CloseButton.uwfImageHoverColor = Color.FromArgb(128, 128, 128);
+                closeButton.Text = "X";
+            closeButton.Location = new Point(Width - 32, 1);
+            closeButton.Name = "buttonClose";
+            closeButton.BackColor = Color.FromArgb(0, 238, 238, 242);
+            closeButton.Size = new Size(24, 16);
+            closeButton.ForeColor = Color.FromArgb(64, 64, 64);
 
-            CloseButton.BringToFront();
-            CloseButton.Click += (o, e) => { Close(); };
+            closeButton.uwfBorderColor = Color.Transparent;
+            closeButton.uwfBorderHoverColor = Color.Transparent;
+            closeButton.uwfHoverColor = Color.FromArgb(64, 252, 252, 252);
+            closeButton.uwfImageColor = Color.FromArgb(64, 64, 64);
+            closeButton.uwfImageHoverColor = Color.FromArgb(128, 128, 128);
 
-            Controls.Add(CloseButton);
+            closeButton.BringToFront();
+            closeButton.Click += OnCloseButtonOnClick;
+
+            Controls.Add(closeButton);
         }
         private void _MakeButtonResize()
         {
@@ -356,6 +357,10 @@
             uwfSizeGripRenderer = new ResizeButton(this, img);
             uwfSizeGripRenderer.Location = new Point(Width - img.Width - 2, Height - img.Height - 2);
             Controls.Add(uwfSizeGripRenderer);
+        }
+        private void OnCloseButtonOnClick(object o, EventArgs e)
+        {
+            Close();
         }
         private void Owner_UpdateEvent()
         {

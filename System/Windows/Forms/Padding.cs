@@ -1,49 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     public struct Padding : IEquatable<Padding>
     {
+        public static readonly Padding Empty = new Padding(0);
+
         private int bottom;
         private int left;
         private int right;
         private int top;
-
-        public int Bottom { get { return bottom; } set { bottom = value; } }
-        public int Left { get { return left; } set { left = value; } }
-        public int Horizontal { get { return left + right; } }
-        public int Right { get { return right; } set { right = value; } }
-        public Size Size
-        {
-            get { return new Size(Horizontal, Vertical); }
-        }
-        public int Top { get { return top; } set { top = value; } }
-        public int Vertical { get { return top + bottom; } }
-
-        public static readonly Padding Empty = new Padding(0);
-
-        public static Padding operator +(Padding p1, Padding p2)
-        {
-            return new Padding(p1.left + p2.left, p1.top + p2.top, p1.right + p2.right, p1.bottom + p2.bottom);
-        }
-        public static Padding operator -(Padding p1, Padding p2)
-        {
-            return new Padding(p1.left - p2.left, p1.top - p2.top, p1.right - p2.right, p1.bottom - p2.bottom);
-        }
-        public static bool operator ==(Padding p1, Padding p2)
-        {
-            if (p1.left == p2.left && p1.top == p2.top && p1.right == p2.right)
-                return p1.bottom == p2.bottom;
-            return false;
-        }
-        public static bool operator !=(Padding p1, Padding p2)
-        {
-            return !(p1 == p2);
-        }
 
         public Padding(int all)
         {
@@ -62,6 +28,36 @@ namespace System.Windows.Forms
             this.bottom = bottom;
             this.right = right;
             this.top = top;
+        }
+
+        public int Bottom { get { return bottom; } set { bottom = value; } }
+        public int Left { get { return left; } set { left = value; } }
+        public int Horizontal { get { return left + right; } }
+        public int Right { get { return right; } set { right = value; } }
+        public Size Size
+        {
+            get { return new Size(Horizontal, Vertical); }
+        }
+        public int Top { get { return top; } set { top = value; } }
+        public int Vertical { get { return top + bottom; } }
+
+        public static Padding operator +(Padding p1, Padding p2)
+        {
+            return new Padding(p1.left + p2.left, p1.top + p2.top, p1.right + p2.right, p1.bottom + p2.bottom);
+        }
+        public static Padding operator -(Padding p1, Padding p2)
+        {
+            return new Padding(p1.left - p2.left, p1.top - p2.top, p1.right - p2.right, p1.bottom - p2.bottom);
+        }
+        public static bool operator ==(Padding p1, Padding p2)
+        {
+            if (p1.left == p2.left && p1.top == p2.top && p1.right == p2.right)
+                return p1.bottom == p2.bottom;
+            return false;
+        }
+        public static bool operator !=(Padding p1, Padding p2)
+        {
+            return !(p1 == p2);
         }
 
         public bool Equals(Padding other)
@@ -87,16 +83,7 @@ namespace System.Windows.Forms
         }
         public override string ToString()
         {
-            return "{ L: " + left + "; B: " + bottom + "; R: " + right + "; T: " + top + " }";
-        }
-
-        public static Padding Add(Padding p1, Padding p2)
-        {
-            return p1 + p2;
-        }
-        public static Padding Subtract(Padding p1, Padding p2)
-        {
-            return p1 - p2;
+            return "{Left=" + left + ",Top=" + top + ",Right=" + right + ",Bottom=" + bottom + "}";
         }
     }
 }

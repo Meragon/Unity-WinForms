@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using UE = UnityEngine;
-
-namespace Unity.API
+﻿namespace Unity.API
 {
+    using System.Drawing;
+
+    using UE = UnityEngine;
+
     public static class UnityGdiHelper
     {
         public static Point FromVector2(UE.Vector2 vector)

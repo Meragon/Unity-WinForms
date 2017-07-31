@@ -55,12 +55,11 @@
             uwfAutoGroup = true;
             visible = true;
 
-            SetStyle(ControlStyles.UserPaint | ControlStyles.StandardClick | ControlStyles.Selectable | ControlStyles.StandardDoubleClick | ControlStyles.AllPaintingInWmPaint | ControlStyles.UseTextForAccessibility, true);
-
-#if UNITY_EDITOR
-            var stackTrace = UnityEngine.StackTraceUtility.ExtractStackTrace();
-            uwfSource = stackTrace;
-#endif
+            SetStyle(
+                ControlStyles.UserPaint |
+                ControlStyles.StandardClick | ControlStyles.Selectable | ControlStyles.StandardDoubleClick | 
+                ControlStyles.AllPaintingInWmPaint | ControlStyles.UseTextForAccessibility,
+                true);
         }
 
         public delegate void DrawHandler(PaintEventArgs e);

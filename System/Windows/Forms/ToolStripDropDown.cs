@@ -1,21 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     public class ToolStripDropDown : ToolStrip
     {
         public ToolStripDropDown()
         {
-            Orientation = Forms.Orientation.Vertical;
+            Orientation = Orientation.Vertical;
             Visible = false;
         }
 
         /// <summary>
-        /// null, MousePosition
+        /// use null, MousePosition
         /// </summary>
         /// <param name="control"></param>
         /// <param name="position"></param>
@@ -25,40 +21,48 @@ namespace System.Windows.Forms
                 Location = position;
             else
                 Location = control.PointToScreen(Point.Empty).Add(position);
+
             int height = 0;
             int width = 160;
-            for (int i = 0; i < Items.Count; i++)
+
+            var itemsCount = Items.Count;
+            for (int i = 0; i < itemsCount; i++)
             {
-                if (Items[i].JustVisual) continue;
-                if (Items[i] is ToolStripMenuItem && !String.IsNullOrEmpty((Items[i] as ToolStripMenuItem).ShortcutKeys))
+                var item = Items[i];
+                if (item.JustVisual) continue;
+
+                var menuItem = item as ToolStripMenuItem;
+                if (menuItem != null && !string.IsNullOrEmpty(menuItem.ShortcutKeys))
                     width = 220;
                 height += 24;
             }
-            Size = new Drawing.Size(width, height);
+            Size = new Size(width, height);
 
             if (Location.X + width > Screen.PrimaryScreen.WorkingArea.Width)
                 Location = new Point(Screen.PrimaryScreen.WorkingArea.Width - width, Location.Y);
 
             Visible = true;
 
-            for (int i = 0; i < Items.Count; i++)
+            for (int i = 0; i < itemsCount; i++)
             {
-                if (Items[i] is ToolStripDropDownItem)
+                var item = Items[i];
+                var dropDownItem = item as ToolStripDropDownItem;
+                if (dropDownItem != null)
                 {
-                    var ddi = Items[i] as ToolStripDropDownItem;
-                    ddi.ArrowImage = uwfAppOwner.Resources.DropDownRightArrow;
-                    ddi.ArrowColor = Color.Black;
+                    dropDownItem.ArrowImage = uwfAppOwner.Resources.DropDownRightArrow;
+                    dropDownItem.ArrowColor = Color.Black;
                 }
-                Items[i].ForeColor = Color.FromArgb(64, 64, 64);
-                Items[i].HoverColor = Color.FromArgb(160, 210, 222, 245);
-                Items[i].TextAlign = ContentAlignment.MiddleLeft;
+
+                item.ForeColor = Color.FromArgb(64, 64, 64);
+                item.HoverColor = Color.FromArgb(160, 210, 222, 245);
+                item.TextAlign = ContentAlignment.MiddleLeft;
                 switch (Orientation)
                 {
-                    case Forms.Orientation.Horizontal:
+                    case Orientation.Horizontal:
 
                         break;
-                    case Forms.Orientation.Vertical:
-                        Items[i].Size = new Size(Size.Width, 24);
+                    case Orientation.Vertical:
+                        item.Size = new Size(Size.Width, 24);
                         break;
                 }
             }
