@@ -175,6 +175,95 @@
             OnScroll(se);
             Value = se.NewValue;
         }
+        internal void UpdateScrollRect()
+        {
+            // WIN_API Random calculations.
+
+            if (largeChange > maximum)
+            {
+                scrollRect = new Rectangle();
+                addButton.Enabled = false;
+                subtractButton.Enabled = false;
+                return;
+            }
+
+            addButton.Enabled = true;
+            subtractButton.Enabled = true;
+
+            float sx = 0;
+            float sy = 0;
+            float sw = 0;
+            float sh = 0;
+
+            // Total range for scroll bar.
+            float scrollLength = 0;
+            if (scrollOrientation == ScrollOrientation.HorizontalScroll)
+                scrollLength = addButton.Location.X - subtractButton.Location.X - subtractButton.Width;
+            else
+                scrollLength = addButton.Location.Y - subtractButton.Location.Y - subtractButton.Height;
+
+            int valueRange = (maximum - minimum);
+            float barSize = minScrollSize;
+            if (largeChange > 0)
+                barSize = (float)scrollLength / ((float)valueRange / largeChange);
+            if (barSize >= scrollLength)
+                barSize = scrollLength - 7;
+            if (barSize < minScrollSize)
+                barSize = minScrollSize;
+            /*
+            Example:
+                this.Width = 134;
+                addButton.Width = 17;
+                subtractButton.Width = 17;
+
+                scrollLength = 134 - 17 - 17 = 100;
+                maximum = 400;
+                minimum = 0;
+                largeChange = 100; // 
+                estimatedScrollWidth = 100 / ((400 - 0) / 100) = 100 / (4) = 25;
+            */
+            scrollLength -= barSize; // Adjusted range for scroll bar, depending on size.
+
+            float valueK = (float)(Value - minimum) / (valueRange - largeChange + 1);
+            float scrollPos = scrollLength * valueK;
+
+            if (scrollOrientation == ScrollOrientation.HorizontalScroll)
+            {
+                sx = subtractButton.Location.X + subtractButton.Width + scrollPos;
+                sy = 0;
+                sw = barSize;
+                sh = Height;
+
+                scrollRect = new Rectangle((int)sx, (int)sy, (int)sw, (int)sh);
+
+                if (sx + sw > addButton.Location.X && sw < scrollLength + barSize)
+                {
+                    sx = addButton.Location.X - sw;
+                    scrollRect = new Rectangle((int)sx, (int)sy, (int)sw, (int)sh);
+                    UpdateValueAtScrollRect();
+                }
+                else if (sw > scrollLength + barSize)
+                    scrollRect = new Rectangle(0, 0, 17, (int)sh);
+            }
+            else
+            {
+                sx = 0;
+                sy = subtractButton.Location.Y + subtractButton.Height + scrollPos;
+                sw = Width;
+                sh = barSize;
+
+                scrollRect = new Rectangle((int)sx, (int)sy, (int)sw, (int)sh);
+
+                if (sy + sh > addButton.Location.Y && sh < scrollLength + barSize)
+                {
+                    sy = addButton.Location.Y - sh;
+                    scrollRect = new Rectangle((int)sx, (int)sy, (int)sw, (int)sh);
+                    UpdateValueAtScrollRect();
+                }
+                else if (sh > scrollLength + barSize)
+                    scrollRect = new Rectangle(0, 0, (int)sw, 17);
+            }
+        }
 
         protected override void Dispose(bool release_all)
         {
@@ -329,95 +418,6 @@
                 scrollRect = new Rectangle(sX, sY, scrollRect.Width, scrollRect.Height);
 
                 UpdateValueAtScrollRect();
-            }
-        }
-        private void UpdateScrollRect()
-        {
-            // WIN_API Random calculations.
-
-            if (largeChange > maximum)
-            {
-                scrollRect = new Rectangle();
-                addButton.Enabled = false;
-                subtractButton.Enabled = false;
-                return;
-            }
-
-            addButton.Enabled = true;
-            subtractButton.Enabled = true;
-
-            float sx = 0;
-            float sy = 0;
-            float sw = 0;
-            float sh = 0;
-
-            // Total range for scroll bar.
-            float scrollLength = 0;
-            if (scrollOrientation == ScrollOrientation.HorizontalScroll)
-                scrollLength = addButton.Location.X - subtractButton.Location.X - subtractButton.Width;
-            else
-                scrollLength = addButton.Location.Y - subtractButton.Location.Y - subtractButton.Height;
-
-            int valueRange = (maximum - minimum);
-            float barSize = minScrollSize;
-            if (largeChange > 0)
-                barSize = (float)scrollLength / ((float)valueRange / largeChange);
-            if (barSize >= scrollLength)
-                barSize = scrollLength - 7;
-            if (barSize < minScrollSize)
-                barSize = minScrollSize;
-            /*
-            Example:
-                this.Width = 134;
-                addButton.Width = 17;
-                subtractButton.Width = 17;
-
-                scrollLength = 134 - 17 - 17 = 100;
-                maximum = 400;
-                minimum = 0;
-                largeChange = 100; // 
-                estimatedScrollWidth = 100 / ((400 - 0) / 100) = 100 / (4) = 25;
-            */
-            scrollLength -= barSize; // Adjusted range for scroll bar, depending on size.
-
-            float valueK = (float)(Value - minimum) / (valueRange - largeChange + 1);
-            float scrollPos = scrollLength * valueK;
-
-            if (scrollOrientation == ScrollOrientation.HorizontalScroll)
-            {
-                sx = subtractButton.Location.X + subtractButton.Width + scrollPos;
-                sy = 0;
-                sw = barSize;
-                sh = Height;
-
-                scrollRect = new Rectangle((int)sx, (int)sy, (int)sw, (int)sh);
-
-                if (sx + sw > addButton.Location.X && sw < scrollLength + barSize)
-                {
-                    sx = addButton.Location.X - sw;
-                    scrollRect = new Rectangle((int)sx, (int)sy, (int)sw, (int)sh);
-                    UpdateValueAtScrollRect();
-                }
-                else if (sw > scrollLength + barSize)
-                    scrollRect = new Rectangle(0, 0, 17, (int)sh);
-            }
-            else
-            {
-                sx = 0;
-                sy = subtractButton.Location.Y + subtractButton.Height + scrollPos;
-                sw = Width;
-                sh = barSize;
-
-                scrollRect = new Rectangle((int)sx, (int)sy, (int)sw, (int)sh);
-
-                if (sy + sh > addButton.Location.Y && sh < scrollLength + barSize)
-                {
-                    sy = addButton.Location.Y - sh;
-                    scrollRect = new Rectangle((int)sx, (int)sy, (int)sw, (int)sh);
-                    UpdateValueAtScrollRect();
-                }
-                else if (sh > scrollLength + barSize)
-                    scrollRect = new Rectangle(0, 0, (int)sw, 17);
             }
         }
         private void UpdateValueAtScrollRect()

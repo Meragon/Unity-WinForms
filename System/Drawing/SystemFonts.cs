@@ -11,9 +11,9 @@
         public static readonly Font SmallCaptionFont = new Font("Segoe UI", 11.25f);
         public static readonly Font StatusFont = new Font("Segoe UI", 9);
 
-        public static readonly Font uwfArial_10 = new Font("Arial", 10);
-        public static readonly Font uwfArial_12 = new Font("Arial", 12);
-        public static readonly Font uwfArial_14 = new Font("Arial", 14);
-        public static readonly Font uwfArial_16 = new Font("Arial", 16);
+        internal static readonly Font uwfArial_10 = new Font("Arial", 10);
+        internal static readonly Font uwfArial_12 = new Font("Arial", 12);
+        internal static readonly Font uwfArial_14 = new Font("Arial", 14);
+        internal static readonly Font uwfArial_16 = new Font("Arial", 16);
     }
 }

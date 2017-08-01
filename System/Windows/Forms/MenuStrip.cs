@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
     [Serializable]
     public class MenuStrip : ToolStrip
@@ -11,9 +6,9 @@ namespace System.Windows.Forms
         public MenuStrip()
         {
             BorderColor = Drawing.Color.Transparent;
-            Orientation = Forms.Orientation.Horizontal;
+            Orientation = Orientation.Horizontal;
             Padding = new Padding(2);
-            Size = new System.Drawing.Size(600, 24);
+            Size = new Drawing.Size(600, 24);
         }
     }
 }

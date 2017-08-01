@@ -1,84 +1,104 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.ComponentModel;
+    using System.Drawing;
+
     [Serializable]
     public class PictureBox : Control, ISupportInitialize
     {
-        public Bitmap Image { get; set; }
-        public Color ImageBackColor { get; set; }
-        public Color ImageBorderColor { get; set; }
-        public Color ImageColor { get; set; }
+        private ImageLayout backgroundImageLayout;
+        private Bitmap image;
+        private Rectangle rect;
 
         public PictureBox()
         {
-            ImageBackColor = Color.Transparent;
-            ImageColor = Color.White;
-            BackgroundImageLayout = Forms.ImageLayout.Center;
+            backgroundImageLayout = ImageLayout.Center;
             Size = new Size(100, 50);
+
+            UpdateRect(this, EventArgs.Empty);
+            Resize += UpdateRect;
         }
 
-        protected override void OnPaint(PaintEventArgs e)
+        public override ImageLayout BackgroundImageLayout
         {
-            base.OnPaint(e);
-            if (Image != null && Image.uTexture != null)
+            get { return backgroundImageLayout; }
+            set
             {
-                Rectangle rect = new Rectangle();
-                var iLayout = BackgroundImageLayout;
-                if (iLayout == Forms.ImageLayout.CenterZoom)
-                {
-                    if (Image.Width > Width || Image.Height > Height)
-                        iLayout = Forms.ImageLayout.Zoom;
-                    else
-                        iLayout = Forms.ImageLayout.Center;
-                }
-
-                switch (iLayout)
-                {
-                    default:
-                    case ImageLayout.None:
-                        rect = new Rectangle(0, 0, Image.Width, Image.Height);
-                        break;
-                    case ImageLayout.Center:
-                        rect = new Rectangle(Width / 2 - Image.Width / 2, Height / 2 - Image.Height / 2, Image.Width, Image.Height);
-                        break;
-                    case ImageLayout.Stretch:
-                        rect = new Rectangle(0, 0, Width, Height);
-                        break;
-                    case ImageLayout.Zoom:
-                        float innerAspectRatio = Image.Width / (float)Image.Height;
-                        float outerAspectRatio = Width / (float)Height;
-
-                        float resizeFactor = (innerAspectRatio >= outerAspectRatio) ?
-                        (Width / (float)Image.Width) :
-                        (Height / (float)Image.Height);
-
-                        float newWidth = Image.Width * resizeFactor;
-                        float newHeight = Image.Height * resizeFactor;
-                        float newLeft = (Width - newWidth) / 2f;
-                        float newTop = (Height - newHeight) / 2f;
-
-                        rect = new Rectangle((int)newLeft, (int)newTop, (int)newWidth, (int)newHeight);
-                        break;
-                }
-                e.Graphics.FillRectangle(new SolidBrush(ImageBackColor), rect);
-                e.Graphics.DrawImage(Image, rect);
-                e.Graphics.DrawRectangle(new Pen(ImageBorderColor), rect);
+                backgroundImageLayout = value;
+                UpdateRect(this, EventArgs.Empty);
+            }
+        }
+        public Bitmap Image
+        {
+            get { return image; }
+            set
+            {
+                image = value;
+                UpdateRect(this, EventArgs.Empty);
             }
         }
 
         public void BeginInit()
         {
-
         }
         public void EndInit()
         {
+        }
 
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+
+            if (Image == null || Image.uTexture == null) return;
+
+            e.Graphics.DrawImage(Image, rect);
+        }
+
+        private void UpdateRect(object sender, EventArgs e)
+        {
+            if (Image == null) return;
+
+            var iLayout = BackgroundImageLayout;
+            var imageWidth = Image.Width;
+            var imageHeight = Image.Height;
+            var width = Width;
+            var height = Height;
+
+            if (iLayout == ImageLayout.CenterZoom)
+            {
+                if (imageWidth > width || imageHeight > height)
+                    iLayout = ImageLayout.Zoom;
+                else
+                    iLayout = ImageLayout.Center;
+            }
+
+            switch (iLayout)
+            {
+                default:
+                    rect = new Rectangle(0, 0, imageWidth, imageHeight);
+                    break;
+                case ImageLayout.Center:
+                    rect = new Rectangle(width / 2 - imageWidth / 2, height / 2 - imageHeight / 2, imageWidth, imageHeight);
+                    break;
+                case ImageLayout.Stretch:
+                    rect = new Rectangle(0, 0, width, height);
+                    break;
+                case ImageLayout.Zoom:
+                    float innerAspectRatio = imageWidth / (float)imageHeight;
+                    float outerAspectRatio = width / (float)height;
+
+                    float resizeFactor = (innerAspectRatio >= outerAspectRatio) ?
+                                             (width / (float)imageWidth) :
+                                             (height / (float)imageHeight);
+
+                    float newWidth = imageWidth * resizeFactor;
+                    float newHeight = imageHeight * resizeFactor;
+                    float newLeft = (width - newWidth) / 2f;
+                    float newTop = (height - newHeight) / 2f;
+
+                    rect = new Rectangle((int)newLeft, (int)newTop, (int)newWidth, (int)newHeight);
+                    break;
+            }
         }
     }
 }

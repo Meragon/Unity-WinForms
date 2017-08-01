@@ -21,7 +21,7 @@
             addButton.Location = new Point(0, Height - buttonSize.Height);
             addButton.Size = buttonSize;
 
-            Refresh();
+            UpdateScrollRect();
         }
     }
 }

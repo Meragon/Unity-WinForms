@@ -3,7 +3,7 @@
     using System.Collections;
     using System.Collections.Generic;
 
-    public class TreeNodeCollection : IList, ICollection, IEnumerable
+    public class TreeNodeCollection : IList
     {
         private readonly List<TreeNode> items = new List<TreeNode>();
         private readonly TreeNode owner;
@@ -14,6 +14,29 @@
             this.owner.nodes = this;
         }
 
+        public int Count
+        {
+            get { return items.Count; }
+        }
+        public bool IsReadOnly { get { return false; } }
+
+        bool ICollection.IsSynchronized { get { return false; } }
+        object ICollection.SyncRoot { get { return this; } }
+        bool IList.IsFixedSize { get { return false; } }
+        
+        object IList.this[int index]
+        {
+            get { return this[index]; }
+            set
+            {
+                if (value is TreeNode)
+                {
+                    this[index] = (TreeNode)value;
+                    return;
+                }
+                throw new ArgumentException(value.ToString());
+            }
+        }
         public virtual TreeNode this[int index]
         {
             get
@@ -45,91 +68,6 @@
 
                 return null;
             }
-        }
-
-        public int Count
-        {
-            get { return items.Count; }
-        }
-        public bool IsReadOnly { get { return false; } }
-
-        bool ICollection.IsSynchronized { get { return false; } }
-        object ICollection.SyncRoot { get { return this; } }
-        int IList.Add(object node)
-        {
-            if (node == null)
-                throw new ArgumentNullException("node");
-            if (node is TreeNode)
-                return Add((TreeNode)node);
-            return Add(node.ToString()).index;
-        }
-        bool IList.Contains(object node)
-        {
-            return node is TreeNode && Contains((TreeNode)node);
-        }
-        int IList.IndexOf(object node)
-        {
-            if (node is TreeNode)
-                return IndexOf((TreeNode)node);
-
-            return -1;
-        }
-        void IList.Insert(int index, object node)
-        {
-            if (node is TreeNode)
-            {
-                Insert(index, (TreeNode)node);
-                return;
-            }
-            throw new ArgumentException(node.ToString());
-        }
-        bool IList.IsFixedSize { get { return false; } }
-        void IList.Remove(object node)
-        {
-            if (node is TreeNode)
-                Remove((TreeNode)node);
-        }
-        object IList.this[int index]
-        {
-            get { return this[index]; }
-            set
-            {
-                if (value is TreeNode)
-                {
-                    this[index] = (TreeNode)value;
-                    return;
-                }
-                throw new ArgumentException(value.ToString());
-            }
-        }
-
-        private int AddInternal(TreeNode node, int delta)
-        {
-            if (node == null)
-                throw new ArgumentNullException("node");
-
-            if (node.parent != null) node.Remove();
-
-            node.parent = owner;
-            node.index = items.Count;
-
-            items.Add(node);
-
-            if (owner.TreeView != null)
-            {
-                node.treeView = owner.TreeView;
-            }
-
-            return node.index;
-        }
-        private bool IsValidIndex(int index)
-        {
-            return index >= 0 && index < Count;
-        }
-        internal void UpdateIndexes()
-        {
-            for (int i = 0; i < items.Count; i++)
-                items[i].index = i;
         }
 
         public virtual int Add(TreeNode node)
@@ -194,7 +132,7 @@
                 return -1;
 
             for (int i = 0; i < Count; i++)
-                if (SafeCompareStrings(items[i].Name, key, true))
+                if (WindowsFormsUtils.SafeCompareStrings(items[i].Name, key, true))
                     return i;
 
             return -1;
@@ -241,9 +179,68 @@
                 owner.TreeView.Refresh();
         }
 
-        public static bool SafeCompareStrings(string string1, string string2, bool ignoreCase)
+        int IList.Add(object node)
         {
-            return string1 != null && string2 != null && string1.Length == string2.Length && string.Compare(string1, string2, ignoreCase) == 0;
+            if (node == null)
+                throw new ArgumentNullException("node");
+            if (node is TreeNode)
+                return Add((TreeNode)node);
+            return Add(node.ToString()).index;
+        }
+        bool IList.Contains(object node)
+        {
+            return node is TreeNode && Contains((TreeNode)node);
+        }
+        int IList.IndexOf(object node)
+        {
+            if (node is TreeNode)
+                return IndexOf((TreeNode)node);
+
+            return -1;
+        }
+        void IList.Insert(int index, object node)
+        {
+            if (node is TreeNode)
+            {
+                Insert(index, (TreeNode)node);
+                return;
+            }
+            throw new ArgumentException(node.ToString());
+        }
+        void IList.Remove(object node)
+        {
+            if (node is TreeNode)
+                Remove((TreeNode)node);
+        }
+
+        internal void UpdateIndexes()
+        {
+            for (int i = 0; i < items.Count; i++)
+                items[i].index = i;
+        }
+
+        private int AddInternal(TreeNode node, int delta)
+        {
+            if (node == null)
+                throw new ArgumentNullException("node");
+
+            if (node.parent != null) node.Remove();
+
+            node.parent = owner;
+            node.index = items.Count;
+
+            items.Add(node);
+
+            if (owner.TreeView != null)
+            {
+                node.treeView = owner.TreeView;
+            }
+
+            return node.index;
+        }
+        private bool IsValidIndex(int index)
+        {
+            return index >= 0 && index < Count;
         }
     }
 }

@@ -1,33 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-using System.Windows.Forms;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     public class MessageBox
     {
-        private static Form _last;
-        public static Form Last
+        private static Form last;
+
+        internal static Form Last
         {
             get
             {
-                if (_last != null && (_last.IsDisposed || _last.Disposing))
-                    _last = null;
-                return _last;
+                if (last != null && (last.IsDisposed || last.Disposing))
+                    last = null;
+                return last;
             }
-            private set { _last = value; }
+            private set { last = value; }
         }
 
         public static DialogResult Show(string text)
         {
-            return Show(text, "");
+            return Show(text, string.Empty);
         }
         public static DialogResult Show(string text, string caption)
         {
-            return Show(text, caption, new Font("Arial", 12));
+            return Show(text, caption, SystemFonts.uwfArial_12);
         }
         public static DialogResult Show(string text, string caption, Font textFont)
         {

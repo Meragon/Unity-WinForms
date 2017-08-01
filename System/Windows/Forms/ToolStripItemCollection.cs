@@ -1,47 +1,46 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Drawing;
+
     public class ToolStripItemCollection : IEnumerator<ToolStripItem>, IEnumerable<ToolStripItem>
     {
-        private readonly List<ToolStripItem> _items = new List<ToolStripItem>();
-        private readonly ToolStrip _owner;
+        private readonly List<ToolStripItem> items = new List<ToolStripItem>();
+        private readonly ToolStrip owner;
 
         public ToolStripItemCollection(ToolStrip owner, ToolStripItem[] value)
         {
-            _owner = owner;
+            this.owner = owner;
             if (value != null)
-                _items.AddRange(value);
+                items.AddRange(value);
         }
 
-        public virtual ToolStripItem this[int index] { get { return _items[index]; } }
-
-        private void _InitItem(ToolStripItem item)
+        public int Count { get { return items.Count; } }
+        public ToolStripItem Current
         {
-            item.Parent = _owner;
-            item.Owner = _owner;
-            if (_owner != null && _owner.Orientation == Orientation.Horizontal)
-                item.TextAlign = ContentAlignment.MiddleCenter;
+            get { return items.GetEnumerator().Current; }
         }
+        object IEnumerator.Current
+        {
+            get { return items.GetEnumerator().Current; }
+        }
+
+        public virtual ToolStripItem this[int index] { get { return items[index]; } }
 
         public ToolStripItem Add(string text)
         {
             ToolStripButton item = new ToolStripButton();
             _InitItem(item);
             item.Text = text;
-            _items.Add(item);
+            items.Add(item);
             return item;
         }
         public int Add(ToolStripItem value)
         {
             _InitItem(value);
-            _items.Add(value);
-            return _items.Count - 1;
+            items.Add(value);
+            return items.Count - 1;
         }
         public void AddRange(ToolStripItem[] toolStripItems)
         {
@@ -49,7 +48,7 @@ namespace System.Windows.Forms
             {
                 _InitItem(item);
             }
-            _items.AddRange(toolStripItems);
+            items.AddRange(toolStripItems);
         }
         public void AddRange(ToolStripItemCollection toolStripItems)
         {
@@ -57,28 +56,27 @@ namespace System.Windows.Forms
             {
                 _InitItem(item);
             }
-            _items.AddRange(toolStripItems);
+            items.AddRange(toolStripItems);
         }
         public virtual void Clear()
         {
-            _items.Clear();
+            items.Clear();
         }
         public bool Contains(ToolStripItem value)
         {
-            return _items.Contains(value);
+            return items.Contains(value);
         }
         public void CopyTo(ToolStripItem[] array, int index)
         {
-            _items.CopyTo(array, index);
+            items.CopyTo(array, index);
         }
-        public int Count { get { return _items.Count; } }
         public int IndexOf(ToolStripItem value)
         {
-            for (int i = 0, index = 0; i < _items.Count; i++)
+            for (int i = 0, index = 0; i < items.Count; i++)
             {
-                if (_items[i] == value)
+                if (items[i] == value)
                     return index;
-                if (_items[i].JustVisual == false)
+                if (items[i].JustVisual == false)
                     index++;
             }
 
@@ -86,44 +84,43 @@ namespace System.Windows.Forms
         }
         public void Insert(int index, ToolStripItem value)
         {
-            _items.Insert(index, value);
+            items.Insert(index, value);
         }
         public void Remove(ToolStripItem value)
         {
-            _items.Remove(value);
+            items.Remove(value);
         }
         public void RemoveAt(int index)
         {
-            _items.RemoveAt(index);
+            items.RemoveAt(index);
         }
 
-        public ToolStripItem Current
-        {
-            get { return _items.GetEnumerator().Current; }
-        }
-        object IEnumerator.Current
-        {
-            get { return _items.GetEnumerator().Current; }
-        }
         public bool MoveNext()
         {
-            return _items.GetEnumerator().MoveNext();
+            return items.GetEnumerator().MoveNext();
         }
         public void Reset()
         {
-
         }
         public void Dispose()
         {
-            _items.GetEnumerator().Dispose();
+            items.GetEnumerator().Dispose();
         }
         public IEnumerator<ToolStripItem> GetEnumerator()
         {
-            return _items.GetEnumerator();
+            return items.GetEnumerator();
         }
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return _items.GetEnumerator();
+            return items.GetEnumerator();
+        }
+
+        private void _InitItem(ToolStripItem item)
+        {
+            item.Parent = owner;
+            item.Owner = owner;
+            if (owner != null && owner.Orientation == Orientation.Horizontal)
+                item.TextAlign = ContentAlignment.MiddleCenter;
         }
     }
 }
