@@ -231,10 +231,10 @@
 
             if (vScroll != null)
             {
-                vScroll.Maximum = Items.Count * ItemHeight;
+                vScroll.Maximum = Items.Count * ItemHeight - 1;
                 vScroll.SmallChange = ItemHeight;
-                vScroll.LargeChange = Height;
-                vScroll.Visible = ScrollAlwaysVisible || Height < PreferredHeight;
+                vScroll.LargeChange = vScroll.Height;
+                vScroll.Visible = ScrollAlwaysVisible || visibleItemsCount < Items.Count;
             }
         }
         internal void UpdateBorder()

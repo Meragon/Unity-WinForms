@@ -5,54 +5,26 @@ namespace System.Windows.Forms
     public class ColorPickerForm : Form
     {
         private readonly Pen borderPen;
-        private ColorPicker _owner;
+        private readonly AlphaPicker alphaPicker;
+        private readonly ValueSaturationPicker vsPicker;
+        private readonly HuePicker huePicker;
 
-        private Color _color;
+        private readonly Label aLabel;
 
-        private readonly AlphaPicker _alphaPicker;
-        private readonly BrightnessSaturationPicker _bsPicker;
-        private readonly HuePicker _huePicker;
+        private readonly NumericUpDown hueNumeric;
+        private readonly NumericUpDown saturationNumeric;
+        private readonly NumericUpDown valueNumeric;
 
-        private readonly Label _aLabel;
+        private readonly NumericUpDown rNumeric;
+        private readonly NumericUpDown gNumeric;
+        private readonly NumericUpDown bNumeric;
 
-        private readonly NumericUpDown _hNumeric;
-        private readonly NumericUpDown _sNumeric;
-        private readonly NumericUpDown _lNumeric;
+        private readonly NumericUpDown aNumeric;
 
-        private readonly NumericUpDown _rNumeric;
-        private readonly NumericUpDown _gNumeric;
-        private readonly NumericUpDown _bNumeric;
-
-        private readonly NumericUpDown _aNumeric;
-
-        public Color Color
-        {
-            get { return _color; }
-            set
-            {
-                _color = value;
-
-                _rNumeric.ValueChanged -= _rNumeric_ValueChanged;
-                _rNumeric.Value = _color.R;
-                _rNumeric.ValueChanged += _rNumeric_ValueChanged;
-
-                _gNumeric.ValueChanged -= _gNumeric_ValueChanged;
-                _gNumeric.Value = _color.G;
-                _gNumeric.ValueChanged += _gNumeric_ValueChanged;
-
-                _bNumeric.ValueChanged -= _bNumeric_ValueChanged;
-                _bNumeric.Value = _color.B;
-                _bNumeric.ValueChanged += _bNumeric_ValueChanged;
-
-                _alphaPicker.Alpha = (float)_color.A / 255;
-
-                UpdateControlsFromRGB();
-            }
-        }
+        private Color color;
 
         public ColorPickerForm(ColorPicker owner)
         {
-            _owner = owner;
             borderPen = new Pen(Color.FromArgb(204, 206, 219));
 
             BackColor = Color.White;
@@ -65,268 +37,145 @@ namespace System.Windows.Forms
             KeyPreview = true;
             TopMost = true;
 
-            _bsPicker = new BrightnessSaturationPicker(128, 128);
-            _bsPicker.Location = new Point(16, 32);
-            _bsPicker.BrightnessChanged += _bsPicker_BrightnessChanged;
-            _bsPicker.SaturationChanged += _bsPicker_SaturationChanged;
+            vsPicker = new ValueSaturationPicker(128, 128);
+            vsPicker.Location = new Point(16, 32);
+            vsPicker.ValueChanged += VsPickerValueChanged;
+            vsPicker.SaturationChanged += VsPickerSaturationChanged;
 
-            Controls.Add(_bsPicker);
+            Controls.Add(vsPicker);
 
-            _huePicker = new HuePicker(20, 128);
-            _huePicker.Location = new Point(_bsPicker.Location.X + _bsPicker.Width + 8, _bsPicker.Location.Y);
-            _huePicker.HueChanged += _huePicker_HueChanged;
+            huePicker = new HuePicker(20, 128);
+            huePicker.Location = new Point(vsPicker.Location.X + vsPicker.Width + 8, vsPicker.Location.Y);
+            huePicker.HueChanged += huePicker_HueChanged;
 
-            Controls.Add(_huePicker);
+            Controls.Add(huePicker);
 
-            var hLabel = new Label();
-            hLabel.Text = "H:";
-            hLabel.Location = new Point(_bsPicker.Location.X, _bsPicker.Location.Y + _bsPicker.Height + 8);
-            var sLabel = new Label();
-            sLabel.Text = "S:";
-            sLabel.Location = new Point(hLabel.Location.X, hLabel.Location.Y + 22);
-            var lLabel = new Label();
-            lLabel.Text = "L:";
-            lLabel.Location = new Point(hLabel.Location.X, sLabel.Location.Y + 22);
+            var hueLabel = new Label();
+            hueLabel.Text = "H:";
+            hueLabel.Location = new Point(vsPicker.Location.X, vsPicker.Location.Y + vsPicker.Height + 8);
+            var saturationLabel = new Label();
+            saturationLabel.Text = "S:";
+            saturationLabel.Location = new Point(hueLabel.Location.X, hueLabel.Location.Y + 22);
+            var valueLabel = new Label();
+            valueLabel.Text = "V:";
+            valueLabel.Location = new Point(hueLabel.Location.X, saturationLabel.Location.Y + 22);
 
-            Controls.Add(hLabel);
-            Controls.Add(sLabel);
-            Controls.Add(lLabel);
+            Controls.Add(hueLabel);
+            Controls.Add(saturationLabel);
+            Controls.Add(valueLabel);
 
-            _hNumeric = new NumericUpDown();
-            _hNumeric.Minimum = 0;
-            _hNumeric.Maximum = 360;
-            _hNumeric.Location = new Point(hLabel.Location.X + 24, hLabel.Location.Y);
-            _hNumeric.Size = new Drawing.Size(50, 20);
-            _hNumeric.ValueChanged += _hNumeric_ValueChanged;
-            _hNumeric.TextAlign = HorizontalAlignment.Center;
-            _sNumeric = new NumericUpDown();
-            _sNumeric.Minimum = 0;
-            _sNumeric.Maximum = 255;
-            _sNumeric.Location = new Point(sLabel.Location.X + 24, sLabel.Location.Y);
-            _sNumeric.Size = new Drawing.Size(50, 20);
-            _sNumeric.ValueChanged += _sNumeric_ValueChanged;
-            _sNumeric.TextAlign = HorizontalAlignment.Center;
-            _lNumeric = new NumericUpDown();
-            _lNumeric.Minimum = 0;
-            _lNumeric.Maximum = 255;
-            _lNumeric.Location = new Point(lLabel.Location.X + 24, lLabel.Location.Y);
-            _lNumeric.Size = new Drawing.Size(50, 20);
-            _lNumeric.ValueChanged += _lNumeric_ValueChanged;
-            _lNumeric.TextAlign = HorizontalAlignment.Center;
+            hueNumeric = new NumericUpDown();
+            hueNumeric.Minimum = 0;
+            hueNumeric.Maximum = 359;
+            hueNumeric.Increment = 5;
+            hueNumeric.Location = new Point(hueLabel.Location.X + 24, hueLabel.Location.Y);
+            hueNumeric.Size = new Size(50, 20);
+            hueNumeric.ValueChanged += HueNumericValueChanged;
+            hueNumeric.TextAlign = HorizontalAlignment.Center;
+            saturationNumeric = new NumericUpDown();
+            saturationNumeric.Minimum = 0;
+            saturationNumeric.Maximum = 255;
+            saturationNumeric.Location = new Point(saturationLabel.Location.X + 24, saturationLabel.Location.Y);
+            saturationNumeric.Size = new Size(50, 20);
+            saturationNumeric.ValueChanged += SaturationNumericValueChanged;
+            saturationNumeric.TextAlign = HorizontalAlignment.Center;
+            valueNumeric = new NumericUpDown();
+            valueNumeric.Minimum = 0;
+            valueNumeric.Maximum = 255;
+            valueNumeric.Location = new Point(valueLabel.Location.X + 24, valueLabel.Location.Y);
+            valueNumeric.Size = new Size(50, 20);
+            valueNumeric.ValueChanged += ValueNumericValueChanged;
+            valueNumeric.TextAlign = HorizontalAlignment.Center;
 
-            Controls.Add(_hNumeric);
-            Controls.Add(_sNumeric);
-            Controls.Add(_lNumeric);
+            Controls.Add(hueNumeric);
+            Controls.Add(saturationNumeric);
+            Controls.Add(valueNumeric);
 
             var rLabel = new Label();
             rLabel.Text = "R:";
-            rLabel.Location = new Point(_hNumeric.Location.X + _hNumeric.Width + 8, hLabel.Location.Y);
+            rLabel.Location = new Point(hueNumeric.Location.X + hueNumeric.Width + 8, hueLabel.Location.Y);
             var gLabel = new Label();
             gLabel.Text = "G:";
-            gLabel.Location = new Point(rLabel.Location.X, sLabel.Location.Y);
+            gLabel.Location = new Point(rLabel.Location.X, saturationLabel.Location.Y);
             var bLabel = new Label();
             bLabel.Text = "B:";
-            bLabel.Location = new Point(rLabel.Location.X, lLabel.Location.Y);
+            bLabel.Location = new Point(rLabel.Location.X, valueLabel.Location.Y);
 
             Controls.Add(rLabel);
             Controls.Add(gLabel);
             Controls.Add(bLabel);
 
-            _rNumeric = new NumericUpDown();
-            _rNumeric.Minimum = 0;
-            _rNumeric.Maximum = 255;
-            _rNumeric.Location = new Point(rLabel.Location.X + 24, rLabel.Location.Y);
-            _rNumeric.Size = new Size(50, 20);
-            _rNumeric.TextAlign = HorizontalAlignment.Center;
-            _rNumeric.ValueChanged += _rNumeric_ValueChanged;
-            _gNumeric = new NumericUpDown();
-            _gNumeric.Minimum = 0;
-            _gNumeric.Maximum = 255;
-            _gNumeric.Location = new Point(gLabel.Location.X + 24, gLabel.Location.Y);
-            _gNumeric.Size = new Drawing.Size(50, 20);
-            _gNumeric.TextAlign = HorizontalAlignment.Center;
-            _gNumeric.ValueChanged += _gNumeric_ValueChanged;
-            _bNumeric = new NumericUpDown();
-            _bNumeric.Minimum = 0;
-            _bNumeric.Maximum = 255;
-            _bNumeric.Location = new Point(bLabel.Location.X + 24, bLabel.Location.Y);
-            _bNumeric.Size = new Drawing.Size(50, 20);
-            _bNumeric.TextAlign = HorizontalAlignment.Center;
-            _bNumeric.ValueChanged += _bNumeric_ValueChanged;
+            rNumeric = new NumericUpDown();
+            rNumeric.Minimum = 0;
+            rNumeric.Maximum = 255;
+            rNumeric.Location = new Point(rLabel.Location.X + 24, rLabel.Location.Y);
+            rNumeric.Size = new Size(50, 20);
+            rNumeric.TextAlign = HorizontalAlignment.Center;
+            rNumeric.ValueChanged += rNumeric_ValueChanged;
+            gNumeric = new NumericUpDown();
+            gNumeric.Minimum = 0;
+            gNumeric.Maximum = 255;
+            gNumeric.Location = new Point(gLabel.Location.X + 24, gLabel.Location.Y);
+            gNumeric.Size = new Size(50, 20);
+            gNumeric.TextAlign = HorizontalAlignment.Center;
+            gNumeric.ValueChanged += gNumeric_ValueChanged;
+            bNumeric = new NumericUpDown();
+            bNumeric.Minimum = 0;
+            bNumeric.Maximum = 255;
+            bNumeric.Location = new Point(bLabel.Location.X + 24, bLabel.Location.Y);
+            bNumeric.Size = new Size(50, 20);
+            bNumeric.TextAlign = HorizontalAlignment.Center;
+            bNumeric.ValueChanged += bNumeric_ValueChanged;
 
-            Controls.Add(_rNumeric);
-            Controls.Add(_gNumeric);
-            Controls.Add(_bNumeric);
+            Controls.Add(rNumeric);
+            Controls.Add(gNumeric);
+            Controls.Add(bNumeric);
 
-            _alphaPicker = new AlphaPicker(_lNumeric.Location.X + _lNumeric.Width - lLabel.Location.X, 20);
-            _alphaPicker.Location = new Point(lLabel.Location.X, lLabel.Location.Y + 26);
-            _alphaPicker.AlphaChanged += _alphaPicker_AlphaChanged;
-            _aLabel = new Label();
-            _aLabel.Location = new Point(bLabel.Location.X, _alphaPicker.Location.Y);
-            _aLabel.Text = "A:";
-            _aNumeric = new NumericUpDown();
-            _aNumeric.Minimum = 0;
-            _aNumeric.Maximum = 255;
-            _aNumeric.Value = 255;
-            _aNumeric.Location = new Point(_bNumeric.Location.X, _aLabel.Location.Y);
-            _aNumeric.Size = new Drawing.Size(50, 20);
-            _aNumeric.TextAlign = HorizontalAlignment.Center;
-            _aNumeric.ValueChanged += _aNumeric_ValueChanged;
+            alphaPicker = new AlphaPicker(valueNumeric.Location.X + valueNumeric.Width - valueLabel.Location.X, 20);
+            alphaPicker.Location = new Point(valueLabel.Location.X, valueLabel.Location.Y + 26);
+            alphaPicker.AlphaChanged += alphaPicker_AlphaChanged;
+            aLabel = new Label();
+            aLabel.Location = new Point(bLabel.Location.X, alphaPicker.Location.Y);
+            aLabel.Text = "A:";
+            aNumeric = new NumericUpDown();
+            aNumeric.Minimum = 0;
+            aNumeric.Maximum = 255;
+            aNumeric.Value = 255;
+            aNumeric.Location = new Point(bNumeric.Location.X, aLabel.Location.Y);
+            aNumeric.Size = new Size(50, 20);
+            aNumeric.TextAlign = HorizontalAlignment.Center;
+            aNumeric.ValueChanged += aNumeric_ValueChanged;
 
-            Controls.Add(_alphaPicker);
-            Controls.Add(_aLabel);
-            Controls.Add(_aNumeric);
+            Controls.Add(alphaPicker);
+            Controls.Add(aLabel);
+            Controls.Add(aNumeric);
         }
 
-        private void _bsPicker_BrightnessChanged(object sender, EventArgs e)
+        public event EventHandler ColorChanged = delegate { };
+
+        public Color Color
         {
-            _lNumeric.ValueChanged -= _lNumeric_ValueChanged;
-            _lNumeric.Value = (int)(_bsPicker.Brightness * 255);
-            _lNumeric.ValueChanged += _lNumeric_ValueChanged;
+            get { return color; }
+            set
+            {
+                color = value;
 
-            Color rgbColor = ColorTranslatorEx.FromHsb(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
+                rNumeric.ValueChanged -= rNumeric_ValueChanged;
+                rNumeric.Value = color.R;
+                rNumeric.ValueChanged += rNumeric_ValueChanged;
 
-            _rNumeric.ValueChanged -= _rNumeric_ValueChanged;
-            _rNumeric.Value = rgbColor.R;
-            _rNumeric.ValueChanged += _rNumeric_ValueChanged;
-            _gNumeric.ValueChanged -= _gNumeric_ValueChanged;
-            _gNumeric.Value = rgbColor.G;
-            _gNumeric.ValueChanged += _gNumeric_ValueChanged;
-            _bNumeric.ValueChanged -= _bNumeric_ValueChanged;
-            _bNumeric.Value = rgbColor.B;
-            _bNumeric.ValueChanged += _bNumeric_ValueChanged;
+                gNumeric.ValueChanged -= gNumeric_ValueChanged;
+                gNumeric.Value = color.G;
+                gNumeric.ValueChanged += gNumeric_ValueChanged;
 
-            _color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), rgbColor);
-            ColorChanged(this, null);
-        }
-        private void _bsPicker_SaturationChanged(object sender, EventArgs e)
-        {
-            _sNumeric.ValueChanged -= _sNumeric_ValueChanged;
-            _sNumeric.Value = (int)(_bsPicker.Saturation * 255);
-            _sNumeric.ValueChanged += _sNumeric_ValueChanged;
+                bNumeric.ValueChanged -= bNumeric_ValueChanged;
+                bNumeric.Value = color.B;
+                bNumeric.ValueChanged += bNumeric_ValueChanged;
 
-            Color rgbColor = ColorTranslatorEx.FromHsb(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
+                alphaPicker.Alpha = (float)color.A / 255;
 
-            _rNumeric.ValueChanged -= _rNumeric_ValueChanged;
-            _rNumeric.Value = rgbColor.R;
-            _rNumeric.ValueChanged += _rNumeric_ValueChanged;
-            _gNumeric.ValueChanged -= _gNumeric_ValueChanged;
-            _gNumeric.Value = rgbColor.G;
-            _gNumeric.ValueChanged += _gNumeric_ValueChanged;
-            _bNumeric.ValueChanged -= _bNumeric_ValueChanged;
-            _bNumeric.Value = rgbColor.B;
-            _bNumeric.ValueChanged += _bNumeric_ValueChanged;
-
-            _color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), rgbColor); ;
-            ColorChanged(this, null);
-        }
-        private void _huePicker_HueChanged(object sender, EventArgs e)
-        {
-            _bsPicker.SetHue(_huePicker.Hue);
-
-            _hNumeric.ValueChanged -= _hNumeric_ValueChanged;
-            _hNumeric.Value = (int)(_huePicker.Hue * 255);
-            _hNumeric.ValueChanged += _hNumeric_ValueChanged;
-
-            Color rgbColor = ColorTranslatorEx.FromHsb(_huePicker.Hue, _bsPicker.Saturation, _bsPicker.Brightness);
-
-            _rNumeric.ValueChanged -= _rNumeric_ValueChanged;
-            _rNumeric.Value = rgbColor.R;
-            _rNumeric.ValueChanged += _rNumeric_ValueChanged;
-            _gNumeric.ValueChanged -= _gNumeric_ValueChanged;
-            _gNumeric.Value = rgbColor.G;
-            _gNumeric.ValueChanged += _gNumeric_ValueChanged;
-            _bNumeric.ValueChanged -= _bNumeric_ValueChanged;
-            _bNumeric.Value = rgbColor.B;
-            _bNumeric.ValueChanged += _bNumeric_ValueChanged;
-
-            _color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), rgbColor); ; ;
-            ColorChanged(this, null);
-        }
-
-        private void _hNumeric_ValueChanged(object sender, EventArgs e)
-        {
-            _huePicker.Hue = (float)_hNumeric.Value / 255;
-        }
-        private void _sNumeric_ValueChanged(object sender, EventArgs e)
-        {
-            _bsPicker.Saturation = (float)_sNumeric.Value / 255;
-        }
-        private void _lNumeric_ValueChanged(object sender, EventArgs e)
-        {
-            _bsPicker.Brightness = (float)_lNumeric.Value / 255;
-        }
-
-        private void _rNumeric_ValueChanged(object sender, EventArgs e)
-        {
-            UpdateControlsFromRGB();
-        }
-        private void _gNumeric_ValueChanged(object sender, EventArgs e)
-        {
-            UpdateControlsFromRGB();
-        }
-        private void _bNumeric_ValueChanged(object sender, EventArgs e)
-        {
-            UpdateControlsFromRGB();
-        }
-
-        private void _alphaPicker_AlphaChanged(object sender, EventArgs e)
-        {
-            _aNumeric.ValueChanged -= _aNumeric_ValueChanged;
-            _aNumeric.Value = (int)(_alphaPicker.Alpha * 255);
-            _aNumeric.ValueChanged += _aNumeric_ValueChanged;
-
-            _color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), Color);
-            ColorChanged(this, null);
-        }
-        private void _aNumeric_ValueChanged(object sender, EventArgs e)
-        {
-            _alphaPicker.AlphaChanged -= _alphaPicker_AlphaChanged;
-            _alphaPicker.Alpha = (float)Convert.ToDouble(_aNumeric.Value / 255);
-            _alphaPicker.AlphaChanged += _alphaPicker_AlphaChanged;
-
-            _color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), Color);
-            ColorChanged(this, null);
-        }
-        private void UpdateControlsFromRGB()
-        {
-            Color rgbColor = Color.FromArgb(Convert.ToInt32(_rNumeric.Value), Convert.ToInt32(_gNumeric.Value), Convert.ToInt32(_bNumeric.Value));
-
-            float hue = rgbColor.GetHue() / 360;
-
-            _huePicker.HueChanged -= _huePicker_HueChanged;
-            _huePicker.Hue = hue;
-            _huePicker.HueChanged += _huePicker_HueChanged;
-            _bsPicker.SetHue(hue);
-            _bsPicker.BrightnessChanged -= _bsPicker_BrightnessChanged;
-            _bsPicker.Brightness = rgbColor.GetBrightness();
-            _bsPicker.BrightnessChanged += _bsPicker_BrightnessChanged;
-            _bsPicker.SaturationChanged -= _bsPicker_SaturationChanged;
-            _bsPicker.Saturation = rgbColor.GetSaturation();
-            _bsPicker.SaturationChanged += _bsPicker_SaturationChanged;
-
-            _hNumeric.ValueChanged -= _hNumeric_ValueChanged;
-            _hNumeric.Value = Convert.ToInt32(rgbColor.GetHue());
-            _hNumeric.ValueChanged += _hNumeric_ValueChanged;
-            _sNumeric.ValueChanged -= _sNumeric_ValueChanged;
-            _sNumeric.Value = Convert.ToInt32(rgbColor.GetSaturation() * 255);
-            _sNumeric.ValueChanged += _sNumeric_ValueChanged;
-            _lNumeric.ValueChanged -= _lNumeric_ValueChanged;
-            _lNumeric.Value = Convert.ToInt32(rgbColor.GetBrightness() * 255);
-            _lNumeric.ValueChanged += _lNumeric_ValueChanged;
-
-            _rNumeric.ValueChanged -= _rNumeric_ValueChanged;
-            _rNumeric.Value = rgbColor.R;
-            _rNumeric.ValueChanged += _rNumeric_ValueChanged;
-            _gNumeric.ValueChanged -= _gNumeric_ValueChanged;
-            _gNumeric.Value = rgbColor.G;
-            _gNumeric.ValueChanged += _gNumeric_ValueChanged;
-            _bNumeric.ValueChanged -= _bNumeric_ValueChanged;
-            _bNumeric.Value = rgbColor.B;
-            _bNumeric.ValueChanged += _bNumeric_ValueChanged;
-
-            _color = Color.FromArgb((int)(_alphaPicker.Alpha * 255), rgbColor);
-            ColorChanged(this, null);
+                UpdateControlsFromRGB();
+            }
         }
 
         protected override void OnKeyUp(KeyEventArgs e)
@@ -341,75 +190,283 @@ namespace System.Windows.Forms
             e.Graphics.DrawLine(borderPen, 1, uwfHeaderHeight - 1, Width - 1, uwfHeaderHeight - 1);
         }
 
-        public event EventHandler ColorChanged = delegate { };
-
-        private class BrightnessSaturationPicker : Button
+        private void VsPickerValueChanged(object sender, EventArgs e)
         {
-            private readonly Pen borderPen = new Pen(Drawing.Color.White);
-            private readonly Pen cursorPen = new Pen(Drawing.Color.White);
+            valueNumeric.ValueChanged -= ValueNumericValueChanged;
+            valueNumeric.Value = (int)(vsPicker.Value * 255);
+            valueNumeric.ValueChanged += ValueNumericValueChanged;
 
-            private float _brightness;
-            private readonly Bitmap _image;
-            private float _hueValue;
-            private bool _mouseDown;
-            private float _saturation;
+            Color rgbColor = ColorTranslatorEx.FromHSV(huePicker.Hue * 359, vsPicker.Saturation, vsPicker.Value);
 
-            public float Brightness
-            {
-                get { return _brightness; }
-                set
-                {
-                    _brightness = value;
-                    BrightnessChanged(this, null);
-                }
-            }
-            public float Saturation
-            {
-                get { return _saturation; }
-                set
-                {
-                    _saturation = value;
-                    SaturationChanged(this, null);
-                }
-            }
+            rNumeric.ValueChanged -= rNumeric_ValueChanged;
+            rNumeric.Value = rgbColor.R;
+            rNumeric.ValueChanged += rNumeric_ValueChanged;
+            gNumeric.ValueChanged -= gNumeric_ValueChanged;
+            gNumeric.Value = rgbColor.G;
+            gNumeric.ValueChanged += gNumeric_ValueChanged;
+            bNumeric.ValueChanged -= bNumeric_ValueChanged;
+            bNumeric.Value = rgbColor.B;
+            bNumeric.ValueChanged += bNumeric_ValueChanged;
 
-            public BrightnessSaturationPicker(int w, int h)
+            color = Color.FromArgb((int)(alphaPicker.Alpha * 255), rgbColor);
+            ColorChanged(this, null);
+        }
+        private void VsPickerSaturationChanged(object sender, EventArgs e)
+        {
+            saturationNumeric.ValueChanged -= SaturationNumericValueChanged;
+            saturationNumeric.Value = (int)(vsPicker.Saturation * 255);
+            saturationNumeric.ValueChanged += SaturationNumericValueChanged;
+
+            Color rgbColor = ColorTranslatorEx.FromHSV(huePicker.Hue * 359, vsPicker.Saturation, vsPicker.Value);
+
+            rNumeric.ValueChanged -= rNumeric_ValueChanged;
+            rNumeric.Value = rgbColor.R;
+            rNumeric.ValueChanged += rNumeric_ValueChanged;
+            gNumeric.ValueChanged -= gNumeric_ValueChanged;
+            gNumeric.Value = rgbColor.G;
+            gNumeric.ValueChanged += gNumeric_ValueChanged;
+            bNumeric.ValueChanged -= bNumeric_ValueChanged;
+            bNumeric.Value = rgbColor.B;
+            bNumeric.ValueChanged += bNumeric_ValueChanged;
+
+            color = Color.FromArgb((int)(alphaPicker.Alpha * 255), rgbColor);
+            ColorChanged(this, null);
+        }
+        private void huePicker_HueChanged(object sender, EventArgs e)
+        {
+            vsPicker.SetHue(huePicker.Hue);
+
+            hueNumeric.ValueChanged -= HueNumericValueChanged;
+            hueNumeric.Value = (int)((1f - huePicker.Hue) * 359);
+            hueNumeric.ValueChanged += HueNumericValueChanged;
+
+            Color rgbColor = ColorTranslatorEx.FromHSV(huePicker.Hue * 359, vsPicker.Saturation, vsPicker.Value);
+
+            rNumeric.ValueChanged -= rNumeric_ValueChanged;
+            rNumeric.Value = rgbColor.R;
+            rNumeric.ValueChanged += rNumeric_ValueChanged;
+            gNumeric.ValueChanged -= gNumeric_ValueChanged;
+            gNumeric.Value = rgbColor.G;
+            gNumeric.ValueChanged += gNumeric_ValueChanged;
+            bNumeric.ValueChanged -= bNumeric_ValueChanged;
+            bNumeric.Value = rgbColor.B;
+            bNumeric.ValueChanged += bNumeric_ValueChanged;
+
+            color = Color.FromArgb((int)(alphaPicker.Alpha * 255), rgbColor);
+            ColorChanged(this, null);
+        }
+        private void HueNumericValueChanged(object sender, EventArgs e)
+        {
+            huePicker.Hue = 1f - (float)hueNumeric.Value / 359f;
+        }
+        private void SaturationNumericValueChanged(object sender, EventArgs e)
+        {
+            vsPicker.Saturation = (float)saturationNumeric.Value / 255;
+        }
+        private void ValueNumericValueChanged(object sender, EventArgs e)
+        {
+            vsPicker.Value = (float)valueNumeric.Value / 255;
+        }
+        private void rNumeric_ValueChanged(object sender, EventArgs e)
+        {
+            UpdateControlsFromRGB();
+        }
+        private void gNumeric_ValueChanged(object sender, EventArgs e)
+        {
+            UpdateControlsFromRGB();
+        }
+        private void bNumeric_ValueChanged(object sender, EventArgs e)
+        {
+            UpdateControlsFromRGB();
+        }
+        private void alphaPicker_AlphaChanged(object sender, EventArgs e)
+        {
+            aNumeric.ValueChanged -= aNumeric_ValueChanged;
+            aNumeric.Value = (int)(alphaPicker.Alpha * 255);
+            aNumeric.ValueChanged += aNumeric_ValueChanged;
+
+            color = Color.FromArgb((int)(alphaPicker.Alpha * 255), Color);
+            ColorChanged(this, null);
+        }
+        private void aNumeric_ValueChanged(object sender, EventArgs e)
+        {
+            alphaPicker.AlphaChanged -= alphaPicker_AlphaChanged;
+            alphaPicker.Alpha = (float)Convert.ToDouble(aNumeric.Value / 255);
+            alphaPicker.AlphaChanged += alphaPicker_AlphaChanged;
+
+            color = Color.FromArgb((int)(alphaPicker.Alpha * 255), Color);
+            ColorChanged(this, null);
+        }
+        private void UpdateControlsFromRGB()
+        {
+            Color rgbColor = Color.FromArgb(Convert.ToInt32(rNumeric.Value), Convert.ToInt32(gNumeric.Value), Convert.ToInt32(bNumeric.Value));
+
+            double hue;
+            double saturation;
+            double value;
+
+            ColorTranslatorEx.ToHSV(rgbColor, out hue, out saturation, out value);
+            hue /= 359;
+
+            huePicker.HueChanged -= huePicker_HueChanged;
+            huePicker.Hue = hue;
+            huePicker.HueChanged += huePicker_HueChanged;
+            vsPicker.SetHue(hue);
+            vsPicker.ValueChanged -= VsPickerValueChanged;
+            vsPicker.Value = (float)value;
+            vsPicker.ValueChanged += VsPickerValueChanged;
+            vsPicker.SaturationChanged -= VsPickerSaturationChanged;
+            vsPicker.Saturation = (float)saturation;
+            vsPicker.SaturationChanged += VsPickerSaturationChanged;
+
+            hueNumeric.ValueChanged -= HueNumericValueChanged;
+            hueNumeric.Value = Convert.ToInt32(hue * 359);
+            hueNumeric.ValueChanged += HueNumericValueChanged;
+            saturationNumeric.ValueChanged -= SaturationNumericValueChanged;
+            saturationNumeric.Value = Convert.ToInt32(saturation * 255);
+            saturationNumeric.ValueChanged += SaturationNumericValueChanged;
+            valueNumeric.ValueChanged -= ValueNumericValueChanged;
+            valueNumeric.Value = Convert.ToInt32(value * 255);
+            valueNumeric.ValueChanged += ValueNumericValueChanged;
+
+            rNumeric.ValueChanged -= rNumeric_ValueChanged;
+            rNumeric.Value = rgbColor.R;
+            rNumeric.ValueChanged += rNumeric_ValueChanged;
+            gNumeric.ValueChanged -= gNumeric_ValueChanged;
+            gNumeric.Value = rgbColor.G;
+            gNumeric.ValueChanged += gNumeric_ValueChanged;
+            bNumeric.ValueChanged -= bNumeric_ValueChanged;
+            bNumeric.Value = rgbColor.B;
+            bNumeric.ValueChanged += bNumeric_ValueChanged;
+
+            color = Color.FromArgb((int)(alphaPicker.Alpha * 255), rgbColor);
+            ColorChanged(this, null);
+        }
+
+        private class ValueSaturationPicker : Button
+        {
+            private readonly Pen borderPen = new Pen(Color.White);
+            private readonly Pen cursorPen = new Pen(Color.White);
+            private readonly Bitmap image;
+
+            private float value;
+            private double hueValue;
+            private bool mouseDown;
+            private float saturation;
+
+            public ValueSaturationPicker(int w, int h)
             {
                 Size = new Size(w, h);
 
-                _image = new Bitmap(w, h);
-                _UpdateImage();
+                image = new Bitmap(w, h);
+                UpdateImage();
 
                 MouseHook.MouseUp += MouseHookUpHandler;
             }
 
+            public event EventHandler ValueChanged = delegate { };
+            public event EventHandler SaturationChanged = delegate { };
+
+            public float Value
+            {
+                get { return value; }
+                set
+                {
+                    this.value = value;
+                    ValueChanged(this, null);
+                }
+            }
+            public float Saturation
+            {
+                get { return saturation; }
+                set
+                {
+                    saturation = value;
+                    SaturationChanged(this, null);
+                }
+            }
+
+            public void SetHue(double value)
+            {
+                hueValue = value;
+                UpdateImage();
+            }
+
+            protected override void Dispose(bool release_all)
+            {
+                MouseHook.MouseUp -= MouseHookUpHandler;
+
+                base.Dispose(release_all);
+            }
+            protected override void OnMouseDown(MouseEventArgs e)
+            {
+                if (e.Button == MouseButtons.Left)
+                    mouseDown = true;
+            }
+            protected override void OnMouseMove(MouseEventArgs e)
+            {
+                if (mouseDown)
+                {
+                    Value = (float)(Height - e.Y) / Height;
+                    Saturation = (float)e.X / Width;
+                    if (Value < 0) Value = 0;
+                    if (Value > 1) Value = 1;
+                    if (Saturation < 0) Saturation = 0;
+                    if (Saturation > 1) Saturation = 1;
+                }
+            }
+            protected override void OnMouseUp(MouseEventArgs e)
+            {
+                UpdateValues();
+                mouseDown = false;
+
+                base.OnMouseUp(e);
+            }
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                if (image != null)
+                    e.Graphics.DrawImage(image, 0, 0, Width, Height);
+
+                e.Graphics.DrawRectangle(cursorPen, Saturation * Width - 2, Height - Value * Height - 2, 4, 4);
+
+                var borderColor = uwfBorderColor;
+                if (uwfHovered) borderColor = uwfBorderHoverColor;
+                borderPen.Color = borderColor;
+
+                e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+            }
+
             private void MouseHookUpHandler(object sender, MouseEventArgs e)
             {
-                if (_mouseDown)
+                if (mouseDown)
                     UpdateValues();
 
-                _mouseDown = false;
+                mouseDown = false;
             }
-            private void _UpdateImage()
+            private void UpdateImage()
             {
-                double hue = _hueValue;
+                double hue = hueValue;
                 double saturation = 0f;
-                double luminosity = 1f;
+                double value = 1f;
 
-                for (int i = 0; i < _image.Width; i++)
+                var imageWidth = image.Width;
+                var imageHeight = image.Height;
+
+                for (int i = 0; i < imageWidth; i++)
                 {
-                    saturation = ((float)i / _image.Width);
+                    saturation = (float)i / imageWidth;
 
-                    for (int k = 0; k < _image.Height; k++)
+                    for (int k = 0; k < imageHeight; k++)
                     {
-                        luminosity = 1f - (float)k / _image.Height;
+                        value = (float)k / imageHeight;
 
                         // HSL to RGB convertion.
-                        Color pixelColor = ColorTranslatorEx.FromHsb(hue, saturation, luminosity);
-                        _image.SetPixel(i, k, pixelColor);
+                        Color pixelColor = ColorTranslatorEx.FromHSV(hue * 359, saturation, value);
+                        image.SetPixel(i, k, pixelColor);
                     }
-                    _image.Apply();
                 }
+
+                image.Apply();
             }
             private void UpdateValues()
             {
@@ -424,120 +481,79 @@ namespace System.Windows.Forms
                 if (mY < 0) mY = 0;
                 else if (mY > Height) mY = Height;
 
-                Brightness = (float)(Height - mY) / Height;
+                Value = (float)(Height - mY) / Height;
                 Saturation = (float)mX / Width;
-                if (Brightness < 0) Brightness = 0;
-                if (Brightness > 1) Brightness = 1;
+                if (Value < 0) Value = 0;
+                if (Value > 1) Value = 1;
                 if (Saturation < 0) Saturation = 0;
                 if (Saturation > 1) Saturation = 1;
             }
-
-            public void SetHue(float value)
-            {
-                _hueValue = value;
-                _UpdateImage();
-            }
-
-            protected override void Dispose(bool release_all)
-            {
-                MouseHook.MouseUp -= MouseHookUpHandler;
-
-                base.Dispose(release_all);
-            }
-            protected override void OnMouseDown(MouseEventArgs e)
-            {
-                if (e.Button == MouseButtons.Left)
-                    _mouseDown = true;
-            }
-            protected override void OnMouseMove(MouseEventArgs e)
-            {
-                if (_mouseDown)
-                {
-                    Brightness = (float)(Height - e.Y) / Height;
-                    Saturation = (float)e.X / Width;
-                    if (Brightness < 0) Brightness = 0;
-                    if (Brightness > 1) Brightness = 1;
-                    if (Saturation < 0) Saturation = 0;
-                    if (Saturation > 1) Saturation = 1;
-                }
-            }
-            protected override void OnMouseUp(MouseEventArgs e)
-            {
-                UpdateValues();
-                _mouseDown = false;
-
-                base.OnMouseUp(e);
-            }
-            protected override void OnPaint(PaintEventArgs e)
-            {
-                if (_image != null)
-                    e.Graphics.DrawImage(_image, 0, 0, Width, Height);
-
-                e.Graphics.DrawRectangle(cursorPen, Saturation * Width - 2, Height - Brightness * Height - 2, 4, 4);
-
-                var borderColor = uwfBorderColor;
-                if (uwfHovered) borderColor = uwfBorderHoverColor;
-                borderPen.Color = borderColor;
-
-                e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
-            }
-
-            public event EventHandler BrightnessChanged = delegate { };
-            public event EventHandler SaturationChanged = delegate { };
         }
 
         private class HuePicker : Button
         {
-            private readonly Pen borderPen = new Pen(Drawing.Color.White);
-            private readonly Pen cursorPen = new Pen(Drawing.Color.White);
-            private readonly Bitmap _image;
-            private float _hue;
+            private readonly Pen borderPen = new Pen(Color.White);
+            private readonly Pen cursorPen = new Pen(Color.White);
+            private readonly Bitmap image;
 
-            public float Hue
-            {
-                get { return _hue; }
-                set
-                {
-                    _hue = value;
-                    _UpdateImage();
-                    HueChanged(this, null);
-                }
-            }
+            private double hue;
+            private bool mouseDown;
 
             public HuePicker(int w, int h)
             {
                 Size = new Size(w, h);
 
-                _image = new Bitmap(w, h);
-                _UpdateImage();
+                image = new Bitmap(w, h);
+                UpdateImage();
+
+                uwfAppOwner.UpClick += UwfAppOwnerOnUpClick;
             }
-            private void _UpdateImage()
+
+            public event EventHandler HueChanged = delegate { };
+
+            public double Hue
             {
-                double hue = 0f;
-                double saturation = .9f;
-                double luminosity = .5f;
-
-                for (int i = 0; i < _image.Width; i++)
+                get { return hue; }
+                set
                 {
-                    for (int k = 0; k < _image.Height; k++)
-                    {
-                        hue = (float)k / _image.Height;
-
-                        // HSL to RGB convertion.
-                        var pixelColor = ColorTranslatorEx.FromHsb(hue, saturation, luminosity);
-                        _image.SetPixel(i, k, pixelColor);
-                    }
-                    _image.Apply();
+                    hue = value;
+                    UpdateImage();
+                    HueChanged(this, null);
                 }
             }
 
+            protected override void Dispose(bool release_all)
+            {
+                uwfAppOwner.UpClick -= UwfAppOwnerOnUpClick;
+
+                base.Dispose(release_all);
+            }
+            protected override void OnMouseDown(MouseEventArgs e)
+            {
+                mouseDown = true;
+
+                base.OnMouseDown(e);
+            }
             protected override void OnMouseUp(MouseEventArgs e)
             {
-                Hue = (float)e.Y / Height;
+                mouseDown = false;
+
+                Hue = 1f - (float)e.Y / Height;
                 if (Hue < 0) Hue = 0;
                 if (Hue > 1) Hue = 1;
 
                 base.OnMouseUp(e);
+            }
+            protected override void OnMouseMove(MouseEventArgs e)
+            {
+                if (mouseDown)
+                {
+                    Hue = 1f - (float)e.Y / Height;
+                    if (Hue < 0) Hue = 0;
+                    if (Hue > 1) Hue = 1;
+                }
+
+                base.OnMouseMove(e);
             }
             protected override void OnPaint(PaintEventArgs e)
             {
@@ -545,64 +561,93 @@ namespace System.Windows.Forms
                 if (uwfHovered) borderColor = uwfBorderHoverColor;
                 borderPen.Color = borderColor;
 
-                if (_image != null)
-                    e.Graphics.DrawImage(_image, 0, 0, Width, Height);
+                if (image != null)
+                    e.Graphics.DrawImage(image, 0, 0, Width, Height);
 
-                e.Graphics.DrawLine(cursorPen, 0, Hue * Height, Width, Hue * Height);
+                e.Graphics.DrawLine(cursorPen, 0, (float)(1 - Hue) * Height, Width, (float)(1 - Hue) * Height);
                 e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
             }
 
-            public event EventHandler HueChanged = delegate { };
+            private void UwfAppOwnerOnUpClick(object sender, MouseEventArgs mouseEventArgs)
+            {
+                mouseDown = false;
+            }
+            private void UpdateImage()
+            {
+                double hue = 0f;
+                double saturation = .9f;
+                double luminosity = .5f;
+
+                var imageWidth = image.Width;
+                var imageHeight = image.Height;
+
+                for (int i = 0; i < imageWidth; i++)
+                {
+                    for (int k = 0; k < imageHeight; k++)
+                    {
+                        hue = (float)k / imageHeight;
+
+                        // HSL to RGB convertion.
+                        var pixelColor = ColorTranslatorEx.FromHsb(hue, saturation, luminosity);
+                        image.SetPixel(i, k, pixelColor);
+                    }
+                }
+
+                image.Apply();
+            }
         }
 
         private class AlphaPicker : Button
         {
-            private float _alpha;
-            private readonly Pen _borderPen;
-            private readonly Pen _cursorPen;
-            private readonly Bitmap _image;
-            private bool _mouseDown;
+            private readonly Pen borderPen;
+            private readonly Pen cursorPen;
+            private readonly Bitmap image;
 
-            public float Alpha
-            {
-                get { return _alpha; }
-                set
-                {
-                    var changed = _alpha != value;
-                    if (changed)
-                    {
-                        _alpha = value;
-                        AlphaChanged(this, null);
-                    }
-                }
-            }
+            private float alpha;
+            private bool mouseDown;
 
             public AlphaPicker(int w, int h)
             {
                 Alpha = 1;
                 Size = new Size(w, h);
 
-                _borderPen = new Pen(uwfBorderColor);
-                _cursorPen = new Pen(Color.White);
-                _image = new Bitmap(w, h);
+                borderPen = new Pen(uwfBorderColor);
+                cursorPen = new Pen(Color.White);
+                image = new Bitmap(w, h);
                 for (int i = 0; i < w; i++)
                 {
                     int rgb = (int)(((float)i / w) * 255);
                     var currentColor = Color.FromArgb(rgb, rgb, rgb);
                     for (int k = 0; k < h; k++)
-                        _image.SetPixel(i, k, currentColor);
+                        image.SetPixel(i, k, currentColor);
                 }
-                _image.Apply();
+                image.Apply();
+            }
+
+            public event EventHandler AlphaChanged = delegate { };
+
+            public float Alpha
+            {
+                get { return alpha; }
+                set
+                {
+                    var changed = alpha != value;
+                    if (changed)
+                    {
+                        alpha = value;
+                        AlphaChanged(this, null);
+                    }
+                }
             }
 
             protected override void OnMouseDown(MouseEventArgs e)
             {
                 if (e.Button == MouseButtons.Left)
-                    _mouseDown = true;
+                    mouseDown = true;
             }
             protected override void OnMouseMove(MouseEventArgs e)
             {
-                if (!_mouseDown) return;
+                if (!mouseDown) return;
 
                 Alpha = (float)e.X / Width;
                 if (Alpha < 0) Alpha = 0;
@@ -618,7 +663,7 @@ namespace System.Windows.Forms
                 Alpha = (float)x / Width;
                 if (Alpha < 0) Alpha = 0;
                 if (Alpha > 1) Alpha = 1;
-                _mouseDown = false;
+                mouseDown = false;
 
                 base.OnMouseUp(e);
             }
@@ -627,16 +672,14 @@ namespace System.Windows.Forms
                 var borderColor = uwfBorderColor;
                 if (uwfHovered) borderColor = uwfBorderHoverColor;
 
-                _borderPen.Color = borderColor;
+                borderPen.Color = borderColor;
 
-                if (_image != null)
-                    e.Graphics.DrawImage(_image, 0, 0, Width, Height);
+                if (image != null)
+                    e.Graphics.DrawImage(image, 0, 0, Width, Height);
 
-                e.Graphics.DrawLine(_cursorPen, Alpha * Width, 0, Alpha * Width, Height);
-                e.Graphics.DrawRectangle(_borderPen, 0, 0, Width, Height);
+                e.Graphics.DrawLine(cursorPen, Alpha * Width, 0, Alpha * Width, Height);
+                e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
             }
-
-            public event EventHandler AlphaChanged = delegate { };
         }
     }
 }

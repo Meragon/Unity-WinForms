@@ -9,7 +9,7 @@
         internal readonly Pen borderPen = new Pen(Color.White);
         internal readonly Pen innerBorderPen = new Pen(Color.FromArgb(214, 214, 214));
         internal bool dialog;
-        internal Color uwfHeaderColor = Color.FromArgb(251, 251, 251);
+        internal Color uwfHeaderColor = Color.FromArgb(238, 238, 242);
         internal Font uwfHeaderFont;
         internal int uwfHeaderHeight = 24;
         internal Padding uwfHeaderPadding = new Padding(32, 0, 32, 0);

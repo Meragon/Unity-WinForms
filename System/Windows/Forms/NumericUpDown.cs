@@ -14,7 +14,6 @@
 
         public NumericUpDown() : this(true)
         {
-
         }
         internal NumericUpDown(bool initButtons)
         {

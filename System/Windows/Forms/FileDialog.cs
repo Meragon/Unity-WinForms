@@ -19,8 +19,7 @@
         protected Label labelFilename;
         protected TextBox textBoxPath;
         protected TextBox textBoxFilename;
-
-        private readonly Pen borderPen;
+        
         private readonly bool handleFormSize;
 
         internal FileDialog()
@@ -28,7 +27,6 @@
 #if !UNITY_STANDALONE && !UNITY_ANDROID
             throw new NotSupportedException();
 #endif
-            borderPen = new Pen(uwfBorderColor);
 
             BackColor = Color.White;
             Filter = "All files|*.*";
