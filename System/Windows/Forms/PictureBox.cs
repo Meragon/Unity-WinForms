@@ -13,7 +13,6 @@
         public PictureBox()
         {
             backgroundImageLayout = ImageLayout.Center;
-            Size = new Size(100, 50);
 
             UpdateRect(this, EventArgs.Empty);
             Resize += UpdateRect;
@@ -36,6 +35,11 @@
                 image = value;
                 UpdateRect(this, EventArgs.Empty);
             }
+        }
+
+        protected override Size DefaultSize
+        {
+            get { return new Size(100, 50); }
         }
 
         public void BeginInit()

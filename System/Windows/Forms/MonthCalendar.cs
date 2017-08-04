@@ -1,24 +1,62 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Collections.Generic;
+    using System.Drawing;
+
     public class MonthCalendar : Control
     {
         private readonly Pen borderPen = new Pen(Color.Black);
-        private readonly List<Control> _daysControls = new List<Control>();
-        private string[] _daysShort;
-        private DayOfWeek _firstDayOfWeek;
-        private string[] _months;
-        private DateTime _selectedDate;
-        private bool _showToday;
-        private DateTime _todayDate;
-        private DateTime _value;
-
+        private readonly List<Control> daysControls = new List<Control>();
+        private string[] daysShort;
+        private DayOfWeek firstDayOfWeek;
+        private string[] months;
+        private DateTime selectedDate;
+        private bool showToday;
         private Button todayButton;
+        private DateTime todayDate;
+        private DateTime value;
+
+        public MonthCalendar()
+        {
+            firstDayOfWeek = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek;
+
+            BackColor = Color.White;
+            CellWidth = 31;
+            DaysShort = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedDayNames;
+            Size = new Size(CellWidth * 7 + 6, 158);
+            ShowToday = true;
+            TitleBackColor = Color.Transparent;
+            TitleForeColor = Color.FromArgb(42, 42, 42);
+            TodayDate = DateTime.Now;
+            Value = DateTime.Now;
+
+            Button prevMonthButton = new Button();
+            prevMonthButton.Image = uwfAppOwner.Resources.ArrowLeft;
+            prevMonthButton.uwfImageColor = Color.FromArgb(48, 48, 48);
+            prevMonthButton.Size = new Size(16, 16);
+            prevMonthButton.Location = new Point(4, 8);
+            prevMonthButton.uwfBorderColor = Color.Transparent;
+            prevMonthButton.uwfBorderHoverColor = Color.Transparent;
+            prevMonthButton.BackColor = Color.Transparent;
+            prevMonthButton.Click += (s, a) => { SetDate(selectedDate.AddMonths(-1)); };
+            Controls.Add(prevMonthButton);
+
+            Button nextMonthButton = new Button();
+            nextMonthButton.Anchor = AnchorStyles.Right;
+            nextMonthButton.Image = uwfAppOwner.Resources.ArrowRight;
+            nextMonthButton.uwfImageColor = Color.FromArgb(48, 48, 48);
+            nextMonthButton.Size = new Size(16, 16);
+            nextMonthButton.Location = new Point(Width - nextMonthButton.Width - 4, 8);
+            nextMonthButton.uwfBorderColor = Color.Transparent;
+            nextMonthButton.uwfBorderHoverColor = Color.Transparent;
+            nextMonthButton.BackColor = Color.Transparent;
+            nextMonthButton.Click += (s, a) => { SetDate(selectedDate.AddMonths(1)); };
+            Controls.Add(nextMonthButton);
+
+            months = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.MonthNames;
+        }
+
+        public event DateRangeEventHandler DateChanged = delegate { };
 
         public Color BorderColor
         {
@@ -28,45 +66,45 @@ namespace System.Windows.Forms
         public int CellWidth { get; set; }
         public string[] DaysShort
         {
-            get { return _daysShort; }
+            get { return daysShort; }
             set
             {
                 if (value == null) throw new NullReferenceException("value is null");
                 if (value.Length != 7) throw new ArgumentException("value length is not equal 7");
-                _daysShort = value;
+                daysShort = value;
             }
         }
         public DayOfWeek FirstDayOfWeek
         {
-            get { return _firstDayOfWeek; }
+            get { return firstDayOfWeek; }
             set
             {
-                if (_firstDayOfWeek != value)
+                if (firstDayOfWeek != value)
                 {
-                    _firstDayOfWeek = value;
-                    SetDate(_selectedDate);
+                    firstDayOfWeek = value;
+                    SetDate(selectedDate);
                 }
             }
         }
         public string[] Months
         {
-            get { return _months; }
+            get { return months; }
             set
             {
                 if (value == null) throw new NullReferenceException("value is null");
                 if (value.Length != 12) throw new ArgumentException("value length is not equal 12");
-                _months = value;
+                months = value;
             }
         }
         public bool ShowToday
         {
-            get { return _showToday; }
+            get { return showToday; }
             set
             {
-                if (_showToday != value)
+                if (showToday != value)
                 {
-                    _showToday = value;
-                    if (_showToday)
+                    showToday = value;
+                    if (showToday)
                     {
                         todayButton = new Button();
                         todayButton.Location = new Point(3 + 2 * CellWidth, 33 + 7 * 15);
@@ -96,85 +134,44 @@ namespace System.Windows.Forms
         public Color TitleForeColor { get; set; }
         public DateTime TodayDate
         {
-            get { return _todayDate; }
+            get { return todayDate; }
             set
             {
-                _todayDate = value;
+                todayDate = value;
                 if (todayButton != null)
                     todayButton.Text = "Today: " + value.ToShortDateString();
             }
         }
         public DateTime Value
         {
-            get { return _value; }
+            get { return value; }
             set
             {
-                _value = value;
-                SetDate(_value);
-                DateChanged(this, new DateRangeEventArgs(_value, _value));
+                this.value = value;
+                SetDate(this.value);
+                DateChanged(this, new DateRangeEventArgs(this.value, this.value));
             }
-        }
-
-        public MonthCalendar()
-        {
-            _firstDayOfWeek = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek;
-
-            BackColor = Color.White;
-            CellWidth = 31;
-            DaysShort = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedDayNames;
-            Size = new Size(CellWidth * 7 + 6, 158);
-            ShowToday = true;
-            TitleBackColor = Color.Transparent;
-            TitleForeColor = Color.FromArgb(42, 42, 42);
-            TodayDate = DateTime.Now;
-            Value = DateTime.Now;
-
-            Button prevMonthButton = new Button();
-            prevMonthButton.Image = uwfAppOwner.Resources.ArrowLeft;
-            prevMonthButton.uwfImageColor = Color.FromArgb(48, 48, 48);
-            prevMonthButton.Size = new Size(16, 16);
-            prevMonthButton.Location = new Point(4, 8);
-            prevMonthButton.uwfBorderColor = Color.Transparent;
-            prevMonthButton.uwfBorderHoverColor = Color.Transparent;
-            prevMonthButton.BackColor = Color.Transparent;
-            prevMonthButton.Click += (s, a) => { SetDate(_selectedDate.AddMonths(-1)); };
-            Controls.Add(prevMonthButton);
-
-            Button nextMonthButton = new Button();
-            nextMonthButton.Anchor = AnchorStyles.Right;
-            nextMonthButton.Image = uwfAppOwner.Resources.ArrowRight;
-            nextMonthButton.uwfImageColor = Color.FromArgb(48, 48, 48);
-            nextMonthButton.Size = new Size(16, 16);
-            nextMonthButton.Location = new Point(Width - nextMonthButton.Width - 4, 8);
-            nextMonthButton.uwfBorderColor = Color.Transparent;
-            nextMonthButton.uwfBorderHoverColor = Color.Transparent;
-            nextMonthButton.BackColor = Color.Transparent;
-            nextMonthButton.Click += (s, a) => { SetDate(_selectedDate.AddMonths(1)); };
-            Controls.Add(nextMonthButton);
-
-            _months = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.MonthNames;
         }
 
         public void SetDate(DateTime date)
         {
-            _selectedDate = date;
+            selectedDate = date;
 
             // TODO: update only if month & year are changed.
 
-            for (int i = 0; i < _daysControls.Count; i++)
-                _daysControls[i].Dispose();
-            _daysControls.Clear();
-
-            var daysShort = DaysShort;
-            List<string> daysShortList = new List<string>();
-            for (int i = (int)(_firstDayOfWeek); i < 7; i++)
+            for (int i = 0; i < daysControls.Count; i++)
+                daysControls[i].Dispose();
+            daysControls.Clear();
+            
+            var daysShortList = new List<string>();
+            for (int i = (int)firstDayOfWeek; i < 7; i++)
                 daysShortList.Add(daysShort[i]);
-            for (int i = 0; i < (int)_firstDayOfWeek; i++)
+            for (int i = 0; i < (int)firstDayOfWeek; i++)
                 daysShortList.Add(daysShort[i]);
             daysShort = daysShortList.ToArray();
 
             var monthStartDayOfWeek = new DateTime(date.Year, date.Month, 1).DayOfWeek;
-            DateTime startDate = new DateTime(date.Year, date.Month, 1).AddDays(-(int)monthStartDayOfWeek + (int)_firstDayOfWeek);
+            DateTime startDate = new DateTime(date.Year, date.Month, 1).AddDays(-(int)monthStartDayOfWeek + (int)firstDayOfWeek);
 
             for (int row = 0; row < 7; row++)
             {
@@ -191,7 +188,7 @@ namespace System.Windows.Forms
                         labelDayOfWeek.Padding = new Padding();
                         Controls.Add(labelDayOfWeek);
 
-                        _daysControls.Add(labelDayOfWeek);
+                        daysControls.Add(labelDayOfWeek);
                     }
                     else
                     {
@@ -230,9 +227,19 @@ namespace System.Windows.Forms
                         }
 
                         startDate = startDate.AddDays(1);
-                        _daysControls.Add(dayButton);
+                        daysControls.Add(dayButton);
                     }
                 }
+            }
+        }
+        public override void Refresh()
+        {
+            base.Refresh();
+            SetDate(selectedDate);
+
+            if (todayButton != null)
+            {
+                todayButton.Location = new Point(3 + 2 * CellWidth, 33 + 7 * 15);
             }
         }
 
@@ -242,24 +249,12 @@ namespace System.Windows.Forms
 
             // Header.
             e.Graphics.uwfFillRectangle(TitleBackColor, 0, 0, Width, 32);
-            e.Graphics.uwfDrawString(_months[_selectedDate.Month - 1] + " " + _selectedDate.Year.ToString(), Font, TitleForeColor, 0, 0, Width, 32, ContentAlignment.MiddleCenter);
+            e.Graphics.uwfDrawString(months[selectedDate.Month - 1] + " " + selectedDate.Year.ToString(), Font, TitleForeColor, 0, 0, Width, 32, ContentAlignment.MiddleCenter);
 
             if (ShowToday)
                 e.Graphics.DrawRectangle(new Pen(Color.FromArgb(0, 102, 204)), CellWidth * 1, 141, CellWidth - 2, 13);
 
             e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
-        public override void Refresh()
-        {
-            base.Refresh();
-            SetDate(_selectedDate);
-
-            if (todayButton != null)
-            {
-                todayButton.Location = new Point(3 + 2 * CellWidth, 33 + 7 * 15);
-            }
-        }
-
-        public event DateRangeEventHandler DateChanged = delegate { };
     }
 }

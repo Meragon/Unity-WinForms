@@ -1,35 +1,41 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Drawing;
+    using System.Linq;
+
     public class TabControl : Control
     {
-        private Size itemSize = new Size();
+        internal List<TabPageButton> pagesButtons = new List<TabPageButton>();
+        internal int tabPageCount;
+        internal int tabViewIndex;
+
+        private readonly Control pagesButtonsPanel;
+        private Size itemSize;
         private Button navigationButtonLeft;
         private Button navigationButtonRight;
         private Padding padding;
-        internal List<TabPageButton> pagesButtons = new List<TabPageButton>();
-        private Control pagesButtonsPanel;
         private int selectedIndex = -1;
 
-        internal int tabPageCount = 0;
-        internal int tabViewIndex = 0;
-
-        private bool AllButtonsRendered
+        public TabControl()
         {
-            get
-            {
-                if (pagesButtons.Count == 0) return true;
-                var lastButton = pagesButtons.Last();
+            Controls = new ControlCollection(this);
+            TabPages = new TabPageCollection(this);
 
-                return lastButton.Location.X + lastButton.Width < pagesButtonsPanel.Width;
-            }
+            BorderColor = Color.FromArgb(172, 172, 172);
+            ItemSize = new Size(42, 30);
+            Padding = new Padding(3);
+
+            pagesButtonsPanel = new Control();
+            pagesButtonsPanel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            pagesButtonsPanel.BackColor = Color.Transparent;
+            pagesButtonsPanel.Name = "buttonsPanel";
+            pagesButtonsPanel.Size = new Size(Width, ItemSize.Height);
+
+            Controls.AddInternal(pagesButtonsPanel);
         }
+
         public Color BorderColor { get; set; }
         public new ControlCollection Controls { get; private set; }
         public new Rectangle DisplayRectangle
@@ -43,18 +49,6 @@ namespace System.Windows.Forms
                     Height - ItemSize.Height - Padding.Vertical);
             }
         }
-        private int HeaderWidth
-        {
-            get
-            {
-                int w = 0;
-
-                for (int i = 0; i < pagesButtons.Count; i++)
-                    w += pagesButtons[i].Width;
-
-                return w;
-            }
-        }
         public Size ItemSize
         {
             get { return itemSize; }
@@ -62,22 +56,6 @@ namespace System.Windows.Forms
             {
                 itemSize = value;
                 UpdateSizes();
-            }
-        }
-        private int MaxVisibleTabIndex
-        {
-            get
-            {
-                if (navigationButtonLeft == null)
-                    return tabPageCount;
-
-                for (int i = tabViewIndex, vItems = 0; i < pagesButtons.Count; i++, vItems++)
-                {
-                    bool isVisible = pagesButtons[i].Location.X < navigationButtonLeft.Location.X;
-                    if (isVisible == false)
-                        return vItems;
-                }
-                return tabPageCount;
             }
         }
         public new Padding Padding
@@ -108,25 +86,50 @@ namespace System.Windows.Forms
             }
         }
         public int TabCount { get { return tabPageCount; } }
-        public TabControl.TabPageCollection TabPages { get; private set; }
+        public TabPageCollection TabPages { get; private set; }
 
-        public TabControl()
+        protected override Size DefaultSize
         {
-            Controls = new ControlCollection(this);
-            TabPages = new TabPageCollection(this);
+            get { return new Size(200, 100); }
+        }
 
-            BorderColor = Color.FromArgb(172, 172, 172);
-            ItemSize = new Size(42, 30);
-            Padding = new Padding(3);
-            Size = new Size(200, 100);
+        private bool AllButtonsRendered
+        {
+            get
+            {
+                if (pagesButtons.Count == 0) return true;
+                var lastButton = pagesButtons.Last();
 
-            pagesButtonsPanel = new Control();
-            pagesButtonsPanel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            pagesButtonsPanel.BackColor = Color.Transparent;
-            pagesButtonsPanel.Name = "buttonsPanel";
-            pagesButtonsPanel.Size = new Size(Width, ItemSize.Height);
+                return lastButton.Location.X + lastButton.Width < pagesButtonsPanel.Width;
+            }
+        }
+        private int HeaderWidth
+        {
+            get
+            {
+                int w = 0;
 
-            (Controls as ControlCollection).AddInternal(pagesButtonsPanel);
+                for (int i = 0; i < pagesButtons.Count; i++)
+                    w += pagesButtons[i].Width;
+
+                return w;
+            }
+        }
+        private int MaxVisibleTabIndex
+        {
+            get
+            {
+                if (navigationButtonLeft == null)
+                    return tabPageCount;
+
+                for (int i = tabViewIndex, vItems = 0; i < pagesButtons.Count; i++, vItems++)
+                {
+                    bool isVisible = pagesButtons[i].Location.X < navigationButtonLeft.Location.X;
+                    if (isVisible == false)
+                        return vItems;
+                }
+                return tabPageCount;
+            }
         }
 
         public void SelectTab(int index)
@@ -136,7 +139,7 @@ namespace System.Windows.Forms
             selectedIndex = index;
 
             if (selectedIndex == -1) return;
-            if (selectedIndex >= TabPages.Count) throw new ArgumentOutOfRangeException("tabControl.selectedIndex");
+            if (selectedIndex >= TabPages.Count) throw new ArgumentOutOfRangeException("index");
 
             pagesButtons[selectedIndex].Show();
             TabPages[index].Visible = true;
@@ -159,6 +162,96 @@ namespace System.Windows.Forms
         {
             pagesButtons[index].Width = width;
             UpdateButtons();
+        }
+
+        internal int AddTabPage(TabPage tabPage)
+        {
+            TabPageButton pageButton = new TabPageButton(this, tabPageCount);
+            pageButton.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom;
+            pageButton.uwfBorderHoverColor = Color.Transparent;
+            pageButton.uwfBorderColor = Color.Transparent;
+            pageButton.Location = new Point(tabPageCount * pageButton.Width - tabPageCount, 0);
+            pageButton.Height = ItemSize.Height;
+            pageButton.Text = tabPage.Text;
+            pageButton.Hide();
+
+            pagesButtonsPanel.Controls.Add(pageButton);
+            pagesButtons.Add(pageButton);
+
+            tabPageCount++;
+
+            if (TabPages.Count > 0 && SelectedIndex == -1)
+                SelectTab(0);
+
+            return tabPageCount;
+        }
+        internal int FindTabPage(TabPage tabPage)
+        {
+            if (TabPages != null)
+                for (int i = 0; i < tabPageCount; i++)
+                    if (TabPages[i].Equals(tabPage))
+                        return i;
+
+            return -1;
+        }
+        internal void HideSelectedPage()
+        {
+            if (selectedIndex == -1) return;
+            if (selectedIndex >= TabPages.Count) return;
+
+            pagesButtons[selectedIndex].Hide();
+            TabPages[selectedIndex].Visible = false;
+        }
+        internal void RemoveTabPage(int index)
+        {
+            if (index < 0 || index >= tabPageCount)
+                throw new ArgumentException("tabControl.RemoveTabPage(index)");
+
+            tabPageCount--;
+
+            TabPages.RemoveAt(index);
+            Controls.Remove(pagesButtons[index]);
+            pagesButtons.RemoveAt(index);
+
+            if (selectedIndex == tabPageCount)
+                SelectedIndex = tabPageCount - 1;
+
+            SelectTab(SelectedIndex);
+            UpdateButtons();
+        }
+        internal void UpdateButtons()
+        {
+            if (navigationButtonLeft == null || navigationButtonRight == null)
+            {
+                for (int i = 0; i < pagesButtons.Count; i++)
+                    pagesButtons[i].Visible = true;
+            }
+            else
+            {
+                for (int i = 0; i < tabViewIndex; i++)
+                    pagesButtons[i].Visible = false;
+                for (int i = tabViewIndex, locX = 0; i < pagesButtons.Count; i++)
+                {
+                    pagesButtons[i].Location = new Point(locX, pagesButtons[i].Location.Y);
+                    if (pagesButtons[i].Location.X < pagesButtonsPanel.Width)
+                        pagesButtons[i].Visible = true;
+                    else
+                        pagesButtons[i].Visible = false;
+
+                    locX += pagesButtons[i].Width - 1;
+                }
+            }
+        }
+        internal void UpdateSizes()
+        {
+            for (int i = 0; i < TabPages.Count; i++)
+            {
+                var page = TabPages[i];
+                page.Location = DisplayRectangle.Location;
+                page.Size = new Size(DisplayRectangle.Width, DisplayRectangle.Height);
+            }
+            if (pagesButtonsPanel != null)
+                pagesButtonsPanel.Height = ItemSize.Height;
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -195,28 +288,28 @@ namespace System.Windows.Forms
             base.OnResize(e);
             CheckNavButtons();
         }
-
-        internal int AddTabPage(TabPage tabPage)
+        protected void RemoveAll()
         {
-            TabPageButton pageButton = new TabPageButton(this, tabPageCount);
-            pageButton.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom;
-            pageButton.uwfBorderHoverColor = Color.Transparent;
-            pageButton.uwfBorderColor = Color.Transparent;
-            pageButton.Location = new Point(tabPageCount * pageButton.Width - tabPageCount, 0);
-            pageButton.Height = ItemSize.Height;
-            pageButton.Text = tabPage.Text;
-            pageButton.Hide();
+            tabPageCount = 0;
+            selectedIndex = -1;
 
-            pagesButtonsPanel.Controls.Add(pageButton);
-            pagesButtons.Add(pageButton);
+            for (int i = 0; i < pagesButtons.Count; i++)
+                pagesButtons[i].Dispose();
+            pagesButtons.Clear();
 
-            tabPageCount++;
+            for (int i = 0; i < Controls.Count; i++)
+                if (Controls[i] is TabPage)
+                {
+                    Controls[i].Dispose();
+                    i--;
+                }
 
-            if (TabPages.Count > 0 && SelectedIndex == -1)
-                SelectTab(0);
-
-            return tabPageCount;
+            navigationButtonLeft.Dispose();
+            navigationButtonRight.Dispose();
+            navigationButtonLeft = null;
+            navigationButtonRight = null;
         }
+
         private void CheckNavButtons()
         {
             if (HeaderWidth > Width)
@@ -254,8 +347,8 @@ namespace System.Windows.Forms
                         UpdateButtons();
                     };
 
-                    (Controls as ControlCollection).AddInternal(navigationButtonLeft);
-                    (Controls as ControlCollection).AddInternal(navigationButtonRight);
+                    Controls.AddInternal(navigationButtonLeft);
+                    Controls.AddInternal(navigationButtonRight);
 
                     pagesButtonsPanel.Width = navigationButtonLeft.Location.X - 2;
                 }
@@ -276,99 +369,10 @@ namespace System.Windows.Forms
 
             UpdateButtons();
         }
-        internal int FindTabPage(TabPage tabPage)
-        {
-            if (TabPages != null)
-                for (int i = 0; i < tabPageCount; i++)
-                    if (TabPages[i].Equals(tabPage))
-                        return i;
-
-            return -1;
-        }
-        internal void HideSelectedPage()
-        {
-            if (selectedIndex == -1) return;
-            if (selectedIndex >= TabPages.Count) return;
-
-            pagesButtons[selectedIndex].Hide();
-            TabPages[selectedIndex].Visible = false;
-        }
-        internal void RemoveTabPage(int index)
-        {
-            if (index < 0 || index >= tabPageCount)
-                throw new ArgumentException("tabControl.RemoveTabPage(index)");
-
-            tabPageCount--;
-
-            TabPages.RemoveAt(index);
-            Controls.Remove(pagesButtons[index]);
-            pagesButtons.RemoveAt(index);
-
-            if (selectedIndex == tabPageCount)
-                SelectedIndex = tabPageCount - 1;
-
-            SelectTab(SelectedIndex);
-            UpdateButtons();
-        }
-        protected void RemoveAll()
-        {
-            tabPageCount = 0;
-            selectedIndex = -1;
-
-            for (int i = 0; i < pagesButtons.Count; i++)
-                pagesButtons[i].Dispose();
-            pagesButtons.Clear();
-
-            for (int i = 0; i < Controls.Count; i++)
-                if (Controls[i] is TabPage)
-                {
-                    Controls[i].Dispose();
-                    i--;
-                }
-
-            navigationButtonLeft.Dispose();
-            navigationButtonRight.Dispose();
-            navigationButtonLeft = null;
-            navigationButtonRight = null;
-        }
-        internal void UpdateButtons()
-        {
-            if (navigationButtonLeft == null || navigationButtonRight == null)
-            {
-                for (int i = 0; i < pagesButtons.Count; i++)
-                    pagesButtons[i].Visible = true;
-            }
-            else
-            {
-                for (int i = 0; i < tabViewIndex; i++)
-                    pagesButtons[i].Visible = false;
-                for (int i = tabViewIndex, locX = 0; i < pagesButtons.Count; i++)
-                {
-                    pagesButtons[i].Location = new Point(locX, pagesButtons[i].Location.Y);
-                    if (pagesButtons[i].Location.X < pagesButtonsPanel.Width)
-                        pagesButtons[i].Visible = true;
-                    else
-                        pagesButtons[i].Visible = false;
-
-                    locX += pagesButtons[i].Width - 1;
-                }
-            }
-        }
-        internal void UpdateSizes()
-        {
-            for (int i = 0; i < TabPages.Count; i++)
-            {
-                var page = TabPages[i];
-                page.Location = DisplayRectangle.Location;
-                page.Size = new Size(DisplayRectangle.Width, DisplayRectangle.Height);
-            }
-            if (pagesButtonsPanel != null)
-                pagesButtonsPanel.Height = ItemSize.Height;
-        }
 
         public new class ControlCollection : Control.ControlCollection
         {
-            private TabControl owner;
+            private readonly TabControl owner;
 
             public ControlCollection(TabControl owner) : base(owner)
             {
@@ -410,9 +414,9 @@ namespace System.Windows.Forms
                 base.Add(value);
             }
         }
-        public class TabPageCollection : IList, ICollection, IEnumerable
+        public class TabPageCollection : IList
         {
-            private TabControl owner;
+            private readonly TabControl owner;
 
             public TabPageCollection(TabControl owner)
             {
@@ -421,6 +425,40 @@ namespace System.Windows.Forms
 
             public int Count { get { return owner.tabPageCount; } }
             public bool IsReadOnly { get { return false; } }
+
+            bool IList.IsFixedSize
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            bool ICollection.IsSynchronized
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            object ICollection.SyncRoot
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            object IList.this[int index]
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+
+                set
+                {
+                    throw new NotImplementedException();
+                }
+            }
 
             public virtual TabPage this[int index]
             {
@@ -574,40 +612,6 @@ namespace System.Windows.Forms
                     RemoveAt(index);
             }
 
-            bool IList.IsFixedSize
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-            bool ICollection.IsSynchronized
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-            object ICollection.SyncRoot
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-            object IList.this[int index]
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-
-                set
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
             int IList.Add(object value)
             {
                 if (value is TabPage == false) throw new ArgumentException("tabPageCollection.Add(value is not TabPage)");
@@ -649,14 +653,9 @@ namespace System.Windows.Forms
 
         internal class TabPageButton : Button
         {
-            private TabControl owner;
-            private int index;
-            private bool hidden = false;
-
-            public Color EnabledBackColor { get; set; }
-            public Color EnabledBackHoverColor { get; set; }
-            public Color DisabledBackColor { get; set; }
-            public Color DisabledBackHoverColor { get; set; }
+            private readonly TabControl owner;
+            private readonly int index;
+            private bool hidden;
 
             public TabPageButton(TabControl owner, int index)
             {
@@ -671,6 +670,11 @@ namespace System.Windows.Forms
 
                 Click += TabPageButton_Click;
             }
+
+            public Color EnabledBackColor { get; set; }
+            public Color EnabledBackHoverColor { get; set; }
+            public Color DisabledBackColor { get; set; }
+            public Color DisabledBackHoverColor { get; set; }
 
             public void Hide()
             {
@@ -700,11 +704,6 @@ namespace System.Windows.Forms
                 }
             }
 
-            private void TabPageButton_Click(object sender, EventArgs e)
-            {
-                owner.SelectTab(index);
-            }
-
             protected override void OnPaint(PaintEventArgs e)
             {
                 base.OnPaint(e);
@@ -714,14 +713,11 @@ namespace System.Windows.Forms
                 e.Graphics.DrawLine(borderPen, 0, 0, Width, 0); // Top.
                 e.Graphics.DrawLine(borderPen, 0, 0, 0, Height - 1); // Left.
                 e.Graphics.DrawLine(borderPen, Width - 1, 0, Width - 1, Height - 1); // Right.
-                if (hidden == false)
-                {
+            }
 
-                }
-                else
-                {
-
-                }
+            private void TabPageButton_Click(object sender, EventArgs e)
+            {
+                owner.SelectTab(index);
             }
         }
     }

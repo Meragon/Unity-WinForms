@@ -36,7 +36,6 @@
             HoverColor = Color.White;
             HoverColorDropDownList = Color.FromArgb(227, 240, 252);
             Padding = new Padding(4, 0, 4, 0);
-            Size = new Size(121, 21);
         }
 
         public event EventHandler SelectedIndexChanged = delegate { };
@@ -100,6 +99,14 @@
             set { SelectedIndex = Items.IndexOf(value); }
         }
         public bool WrapText { get; set; }
+
+        protected override Size DefaultSize
+        {
+            get
+            {
+                return new Size(121, 21);
+            }
+        }
 
         internal override bool FocusInternal()
         {

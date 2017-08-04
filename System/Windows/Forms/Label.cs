@@ -19,6 +19,11 @@
 
         public ContentAlignment TextAlign { get; set; }
 
+        protected override Size DefaultSize
+        {
+            get { return new Size(100, 23); } // Autosize ? Preferred height.
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);

@@ -6,14 +6,23 @@
     [Serializable]
     public class Form : ContainerControl, IResizableControl
     {
+        internal readonly Pen borderPen = new Pen(Color.White);
+        internal readonly Pen innerBorderPen = new Pen(Color.FromArgb(214, 214, 214));
         internal bool dialog;
+        internal Color uwfHeaderColor = Color.FromArgb(251, 251, 251);
+        internal Font uwfHeaderFont;
+        internal int uwfHeaderHeight = 24;
+        internal Padding uwfHeaderPadding = new Padding(32, 0, 32, 0);
+        internal ContentAlignment uwfHeaderTextAlign;
+        internal Color uwfHeaderTextColor = Color.FromArgb(64, 64, 64);
+        internal bool uwfMovable = true;
 
-        protected Button uwfSizeGripRenderer;
+        protected internal Button uwfSizeGripRenderer;
 
         private const int RESIZE_OFFSET = 8;
         private static Point nextLocation = new Point(128, 64);
-        private readonly Pen borderPen;
 
+        private Color backColor = SystemColors.Control;
         private Button closeButton;
         private Action<Form, DialogResult> dialogCallback;
         private MenuStrip mainMenuStrip;
@@ -28,26 +37,18 @@
 
         public Form()
         {
-            borderPen = new Pen(Color.White);
-
-            BackColor = Color.FromArgb(238, 238, 242);
             ControlBox = true;
             Font = SystemFonts.uwfArial_14;
             FormBorderStyle = FormBorderStyle.Sizable;
             Location = nextLocation;
             MinimumSize = new Size(128, 48);
-            Size = new Size(334, 260);
             Visible = false;
 
-            uwfBorderColor = Color.FromArgb(204, 206, 219);
-            uwfHeaderColor = Color.FromArgb(238, 238, 242);
+            uwfBorderColor = Color.FromArgb(192, 192, 192);
             uwfHeaderFont = Font;
-            uwfHeaderHeight = 24;
-            uwfHeaderPadding = new Padding(32, 0, 32, 0);
-            uwfHeaderTextColor = Color.FromArgb(64, 64, 64);
             uwfHeaderTextAlign = ContentAlignment.MiddleLeft;
-            uwfMovable = true;
             uwfShadowBox = true;
+            uwfShadowHandler = DrawShadow;
             uwfAppOwner.UpClick += _Application_UpClick;
             uwfAppOwner.UpdateEvent += Owner_UpdateEvent;
 
@@ -63,6 +64,11 @@
         public event EventHandler Shown = delegate { };
 
         public IButtonControl AcceptButton { get; set; }
+        public override Color BackColor
+        {
+            get { return backColor; }
+            set { backColor = value; }
+        }
         public Button CloseButton { get { return closeButton; } }
         public bool ControlBox
         {
@@ -125,18 +131,16 @@
             }
         }
 
-        public Color uwfBorderColor
+        internal Color uwfBorderColor
         {
             get { return borderPen.Color; }
             set { borderPen.Color = value; }
         }
-        public Color uwfHeaderColor { get; set; }
-        public Font uwfHeaderFont { get; set; }
-        public int uwfHeaderHeight { get; set; }
-        public Padding uwfHeaderPadding { get; set; }
-        public ContentAlignment uwfHeaderTextAlign { get; set; }
-        public Color uwfHeaderTextColor { get; set; }
-        public bool uwfMovable { get; set; }
+
+        protected override Size DefaultSize
+        {
+            get { return new Size(300, 300); }
+        }
 
         public void Close()
         {
@@ -308,6 +312,7 @@
         {
             base.uwfOnLatePaint(e);
 
+            e.Graphics.DrawLine(innerBorderPen, 0, uwfHeaderHeight - 1, Width, uwfHeaderHeight - 1);
             e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
         protected override void SetBoundsCore(int x, int y, int width, int height, BoundsSpecified specified)
@@ -321,6 +326,16 @@
             resizeType = ControlResizeTypes.None;
             if (Application.activeResizeControl == this)
                 Application.activeResizeControl = null;
+        }
+        private void DrawShadow(PaintEventArgs e)
+        {
+            var loc = PointToScreen(Point.Empty);
+            var shadowAlpha = 12;
+            var shadowColor = Color.FromArgb(shadowAlpha, 64, 64, 64);
+
+            e.Graphics.uwfFillRectangle(shadowColor, loc.X - 3, loc.Y, Width + 6, Height + 3);
+            e.Graphics.uwfFillRectangle(shadowColor, loc.X - 2, loc.Y, Width + 4, Height + 2);
+            e.Graphics.uwfFillRectangle(shadowColor, loc.X - 1, loc.Y - 1, Width + 2, Height + 2);
         }
         private void _MakeButtonClose()
         {

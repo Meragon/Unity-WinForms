@@ -1,31 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     public class GroupBox : Control
     {
-        private Pen borderPen = new Pen(Color.Transparent);
+        private readonly Pen borderPen = new Pen(Color.LightGray);
 
-        public Color BorderColor
+        public GroupBox()
+        {
+            BackColor = Color.FromArgb(240, 240, 240);
+            ForeColor = Color.Gray;
+            TabIndex = -1;
+
+            SetStyle(ControlStyles.Selectable, false);
+        }
+
+        internal Color uwfBorderColor
         {
             get { return borderPen.Color; }
             set { borderPen.Color = value; }
         }
 
-        public GroupBox()
+        protected override Size DefaultSize
         {
-            BackColor = Color.FromArgb(240, 240, 240);
-            BorderColor = Color.LightGray;
-            ForeColor = Color.Gray;
-            Size = new Size(168, 286);
-            TabIndex = -1;
-
-            SetStyle(ControlStyles.Selectable, false);
+            get { return new Size(200, 100); }
         }
+
         protected override void uwfOnLatePaint(PaintEventArgs e)
         {
             base.uwfOnLatePaint(e);
@@ -35,7 +35,7 @@ namespace System.Windows.Forms
         {
             base.OnPaint(e);
 
-            Graphics g = e.Graphics;
+            var g = e.Graphics;
 
             g.uwfFillRectangle(BackColor, 0, 0, Width, Height);
             g.uwfDrawString(Text, Font, ForeColor, 8, 0, Width - 16, Height - 0);

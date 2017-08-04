@@ -17,7 +17,6 @@
             BorderHoverColor = Color.FromArgb(126, 180, 234);
             ForeColor = Color.Black;
             Padding = new Padding(2, 0, 2, 0);
-            Size = new Size(128, 24);
             TextAlign = HorizontalAlignment.Left;
         }
 
@@ -40,6 +39,11 @@
             }
         }
         public HorizontalAlignment TextAlign { get; set; }
+
+        protected override Size DefaultSize
+        {
+            get { return new Size(100, 24); }
+        }
 
         protected override void OnPaint(PaintEventArgs e)
         {

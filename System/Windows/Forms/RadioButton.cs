@@ -1,13 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     [Obsolete]
-    public class RadioButton : Button
+    public class RadioButton : ButtonBase
     {
         public bool Checked { get; set; }
+
+        protected override Size DefaultSize
+        {
+            get { return new Size(104, 24); }
+        }
     }
 }

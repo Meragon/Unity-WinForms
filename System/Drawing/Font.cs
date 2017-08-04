@@ -9,8 +9,7 @@
         Underline = 4,
         Strikeout = 8,
     }
-
-    [Serializable]
+    
     public sealed class Font
     {
         internal UnityEngine.Font UFont;

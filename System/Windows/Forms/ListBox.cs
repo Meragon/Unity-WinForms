@@ -42,7 +42,6 @@
             SelectionBackColor = SystemColors.Highlight;
             SelectionDisabledColor = Color.FromArgb(101, 203, 255);
             SelectionForeColor = SystemColors.HighlightText;
-            Size = new Size(120, 95);
             WrapText = true;
 
             vScroll = new VScrollBar();
@@ -171,6 +170,11 @@
         {
             get { return vScroll.Value / ItemHeight; }
             set { vScroll.Value = value * ItemHeight; }
+        }
+
+        protected override Size DefaultSize
+        {
+            get { return new Size(120, 96); }
         }
 
         public void AdjustHeight()

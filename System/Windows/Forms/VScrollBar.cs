@@ -9,7 +9,6 @@
         public VScrollBar()
         {
             scrollOrientation = ScrollOrientation.VerticalScroll;
-            Size = new Size(15, 80);
 
             subtractButton.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             subtractButton.Image = uwfAppOwner.Resources.CurvedArrowUp;
@@ -22,6 +21,11 @@
             addButton.Size = buttonSize;
 
             UpdateScrollRect();
+        }
+
+        protected override Size DefaultSize
+        {
+            get { return new Size(15, 80); }
         }
     }
 }

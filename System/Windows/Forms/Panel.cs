@@ -11,10 +11,15 @@
             SetStyle(ControlStyles.Selectable | ControlStyles.AllPaintingInWmPaint, false);
         }
 
-        public Color uwfBorderColor
+        internal Color uwfBorderColor
         {
             get { return borderPen.Color; }
             set { borderPen.Color = value; }
+        }
+
+        protected override Size DefaultSize
+        {
+            get { return new Size(200, 100); }
         }
 
         protected override void OnPaint(PaintEventArgs e)

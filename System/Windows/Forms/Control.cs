@@ -23,7 +23,6 @@
         internal DrawHandler uwfShadowHandler;
         internal IControlDesigner uwfDesigner;
         internal Point uwfOffset;
-        internal string uwfSource;
 
         protected static Color defaultShadowColor = Color.FromArgb(12, 0, 0, 0);
 
@@ -60,6 +59,10 @@
                 ControlStyles.StandardClick | ControlStyles.Selectable | ControlStyles.StandardDoubleClick | 
                 ControlStyles.AllPaintingInWmPaint | ControlStyles.UseTextForAccessibility,
                 true);
+
+            var defaultSize = DefaultSize;
+            width = defaultSize.Width;
+            height = defaultSize.Height;
         }
 
         public delegate void DrawHandler(PaintEventArgs e);
@@ -209,7 +212,12 @@
                 }
             }
         }
-        internal bool uwfHovered { get { return hovered; } }        
+        internal bool uwfHovered { get { return hovered; } }
+
+        protected virtual Size DefaultSize
+        {
+            get { return Size.Empty; }
+        }
 
         public void BringToFront()
         {

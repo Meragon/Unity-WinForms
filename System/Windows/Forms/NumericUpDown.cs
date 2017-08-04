@@ -1,51 +1,89 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     public class NumericUpDown : Control
     {
-        private decimal _minimum;
-        private decimal _maximum;
+        internal Pen borderPen = new Pen(Color.Transparent);
 
-        protected Pen borderPen = new Pen(Color.Transparent);
         protected decimal value;
         protected string valueText = "0";
 
-        public Button ButtonIncrease { get; private set; }
-        public Button ButtonDecrease { get; private set; }
+        private decimal minimum;
+        private decimal maximum;
 
-        public Color BorderColor
+        public NumericUpDown() : this(true)
         {
-            get { return borderPen.Color; }
-            set { borderPen.Color = value; }
+
         }
-        public Color DisabledColor { get; set; }
+        internal NumericUpDown(bool initButtons)
+        {
+            BackColor = Color.FromArgb(250, 250, 250);
+            uwfBorderColor = Color.FromArgb(175, 175, 175);
+            uwfDisabledColor = Color.FromArgb(240, 240, 240);
+            Increment = 1;
+            Maximum = 100;
+            Minimum = 0;
+            Padding = new Padding(4, 0, 4, 0);
+            TextAlign = HorizontalAlignment.Left;
+
+            if (initButtons)
+            {
+                uwfButtonIncrease = new RepeatButton();
+                uwfButtonIncrease.Anchor = AnchorStyles.Right | AnchorStyles.Top;
+                uwfButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
+                uwfButtonIncrease.Size = new Size(14, 8);
+                uwfButtonIncrease.Name = "_numericButtonIncrease";
+                uwfButtonIncrease.BackColor = Color.FromArgb(236, 236, 236);
+                uwfButtonIncrease.uwfBorderColor = Color.FromArgb(172, 172, 172);
+                uwfButtonIncrease.uwfHoverColor = Color.FromArgb(228, 241, 252);
+                uwfButtonIncrease.uwfBorderHoverColor = Color.FromArgb(126, 180, 234);
+                uwfButtonIncrease.Image = uwfAppOwner.Resources.NumericUp;
+                uwfButtonIncrease.Click += delegate { if (Enabled) Value += Increment; };
+
+                ButtonDecrease = new RepeatButton();
+                ButtonDecrease.Anchor = AnchorStyles.Right | AnchorStyles.Top;
+                ButtonDecrease.Location = new Point(Width - 16, Height / 2);
+                ButtonDecrease.Size = new Drawing.Size(14, 8);
+                ButtonDecrease.Name = "_numericButtonDecrease";
+                ButtonDecrease.BackColor = Color.FromArgb(236, 236, 236);
+                ButtonDecrease.uwfBorderColor = Color.FromArgb(172, 172, 172);
+                ButtonDecrease.uwfHoverColor = Color.FromArgb(228, 241, 252);
+                ButtonDecrease.uwfBorderHoverColor = Color.FromArgb(126, 180, 234);
+                ButtonDecrease.Image = uwfAppOwner.Resources.NumericDown;
+                ButtonDecrease.Click += delegate { if (Enabled) Value -= Increment; };
+
+                Controls.Add(uwfButtonIncrease);
+                Controls.Add(ButtonDecrease);
+            }
+
+            Resize += UpdateButtonsLocation;
+            LostFocus += (s, a) => { ConfirmValue(); };
+        }
+
+        public event EventHandler ValueChanged = delegate { };
+
         public decimal Increment { get; set; }
         public decimal Maximum
         {
-            get { return _maximum; }
+            get { return maximum; }
             set
             {
-                if (value < _minimum) _minimum = value;
-                _maximum = value;
-                if (this.value < _minimum) this.value = _minimum;
-                if (this.value > _maximum) this.value = _maximum;
+                if (value < minimum) minimum = value;
+                maximum = value;
+                if (this.value < minimum) this.value = minimum;
+                if (this.value > maximum) this.value = maximum;
             }
         }
         public decimal Minimum
         {
-            get { return _minimum; }
+            get { return minimum; }
             set
             {
-                if (value > _maximum) _maximum = value;
-                _minimum = value;
-                if (this.value < _minimum) this.value = _minimum;
-                if (this.value > _maximum) this.value = _maximum;
+                if (value > maximum) maximum = value;
+                minimum = value;
+                if (this.value < minimum) this.value = minimum;
+                if (this.value > maximum) this.value = maximum;
             }
         }
         public HorizontalAlignment TextAlign { get; set; }
@@ -64,57 +102,30 @@ namespace System.Windows.Forms
             }
         }
 
-        public NumericUpDown() : this(true)
+        internal Color uwfBorderColor
         {
-
+            get { return borderPen.Color; }
+            set { borderPen.Color = value; }
         }
-        public NumericUpDown(bool initButtons)
+        internal Button ButtonDecrease { get; private set; }
+        internal Button uwfButtonIncrease { get; private set; }
+        internal Color uwfDisabledColor { get; set; }
+
+        protected override Size DefaultSize
         {
-            BackColor = Color.FromArgb(250, 250, 250);
-            BorderColor = Color.FromArgb(175, 175, 175);
-            DisabledColor = Color.FromArgb(240, 240, 240);
-            Increment = 1;
-            Maximum = 100;
-            Minimum = 0;
-            Padding = new Padding(4, 0, 4, 0);
-            Size = new Drawing.Size(120, 20);
-            TextAlign = HorizontalAlignment.Left;
-
-            if (initButtons)
-            {
-                ButtonIncrease = new RepeatButton();
-                ButtonIncrease.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-                ButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
-                ButtonIncrease.Size = new Size(14, 8);
-                ButtonIncrease.Name = "_numericButtonIncrease";
-                ButtonIncrease.BackColor = Color.FromArgb(236, 236, 236);
-                ButtonIncrease.uwfBorderColor = Color.FromArgb(172, 172, 172);
-                ButtonIncrease.uwfHoverColor = Color.FromArgb(228, 241, 252);
-                ButtonIncrease.uwfBorderHoverColor = Color.FromArgb(126, 180, 234);
-                ButtonIncrease.Image = uwfAppOwner.Resources.NumericUp;
-                ButtonIncrease.Click += delegate { if (Enabled) Value += Increment; };
-
-                ButtonDecrease = new RepeatButton();
-                ButtonDecrease.Anchor = AnchorStyles.Right | AnchorStyles.Top;
-                ButtonDecrease.Location = new Point(Width - 16, Height / 2);
-                ButtonDecrease.Size = new Drawing.Size(14, 8);
-                ButtonDecrease.Name = "_numericButtonDecrease";
-                ButtonDecrease.BackColor = Color.FromArgb(236, 236, 236);
-                ButtonDecrease.uwfBorderColor = Color.FromArgb(172, 172, 172);
-                ButtonDecrease.uwfHoverColor = Color.FromArgb(228, 241, 252);
-                ButtonDecrease.uwfBorderHoverColor = Color.FromArgb(126, 180, 234);
-                ButtonDecrease.Image = uwfAppOwner.Resources.NumericDown;
-                ButtonDecrease.Click += delegate { if (Enabled) Value -= Increment; };
-
-                Controls.Add(ButtonIncrease);
-                Controls.Add(ButtonDecrease);
-            }
-
-            Resize += UpdateButtonsLocation;
-            LostFocus += (s, a) => { ConfirmValue(); };
+            get { return new Size(120, 20); }
         }
 
-        public event EventHandler ValueChanged = delegate { };
+        public void ShowButtons()
+        {
+            uwfButtonIncrease.Visible = true;
+            ButtonDecrease.Visible = true;
+        }
+        public void HideButtons()
+        {
+            uwfButtonIncrease.Visible = false;
+            ButtonDecrease.Visible = false;
+        }
 
         protected void ConfirmValue()
         {
@@ -122,12 +133,6 @@ namespace System.Windows.Forms
             if (decimal.TryParse(valueText, out value))
                 if (Value != value)
                     Value = value;
-        }
-        protected override void uwfOnLatePaint(PaintEventArgs e)
-        {
-            base.uwfOnLatePaint(e);
-
-            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
         protected override void OnKeyDown(KeyEventArgs e)
         {
@@ -152,10 +157,10 @@ namespace System.Windows.Forms
             var g = e.Graphics;
 
             int textPaddingRight = 0;
-            if (ButtonIncrease != null && ButtonIncrease.Visible)
+            if (uwfButtonIncrease != null && uwfButtonIncrease.Visible)
                 textPaddingRight = -16;
 
-            var backColor = Enabled ? BackColor : DisabledColor;
+            var backColor = Enabled ? BackColor : uwfDisabledColor;
             var foreColor = Enabled ? ForeColor : Color.Black;
 
             g.uwfFillRectangle(backColor, 0, 0, Width, Height);
@@ -165,23 +170,20 @@ namespace System.Windows.Forms
             else
                 g.uwfDrawString(valueText, Font, foreColor, Padding.Left, 0, Width + textPaddingRight, Height, TextAlign);
         }
-        protected void UpdateButtonsLocation(object sender, EventArgs e)
+
+        protected override void uwfOnLatePaint(PaintEventArgs e)
         {
-            if (ButtonIncrease != null)
-                ButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
-            if (ButtonDecrease != null)
-                ButtonDecrease.Location = new Point(Width - 16, Height / 2);
+            base.uwfOnLatePaint(e);
+
+            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
 
-        public void ShowButtons()
+        private void UpdateButtonsLocation(object sender, EventArgs e)
         {
-            ButtonIncrease.Visible = true;
-            ButtonDecrease.Visible = true;
-        }
-        public void HideButtons()
-        {
-            ButtonIncrease.Visible = false;
-            ButtonDecrease.Visible = false;
+            if (uwfButtonIncrease != null)
+                uwfButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
+            if (ButtonDecrease != null)
+                ButtonDecrease.Location = new Point(Width - 16, Height / 2);
         }
     }
 }

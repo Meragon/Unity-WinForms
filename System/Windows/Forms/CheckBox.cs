@@ -11,7 +11,6 @@
         {
             BackColor = Color.White;
             ForeColor = Color.Black;
-            Size = new Drawing.Size(128, 17);
             TextAlign = ContentAlignment.MiddleLeft;
 
             uwfBorderColor = Color.FromArgb(112, 112, 112);
@@ -44,6 +43,11 @@
                     OnCheckedChanged(EventArgs.Empty);
                 }
             }
+        }
+
+        protected override Size DefaultSize
+        {
+            get { return new Size(104, 24); }
         }
 
         protected virtual void OnCheckedChanged(EventArgs e)

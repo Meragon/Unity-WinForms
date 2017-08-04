@@ -47,7 +47,6 @@
             ScrollSpeed = 2;
             SelectionColor = Color.FromArgb(187, 222, 251);
             SelectionHoverColor = Color.FromArgb(221, 238, 253);
-            Size = new Size(121, 97);
             SmoothScrolling = true;
 
             Nodes = new TreeNodeCollection(root);
@@ -83,6 +82,11 @@
         public bool WrapText { get; set; }
 
         internal float ScrollIndex { get { return vScrollBar.Value; } set { vScrollBar.Value = (int)value; } }
+
+        protected override Size DefaultSize
+        {
+            get { return new Size(121, 97); }
+        }
 
         public void CollapseAll()
         {

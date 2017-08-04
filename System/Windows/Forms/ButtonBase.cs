@@ -30,7 +30,6 @@
             BackColor = Color.FromArgb(234, 234, 234);
             BackgroundImageLayout = ImageLayout.Center;
             ForeColor = Color.FromArgb(64, 64, 64);
-            Size = new Size(75, 23);
         }
 
         public FlatStyle FlatStyle
@@ -68,6 +67,11 @@
         {
             get { return textAlign; }
             set { textAlign = value; }
+        }
+
+        protected override Size DefaultSize
+        {
+            get { return new Size(75, 23); }
         }
 
         protected override void OnKeyUp(KeyEventArgs e)

@@ -171,7 +171,7 @@
 
             UpdateScrollRect();
 
-            ScrollEventArgs se = new ScrollEventArgs(type, oldValue, newValue, scrollOrientation);
+            var se = new ScrollEventArgs(type, oldValue, newValue, scrollOrientation);
             OnScroll(se);
             Value = se.NewValue;
         }
@@ -292,25 +292,23 @@
         {
             base.OnMouseUp(e);
 
-            if (scrollDraging == false)
-            {
-                var sEvent = ScrollEventType.LargeIncrement;
-                if (scrollRect.Contains(e.Location) == false)
-                {
-                    if (scrollOrientation == ScrollOrientation.HorizontalScroll)
-                    {
-                        if (scrollRect.X + scrollRect.Width / 2 > e.Location.X)
-                            sEvent = ScrollEventType.LargeDecrement;
-                    }
-                    else
-                    {
-                        if (scrollRect.Y + scrollRect.Height / 2 > e.Location.Y)
-                            sEvent = ScrollEventType.LargeDecrement;
-                    }
+            if (scrollDraging) return;
 
-                    DoScroll(sEvent);
-                }
+            var sEvent = ScrollEventType.LargeIncrement;
+            if (scrollRect.Contains(e.Location)) return;
+
+            if (scrollOrientation == ScrollOrientation.HorizontalScroll)
+            {
+                if (scrollRect.X + scrollRect.Width / 2 > e.Location.X)
+                    sEvent = ScrollEventType.LargeDecrement;
             }
+            else
+            {
+                if (scrollRect.Y + scrollRect.Height / 2 > e.Location.Y)
+                    sEvent = ScrollEventType.LargeDecrement;
+            }
+
+            DoScroll(sEvent);
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {

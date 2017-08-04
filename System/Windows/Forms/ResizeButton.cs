@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     internal sealed class ResizeButton : Button, IResizableControl
     {
-        private bool pressed;
         private readonly Form owner;
+        private bool pressed;
 
         public ResizeButton(Form form, Bitmap img)
         {
@@ -32,13 +28,6 @@ namespace System.Windows.Forms
             uwfBorderSelectColor = Color.Transparent;
 
             uwfAppOwner.UpClick += Owner_UpClick;
-        }
-
-        private void Owner_UpClick(object sender, MouseEventArgs e)
-        {
-            if (pressed)
-                Cursor.CurrentSystem = Cursors.Default;
-            pressed = false;
         }
 
         public ControlResizeTypes GetResizeAt(Point mclient)
@@ -72,6 +61,13 @@ namespace System.Windows.Forms
 
             if (pressed == false)
                 Cursor.CurrentSystem = Cursors.Default;
+        }
+
+        private void Owner_UpClick(object sender, MouseEventArgs e)
+        {
+            if (pressed)
+                Cursor.CurrentSystem = Cursors.Default;
+            pressed = false;
         }
     }
 }

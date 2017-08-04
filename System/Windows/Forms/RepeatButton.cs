@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
-    public class RepeatButton : Button
+    internal class RepeatButton : Button
     {
         private bool mdown = false;
         private bool repeatClick = false;
@@ -14,7 +8,13 @@ namespace System.Windows.Forms
         private float repeatCooldownCurrent = 0;
         private float repeatCooldownMin = .1f;
         private float repeatStartCooldown = .4f;
-        
+
+        public RepeatButton()
+        {
+            uwfAppOwner.UpClick += Owner_UpClick;
+            uwfAppOwner.UpdateEvent += Owner_UpdateEvent;
+        }
+
         public float CooldownBetweenClicks
         {
             get { return repeatCooldownMin; }
@@ -27,40 +27,6 @@ namespace System.Windows.Forms
         {
             get { return repeatStartCooldown; }
             set { repeatStartCooldown = value; }
-        }
-
-        public RepeatButton()
-        {
-            uwfAppOwner.UpClick += Owner_UpClick;
-            uwfAppOwner.UpdateEvent += Owner_UpdateEvent;
-        }
-
-        private void Owner_UpClick(object sender, MouseEventArgs e)
-        {
-            mdown = false;
-            repeatClick = false;
-        }
-        private void Owner_UpdateEvent()
-        {
-            if (repeatClick)
-            {
-                if (repeatCooldownCurrent <= 0)
-                {
-                    PerformClick();
-
-                    repeatCooldown = repeatCooldownMin;
-                    repeatCooldownCurrent = repeatCooldown;
-                }
-                else
-                    repeatCooldownCurrent -= swfHelper.GetDeltaTime();
-            }
-        }
-        private void StartRepeat()
-        {
-            mdown = true;
-            repeatClick = true;
-            repeatCooldown = repeatStartCooldown;
-            repeatCooldownCurrent = repeatCooldown;
         }
 
         protected override void Dispose(bool release_all)
@@ -99,6 +65,34 @@ namespace System.Windows.Forms
             base.OnMouseLeave(e);
 
             repeatClick = false;
+        }
+
+        private void Owner_UpClick(object sender, MouseEventArgs e)
+        {
+            mdown = false;
+            repeatClick = false;
+        }
+        private void Owner_UpdateEvent()
+        {
+            if (repeatClick)
+            {
+                if (repeatCooldownCurrent <= 0)
+                {
+                    PerformClick();
+
+                    repeatCooldown = repeatCooldownMin;
+                    repeatCooldownCurrent = repeatCooldown;
+                }
+                else
+                    repeatCooldownCurrent -= swfHelper.GetDeltaTime();
+            }
+        }
+        private void StartRepeat()
+        {
+            mdown = true;
+            repeatClick = true;
+            repeatCooldown = repeatStartCooldown;
+            repeatCooldownCurrent = repeatCooldown;
         }
     }
 }

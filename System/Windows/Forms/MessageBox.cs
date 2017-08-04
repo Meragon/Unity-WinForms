@@ -38,7 +38,7 @@
             GroupBox formGroup = new GroupBox();
             formGroup.Anchor = AnchorStyles.Left | AnchorStyles.Bottom | AnchorStyles.Right | AnchorStyles.Top;
             formGroup.BackColor = Color.White;
-            formGroup.BorderColor = form.uwfBorderColor;
+            formGroup.uwfBorderColor = form.uwfBorderColor;
             formGroup.Size = new Size(form.Width - 16, form.Height - (int)form.uwfHeaderHeight - 8 - 28);
             formGroup.Location = new Point(8, (int)form.uwfHeaderHeight);
 
