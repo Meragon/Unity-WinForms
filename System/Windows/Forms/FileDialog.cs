@@ -266,12 +266,6 @@
                 }
             }
         }
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            base.OnPaint(e);
-
-            e.Graphics.DrawLine(borderPen, 1, uwfHeaderHeight, Width - 1, uwfHeaderHeight);
-        }
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);

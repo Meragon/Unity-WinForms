@@ -186,6 +186,7 @@
 
             barX = 0;
             barWidth = MathHelper.Step(barWidth, (value / maximum) * Width, 200);
+            updatePos = false;
         }
         private void UpdatePos()
         {
