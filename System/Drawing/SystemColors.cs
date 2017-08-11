@@ -10,7 +10,7 @@
         public static readonly Color ButtonFace = Color.FromArgb(240, 240, 240);
         public static readonly Color ButtonHighlight = Color.FromArgb(255, 255, 255);
         public static readonly Color ButtonShadow = Color.FromArgb(160, 160, 160);
-        public static readonly Color Control = Color.FromArgb(245, 245, 245);
+        public static readonly Color Control = Color.FromArgb(240, 240, 240);
         public static readonly Color ControlDark = Color.FromArgb(160, 160, 160);
         public static readonly Color ControlDarkDark = Color.FromArgb(105, 105, 105);
         public static readonly Color ControlLight = Color.FromArgb(227, 227, 227);

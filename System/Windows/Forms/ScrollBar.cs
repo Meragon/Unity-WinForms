@@ -110,17 +110,17 @@
             get { return value; }
             set
             {
-                bool changed = this.value != value;
+                if (this.value == value)
+                    return;
+
                 this.value = value;
                 if (this.value > Maximum)
                     this.value = Maximum;
                 if (this.value < Minimum)
                     this.value = Minimum;
-                if (changed)
-                {
-                    UpdateScrollRect();
-                    OnValueChanged(EventArgs.Empty);
-                }
+
+                UpdateScrollRect();
+                OnValueChanged(EventArgs.Empty);
             }
         }
 
@@ -373,7 +373,7 @@
         {
             ValueChanged(this, e);
         }
-        
+
         private void Owner_UpClick(object sender, MouseEventArgs e)
         {
             if (scrollDraging)
@@ -440,9 +440,9 @@
             if (valueDl == 0) return;
 
             if (scrollOrientation == ScrollOrientation.HorizontalScroll)
-                value = (int)(((valueRange - largeChange + 1) * (scrollRect.X - subtractButton.Location.X - subtractButton.Width)) / valueDl);
+                value = (int)(((valueRange - largeChange + 1) * (long)(scrollRect.X - subtractButton.Location.X - subtractButton.Width)) / valueDl);
             else
-                value = (int)(((valueRange - largeChange + 1) * (scrollRect.Y - subtractButton.Location.Y - subtractButton.Height)) / valueDl);
+                value = (int)(((valueRange - largeChange + 1) * (long)(scrollRect.Y - subtractButton.Location.Y - subtractButton.Height)) / valueDl);
             value = MathHelper.Clamp(value, minimum, maximum);
             OnValueChanged(EventArgs.Empty);
         }

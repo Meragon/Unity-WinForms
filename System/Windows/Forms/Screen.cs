@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     public class Screen
     {
+        internal static int height;
+        internal static int width;
+
         private static Screen primaryScreen;
         private Rectangle workingArea;
 
@@ -18,13 +17,13 @@ namespace System.Windows.Forms
                 if (primaryScreen == null)
                 {
                     primaryScreen = new Screen();
-                    primaryScreen.workingArea = new Rectangle(0, 0, (int)(UnityEngine.Screen.width / Application.ScaleX), (int)(UnityEngine.Screen.height / Application.ScaleY));
+                    primaryScreen.workingArea = new Rectangle(0, 0, width, height);
                 }
                 else
                 {
-                    if (primaryScreen.workingArea.Width != (UnityEngine.Screen.width / Application.ScaleX) ||
-                        primaryScreen.workingArea.Height != (UnityEngine.Screen.height / Application.ScaleY))
-                        primaryScreen.workingArea = new Rectangle(0, 0, (int)(UnityEngine.Screen.width / Application.ScaleX), (int)(UnityEngine.Screen.height / Application.ScaleY));
+                    if (primaryScreen.workingArea.Width != width ||
+                        primaryScreen.workingArea.Height != height)
+                        primaryScreen.workingArea = new Rectangle(0, 0, width, height);
                 }
                 return primaryScreen;
             }

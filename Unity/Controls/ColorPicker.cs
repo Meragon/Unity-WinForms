@@ -48,7 +48,7 @@
         }
         protected override void OnMouseClick(MouseEventArgs e)
         {
-            var colorPickerForm = new ColorPickerForm(this);
+            var colorPickerForm = new ColorPickerForm();
             colorPickerForm.Color = Color;
             colorPickerForm.ColorChanged += (sender, args) =>
             {

@@ -55,6 +55,9 @@
         {
             gResources = Resources;
 
+            Screen.width = (int)(UE.Screen.width / Application.ScaleX);
+            Screen.height = (int)(UE.Screen.height / Application.ScaleY);
+
             Graphics.ApiGraphics = ApiHolder.Graphics;
 
             // Enum + dictionary?
@@ -107,9 +110,15 @@
         }
         private void Update()
         {
+            var ueScreenWidth = UE.Screen.width;
+            var ueScreenHeight = UE.Screen.height;
+
+            Screen.width = (int)(ueScreenWidth / Application.ScaleX);
+            Screen.height = (int)(ueScreenHeight / Application.ScaleY);
+
             if (controller != null)
             {
-                if (lastWidth != UE.Screen.width || lastHeight != UE.Screen.height)
+                if (lastWidth != ueScreenWidth || lastHeight != ueScreenHeight)
                 {
                     Size deltaSize = new Size(
                         (int)(lastWidth - UE.Screen.width),
@@ -120,8 +129,8 @@
                         controller.Forms[i].uwfAddjustSizeToScreen(deltaSize);
                     controller.UpdatePaintClipRect();
                 }
-                lastWidth = UE.Screen.width;
-                lastHeight = UE.Screen.height;
+                lastWidth = ueScreenWidth;
+                lastHeight = ueScreenHeight;
 
                 controller.Update();
             }

@@ -100,8 +100,7 @@
             {
                 if (Button(value.ToString()))
                 {
-                    ColorPicker colorPicker = new ColorPicker();
-                    ColorPickerForm colorForm = new ColorPickerForm(colorPicker);
+                    var colorForm = new ColorPickerForm();
                     colorForm.Color = value;
                     colorForm.Show();
                     colorForm.ColorChanged += (s, a) =>

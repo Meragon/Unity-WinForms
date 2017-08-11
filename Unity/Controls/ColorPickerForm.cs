@@ -23,7 +23,7 @@ namespace System.Windows.Forms
 
         private Color color;
 
-        public ColorPickerForm(ColorPicker owner)
+        public ColorPickerForm()
         {
             borderPen = new Pen(Color.FromArgb(204, 206, 219));
 

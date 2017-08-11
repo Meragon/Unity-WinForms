@@ -120,6 +120,16 @@
             if (Control.lastSelected != null && Control.lastSelected.IsDisposed == false)
             {
                 var keyControl = Control.lastSelected;
+
+                // Tab switching through controls.
+                if (TabSwitching && Event.current.keyCode == KeyCode.Tab && keyEventType == KeyEvents.Down)
+                {
+                    if (Event.current.modifiers == EventModifiers.None)
+                        NextTabControl(keyControl);
+                    else if (Event.current.modifiers == EventModifiers.Shift)
+                        PrevTabControl(keyControl);
+                }
+
                 var parentForm = GetParentForm(Control.lastSelected);
                 if (parentForm != null && parentForm.KeyPreview)
                     RaiseKeyEvent(args, keyEventType, parentForm); // Raise key event if keyPreview is used.
@@ -249,6 +259,7 @@
             {
                 dragndrop = false;
                 dragData = null;
+                dragRender = null;
             }
 
             if (hoveredControl != null)
@@ -268,7 +279,7 @@
                 MouseHook.RaiseMouseUp(hoveredControl, upArgs);
             }
         }
-        public void ProccessMouse(System.Drawing.PointF mousePosition)
+        public void ProccessMouse(PointF mousePosition)
         {
             ProccessMouse(mousePosition.X, mousePosition.Y);
         }
@@ -430,8 +441,9 @@
             if (control.Visible == false) return false;
 
             var co = control.uwfOffset;
-            var controlLocationX = control.Location.X;
-            var controlLocationY = control.Location.Y;
+            var controlLocation = control.Location;
+            var controlLocationX = controlLocation.X;
+            var controlLocationY = controlLocation.Y;
             var controluwfOffsetX = co.X;
             var controluwfOffsetY = co.Y;
             var controlWidth = control.Width;
@@ -482,7 +494,7 @@
             var possibleControls = formControls.FindAll(x => x.IsDisposed == false && x.CanSelect && x.TabStop);
             if (possibleControls.Count == 0) return;
 
-            possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
+            possibleControls.Sort(TabComparison);
 
             int controlIndex = possibleControls.FindIndex(x => x == control);
 
@@ -502,7 +514,7 @@
             var possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.CanSelect && x.TabStop);
             if (possibleControls.Count == 0) return;
 
-            possibleControls.Sort((x, y) => x.TabIndex.CompareTo(y.TabIndex));
+            possibleControls.Sort(TabComparison);
 
             int controlIndex = possibleControls.FindIndex(x => x == control);
 
@@ -513,7 +525,7 @@
         }
         internal void UpdatePaintClipRect()
         {
-            paintEventArgs.ClipRectangle = new Drawing.Rectangle(0, 0, Screen.PrimaryScreen.WorkingArea.Width, Screen.PrimaryScreen.WorkingArea.Height);
+            paintEventArgs.ClipRectangle = new Rectangle(0, 0, Screen.width, Screen.height);
         }
 
         private static bool Contains(Control parent, Control child)
@@ -531,7 +543,7 @@
 
             return false;
         }
-        private static Control FindControlAt(Control currentControl, System.Drawing.Point position)
+        private static Control FindControlAt(Control currentControl, Point position)
         {
             for (int i = currentControl.Controls.Count - 1; i >= 0; i--)
             {
@@ -560,7 +572,7 @@
                 }
             }
         }
-        private static Control _ParentContains(Control control, System.Drawing.PointF mousePosition, Control currentControl, ref bool ok)
+        private static Control _ParentContains(Control control, PointF mousePosition, Control currentControl, ref bool ok)
         {
             //Application.Log(control.Name);
             if (control == null || control.Parent == null) return currentControl;
@@ -574,7 +586,7 @@
 
             return _ParentContains(control.Parent, mousePosition, currentControl, ref ok);
         }
-        private static bool _ProcessControl(System.Drawing.PointF mousePosition, Control control, bool ignore_rect)
+        private static bool _ProcessControl(PointF mousePosition, Control control, bool ignore_rect)
         {
             // ignore_rect will call mouse_up & mouse_move in any case.
             var c_location = control.PointToScreen(System.Drawing.Point.Empty);
@@ -647,7 +659,22 @@
                 control.RaiseOnMouseLeave(null);
             return false;
         }
-        private void RaiseKeyEvent(KeyEventArgs args, KeyEvents keyEventType, Control keyControl)
+        private static int TabComparison(Control c1, Control c2)
+        {
+            if (c1.TabIndex >= 0 || c2.TabIndex >= 0)
+                return c1.TabIndex.CompareTo(c2.TabIndex);
+
+            var c1Location = c1.Location;
+            var c2Location = c2.Location;
+
+            if (c1Location.Y != c2Location.Y)
+                return c1Location.Y.CompareTo(c2Location.Y);
+            if (c1Location.X == c2Location.X)
+                return 0;
+
+            return c1Location.X.CompareTo(c2Location.X);
+        }
+        private static void RaiseKeyEvent(KeyEventArgs args, KeyEvents keyEventType, Control keyControl)
         {
             switch (keyEventType)
             {
@@ -659,16 +686,6 @@
                     pressArgs.uwfKeyArgs = args;
 
                     keyControl.RaiseOnKeyPress(pressArgs);
-
-                    // Tab switching through controls.
-                    if (TabSwitching && Event.current.keyCode == KeyCode.Tab)
-                    {
-                        if (Event.current.modifiers == EventModifiers.None)
-                            NextTabControl(Control.lastSelected);
-                        else if (Event.current.modifiers == EventModifiers.Shift)
-                            PrevTabControl(Control.lastSelected);
-                    }
-
                     break;
                 case KeyEvents.Up:
                     currentKeyDown = Keys.None;
@@ -676,7 +693,7 @@
                     break;
             }
         }
-        private Control _ControlAt(System.Drawing.Point mousePosition)
+        private Control _ControlAt(Point mousePosition)
         {
             Control control = null;
 

@@ -1,20 +1,62 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Collections.Generic;
+    using System.Drawing;
+    using System.Linq;
+
     /// <summary>
     /// Simple implementation of DataGridView.
     /// </summary>
     public class TableView : Control
     {
+        public int ColumnsDefaultWidth = 100;
+
+        internal TableColumn lastSortedColumn;
+
+        protected int topLeftButtonWidth = 40;
+
+        private readonly Pen borderPen = new Pen(Color.Black);
         private bool columnHeadersHidden;
         private HScrollBar hScroll;
         private bool hScrollHidden;
-        internal TableColumn lastSortedColumn;
+        private bool rowHeadersHidden;
+        private TableColumnButton topLeftButton;
+        private VScrollBar vScroll;
+        private bool vScrollHidden;
+
+        public TableView()
+        {
+            BackColor = Color.FromArgb(171, 171, 171);
+            CellPadding = 1;
+            ColumnsStyle = new TableButtonStyle();
+            Padding = new Padding(2);
+            SkipControlsInitializations = false;
+
+            Columns = new TableColumnCollection(this);
+            Rows = new TableRowCollection(this);
+        }
+
+        public delegate void RowClickContext(TableRow row, MouseEventArgs mArgs);
+
+        public event RowClickContext OnRowClick = delegate { };
+
+        public Color BorderColor
+        {
+            get { return borderPen.Color; }
+            set { borderPen.Color = value; }
+        }
+        public int CellPadding { get; set; }
+        public int ColumnCount { get { return Columns.Count; } }
+        public TableColumnCollection Columns { get; private set; }
+        public TableButtonStyle ColumnsStyle { get; set; }
+        public TableRowCollection Rows { get; private set; }
+        public bool SkipControlsInitializations { get; set; }
+
+        protected override Size DefaultSize
+        {
+            get { return new Size(240, 150); }
+        }
+
         private float maxScrollHeight
         {
             get
@@ -39,219 +81,113 @@ namespace System.Windows.Forms
                 return w;
             }
         }
-        private bool rowHeadersHidden;
-        private TableColumnButton topLeftButton;
-        private VScrollBar vScroll;
-        private bool vScrollHidden;
 
-        protected int topLeftButtonWidth = 40;
-
-        public int ColumnsDefaultWidth = 100;
-
-        public Color BorderColor { get; set; }
-        public int CellPadding { get; set; }
-        public int ColumnCount { get { return Columns.Count; } }
-        public TableColumnCollection Columns { get; private set; }
-        public TableButtonStyle ColumnsStyle { get; set; }
-        public TableRowCollection Rows { get; private set; }
-        public bool SkipControlsInitializations { get; set; }
-
-        public TableView()
+        public void HideColumnHeaders()
         {
-            BackColor = Color.FromArgb(171, 171, 171);
-            BorderColor = Color.Black;
-            CellPadding = 1;
-            ColumnsStyle = new TableButtonStyle();
-            Padding = new Padding(2);
-            SkipControlsInitializations = false;
+            columnHeadersHidden = true;
 
-            Columns = new TableColumnCollection(this);
-            Rows = new TableRowCollection(this);
-
-            Size = new Size(240, 150);
+            UpdateColumns();
         }
-
-        private void CreateTopLeftButton()
+        public void HideRowHeaders()
         {
-            if (rowHeadersHidden)
+            rowHeadersHidden = true;
+
+            UpdateRows();
+        }
+        public void HideScrolls()
+        {
+            hScrollHidden = true;
+            vScrollHidden = true;
+
+            if (hScroll != null) hScroll.Visible = !hScrollHidden;
+            if (vScroll != null) vScroll.Visible = !vScrollHidden;
+        }
+        public override void Refresh()
+        {
+            base.Refresh();
+
+            AlignColumns();
+            AlignRows();
+        }
+        public void ShowColumnHeaders()
+        {
+            columnHeadersHidden = false;
+
+            UpdateColumns();
+        }
+        public void ShowRowHeaders()
+        {
+            rowHeadersHidden = false;
+
+            UpdateRows();
+        }
+        public void ShowScrolls()
+        {
+            hScrollHidden = false;
+            vScrollHidden = false;
+
+            if (hScroll != null) hScroll.Visible = !hScrollHidden;
+            if (vScroll != null) vScroll.Visible = !vScrollHidden;
+        }
+        public virtual void Sort(TableColumn column, ListSortDirection direction)
+        {
+            if (column == null) return;
+
+            int columnIndex = Columns.FindIndex(column);
+            Dictionary<TableRow, object[]> items = new Dictionary<TableRow, object[]>();
+            for (int i = 0; i < Rows.Count; i++)
             {
-                if (topLeftButton != null && topLeftButton.IsDisposed == false)
+                var r = Rows[i];
+                items.Add(r, r.Items);
+            }
+
+            var itemsList = items.ToList();
+            if (direction == ListSortDirection.Ascending)
+                itemsList.Sort((x, y) =>
                 {
-                    topLeftButton.Dispose();
-                    topLeftButton = null;
-                }
-                return;
-            }
+                    var v1 = x.Value[columnIndex];
+                    var v2 = y.Value[columnIndex];
 
-            if (topLeftButton == null)
-            {
-                topLeftButton = new TableColumnButton(this, ColumnsStyle);
-                topLeftButton.Name = "topLeftButton";
-                topLeftButton.Size = new Size(topLeftButtonWidth, 20);
-                Controls.Add(topLeftButton);
-            }
+                    if (v1 == null && v2 == null)
+                        return 0;
 
-            topLeftButton.Visible = !rowHeadersHidden && !columnHeadersHidden;
-        }
-        private void EnsureVisibleChild(Control child)
-        {
-            var childOffset = child.uwfOffset;
-            bool horizontalScroll_Left = child.Location.X + childOffset.X < 0;
-            bool horizontalScroll_Right = child.Location.X + childOffset.X + child.Width > Width;
-            bool verticalScroll_Top = child.Location.Y + childOffset.Y < 0;
-            bool verticalScroll_Bottom = child.Location.Y + childOffset.Y + child.Height > Height;
+                    if (v1 == null)
+                        return -1;
+                    if (v2 == null)
+                        return 1;
 
-            if (hScroll != null && Width > 0 && (horizontalScroll_Left || horizontalScroll_Right))
-            {
-                var hRange = hScroll.Maximum - hScroll.Minimum;
-                int estimatedPos;
-                if (horizontalScroll_Right)
-                    estimatedPos = child.Location.X + child.Width - Width;
-                else
-                    estimatedPos = child.Location.X;
-
-                hScroll.Value = (int)((float)hRange * estimatedPos / maxScrollWidth);
-            }
-
-            if (vScroll != null && Height > 0 && (verticalScroll_Top || verticalScroll_Bottom))
-            {
-                var vRange = vScroll.Maximum - vScroll.Minimum;
-                int estimatedPos;
-                if (verticalScroll_Bottom)
+                    var we = v1.ToString().CompareTo(v2.ToString());
+                    return we;
+                });
+            else
+                itemsList.Sort((x, y) =>
                 {
-                    estimatedPos = child.Location.Y + child.Height - Height;
-                    if (hScroll != null)
-                        estimatedPos += hScroll.Height;
-                }
-                else
-                    estimatedPos = child.Location.Y;
+                    var v1 = x.Value[columnIndex];
+                    var v2 = y.Value[columnIndex];
 
-                vScroll.Value = (int)((float)vRange * estimatedPos / maxScrollHeight);
-            }
-        }
-        private void HScroll_ValueChanged(object sender, EventArgs e)
-        {
-            int offsetX = -(int)((float)(maxScrollWidth * hScroll.Value) / 100);
-            for (int i = 0; i < Controls.Count; i++)
-            {
-                var c = Controls[i];
-                if (c is ScrollBar) continue;
+                    if (v1 == null && v2 == null)
+                        return 0;
 
-                var offset = c.uwfOffset;
-                c.uwfOffset = new Point(offsetX, offset.Y);
-            }
-        }
-        private void ResetHOffset()
-        {
-            for (int i = 0; i < Controls.Count; i++)
-            {
-                var c = Controls[i];
-                var co = c.uwfOffset;
-                c.uwfOffset = new Point(0, co.Y);
-            }
-        }
-        private void ResetVOffset()
-        {
-            for (int i = 0; i < Controls.Count; i++)
-            {
-                var c = Controls[i];
-                var co = c.uwfOffset;
-                c.uwfOffset = new Point(co.X, 0);
-            }
-        }
-        private void VScroll_ValueChanged(object sender, EventArgs e)
-        {
-            int offseY = -(int)((float)(maxScrollHeight * vScroll.Value) / 100);
-            for (int i = 0; i < Controls.Count; i++)
-            {
-                var c = Controls[i];
-                if (c is ScrollBar) continue;
+                    if (v1 == null)
+                        return 1;
+                    if (v2 == null)
+                        return -1;
 
-                var co = c.uwfOffset;
-                c.uwfOffset = new Point(co.X, offseY);
-            }
-        }
-        private void UpdateScrolls()
-        {
-            // Create or dispose scrolls.
-            if (Rows.Count > 0)
-            {
-                if (Height < maxScrollHeight)
-                {
-                    if (vScroll == null)
-                    {
-                        vScroll = new VScrollBar();
-                        vScroll.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-                        vScroll.Height = Height;
-                        vScroll.Location = new Point(Width - vScroll.Width, 0);
-                        vScroll.ValueChanged += VScroll_ValueChanged;
-                        vScroll.Visible = !vScrollHidden;
-                        Controls.Add(vScroll);
-                    }
-                }
-                else if (vScroll != null)
-                {
-                    vScroll.ValueChanged -= VScroll_ValueChanged;
-                    vScroll.Dispose();
-                    vScroll = null;
-                    ResetVOffset();
-                }
-            }
-            else if (vScroll != null)
-            {
-                vScroll.ValueChanged -= VScroll_ValueChanged;
-                vScroll.Dispose();
-                vScroll = null;
-                ResetVOffset();
-            }
+                    var we = v1.ToString().CompareTo(v2.ToString());
+                    return -we;
+                });
 
-            if (Columns.Count > 0)
-            {
-                if (Width < maxScrollWidth)
-                {
-                    if (hScroll == null)
-                    {
-                        hScroll = new HScrollBar();
-                        hScroll.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-                        hScroll.Width = Width;
-                        hScroll.Location = new Point(0, Height - hScroll.Height);
-                        hScroll.ValueChanged += HScroll_ValueChanged;
-                        hScroll.Visible = !hScrollHidden;
-                        Controls.Add(hScroll);
-                    }
-                }
-                else if (hScroll != null)
-                {
-                    hScroll.ValueChanged -= HScroll_ValueChanged;
-                    hScroll.Dispose();
-                    hScroll = null;
-                    ResetHOffset();
-                }
-            }
-            else if (vScroll != null)
-            {
-                vScroll.ValueChanged -= VScroll_ValueChanged;
-                vScroll.Dispose();
-                vScroll = null;
-                ResetHOffset();
-            }
+            Rows.ClearList();
 
-            // Update properties.
-            if (vScroll != null)
-            {
-                vScroll.LargeChange = (int)((float)(vScroll.Maximum - vScroll.Minimum) / ((float)maxScrollHeight / Height));
-                vScroll.BringToFront();
-            }
-            if (hScroll != null)
-            {
-                if (vScroll != null)
-                    hScroll.Width = Width - vScroll.Width;
-                else
-                    hScroll.Width = Width;
+            for (int i = 0; i < itemsList.Count; i++)
+                Rows.Add(itemsList[i].Key);
 
-                hScroll.LargeChange = (int)((float)(hScroll.Maximum - hScroll.Minimum) / ((float)maxScrollWidth / Width));
-                hScroll.BringToFront();
-            }
+            AlignRows();
+
+            if (lastSortedColumn != null)
+                lastSortedColumn.control.Padding = new Padding(8, 0, 8, 0);
+            lastSortedColumn = column;
+            lastSortedColumn.control.Padding = new Padding(24, 0, 8, 0);
         }
 
         internal void AlignColumns()
@@ -417,7 +353,7 @@ namespace System.Windows.Forms
         }
         protected override void uwfOnLatePaint(PaintEventArgs e)
         {
-            e.Graphics.DrawRectangle(new Pen(BorderColor), 0, 0, Width, Height);
+            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -436,133 +372,205 @@ namespace System.Windows.Forms
             EnsureVisibleChild(child);
         }
 
-        public void HideColumnHeaders()
+        private void CreateTopLeftButton()
         {
-            columnHeadersHidden = true;
-
-            UpdateColumns();
-        }
-        public void HideRowHeaders()
-        {
-            rowHeadersHidden = true;
-
-            UpdateRows();
-        }
-        public void HideScrolls()
-        {
-            hScrollHidden = true;
-            vScrollHidden = true;
-
-            if (hScroll != null) hScroll.Visible = !hScrollHidden;
-            if (vScroll != null) vScroll.Visible = !vScrollHidden;
-        }
-        public override void Refresh()
-        {
-            base.Refresh();
-
-            AlignColumns();
-            AlignRows();
-        }
-        public void ShowColumnHeaders()
-        {
-            columnHeadersHidden = false;
-
-            UpdateColumns();
-        }
-        public void ShowRowHeaders()
-        {
-            rowHeadersHidden = false;
-
-            UpdateRows();
-        }
-        public void ShowScrolls()
-        {
-            hScrollHidden = false;
-            vScrollHidden = false;
-
-            if (hScroll != null) hScroll.Visible = !hScrollHidden;
-            if (vScroll != null) vScroll.Visible = !vScrollHidden;
-        }
-        public virtual void Sort(TableColumn column, ListSortDirection direction)
-        {
-            if (column == null) return;
-
-            int columnIndex = Columns.FindIndex(column);
-            Dictionary<TableRow, object[]> items = new Dictionary<TableRow, object[]>();
-            for (int i = 0; i < Rows.Count; i++)
+            if (rowHeadersHidden)
             {
-                var r = Rows[i];
-                items.Add(r, r.Items);
+                if (topLeftButton != null && topLeftButton.IsDisposed == false)
+                {
+                    topLeftButton.Dispose();
+                    topLeftButton = null;
+                }
+                return;
             }
 
-            var itemsList = items.ToList();
-            if (direction == ListSortDirection.Ascending)
-                itemsList.Sort((x, y) =>
-                {
-                    var v1 = x.Value[columnIndex];
-                    var v2 = y.Value[columnIndex];
+            if (topLeftButton == null)
+            {
+                topLeftButton = new TableColumnButton(this, ColumnsStyle);
+                topLeftButton.Name = "topLeftButton";
+                topLeftButton.Size = new Size(topLeftButtonWidth, 20);
+                Controls.Add(topLeftButton);
+            }
 
-                    if (v1 == null && v2 == null)
-                        return 0;
-
-                    if (v1 == null)
-                        return -1;
-                    if (v2 == null)
-                        return 1;
-
-                    var we = v1.ToString().CompareTo(v2.ToString());
-                    return we;
-                });
-            else
-                itemsList.Sort((x, y) =>
-                {
-                    var v1 = x.Value[columnIndex];
-                    var v2 = y.Value[columnIndex];
-
-                    if (v1 == null && v2 == null)
-                        return 0;
-
-                    if (v1 == null)
-                        return 1;
-                    if (v2 == null)
-                        return -1;
-
-                    var we = v1.ToString().CompareTo(v2.ToString());
-                    return -we;
-                });
-
-            Rows.ClearList();
-
-            for (int i = 0; i < itemsList.Count; i++)
-                Rows.Add(itemsList[i].Key);
-
-            AlignRows();
-
-            if (lastSortedColumn != null)
-                lastSortedColumn.control.Padding = new Padding(8, 0, 8, 0);
-            lastSortedColumn = column;
-            lastSortedColumn.control.Padding = new Padding(24, 0, 8, 0);
+            topLeftButton.Visible = !rowHeadersHidden && !columnHeadersHidden;
         }
+        private void EnsureVisibleChild(Control child)
+        {
+            var childOffset = child.uwfOffset;
+            bool horizontalScroll_Left = child.Location.X + childOffset.X < 0;
+            bool horizontalScroll_Right = child.Location.X + childOffset.X + child.Width > Width;
+            bool verticalScroll_Top = child.Location.Y + childOffset.Y < 0;
+            bool verticalScroll_Bottom = child.Location.Y + childOffset.Y + child.Height > Height;
 
-        public event RowClickContext OnRowClick = delegate { };
+            if (hScroll != null && Width > 0 && (horizontalScroll_Left || horizontalScroll_Right))
+            {
+                var hRange = hScroll.Maximum - hScroll.Minimum;
+                int estimatedPos;
+                if (horizontalScroll_Right)
+                    estimatedPos = child.Location.X + child.Width - Width;
+                else
+                    estimatedPos = child.Location.X;
 
-        public delegate void RowClickContext(TableRow row, MouseEventArgs mArgs);
+                hScroll.Value = (int)((float)hRange * estimatedPos / maxScrollWidth);
+            }
+
+            if (vScroll != null && Height > 0 && (verticalScroll_Top || verticalScroll_Bottom))
+            {
+                var vRange = vScroll.Maximum - vScroll.Minimum;
+                int estimatedPos;
+                if (verticalScroll_Bottom)
+                {
+                    estimatedPos = child.Location.Y + child.Height - Height;
+                    if (hScroll != null)
+                        estimatedPos += hScroll.Height;
+                }
+                else
+                    estimatedPos = child.Location.Y;
+
+                vScroll.Value = (int)((float)vRange * estimatedPos / maxScrollHeight);
+            }
+        }
+        private void HScroll_ValueChanged(object sender, EventArgs e)
+        {
+            int offsetX = -(int)(maxScrollWidth * hScroll.Value / hScroll.Maximum);
+            var controlsCount = Controls.Count;
+            for (int i = 0; i < controlsCount; i++)
+            {
+                var c = Controls[i];
+                if (c is ScrollBar) continue;
+
+                var offset = c.uwfOffset;
+                c.uwfOffset = new Point(offsetX, offset.Y);
+            }
+        }
+        private void ResetHOffset()
+        {
+            for (int i = 0; i < Controls.Count; i++)
+            {
+                var c = Controls[i];
+                var co = c.uwfOffset;
+                c.uwfOffset = new Point(0, co.Y);
+            }
+        }
+        private void ResetVOffset()
+        {
+            for (int i = 0; i < Controls.Count; i++)
+            {
+                var c = Controls[i];
+                var co = c.uwfOffset;
+                c.uwfOffset = new Point(co.X, 0);
+            }
+        }
+        private void VScroll_ValueChanged(object sender, EventArgs e)
+        {
+            int offseY = -(int)(maxScrollHeight * vScroll.Value / vScroll.Maximum);
+            var controlsCount = Controls.Count;
+            for (int i = 0; i < controlsCount; i++)
+            {
+                var c = Controls[i];
+                if (c is ScrollBar) continue;
+
+                var co = c.uwfOffset;
+                c.uwfOffset = new Point(co.X, offseY);
+            }
+        }
+        private void UpdateScrolls()
+        {
+            // Create or dispose scrolls.
+            if (Rows.Count > 0)
+            {
+                if (Height < maxScrollHeight)
+                {
+                    if (vScroll == null)
+                    {
+                        vScroll = new VScrollBar();
+                        vScroll.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+                        vScroll.Height = Height;
+                        vScroll.Location = new Point(Width - vScroll.Width, 0);
+                        vScroll.ValueChanged += VScroll_ValueChanged;
+                        vScroll.Visible = !vScrollHidden;
+                        Controls.Add(vScroll);
+                    }
+                }
+                else if (vScroll != null)
+                {
+                    vScroll.ValueChanged -= VScroll_ValueChanged;
+                    vScroll.Dispose();
+                    vScroll = null;
+                    ResetVOffset();
+                }
+            }
+            else if (vScroll != null)
+            {
+                vScroll.ValueChanged -= VScroll_ValueChanged;
+                vScroll.Dispose();
+                vScroll = null;
+                ResetVOffset();
+            }
+
+            if (Columns.Count > 0)
+            {
+                if (Width < maxScrollWidth)
+                {
+                    if (hScroll == null)
+                    {
+                        hScroll = new HScrollBar();
+                        hScroll.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+                        hScroll.Width = Width;
+                        hScroll.Location = new Point(0, Height - hScroll.Height);
+                        hScroll.ValueChanged += HScroll_ValueChanged;
+                        hScroll.Visible = !hScrollHidden;
+                        Controls.Add(hScroll);
+                    }
+                }
+                else if (hScroll != null)
+                {
+                    hScroll.ValueChanged -= HScroll_ValueChanged;
+                    hScroll.Dispose();
+                    hScroll = null;
+                    ResetHOffset();
+                }
+            }
+            else if (vScroll != null)
+            {
+                vScroll.ValueChanged -= VScroll_ValueChanged;
+                vScroll.Dispose();
+                vScroll = null;
+                ResetHOffset();
+            }
+
+            // Update properties.
+            if (vScroll != null)
+            {
+                vScroll.Maximum = (int)maxScrollHeight;
+                vScroll.LargeChange = vScroll.Height;
+                vScroll.BringToFront();
+            }
+            if (hScroll != null)
+            {
+                if (vScroll != null)
+                    hScroll.Width = Width - vScroll.Width;
+                else
+                    hScroll.Width = Width;
+
+                hScroll.Maximum = (int)maxScrollWidth;
+                hScroll.LargeChange = hScroll.Width;
+                hScroll.BringToFront();
+            }
+        }
 
         internal class TableColumnButton : Button, IResizableControl
         {
+            internal TableColumn column;
+            internal ListSortDirection lastSortDirection;
+            internal TableView table;
+
             private Control prevButton;
             private resizeTypes resizeType = resizeTypes.None;
             private bool resizing = false;
             private Point resizeStartMouseLocation;
             private Point resizeStartLocation;
             private int resizeStartWidth;
-
-            internal TableColumn column;
-            internal ListSortDirection lastSortDirection;
-            internal TableView table;
-
-            public bool EnableHorizontalResizing { get; set; }
-            public int ResizeWidth { get; set; }
 
             public TableColumnButton(TableView t, TableButtonStyle style)
             {
@@ -580,12 +588,18 @@ namespace System.Windows.Forms
                 uwfAppOwner.UpClick += Owner_UpClick;
             }
 
-            private ListSortDirection GetNextSortDirection()
+            private enum resizeTypes
             {
-                if (lastSortDirection == ListSortDirection.Ascending)
-                    return ListSortDirection.Descending;
-                return ListSortDirection.Ascending;
+                None,
+                Down,
+                Left,
+                Right,
+                Up
             }
+
+            public bool EnableHorizontalResizing { get; set; }
+            public int ResizeWidth { get; set; }
+
             public ControlResizeTypes GetResizeAt(Point mclient)
             {
                 if (EnableHorizontalResizing)
@@ -597,11 +611,6 @@ namespace System.Windows.Forms
                 }
 
                 return ControlResizeTypes.None;
-            }
-            private void Owner_UpClick(object sender, MouseEventArgs e)
-            {
-                resizing = false;
-                resizeType = resizeTypes.None;
             }
 
             protected override void Dispose(bool release_all)
@@ -742,13 +751,16 @@ namespace System.Windows.Forms
                     }
             }
 
-            private enum resizeTypes
+            private ListSortDirection GetNextSortDirection()
             {
-                None,
-                Down,
-                Left,
-                Right,
-                Up
+                if (lastSortDirection == ListSortDirection.Ascending)
+                    return ListSortDirection.Descending;
+                return ListSortDirection.Ascending;
+            }
+            private void Owner_UpClick(object sender, MouseEventArgs e)
+            {
+                resizing = false;
+                resizeType = resizeTypes.None;
             }
         }
         internal class TableRowButton : Button

@@ -9,7 +9,6 @@
         {
             BackColor = Color.Transparent;
             Padding = new Padding(4, 0, 8, 0);
-            Size = new Size(128, 20);
             TabStop = false;
             TextAlign = ContentAlignment.TopLeft;
 

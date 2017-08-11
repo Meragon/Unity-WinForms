@@ -113,7 +113,6 @@
 
             ProccesNode(root);
             _UpdateScrollList();
-            _FixScrollIndex();
         }
 
         internal void EnsureVisible(TreeNode node)
@@ -126,7 +125,6 @@
 
             ScrollIndex = node.Bounds.Y;
 
-            _FixScrollIndex();
             _UpdateScrollList();
         }
 
@@ -194,7 +192,10 @@
         {
             base.OnMouseDown(e);
 
-            if (_SelectAtPosition(e) != null) NodeMouseClick(this, new TreeNodeMouseClickEventArgs(SelectedNode, e.Button, e.Clicks, e.X, e.Y));
+            if (_SelectAtPosition(e) == null)
+                return;
+
+            NodeMouseClick(this, new TreeNodeMouseClickEventArgs(SelectedNode, e.Button, e.Clicks, e.X, e.Y));
 
             dragNode = SelectedNode;
             drag = true;
@@ -221,8 +222,6 @@
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             ScrollIndex -= e.Delta * ScrollSpeed;
-
-            _FixScrollIndex();
         }
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -239,15 +238,15 @@
             for (int i = 0; i < scrollNodeList.Count; i++)
             {
                 var scrollNode = scrollNodeList[i];
-                
+
                 // Instead of creating new args every frame for each node, we will use only cached one.
                 // The problem is that you can't cache it somewhere else cause data in it will be always changing.
                 nodeArgs.Graphics = e.Graphics;
                 nodeArgs.Node = scrollNode;
                 nodeArgs.Bounds = scrollNode.Bounds;
                 nodeArgs.State = TreeNodeStates.Default;
-                
-                OnDrawNode(nodeArgs); 
+
+                OnDrawNode(nodeArgs);
             }
         }
         protected override void uwfOnLatePaint(PaintEventArgs e)
@@ -307,37 +306,18 @@
             dragNode = null;
             dragPosition = Point.Empty;
         }
-        private void _FixScrollIndex()
-        {
-            if (nodeList == null || nodeList.Count == 0)
-            {
-                ScrollIndex = 0;
-                return;
-            }
-
-            if (SmoothScrolling == false)
-                ScrollIndex = (float)Math.Ceiling(ScrollIndex / ItemHeight) * ItemHeight;
-
-            if (ScrollIndex > nodeList.Last().Bounds.Y + ItemHeight - Height) ScrollIndex = nodeList.Last().Bounds.Y + ItemHeight - Height;
-            if (ScrollIndex < 0) ScrollIndex = 0;
-        }
         private TreeNode _GetNodeAtPosition(TreeNode rootNode, Point position)
         {
-            if (rootNode != root && rootNode.IsVisible)
+            var scrollNodeListCount = scrollNodeList.Count;
+            for (int i = 0; i < scrollNodeListCount; i++)
             {
-                int nodeWidth = Width;
-                var rootNodeRect = new Rectangle(rootNode.Bounds.X, rootNode.Bounds.Y - (int)ScrollIndex, nodeWidth, rootNode.Bounds.Height);
-                if (UseNodeBoundsForSelection == false) rootNodeRect.X = 0;
-                if (rootNodeRect.Contains(position))
-                    return rootNode;
-            }
+                var node = scrollNodeList[i];
+                var nodeY = node.Bounds.Y - ScrollIndex;
+                var nodeH = node.Bounds.Height;
 
-            if (rootNode.IsExpanded)
-                for (int i = 0; i < rootNode.Nodes.Count; i++)
-                {
-                    var result = _GetNodeAtPosition(rootNode.Nodes[i], position);
-                    if (result != null) return result;
-                }
+                if (position.Y >= nodeY && position.Y < nodeY + nodeH)
+                    return node;
+            }
 
             return null;
         }
@@ -487,7 +467,6 @@
         }
         private void TreeView_Resize(object sender, EventArgs e)
         {
-            _FixScrollIndex();
             _UpdateScrollList();
             UpdateScrollBar();
         }
@@ -511,10 +490,12 @@
             if (startNode < 0) startNode = 0;
             int nodesOnScreen = Height / ItemHeight + 3; // Magic number.
 
-            for (int i = startNode; i < startNode + nodesOnScreen && i < nodeList.Count; i++)
+            var nodeListCount = nodeList.Count;
+            for (int i = startNode; i < startNode + nodesOnScreen && i < nodeListCount; i++)
             {
                 var node = nodeList[i];
-                if (node.Bounds.Y + node.Bounds.Height > 0 && node.Bounds.Y - (int)ScrollIndex < Height)
+                var nodeBounds = node.Bounds;
+                if (nodeBounds.Y + nodeBounds.Height > 0 && nodeBounds.Y - (int)ScrollIndex < Height)
                     scrollNodeList.Add(node);
             }
 

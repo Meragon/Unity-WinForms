@@ -465,7 +465,6 @@
 
             if (controls != null)
             {
-                var screenRect = Screen.PrimaryScreen.WorkingArea;
                 for (int i = 0; i < controls.Count; i++)
                 {
                     var childControl = controls[i];
@@ -476,9 +475,9 @@
                     var currentAbsposY = currentAbspos.Y;
 
                     if (currentAbsposX + childControl.width < 0 ||
-                        currentAbsposX > screenRect.Width ||
+                        currentAbsposX > Screen.width ||
                         currentAbsposY + childControl.height < 0 ||
-                        currentAbsposY > screenRect.Height)
+                        currentAbsposY > Screen.height)
                         continue;
 
                     childControl.RaiseOnPaint(e);
