@@ -66,6 +66,10 @@ public class AppResources
         [Tooltip("NumericUpDown")]
         public Image NumericUp;
 
+        public Image RadioButton_Checked;
+        public Image RadioButton_Hovered;
+        public Image RadioButton_Unchecked;
+
         [Tooltip("Tree")]
         public Image TreeNodeCollapsed;
 

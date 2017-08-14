@@ -20,6 +20,9 @@
         public Bitmap FormResize;
         public Bitmap NumericDown;
         public Bitmap NumericUp;
+        public Bitmap RadioButton_Checked;
+        public Bitmap RadioButton_Hovered;
+        public Bitmap RadioButton_Unchecked;
         public Bitmap TreeNodeCollapsed;
         public Bitmap TreeNodeExpanded;
 

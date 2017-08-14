@@ -31,7 +31,7 @@
             BorderColor = Color.DarkGray;
             BorderColorDisabled = Color.FromArgb(217, 217, 217);
             BorderColorHovered = Color.FromArgb(126, 180, 234);
-            DisabledColor = Color.FromArgb(239, 239, 239);
+            DisabledColor = SystemColors.Control;
             DropDownStyle = ComboBoxStyle.DropDown;
             HoverColor = Color.White;
             HoverColorDropDownList = Color.FromArgb(227, 240, 252);

@@ -268,11 +268,10 @@
             var parent = Parent;
             if (parent != null)
                 p = parent.PointToClient(p);
-
-            var location = Location;
+            
             var localuwfOffset = uwfOffset;
 
-            p.Offset(-location.X - localuwfOffset.X, -location.Y - localuwfOffset.Y);
+            p.Offset(-x - localuwfOffset.X, -y - localuwfOffset.Y);
             return p;
         }
         public Point PointToScreen(Point p)
@@ -280,11 +279,10 @@
             var parent = Parent;
             if (parent != null)
                 p = parent.PointToScreen(p);
-
-            var location = Location;
+            
             var localuwfOffset = uwfOffset;
 
-            p.Offset(location.X + localuwfOffset.X, location.Y + localuwfOffset.Y);
+            p.Offset(x + localuwfOffset.X, y + localuwfOffset.Y);
             return p;
         }
         public virtual void Refresh()
@@ -446,11 +444,12 @@
                         var shadowColor = defaultShadowColor;
                         var localWidth = Width;
                         var localHeight = Height;
-                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 6, shY + 6, localWidth - 12, localHeight - 12);
-                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 5, shY + 5, localWidth - 10, localHeight - 10);
-                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 4, shY + 4, localWidth - 8, localHeight - 8);
-                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 3, shY + 3, localWidth - 6, localHeight - 6);
-                        pArgs.Graphics.uwfFillRectangle(shadowColor, shX + 2, shY + 2, localWidth - 4, localHeight - 4);
+                        var graphics = pArgs.Graphics;
+                        graphics.uwfFillRectangle(shadowColor, shX + 6, shY + 6, localWidth - 12, localHeight - 12);
+                        graphics.uwfFillRectangle(shadowColor, shX + 5, shY + 5, localWidth - 10, localHeight - 10);
+                        graphics.uwfFillRectangle(shadowColor, shX + 4, shY + 4, localWidth - 8, localHeight - 8);
+                        graphics.uwfFillRectangle(shadowColor, shX + 3, shY + 3, localWidth - 6, localHeight - 6);
+                        graphics.uwfFillRectangle(shadowColor, shX + 2, shY + 2, localWidth - 4, localHeight - 4);
                     };
                 }
 

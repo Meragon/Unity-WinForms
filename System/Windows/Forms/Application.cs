@@ -142,10 +142,10 @@
         }
         public void ProccessMouse(float mouseX, float mouseY)
         {
-            if (ScaleX != 1f || ScaleY != 1f)
+            if (scaleX != 1f || scaleY != 1f)
             {
-                mouseX /= ScaleX;
-                mouseY /= ScaleY;
+                mouseX /= scaleX;
+                mouseY /= scaleY;
             }
 
             mouseEvent = MouseEvents.None;
@@ -296,8 +296,8 @@
         public void Redraw()
         {
             // Scale if needed.
-            if (ScaleX != 1f || ScaleY != 1f)
-                UnityEngine.GUI.matrix = UnityEngine.Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(0, Vector3.up), new Vector3(ScaleX, ScaleY, 1));
+            if (scaleX != 1f || scaleY != 1f)
+                UnityEngine.GUI.matrix = UnityEngine.Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(0, Vector3.up), new Vector3(scaleX, scaleY, 1));
 
             paintEventArgs.Graphics.Clear(System.Drawing.Color.White);
 
@@ -322,9 +322,9 @@
             if (dragRender != null && dragndrop)
             {
                 var g = new Graphics();
-                var _dragRenderControl = new Control();
+                var dragRenderControl = new Control();
                 dragRender.Invoke(g);
-                _dragRenderControl.Dispose();
+                dragRenderControl.Dispose();
             }
 
             // ToolTip.
@@ -332,12 +332,13 @@
 
             var cursor = Cursor.CurrentSystem ?? Cursor.Current;
             var cursorSize = cursor.Size;
-            cursor.Draw(paintEventArgs.Graphics,
+            cursor.Draw(
+                paintEventArgs.Graphics,
                 new Drawing.Rectangle(
                     Control.MousePosition.X,
                     Control.MousePosition.Y,
-                    (int)(cursorSize.Width / ScaleX),
-                    (int)(cursorSize.Height / ScaleY)));
+                    (int)(cursorSize.Width / scaleX),
+                    (int)(cursorSize.Height / scaleY)));
         }
         public void Run(Control control)
         {

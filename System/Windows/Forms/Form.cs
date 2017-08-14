@@ -21,6 +21,7 @@
 
         private const int RESIZE_OFFSET = 8;
         private static Point nextLocation = new Point(128, 64);
+        private static Color shadowColor = Color.FromArgb(12, 64, 64, 64);
 
         private Color backColor = SystemColors.Control;
         private Button closeButton;
@@ -225,7 +226,7 @@
                 _SelectFirstControl();
             }
 
-            Shown(this, null);
+            OnShown(EventArgs.Empty);
         }
         public DialogResult ShowDialog(Action<Form, DialogResult> onClosed = null)
         {
@@ -241,7 +242,7 @@
             Focus();
             _SelectFirstControl();
 
-            Shown(this, null);
+            OnShown(EventArgs.Empty);
 
             return DialogResult;
         }
@@ -303,10 +304,16 @@
 
             var headerHeight = uwfHeaderHeight;
             var headerPadding = uwfHeaderPadding;
+            var width = Width;
 
-            g.uwfFillRectangle(uwfHeaderColor, 0, 0, Width, headerHeight);
-            g.uwfDrawString(Text, uwfHeaderFont, uwfHeaderTextColor, headerPadding.Left, headerPadding.Top, Width - headerPadding.Horizontal, headerHeight - headerPadding.Vertical, uwfHeaderTextAlign);
-            g.uwfFillRectangle(BackColor, 0, headerHeight, Width, Height - headerHeight);
+            g.uwfFillRectangle(uwfHeaderColor, 0, 0, width, headerHeight);
+            g.uwfDrawString(Text, uwfHeaderFont, uwfHeaderTextColor, headerPadding.Left, headerPadding.Top, width - headerPadding.Horizontal, headerHeight - headerPadding.Vertical, uwfHeaderTextAlign);
+            g.uwfFillRectangle(BackColor, 0, headerHeight, width, Height - headerHeight);
+        }
+        protected virtual void OnShown(EventArgs e)
+        {
+            if (Shown != null)
+                Shown(this, e);
         }
         protected override void uwfOnLatePaint(PaintEventArgs e)
         {
@@ -330,12 +337,15 @@
         private void DrawShadow(PaintEventArgs e)
         {
             var loc = PointToScreen(Point.Empty);
-            var shadowAlpha = 12;
-            var shadowColor = Color.FromArgb(shadowAlpha, 64, 64, 64);
+            var locX = loc.X;
+            var locY = loc.Y;
+            var width = Width;
+            var height = Height;
+            var g = e.Graphics;
 
-            e.Graphics.uwfFillRectangle(shadowColor, loc.X - 3, loc.Y, Width + 6, Height + 3);
-            e.Graphics.uwfFillRectangle(shadowColor, loc.X - 2, loc.Y, Width + 4, Height + 2);
-            e.Graphics.uwfFillRectangle(shadowColor, loc.X - 1, loc.Y - 1, Width + 2, Height + 2);
+            g.uwfFillRectangle(shadowColor, locX - 3, locY, width + 6, height + 3);
+            g.uwfFillRectangle(shadowColor, locX - 2, locY, width + 4, height + 2);
+            g.uwfFillRectangle(shadowColor, locX - 1, locY - 1, width + 2, height + 2);
         }
         private void _MakeButtonClose()
         {

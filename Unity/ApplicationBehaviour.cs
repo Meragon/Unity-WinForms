@@ -77,6 +77,9 @@
             GdiImages.FormResize = gResources.Images.FormResize.ToBitmap();
             GdiImages.NumericDown = gResources.Images.NumericDown.ToBitmap();
             GdiImages.NumericUp = gResources.Images.NumericUp.ToBitmap();
+            GdiImages.RadioButton_Checked = gResources.Images.RadioButton_Checked.ToBitmap();
+            GdiImages.RadioButton_Hovered = gResources.Images.RadioButton_Hovered.ToBitmap();
+            GdiImages.RadioButton_Unchecked = gResources.Images.RadioButton_Unchecked.ToBitmap();
             GdiImages.TreeNodeCollapsed = gResources.Images.TreeNodeCollapsed.ToBitmap();
             GdiImages.TreeNodeExpanded = gResources.Images.TreeNodeExpanded.ToBitmap();
 
@@ -162,16 +165,17 @@
                 controller.ProccessMouse(UE.Input.mousePosition.x, UE.Screen.height - UE.Input.mousePosition.y);
 
                 // Keys.
-                if (UE.Event.current.keyCode != UE.KeyCode.None)
+                var currentEvent = UE.Event.current;
+                if (currentEvent.keyCode != UE.KeyCode.None)
                 {
-                    var keyData = UnityKeyTranslator.ToKeyData(UE.Event.current.modifiers, UE.Event.current.keyCode);
+                    var keyData = UnityKeyTranslator.ToKeyData(currentEvent.modifiers, currentEvent.keyCode);
                     var keyArgs = new KeyEventArgs(keyData);
-                    keyArgs.uwfKeyCode = UE.Event.current.keyCode;
-                    keyArgs.uwfModifiers = UE.Event.current.modifiers;
+                    keyArgs.uwfKeyCode = currentEvent.keyCode;
+                    keyArgs.uwfModifiers = currentEvent.modifiers;
                     if ((keyArgs.uwfModifiers & UE.EventModifiers.FunctionKey) != 0)
                         keyArgs.uwfModifiers &= ~UE.EventModifiers.FunctionKey;
 
-                    var keyEventType = (Application.KeyEvents)(UE.Event.current.type - 3);
+                    var keyEventType = (Application.KeyEvents)(currentEvent.type - 3);
                     if (keyEventType == Application.KeyEvents.Down || keyEventType == Application.KeyEvents.Up)
                         controller.ProccessKeys(keyArgs, keyEventType);
                 }

@@ -4,11 +4,11 @@
 
     public class ButtonBase : Control
     {
-        internal Color uwfBorderColor = Color.FromArgb(172, 172, 172);
+        internal Color uwfBorderColor = SystemColors.ActiveBorder;
         internal Color uwfBorderDisableColor = Color.FromArgb(217, 217, 217);
         internal Color uwfBorderHoverColor = Color.FromArgb(126, 180, 234);
-        internal Color uwfBorderSelectColor = Color.FromArgb(51, 153, 255);
-        internal Color uwfDisableColor = Color.FromArgb(239, 239, 239);
+        internal Color uwfBorderSelectColor = SystemColors.Highlight;
+        internal Color uwfDisableColor = SystemColors.Control;
         internal Color uwfHoverColor = Color.FromArgb(223, 238, 252);
         internal Bitmap uwfImageHover;
         internal Color uwfImageColor = Color.White;
