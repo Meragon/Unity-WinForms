@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Collections;
+    using System.Collections.Generic;
+
     internal sealed class FormCollection : IList
     {
         private readonly List<Form> items = new List<Form>();
@@ -28,6 +25,10 @@ namespace System.Windows.Forms
         public Form Find(Predicate<Form> match)
         {
             return items.Find(match);
+        }
+        public List<Form> FindAll(Predicate<Form> match)
+        {
+            return items.FindAll(match);
         }
         public int FindIndex(Predicate<Form> match)
         {

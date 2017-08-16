@@ -20,8 +20,8 @@
         protected internal Button uwfSizeGripRenderer;
 
         private const int RESIZE_OFFSET = 8;
+        private static readonly Color shadowColor = Color.FromArgb(12, 64, 64, 64);
         private static Point nextLocation = new Point(128, 64);
-        private static Color shadowColor = Color.FromArgb(12, 64, 64, 64);
 
         private Color backColor = SystemColors.Control;
         private Button closeButton;
@@ -50,8 +50,8 @@
             uwfHeaderTextAlign = ContentAlignment.MiddleLeft;
             uwfShadowBox = true;
             uwfShadowHandler = DrawShadow;
-            uwfAppOwner.UpClick += _Application_UpClick;
-            uwfAppOwner.UpdateEvent += Owner_UpdateEvent;
+            uwfAppOwner.UpClick += Application_UpClick;
+            uwfAppOwner.UpdateEvent += Application_UpdateEvent;
 
             var workingArea = Screen.PrimaryScreen.WorkingArea;
             nextLocation = new Point(nextLocation.X + 26, nextLocation.Y + 26);
@@ -247,8 +247,87 @@
             return DialogResult;
         }
 
+        internal virtual void Application_UpdateEvent()
+        {
+            #region ResizeComponent
+
+            if (resizeType != ControlResizeTypes.None && (FormBorderStyle == FormBorderStyle.Sizable || FormBorderStyle == FormBorderStyle.SizableToolWindow))
+            {
+                int estimatedWidth = 0;
+                int estimatedHeight = 0;
+
+                switch (resizeType)
+                {
+                    case ControlResizeTypes.Right:
+                        estimatedWidth = resizeOriginal.Width + (MousePosition.X - resizeDelta.X);
+                        estimatedHeight = resizeOriginal.Height;
+                        break;
+                    case ControlResizeTypes.Down:
+                        estimatedWidth = resizeOriginal.Width;
+                        estimatedHeight = resizeOriginal.Height + (MousePosition.Y - resizeDelta.Y);
+                        break;
+                    case ControlResizeTypes.RightDown:
+                        estimatedWidth = resizeOriginal.Width + (MousePosition.X - resizeDelta.X);
+                        estimatedHeight = resizeOriginal.Height + (MousePosition.Y - resizeDelta.Y);
+                        break;
+                    case ControlResizeTypes.Left:
+                        Location = new Point(resizePosition.X + (MousePosition.X - resizeDelta.X), resizePosition.Y);
+                        estimatedWidth = resizeOriginal.Width + resizePosition.X - Location.X;
+                        estimatedHeight = resizeOriginal.Height;
+                        break;
+                    case ControlResizeTypes.Up:
+                        Location = new Point(resizePosition.X, resizePosition.Y + (MousePosition.Y - resizeDelta.Y));
+                        estimatedWidth = resizeOriginal.Width;
+                        estimatedHeight = resizeOriginal.Height + resizePosition.Y - Location.Y;
+                        break;
+                    case ControlResizeTypes.LeftUp:
+                        Location = new Point(
+                            resizePosition.X + (MousePosition.X - resizeDelta.X),
+                            resizePosition.Y + (MousePosition.Y - resizeDelta.Y));
+                        estimatedWidth = resizeOriginal.Width + resizePosition.X - Location.X;
+                        estimatedHeight = resizeOriginal.Height + resizePosition.Y - Location.Y;
+                        break;
+                    case ControlResizeTypes.RightUp:
+                        Location = new Point(resizePosition.X, resizePosition.Y + (MousePosition.Y - resizeDelta.Y));
+                        estimatedWidth = resizeOriginal.Width + (MousePosition.X - resizeDelta.X);
+                        estimatedHeight = resizeOriginal.Height + resizePosition.Y - Location.Y;
+                        break;
+                    case ControlResizeTypes.LeftDown:
+                        Location = new Point(resizePosition.X + (MousePosition.X - resizeDelta.X), resizePosition.Y);
+                        estimatedWidth = resizeOriginal.Width + resizePosition.X - Location.X;
+                        estimatedHeight = resizeOriginal.Height + (MousePosition.Y - resizeDelta.Y);
+                        break;
+                }
+
+                if (estimatedWidth < MinimumSize.Width)
+                    estimatedWidth = MinimumSize.Width;
+                if (estimatedHeight < MinimumSize.Height)
+                    estimatedHeight = MinimumSize.Height;
+
+                if (MaximumSize.Width > 0 && estimatedWidth > MaximumSize.Width)
+                    estimatedWidth = MaximumSize.Width;
+                if (MaximumSize.Height > 0 && estimatedHeight > MaximumSize.Height)
+                    estimatedHeight = MaximumSize.Height;
+
+                Size = new Size(estimatedWidth, estimatedHeight);
+
+
+            }
+            #endregion
+        }
+        internal virtual void Application_UpClick(object sender, MouseEventArgs e)
+        {
+            windowMove = false;
+            resizeType = ControlResizeTypes.None;
+            if (Application.activeResizeControl == this)
+                Application.activeResizeControl = null;
+        }
+
         protected override void Dispose(bool release_all)
         {
+            uwfAppOwner.UpClick -= Application_UpClick;
+            uwfAppOwner.UpdateEvent -= Application_UpdateEvent;
+
             if (IsModal == false)
                 uwfAppOwner.Forms.Remove(this);
             else
@@ -327,13 +406,6 @@
             base.SetBoundsCore(x, y, width, height, specified);
         }
 
-        private void _Application_UpClick(object sender, MouseEventArgs e)
-        {
-            windowMove = false;
-            resizeType = ControlResizeTypes.None;
-            if (Application.activeResizeControl == this)
-                Application.activeResizeControl = null;
-        }
         private void DrawShadow(PaintEventArgs e)
         {
             var loc = PointToScreen(Point.Empty);
@@ -386,74 +458,6 @@
         private void OnCloseButtonOnClick(object o, EventArgs e)
         {
             Close();
-        }
-        private void Owner_UpdateEvent()
-        {
-            #region ResizeComponent
-
-            if (resizeType != ControlResizeTypes.None && (FormBorderStyle == FormBorderStyle.Sizable || FormBorderStyle == FormBorderStyle.SizableToolWindow))
-            {
-                int estimatedWidth = 0;
-                int estimatedHeight = 0;
-
-                switch (resizeType)
-                {
-                    case ControlResizeTypes.Right:
-                        estimatedWidth = resizeOriginal.Width + (MousePosition.X - resizeDelta.X);
-                        estimatedHeight = resizeOriginal.Height;
-                        break;
-                    case ControlResizeTypes.Down:
-                        estimatedWidth = resizeOriginal.Width;
-                        estimatedHeight = resizeOriginal.Height + (MousePosition.Y - resizeDelta.Y);
-                        break;
-                    case ControlResizeTypes.RightDown:
-                        estimatedWidth = resizeOriginal.Width + (MousePosition.X - resizeDelta.X);
-                        estimatedHeight = resizeOriginal.Height + (MousePosition.Y - resizeDelta.Y);
-                        break;
-                    case ControlResizeTypes.Left:
-                        Location = new Point(resizePosition.X + (MousePosition.X - resizeDelta.X), resizePosition.Y);
-                        estimatedWidth = resizeOriginal.Width + resizePosition.X - Location.X;
-                        estimatedHeight = resizeOriginal.Height;
-                        break;
-                    case ControlResizeTypes.Up:
-                        Location = new Point(resizePosition.X, resizePosition.Y + (MousePosition.Y - resizeDelta.Y));
-                        estimatedWidth = resizeOriginal.Width;
-                        estimatedHeight = resizeOriginal.Height + resizePosition.Y - Location.Y;
-                        break;
-                    case ControlResizeTypes.LeftUp:
-                        Location = new Point(
-                            resizePosition.X + (MousePosition.X - resizeDelta.X),
-                            resizePosition.Y + (MousePosition.Y - resizeDelta.Y));
-                        estimatedWidth = resizeOriginal.Width + resizePosition.X - Location.X;
-                        estimatedHeight = resizeOriginal.Height + resizePosition.Y - Location.Y;
-                        break;
-                    case ControlResizeTypes.RightUp:
-                        Location = new Point(resizePosition.X, resizePosition.Y + (MousePosition.Y - resizeDelta.Y));
-                        estimatedWidth = resizeOriginal.Width + (MousePosition.X - resizeDelta.X);
-                        estimatedHeight = resizeOriginal.Height + resizePosition.Y - Location.Y;
-                        break;
-                    case ControlResizeTypes.LeftDown:
-                        Location = new Point(resizePosition.X + (MousePosition.X - resizeDelta.X), resizePosition.Y);
-                        estimatedWidth = resizeOriginal.Width + resizePosition.X - Location.X;
-                        estimatedHeight = resizeOriginal.Height + (MousePosition.Y - resizeDelta.Y);
-                        break;
-                }
-
-                if (estimatedWidth < MinimumSize.Width)
-                    estimatedWidth = MinimumSize.Width;
-                if (estimatedHeight < MinimumSize.Height)
-                    estimatedHeight = MinimumSize.Height;
-
-                if (MaximumSize.Width > 0 && estimatedWidth > MaximumSize.Width)
-                    estimatedWidth = MaximumSize.Width;
-                if (MaximumSize.Height > 0 && estimatedHeight > MaximumSize.Height)
-                    estimatedHeight = MaximumSize.Height;
-
-                Size = new Size(estimatedWidth, estimatedHeight);
-
-
-            }
-            #endregion
         }
         private void _SelectFirstControl()
         {

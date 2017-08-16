@@ -11,8 +11,9 @@
         internal int tabPageCount;
         internal int tabViewIndex;
 
+        private readonly Pen borderPen = new Pen(Color.FromArgb(172, 172, 172));
         private readonly Control pagesButtonsPanel;
-        private Size itemSize;
+        private Size itemSize = new Size(42, 30);
         private Button navigationButtonLeft;
         private Button navigationButtonRight;
         private Padding padding;
@@ -20,11 +21,7 @@
 
         public TabControl()
         {
-            Controls = new ControlCollection(this);
             TabPages = new TabPageCollection(this);
-
-            BorderColor = Color.FromArgb(172, 172, 172);
-            ItemSize = new Size(42, 30);
             Padding = new Padding(3);
 
             pagesButtonsPanel = new Control();
@@ -33,11 +30,9 @@
             pagesButtonsPanel.Name = "buttonsPanel";
             pagesButtonsPanel.Size = new Size(Width, ItemSize.Height);
 
-            Controls.AddInternal(pagesButtonsPanel);
+            ((ControlCollection)Controls).AddInternal(pagesButtonsPanel);
         }
 
-        public Color BorderColor { get; set; }
-        public new ControlCollection Controls { get; private set; }
         public new Rectangle DisplayRectangle
         {
             get
@@ -87,6 +82,12 @@
         }
         public int TabCount { get { return tabPageCount; } }
         public TabPageCollection TabPages { get; private set; }
+
+        internal Color uwfBorderColor
+        {
+            get { return borderPen.Color; }
+            set { borderPen.Color = value; }
+        }
 
         protected override Size DefaultSize
         {
@@ -232,13 +233,11 @@
                     pagesButtons[i].Visible = false;
                 for (int i = tabViewIndex, locX = 0; i < pagesButtons.Count; i++)
                 {
-                    pagesButtons[i].Location = new Point(locX, pagesButtons[i].Location.Y);
-                    if (pagesButtons[i].Location.X < pagesButtonsPanel.Width)
-                        pagesButtons[i].Visible = true;
-                    else
-                        pagesButtons[i].Visible = false;
+                    var button = pagesButtons[i];
+                    button.Location = new Point(locX, button.Location.Y);
+                    button.Visible = button.Location.X < pagesButtonsPanel.Width;
 
-                    locX += pagesButtons[i].Width - 1;
+                    locX += button.Width - 1;
                 }
             }
         }
@@ -254,34 +253,13 @@
                 pagesButtonsPanel.Height = ItemSize.Height;
         }
 
+        protected override Control.ControlCollection CreateControlsInstance()
+        {
+            return new ControlCollection(this);
+        }
         protected override void OnPaint(PaintEventArgs e)
         {
             e.Graphics.uwfFillRectangle(BackColor, 0, 0, Width, Height);
-
-            // Borders.
-            var borderPen = new Pen(BorderColor);
-            if (tabPageCount > 0)
-            {
-                e.Graphics.DrawLine(borderPen, 0, Height - 1, Width, Height - 1); // Botttom.
-                e.Graphics.DrawLine(borderPen, 0, ItemSize.Height, 0, Height); // Left.
-                e.Graphics.DrawLine(borderPen, Width - 1, ItemSize.Height, Width - 1, Height); // Right.
-
-                if (selectedIndex != -1 && selectedIndex < tabPageCount)
-                {
-                    var activeButton = pagesButtons[selectedIndex];
-                    if (activeButton.Visible)
-                    {
-                        e.Graphics.DrawLine(borderPen, 0, ItemSize.Height, activeButton.Location.X + 1, ItemSize.Height);
-                        e.Graphics.DrawLine(borderPen, activeButton.Location.X + activeButton.Width - 1, ItemSize.Height, Width, ItemSize.Height);
-                    }
-                    else
-                        e.Graphics.DrawLine(borderPen, 0, ItemSize.Height, Width, ItemSize.Height);
-                }
-            }
-            else // Draw empty.
-            {
-                e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
-            }
         }
         protected override void OnResize(EventArgs e)
         {
@@ -308,6 +286,32 @@
             navigationButtonRight.Dispose();
             navigationButtonLeft = null;
             navigationButtonRight = null;
+        }
+        protected override void uwfOnLatePaint(PaintEventArgs e)
+        {
+            // Borders.
+            if (tabPageCount > 0)
+            {
+                e.Graphics.DrawLine(borderPen, 0, Height - 1, Width, Height - 1); // Botttom.
+                e.Graphics.DrawLine(borderPen, 0, ItemSize.Height, 0, Height); // Left.
+                e.Graphics.DrawLine(borderPen, Width - 1, ItemSize.Height, Width - 1, Height); // Right.
+
+                if (selectedIndex != -1 && selectedIndex < tabPageCount)
+                {
+                    var activeButton = pagesButtons[selectedIndex];
+                    if (activeButton.Visible)
+                    {
+                        e.Graphics.DrawLine(borderPen, 0, ItemSize.Height, activeButton.Location.X + 1, ItemSize.Height);
+                        e.Graphics.DrawLine(borderPen, activeButton.Location.X + activeButton.Width - 1, ItemSize.Height, Width, ItemSize.Height);
+                    }
+                    else
+                        e.Graphics.DrawLine(borderPen, 0, ItemSize.Height, Width, ItemSize.Height);
+                }
+            }
+            else // Draw empty.
+            {
+                e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+            }
         }
 
         private void CheckNavButtons()
@@ -347,8 +351,8 @@
                         UpdateButtons();
                     };
 
-                    Controls.AddInternal(navigationButtonLeft);
-                    Controls.AddInternal(navigationButtonRight);
+                    ((ControlCollection)Controls).AddInternal(navigationButtonLeft);
+                    ((ControlCollection)Controls).AddInternal(navigationButtonRight);
 
                     pagesButtonsPanel.Width = navigationButtonLeft.Location.X - 2;
                 }
@@ -709,7 +713,7 @@
                 base.OnPaint(e);
 
                 // Draw borders.
-                var borderPen = new Pen(owner.BorderColor);
+                var borderPen = new Pen(owner.uwfBorderColor);
                 e.Graphics.DrawLine(borderPen, 0, 0, Width, 0); // Top.
                 e.Graphics.DrawLine(borderPen, 0, 0, 0, Height - 1); // Left.
                 e.Graphics.DrawLine(borderPen, Width - 1, 0, Width - 1, Height - 1); // Right.

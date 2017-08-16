@@ -25,12 +25,11 @@
         internal Point uwfOffset;
 
         protected static Color defaultShadowColor = Color.FromArgb(12, 0, 0, 0);
-
-        private readonly ControlCollection controls;
-
+        
         private AnchorStyles anchor = AnchorStyles.Top | AnchorStyles.Left;
         private int clientHeight;
         private int clientWidth;
+        private ControlCollection controls;
         private ControlStyles controlStyle;
         private Font font = SystemFonts.uwfArial_12;
         private int height;
@@ -45,8 +44,7 @@
                 Parent.uwfAppOwner.Run(this);
             else if (uwfDefaultController != null)
                 uwfDefaultController.Run(this);
-
-            controls = new ControlCollection(this);
+            
             Enabled = true;
             ForeColor = Color.Black;
             TabIndex = -1;
@@ -134,7 +132,16 @@
             get { return new Size(clientWidth, clientHeight); }
             set { Size = value; }
         }
-        public ControlCollection Controls { get { return controls; } }
+        public ControlCollection Controls
+        {
+            get
+            {
+                if (controls == null)
+                    controls = CreateControlsInstance();
+
+                return controls;
+            }
+        }
         public virtual Rectangle DisplayRectangle { get { return ClientRectangle; } }
         public bool Disposing { get; private set; }
         public bool Enabled { get; set; }
@@ -461,7 +468,7 @@
 
             OnPaintBackground(e);
             OnPaint(e);
-
+            
             if (controls != null)
             {
                 for (int i = 0; i < controls.Count; i++)
@@ -497,6 +504,10 @@
             ParentResized(new Point(delta.Width, delta.Height));
         }
 
+        protected virtual ControlCollection CreateControlsInstance()
+        {
+            return new ControlCollection(this);
+        }
         protected override void Dispose(bool release_all)
         {
             if (IsDisposed) return;
