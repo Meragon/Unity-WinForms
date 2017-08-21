@@ -9,6 +9,8 @@
     [Serializable]
     public class Control : Component
     {
+        internal static readonly Color defaultShadowColor = Color.FromArgb(12, 0, 0, 0);
+        internal static readonly Color defaultForeColor = Color.FromArgb(64, 64, 64); // SystemColors.ControlText is too dark.
         internal static Control lastSelected;
 
         internal bool selected;
@@ -24,14 +26,14 @@
         internal IControlDesigner uwfDesigner;
         internal Point uwfOffset;
 
-        protected static Color defaultShadowColor = Color.FromArgb(12, 0, 0, 0);
-        
         private AnchorStyles anchor = AnchorStyles.Top | AnchorStyles.Left;
+        private Color backColor = SystemColors.Control;
         private int clientHeight;
         private int clientWidth;
         private ControlCollection controls;
         private ControlStyles controlStyle;
         private Font font = SystemFonts.uwfArial_12;
+        private Color foreColor = defaultForeColor;
         private int height;
         private bool fuwfContext;
         private bool visible;
@@ -44,9 +46,8 @@
                 Parent.uwfAppOwner.Run(this);
             else if (uwfDefaultController != null)
                 uwfDefaultController.Run(this);
-            
+
             Enabled = true;
-            ForeColor = Color.Black;
             TabIndex = -1;
             TabStop = true;
             uwfAutoGroup = true;
@@ -54,7 +55,7 @@
 
             SetStyle(
                 ControlStyles.UserPaint |
-                ControlStyles.StandardClick | ControlStyles.Selectable | ControlStyles.StandardDoubleClick | 
+                ControlStyles.StandardClick | ControlStyles.Selectable | ControlStyles.StandardDoubleClick |
                 ControlStyles.AllPaintingInWmPaint | ControlStyles.UseTextForAccessibility,
                 true);
 
@@ -69,6 +70,7 @@
         public event EventHandler Click = delegate { };
         public event EventHandler ClientSizeChanged = delegate { };
         public new event EventHandler Disposed = delegate { };
+        public event EventHandler DoubleClick = delegate { };
         public event DragEventHandler DragDrop = delegate { };
         public event DragEventHandler DragEnter = delegate { };
         public event EventHandler DragLeave = delegate { };
@@ -79,6 +81,7 @@
         public event KeyPressEventHandler KeyPress = delegate { };
         public event KeyEventHandler KeyUp = delegate { };
         public event MouseEventHandler MouseClick = delegate { };
+        public event MouseEventHandler MouseDoubleClick = delegate { };
         public event MouseEventHandler MouseDown = delegate { };
         public event EventHandler MouseEnter = delegate { };
         public event EventHandler MouseHover = delegate { };
@@ -110,7 +113,11 @@
             set { anchor = value; }
         }
         public virtual bool AutoSize { get; set; }
-        public virtual Color BackColor { get; set; }
+        public virtual Color BackColor
+        {
+            get { return backColor; }
+            set { backColor = value; }
+        }
         public virtual Image BackgroundImage { get; set; }
         public virtual ImageLayout BackgroundImageLayout { get; set; }
         public Rectangle Bounds
@@ -151,7 +158,11 @@
             get { return font; }
             set { font = value; }
         }
-        public virtual Color ForeColor { get; set; }
+        public virtual Color ForeColor
+        {
+            get { return foreColor; }
+            set { foreColor = value; }
+        }
         public int Height
         {
             get { return height; }
@@ -275,7 +286,7 @@
             var parent = Parent;
             if (parent != null)
                 p = parent.PointToClient(p);
-            
+
             var localuwfOffset = uwfOffset;
 
             p.Offset(-x - localuwfOffset.X, -y - localuwfOffset.Y);
@@ -286,7 +297,7 @@
             var parent = Parent;
             if (parent != null)
                 p = parent.PointToScreen(p);
-            
+
             var localuwfOffset = uwfOffset;
 
             p.Offset(x + localuwfOffset.X, y + localuwfOffset.Y);
@@ -468,7 +479,7 @@
 
             OnPaintBackground(e);
             OnPaint(e);
-            
+
             if (controls != null)
             {
                 for (int i = 0; i < controls.Count; i++)
@@ -558,6 +569,8 @@
         }
         protected virtual void OnDoubleClick(EventArgs e)
         {
+            if (DoubleClick != null)
+                DoubleClick(this, e);
         }
         protected virtual void OnDragDrop(DragEventArgs drgevent)
         {
@@ -601,6 +614,8 @@
         }
         protected virtual void OnMouseDoubleClick(MouseEventArgs e)
         {
+            if (MouseDoubleClick != null)
+                MouseDoubleClick(this, e);
         }
         protected virtual void OnMouseDown(MouseEventArgs e)
         {
@@ -787,7 +802,7 @@
             {
                 this.owner = owner;
             }
-            
+
             public Control Current
             {
                 get { return items.GetEnumerator().Current; }
@@ -943,7 +958,7 @@
             object ICloneable.Clone()
             {
                 var cc = new ControlCollection(owner);
-                
+
                 cc.items.AddRange(items);
                 return cc;
             }

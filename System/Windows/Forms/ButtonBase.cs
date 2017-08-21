@@ -17,6 +17,7 @@
         private const float IMAGE_BORDER_OFFSET = 2f;
 
         private readonly Pen borderPen = new Pen(Color.Transparent);
+        private readonly Color defaultForeColor = Color.FromArgb(64, 64, 64);
 
         private FlatStyle flatStyle = FlatStyle.Standard;
         private Bitmap imageFromList;
@@ -27,9 +28,7 @@
 
         public ButtonBase()
         {
-            BackColor = Color.FromArgb(234, 234, 234);
             BackgroundImageLayout = ImageLayout.Center;
-            ForeColor = Color.FromArgb(64, 64, 64);
         }
 
         public FlatStyle FlatStyle

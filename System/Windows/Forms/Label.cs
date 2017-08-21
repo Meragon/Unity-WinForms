@@ -25,8 +25,6 @@
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            base.OnPaint(e);
-
             var g = e.Graphics;
 
             g.uwfFillRectangle(BackColor, 0, 0, Width, Height);
