@@ -16,15 +16,7 @@
         private Bitmap()
         {
         }
-
-        public static Bitmap FromTexture(ITexture tex)
-        {
-            var bmp = new Bitmap();
-            bmp.uTexture = tex;
-
-            return bmp;
-        }
-
+        
         public void ClearColor(Color c, bool apply = true)
         {
             var colors = new Color[Width * Height];
@@ -48,6 +40,14 @@
         public void SetPixel(int x, int y, Color color)
         {
             uTexture.SetPixel(x, uTexture.Height - y - 1, color);
+        }
+
+        internal static Bitmap FromTexture(ITexture tex)
+        {
+            var bmp = new Bitmap();
+            bmp.uTexture = tex;
+
+            return bmp;
         }
     }
 }

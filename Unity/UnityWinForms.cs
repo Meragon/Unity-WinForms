@@ -8,7 +8,7 @@
     using Color = UnityEngine.Color;
     using UE = UnityEngine;
 
-    public sealed class ApplicationBehaviour : UE.MonoBehaviour
+    public sealed class UnityWinForms : UE.MonoBehaviour
     {
         public AppResources Resources;
 

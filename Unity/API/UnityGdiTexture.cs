@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-
-using UE = UnityEngine;
-
-namespace Unity.API
+﻿namespace Unity.API
 {
+    using System.Drawing;
+
+    using UE = UnityEngine;
+
     public class UnityGdiTexture : ITexture
     {
         internal readonly UE.Texture2D texture;
-
-        public int Height { get { return texture.height; } }
-        public int Width { get { return texture.width; } }
 
         public UnityGdiTexture(int width, int height)
         {
@@ -23,6 +16,9 @@ namespace Unity.API
         {
             texture = tex;
         }
+
+        public int Height { get { return texture.height; } }
+        public int Width { get { return texture.width; } }
 
         public void Apply()
         {

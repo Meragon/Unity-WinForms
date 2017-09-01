@@ -36,14 +36,15 @@
         private Color foreColor = defaultForeColor;
         private int height;
         private bool fuwfContext;
+        private Control parent;
         private bool visible;
         private int width;
         private int x, y;
 
         public Control()
         {
-            if (Parent != null && Parent.uwfAppOwner != null)
-                Parent.uwfAppOwner.Run(this);
+            if (parent != null && parent.uwfAppOwner != null)
+                parent.uwfAppOwner.Run(this);
             else if (uwfDefaultController != null)
                 uwfDefaultController.Run(this);
 
@@ -183,7 +184,20 @@
         public virtual Size MinimumSize { get; set; }
         public string Name { get; set; }
         public Padding Padding { get; set; }
-        public Control Parent { get; set; }
+        public Control Parent
+        {
+            get { return parent; }
+            set
+            {
+                if (parent == value)
+                    return;
+                
+                if (value != null)
+                    value.Controls.Add(this);
+                else
+                    parent.Controls.Remove(this);
+            }
+        }
         public Size Size
         {
             get { return new Size(Width, Height); }
@@ -203,10 +217,11 @@
             get { return visible; }
             set
             {
-                bool changed = visible != value;
+                if (visible == value)
+                    return;
+
                 visible = value;
-                if (changed)
-                    VisibleChanged(this, new EventArgs());
+                OnVisibleChanged(EventArgs.Empty);
             }
         }
         public int Width
@@ -241,24 +256,27 @@
         {
             if (AlwaysFocused) return;
 
-            if (Parent != null)
+            if (parent != null)
             {
-                Parent.Controls.Remove(this);
-                Parent.Controls.Add(this);
+                var parentControls = parent.controls;
+                parentControls.Remove(this);
+                parentControls.Add(this);
             }
 
             var form = this as Form ?? Application.GetRootControl(this) as Form;
             if (form != null)
             {
-                if (uwfAppOwner.Forms.Contains(form))
+                var forms = uwfAppOwner.Forms;
+                if (forms.Contains(form))
                 {
-                    uwfAppOwner.Forms.Remove(form);
-                    uwfAppOwner.Forms.Add(form);
+                    forms.Remove(form);
+                    forms.Add(form);
                 }
                 else if (form.IsModal)
                 {
-                    uwfAppOwner.ModalForms.Remove(form);
-                    uwfAppOwner.ModalForms.Add(form);
+                    var modalForms = uwfAppOwner.ModalForms;
+                    modalForms.Remove(form);
+                    modalForms.Add(form);
                 }
             }
         }
@@ -283,7 +301,6 @@
         }
         public Point PointToClient(Point p)
         {
-            var parent = Parent;
             if (parent != null)
                 p = parent.PointToClient(p);
 
@@ -294,7 +311,6 @@
         }
         public Point PointToScreen(Point p)
         {
-            var parent = Parent;
             if (parent != null)
                 p = parent.PointToScreen(p);
 
@@ -352,7 +368,7 @@
         {
             if ((controlStyle & ControlStyles.Selectable) != ControlStyles.Selectable)
                 return false;
-            for (Control control = this; control != null; control = control.Parent)
+            for (Control control = this; control != null; control = control.parent)
             {
                 if (!control.Enabled || !control.Visible)
                     return false;
@@ -363,7 +379,7 @@
         {
             Control cur = this;
             while (cur != null && !(cur is Form))
-                cur = cur.Parent;
+                cur = cur.parent;
 
             return (Form)cur;
         }
@@ -533,11 +549,11 @@
                 Controls.Clear();
             }
 
-            if (Parent != null)
+            if (parent != null)
             {
-                int self = Parent.Controls.FindIndex(control => control == this);
+                int self = parent.Controls.FindIndex(control => control == this);
                 if (self > -1)
-                    Parent.Controls.RemoveAt(self);
+                    parent.Controls.RemoveAt(self);
             }
 
             if (uwfContext)
@@ -586,8 +602,8 @@
         }
         protected virtual void OnGotFocus(EventArgs e)
         {
-            if (Parent != null)
-                Parent.uwfChildGotFocus(this);
+            if (parent != null)
+                parent.uwfChildGotFocus(this);
 
             GotFocus(this, e);
         }
@@ -648,8 +664,8 @@
         {
             // TODO: should I raise in parent?
             // remove base call if you have stack overflow.
-            if (Parent != null)
-                Parent.RaiseOnMouseWheel(e);
+            if (parent != null)
+                parent.RaiseOnMouseWheel(e);
         }
         protected virtual void OnPaint(PaintEventArgs e)
         {
@@ -670,13 +686,13 @@
             if (x == argX && y == argY && (width == argWidth && height == argHeight))
                 return;
 
-            if (Parent != null)
-                Parent.SuspendLayout();
+            if (parent != null)
+                parent.SuspendLayout();
 
             UpdateBounds(argX, argY, argWidth, argHeight);
 
-            if (Parent != null)
-                Parent.ResumeLayout(true);
+            if (parent != null)
+                parent.ResumeLayout(true);
         }
         protected virtual void SetClientSizeCore(int argX, int argY)
         {
@@ -693,6 +709,11 @@
         {
             OnResize(EventArgs.Empty);
             SizeChanged(this, e);
+        }
+        protected virtual void OnVisibleChanged(EventArgs e)
+        {
+            if (VisibleChanged != null)
+                VisibleChanged(this, e);
         }
         protected virtual Size SizeFromClientSize(Size clientSize)
         {
@@ -733,9 +754,9 @@
 
         protected virtual void uwfChildGotFocus(Control child)
         {
-            if (Parent == null) return;
+            if (parent == null) return;
 
-            Parent.uwfChildGotFocus(child);
+            parent.uwfChildGotFocus(child);
         }
         protected virtual void uwfOnLatePaint(PaintEventArgs e)
         {
@@ -859,15 +880,12 @@
             public virtual void Add(Control value)
             {
                 items.Add(value);
-                value.Parent = owner;
+                value.parent = owner;
             }
             public virtual void AddRange(Control[] controls)
             {
                 foreach (var c in controls)
-                {
-                    items.Add(c);
-                    c.Parent = owner;
-                }
+                    Add(c);
             }
             public void Clear()
             {

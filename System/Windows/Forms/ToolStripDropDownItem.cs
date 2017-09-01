@@ -13,7 +13,7 @@ namespace System.Windows.Forms
             dropDownItems = new ToolStripItemCollection(Parent, null);
 
             ArrowColor = Color.Black;
-            ArrowImage = Unity.API.ApplicationBehaviour.GdiImages.DropDownRightArrow;
+            ArrowImage = Unity.API.UnityWinForms.GdiImages.DropDownRightArrow;
         }
 
         public Color ArrowColor { get; set; }
@@ -116,7 +116,12 @@ namespace System.Windows.Forms
             base.OnPaint(e);
             if (dropDownItems.Count > 0 && Parent.Orientation == Orientation.Vertical)
             {
-                e.Graphics.uwfDrawImage(ArrowImage, ArrowColor, e.ClipRectangle.X + e.ClipRectangle.Width - 26, e.ClipRectangle.Y, 24, 24);
+                e.Graphics.uwfDrawImage(
+                    ArrowImage,
+                    ArrowColor,
+                    e.ClipRectangle.X + e.ClipRectangle.Width - 26,
+                    e.ClipRectangle.Y + (e.ClipRectangle.Height - ArrowImage.Height) / 2,
+                    ArrowImage.Width, ArrowImage.Height);
             }
         }
     }

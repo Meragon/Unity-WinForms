@@ -9,7 +9,7 @@
     /// </summary>
     public static class ApiHolder
     {
-        public static IApiGraphics Graphics = new UnityGdi(ApplicationBehaviour.DefaultSprite);
+        public static IApiGraphics Graphics = new UnityGdi(UnityWinForms.DefaultSprite);
         public static IApiTiming Timing = new UnityTiming();
     }
 }

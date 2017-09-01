@@ -185,7 +185,7 @@
             if (sNode != null)
             {
                 sNode.Toggle();
-                NodeMouseDoubleClick(this, new TreeNodeMouseClickEventArgs(sNode, e.Button, e.Clicks, e.X, e.Y));
+                OnNodeMouseDoubleClick(new TreeNodeMouseClickEventArgs(sNode, e.Button, e.Clicks, e.X, e.Y));
             }
         }
         protected override void OnMouseDown(MouseEventArgs e)
@@ -195,7 +195,7 @@
             if (_SelectAtPosition(e) == null)
                 return;
 
-            NodeMouseClick(this, new TreeNodeMouseClickEventArgs(SelectedNode, e.Button, e.Clicks, e.X, e.Y));
+            OnNodeMouseClick(new TreeNodeMouseClickEventArgs(SelectedNode, e.Button, e.Clicks, e.X, e.Y));
 
             dragNode = SelectedNode;
             drag = true;
@@ -222,6 +222,16 @@
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             ScrollIndex -= e.Delta * ScrollSpeed;
+        }
+        protected virtual void OnNodeMouseClick(TreeNodeMouseClickEventArgs e)
+        {
+            if (NodeMouseClick != null)
+                NodeMouseClick(this, e);
+        }
+        protected virtual void OnNodeMouseDoubleClick(TreeNodeMouseClickEventArgs e)
+        {
+            if (NodeMouseDoubleClick != null)
+                NodeMouseDoubleClick(this, e);
         }
         protected override void OnPaint(PaintEventArgs e)
         {

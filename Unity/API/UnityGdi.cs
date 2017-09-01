@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.API;
-using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-
-using UE = UnityEngine;
-
-namespace Unity.API
+﻿namespace Unity.API
 {
+    using System;
+    using System.Drawing;
+    using System.Drawing.API;
+    using System.Drawing.Drawing2D;
+
+    using UE = UnityEngine;
+
     public class UnityGdi : IApiGraphics
     {
         private readonly PointF defaultPivot = PointF.Empty;
@@ -36,17 +32,39 @@ namespace Unity.API
         }
         public ITexture CreateTexture(object original)
         {
-            return new UnityGdiTexture(original as UE.Texture2D);
+            var texture = original as UE.Texture2D;
+            if (texture != null)
+                return new UnityGdiTexture(texture);
+
+            var sprite = original as UE.Sprite;
+            if (sprite != null)
+                return new UnityGdiSprite(sprite);
+
+            throw new NotSupportedException();
         }
         public void DrawImage(Image image, Color color, float x, float y, float width, float height, float angle)
         {
-            var textureToDraw = defaultTexture;
-            if (image != null)
+            if (image == null || width <= 0 || height <= 0)
+                return;
+
+            var unityGdiSprite = image.uTexture as UnityGdiSprite;
+            if (unityGdiSprite != null && unityGdiSprite.sprite != null)
             {
-                var imageTexture = image.uTexture as UnityGdiTexture;
-                if (imageTexture != null)
-                    textureToDraw = imageTexture.texture;
+                var spriteRect = unityGdiSprite.sprite.rect;
+                var texture = unityGdiSprite.sprite.texture;
+                var sx = spriteRect.x / texture.width;
+                var sy = spriteRect.y / texture.height;
+                var sw = spriteRect.width / texture.width;
+                var sh = spriteRect.height / texture.height;
+                UE.GUI.color = color.ToUnityColor();
+                UE.GUI.DrawTextureWithTexCoords(new UE.Rect(x, y, width, height), unityGdiSprite.sprite.texture, new UE.Rect(sx, sy, sw, sh));
+                return;
             }
+
+            var textureToDraw = defaultTexture;
+            var imageTexture = image.uTexture as UnityGdiTexture;
+            if (imageTexture != null)
+                textureToDraw = imageTexture.texture;
 
             if (angle != 0)
             {
@@ -102,7 +120,7 @@ namespace Unity.API
                 float yDiff = y2 - y1;
                 var angle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
 
-                uwfDrawTexture(ApplicationBehaviour.gResources.Images.Circle, x1, y1, (float)Math.Sqrt(xDiff * xDiff + yDiff * yDiff), penWidth, penColor, (float)angle, defaultPivot);
+                uwfDrawTexture(UnityWinForms.gResources.Images.Circle, x1, y1, (float)Math.Sqrt(xDiff * xDiff + yDiff * yDiff), penWidth, penColor, (float)angle, defaultPivot);
                 return;
             }
 
@@ -326,9 +344,9 @@ namespace Unity.API
             int guiSkinFontSizeBuffer = UE.GUI.skin.label.fontSize;
             if (font != null)
             {
-                if (font.UFont == null && Unity.API.ApplicationBehaviour.gResources != null)
+                if (font.UFont == null && Unity.API.UnityWinForms.gResources != null)
                 {
-                    var fonts = Unity.API.ApplicationBehaviour.gResources.Fonts;
+                    var fonts = Unity.API.UnityWinForms.gResources.Fonts;
                     if (fonts != null)
                         for (int i = 0; i < fonts.Count; i++)
                         {
@@ -367,9 +385,9 @@ namespace Unity.API
             }
             else
             {
-                if (ApplicationBehaviour.gResources.Fonts.Count > 0)
+                if (UnityWinForms.gResources.Fonts.Count > 0)
                 {
-                    var _font = ApplicationBehaviour.gResources.Fonts[0];
+                    var _font = UnityWinForms.gResources.Fonts[0];
                     if (_font != null)
                         style.font = _font;
                     style.fontSize = (int)(12);

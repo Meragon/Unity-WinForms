@@ -17,7 +17,6 @@
         private const float IMAGE_BORDER_OFFSET = 2f;
 
         private readonly Pen borderPen = new Pen(Color.Transparent);
-        private readonly Color defaultForeColor = Color.FromArgb(64, 64, 64);
 
         private FlatStyle flatStyle = FlatStyle.Standard;
         private Bitmap imageFromList;

@@ -22,7 +22,7 @@
         private bool integralHeightAdjust = true;
         private int itemHeight = DefaultItemHeight;
         private string keyFilter = "";
-        private Unity.API.ApplicationBehaviour.invokeAction keyFilterIA;
+        private Unity.API.UnityWinForms.invokeAction keyFilterIA;
         private float keyFilterResetTime = 3;
         private int visibleItemsCount = 0;
         private bool scrollAlwaysVisible;
@@ -308,7 +308,7 @@
                         SelectItem(itemIndex);
 
                         if (keyFilterIA == null)
-                            keyFilterIA = Unity.API.ApplicationBehaviour.Invoke(ResetKeyFilter, keyFilterResetTime);
+                            keyFilterIA = Unity.API.UnityWinForms.Invoke(ResetKeyFilter, keyFilterResetTime);
                         keyFilterIA.Seconds = keyFilterResetTime;
                     }
                     break;

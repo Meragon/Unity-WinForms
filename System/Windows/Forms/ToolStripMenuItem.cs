@@ -28,7 +28,7 @@ namespace System.Windows.Forms
 
                 e.Graphics.uwfFillRectangle(HoverColor, e.ClipRectangle.X + 8, e.ClipRectangle.Y + 4, rectWH, rectWH);
                 e.Graphics.DrawRectangle(selectPen, e.ClipRectangle.X + 8, e.ClipRectangle.Y + 4, rectWH, rectWH);
-                e.Graphics.DrawImage(Unity.API.ApplicationBehaviour.GdiImages.Checked, e.ClipRectangle.X + 10, e.ClipRectangle.Y + 6, checkedWH, checkedWH);
+                e.Graphics.DrawImage(Unity.API.UnityWinForms.GdiImages.Checked, e.ClipRectangle.X + 10, e.ClipRectangle.Y + 6, checkedWH, checkedWH);
             }
 
             if (!string.IsNullOrEmpty(ShortcutKeys))

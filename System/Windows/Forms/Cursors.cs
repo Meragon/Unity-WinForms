@@ -2,7 +2,7 @@
 {
     public sealed class Cursors
     {
-        private static AppGdiImages.CursorImages images = Unity.API.ApplicationBehaviour.GdiImages.Cursors;
+        private static AppGdiImages.CursorImages images = Unity.API.UnityWinForms.GdiImages.Cursors;
         
         private static Cursor defaultCursor = null;
         private static Cursor sizeAll = null;

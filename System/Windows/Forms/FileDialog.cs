@@ -810,7 +810,7 @@
                     arrowButton.Height = Height;
                     arrowButton.Location = new Point(Width - arrowButton.Width, 0);
                     arrowButton.Text = "";
-                    arrowButton.Image = Unity.API.ApplicationBehaviour.GdiImages.ArrowRight;
+                    arrowButton.Image = Unity.API.UnityWinForms.GdiImages.ArrowRight;
                     arrowButton.uwfImageColor = Color.Gray;
                     arrowButton.uwfImageHoverColor = Color.Gray;
 

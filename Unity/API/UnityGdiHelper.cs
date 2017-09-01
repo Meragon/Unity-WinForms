@@ -10,6 +10,13 @@
         {
             return new Point((int)vector.x, (int)vector.y);
         }
+        public static Bitmap ToBitmap(this UE.Sprite sprite)
+        {
+            if (sprite == null)
+                return null;
+
+            return Bitmap.FromTexture(Graphics.ApiGraphics.CreateTexture(sprite));
+        }
         public static Bitmap ToBitmap(this UE.Texture2D texture)
         {
             if (texture == null)

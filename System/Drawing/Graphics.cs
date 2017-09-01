@@ -11,94 +11,6 @@
     {
         internal static IApiGraphics ApiGraphics { get; set; }
 
-        internal void GroupBegin(Control control)
-        {
-            var co = control.uwfOffset;
-            var x = control.Location.X + co.X;
-            var y = control.Location.Y + co.Y;
-            var w = control.ClientSize.Width;
-            var h = control.ClientSize.Height;
-
-            ApiGraphics.BeginGroup(x, y, w, h);
-        }
-        internal void GroupEnd()
-        {
-            ApiGraphics.EndGroup();
-        }
-
-        private static PointF[] GetBezierApproximation(PointF[] controlPoints, int outputSegmentCount)
-        {
-            if (outputSegmentCount <= 0) return null;
-            PointF[] points = new PointF[outputSegmentCount + 1];
-            for (int i = 0; i <= outputSegmentCount; i++)
-            {
-                float t = (float)i / outputSegmentCount;
-                points[i] = GetBezierPoint(t, controlPoints, 0, controlPoints.Length);
-            }
-            return points;
-        }
-        private static PointF GetBezierPoint(float t, PointF[] controlPoints, int index, int count)
-        {
-            if (count == 1)
-                return controlPoints[index];
-            var P0 = GetBezierPoint(t, controlPoints, index, count - 1);
-            var P1 = GetBezierPoint(t, controlPoints, index + 1, count - 1);
-            return new PointF((1 - t) * P0.X + t * P1.X, (1 - t) * P0.Y + t * P1.Y);
-        }
-        private static int GUI_SetFont(GUIStyle style, Font font)
-        {
-            int guiSkinFontSizeBuffer = GUI.skin.label.fontSize;
-            if (font != null)
-            {
-                if (font.UFont == null && Unity.API.ApplicationBehaviour.gResources != null && Unity.API.ApplicationBehaviour.gResources.Fonts != null)
-                {
-                    var fonts = Unity.API.ApplicationBehaviour.gResources.Fonts;
-                    for (int i = 0; i < fonts.Count; i++)
-                        if (fonts[i].fontNames[0] == font.Name)
-                        {
-                            font.UFont = fonts[i];
-                            break;
-                        }
-                }
-
-                if (font.UFont != null)
-                    style.font = font.UFont;
-                else
-                {
-                    style.font = null;
-#if UNITY_EDITOR
-                    UnityEngine.Debug.LogError("Font not found: " + font.Name);
-#endif
-                }
-
-                style.fontSize = (int)(font.Size);
-                bool styleBold = (font.Style & FontStyle.Bold) == FontStyle.Bold;
-                bool styleItalic = (font.Style & FontStyle.Italic) == FontStyle.Italic;
-                if (styleBold)
-                {
-                    if (styleItalic)
-                        style.fontStyle = UnityEngine.FontStyle.BoldAndItalic;
-                    else
-                        style.fontStyle = UnityEngine.FontStyle.Bold;
-                }
-                else if (styleItalic)
-                    style.fontStyle = UnityEngine.FontStyle.Italic;
-                else style.fontStyle = UnityEngine.FontStyle.Normal;
-            }
-            else
-            {
-                if (ApplicationBehaviour.gResources.Fonts.Count > 0)
-                {
-                    var _font = ApplicationBehaviour.gResources.Fonts[0];
-                    if (_font != null)
-                        style.font = _font;
-                    style.fontSize = (int)(12);
-                    style.fontStyle = UnityEngine.FontStyle.Normal;
-                }
-            }
-            return guiSkinFontSizeBuffer;
-        }
-
         public void Clear(Color color)
         {
             ApiGraphics.Clear(color);
@@ -134,8 +46,6 @@
         }
         public void DrawImage(Image image, float x, float y, float width, float height)
         {
-            if (image == null) return;
-
             ApiGraphics.DrawImage(image, Color.White, x, y, width, height, 0);
         }
         public void DrawLine(Pen pen, Point pt1, Point pt2)
@@ -206,7 +116,7 @@
         }
         public void FillEllipse(SolidBrush brush, float x, float y, float width, float height)
         {
-            uwfDrawImage(ApplicationBehaviour.GdiImages.Circle, brush.Color, x, y, width, height);
+            uwfDrawImage(UnityWinForms.GdiImages.Circle, brush.Color, x, y, width, height);
         }
         public void FillRectangle(Brush brush, Rectangle rect)
         {
@@ -245,6 +155,21 @@
             return ApiGraphics.MeasureString(text, font);
         }
 
+        internal void GroupBegin(Control control)
+        {
+            var co = control.uwfOffset;
+            var x = control.Location.X + co.X;
+            var y = control.Location.Y + co.Y;
+            var w = control.ClientSize.Width;
+            var h = control.ClientSize.Height;
+
+            ApiGraphics.BeginGroup(x, y, w, h);
+        }
+        internal void GroupEnd()
+        {
+            ApiGraphics.EndGroup();
+        }
+
         #region Not original methods.
         internal void uwfDrawImage(Image image, Color color, float x, float y, float width, float height)
         {
@@ -270,9 +195,9 @@
 
             if (font != null)
             {
-                if (Unity.API.ApplicationBehaviour.gResources != null)
+                if (Unity.API.UnityWinForms.gResources != null)
                 {
-                    var _font = Unity.API.ApplicationBehaviour.gResources.Fonts.Find(f => f.fontNames[0] == font.Name);
+                    var _font = Unity.API.UnityWinForms.gResources.Fonts.Find(f => f.fontNames[0] == font.Name);
                     if (_font != null)
                         GUI.skin.textField.font = _font;
                     else
@@ -294,7 +219,7 @@
             }
             else
             {
-                var _font = Unity.API.ApplicationBehaviour.gResources.Fonts.Find(f => f.fontNames[0] == "Arial");
+                var _font = Unity.API.UnityWinForms.gResources.Fonts.Find(f => f.fontNames[0] == "Arial");
                 if (_font != null)
                     GUI.skin.textField.font = _font;
                 GUI.skin.textField.fontSize = 12;
@@ -414,6 +339,18 @@
         {
             return uwfDrawTextField(s, font, brush.Color, x, y, width, height, alignment);
         }
+        internal void uwfDrawTexture(Sprite texture, float x, float y, float width, float height)
+        {
+            if (width <= 0 || height <= 0)
+                return;
+
+            var rect = texture.rect;
+            var tx = rect.x / width;
+            var ty = rect.y / height;
+            var tw = rect.width / width;
+            var th = rect.height / height;
+            UnityEngine.GUI.DrawTextureWithTexCoords(new Rect(x, y, width, height), texture.texture, new Rect(tx, ty, tw, th));
+        }
         internal void uwfDrawTexture(Texture texture, float x, float y, float width, float height, Material mat = null)
         {
             uwfDrawTexture(texture, x, y, width, height, Color.White, mat);
@@ -468,5 +405,78 @@
             ApiGraphics.FocusNext();
         }
         #endregion
+
+        private static PointF[] GetBezierApproximation(PointF[] controlPoints, int outputSegmentCount)
+        {
+            if (outputSegmentCount <= 0) return null;
+            PointF[] points = new PointF[outputSegmentCount + 1];
+            for (int i = 0; i <= outputSegmentCount; i++)
+            {
+                float t = (float)i / outputSegmentCount;
+                points[i] = GetBezierPoint(t, controlPoints, 0, controlPoints.Length);
+            }
+            return points;
+        }
+        private static PointF GetBezierPoint(float t, PointF[] controlPoints, int index, int count)
+        {
+            if (count == 1)
+                return controlPoints[index];
+            var P0 = GetBezierPoint(t, controlPoints, index, count - 1);
+            var P1 = GetBezierPoint(t, controlPoints, index + 1, count - 1);
+            return new PointF((1 - t) * P0.X + t * P1.X, (1 - t) * P0.Y + t * P1.Y);
+        }
+        private static int GUI_SetFont(GUIStyle style, Font font)
+        {
+            int guiSkinFontSizeBuffer = GUI.skin.label.fontSize;
+            if (font != null)
+            {
+                if (font.UFont == null && Unity.API.UnityWinForms.gResources != null && Unity.API.UnityWinForms.gResources.Fonts != null)
+                {
+                    var fonts = Unity.API.UnityWinForms.gResources.Fonts;
+                    for (int i = 0; i < fonts.Count; i++)
+                        if (fonts[i].fontNames[0] == font.Name)
+                        {
+                            font.UFont = fonts[i];
+                            break;
+                        }
+                }
+
+                if (font.UFont != null)
+                    style.font = font.UFont;
+                else
+                {
+                    style.font = null;
+#if UNITY_EDITOR
+                    UnityEngine.Debug.LogError("Font not found: " + font.Name);
+#endif
+                }
+
+                style.fontSize = (int)(font.Size);
+                bool styleBold = (font.Style & FontStyle.Bold) == FontStyle.Bold;
+                bool styleItalic = (font.Style & FontStyle.Italic) == FontStyle.Italic;
+                if (styleBold)
+                {
+                    if (styleItalic)
+                        style.fontStyle = UnityEngine.FontStyle.BoldAndItalic;
+                    else
+                        style.fontStyle = UnityEngine.FontStyle.Bold;
+                }
+                else if (styleItalic)
+                    style.fontStyle = UnityEngine.FontStyle.Italic;
+                else style.fontStyle = UnityEngine.FontStyle.Normal;
+            }
+            else
+            {
+                if (UnityWinForms.gResources.Fonts.Count > 0)
+                {
+                    var _font = UnityWinForms.gResources.Fonts[0];
+                    if (_font != null)
+                        style.font = _font;
+                    style.fontSize = (int)(12);
+                    style.fontStyle = UnityEngine.FontStyle.Normal;
+                }
+            }
+            return guiSkinFontSizeBuffer;
+        }
     }
 }
