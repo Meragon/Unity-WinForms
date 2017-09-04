@@ -70,6 +70,7 @@
             get { return backColor; }
             set { backColor = value; }
         }
+        public IButtonControl CancelButton { get; set; }
         public Button CloseButton { get { return closeButton; } }
         public bool ControlBox
         {
@@ -112,9 +113,10 @@
                 if (sizeGripStyle == value) return;
 
                 sizeGripStyle = value;
-                if (value == SizeGripStyle.Show && uwfSizeGripRenderer != null && uwfSizeGripRenderer.IsDisposed == false)
+                if (value == SizeGripStyle.Hide)
                 {
-                    uwfSizeGripRenderer.Dispose();
+                    if (uwfSizeGripRenderer != null && uwfSizeGripRenderer.IsDisposed == false)
+                        uwfSizeGripRenderer.Dispose();
                     uwfSizeGripRenderer = null;
                 }
                 else
@@ -342,6 +344,15 @@
         }
         protected virtual void OnLoad(EventArgs e)
         {
+        }
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            
+            if (e.KeyCode == Keys.Enter && AcceptButton != null)
+                AcceptButton.PerformClick();
+            if (e.KeyCode == Keys.Escape && CancelButton != null)
+                CancelButton.PerformClick();
         }
         protected override void OnMouseDown(MouseEventArgs e)
         {

@@ -10,6 +10,7 @@ This is WinForms wrapper (including System.Drawing). Here you can create base co
 - GroupBox;
 - HScrollBar;
 - Label;
+- LinkLabel;
 - ListBox;
 - MenuStrip;
 - MonthCalendar;

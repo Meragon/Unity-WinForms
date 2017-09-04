@@ -622,7 +622,7 @@
                 switch (mouseEvent)
                 {
                     case MouseEvents.Down:
-                        MouseEventArgs md_args = new MouseEventArgs(mouseButton, 1, (int)client_mpos.X, (int)client_mpos.Y, 0);
+                        var md_args = new MouseEventArgs(mouseButton, 1, (int)client_mpos.X, (int)client_mpos.Y, 0);
                         control.RaiseOnMouseDown(md_args);
                         mouseLastClickControl = control;
                         return true;
@@ -639,7 +639,7 @@
                             dragndrop = false;
                             return true;
                         }
-                        MouseEventArgs mu_args = new MouseEventArgs(mouseButton, 1, (int)client_mpos.X, (int)client_mpos.Y, 0);
+                        var mu_args = new MouseEventArgs(mouseButton, 1, (int)client_mpos.X, (int)client_mpos.Y, 0);
                         control.RaiseOnMouseUp(mu_args);
                         if (mouseLastClickControl == control)
                             control.RaiseOnMouseClick(mu_args);
@@ -647,11 +647,11 @@
                             mouseLastClickControl.RaiseOnMouseUp(mu_args);
                         return true;
                     case MouseEvents.DoubleClick:
-                        MouseEventArgs mdc_args = new MouseEventArgs(mouseButton, 2, (int)client_mpos.X, (int)client_mpos.Y, 0);
+                        var mdc_args = new MouseEventArgs(mouseButton, 2, (int)client_mpos.X, (int)client_mpos.Y, 0);
                         control.RaiseOnMouseDoubleClick(mdc_args);
                         return true;
                     case MouseEvents.Wheel:
-                        MouseEventArgs mw_args = new MouseEventArgs(MouseButtons.Middle, 0, (int)client_mpos.X, (int)client_mpos.Y, (int)(-mouseWheelDelta * 4));
+                        var mw_args = new MouseEventArgs(MouseButtons.Middle, 0, (int)client_mpos.X, (int)client_mpos.Y, (int)(-mouseWheelDelta * 4));
                         control.RaiseOnMouseWheel(mw_args);
                         return true;
                 }

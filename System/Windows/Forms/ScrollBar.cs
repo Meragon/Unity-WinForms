@@ -39,7 +39,7 @@
             scrollCurrentColorG = scrollCurrentColor.G;
             scrollCurrentColorB = scrollCurrentColor.B;
 
-            var backColor = Color.FromArgb(240, 240, 240);
+            var backColor = SystemColors.Control;
             var backHoverColor = Color.FromArgb(218, 218, 218);
             var borderColor = Color.Transparent;
             var borderHoverColor = Color.Transparent;
@@ -72,8 +72,8 @@
             uwfAppOwner.UpdateEvent += Owner_UpdateEvent;
         }
 
-        public event ScrollEventHandler Scroll = delegate { };
-        public event EventHandler ValueChanged = delegate { };
+        public event ScrollEventHandler Scroll;
+        public event EventHandler ValueChanged;
 
         public int LargeChange
         {
@@ -367,11 +367,15 @@
         }
         protected virtual void OnScroll(ScrollEventArgs se)
         {
-            Scroll(this, se);
+            var scroll = Scroll;
+            if (scroll != null)
+                scroll(this, se);
         }
         protected virtual void OnValueChanged(EventArgs e)
         {
-            ValueChanged(this, e);
+            var valueChanged = ValueChanged;
+            if (valueChanged != null)
+                valueChanged(this, e);
         }
 
         private void Owner_UpClick(object sender, MouseEventArgs e)

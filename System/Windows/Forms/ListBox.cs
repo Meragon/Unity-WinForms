@@ -55,7 +55,7 @@
             UpdateBorderPen();
         }
 
-        public event EventHandler SelectedIndexChanged = delegate { };
+        public event EventHandler SelectedIndexChanged;
         public event DrawItemEventHandler DrawItem;
 
         public Color BorderColor
@@ -442,7 +442,9 @@
         }
         protected override void OnSelectedIndexChanged(EventArgs e)
         {
-            SelectedIndexChanged(this, e);
+            var selectedIndexChanged = SelectedIndexChanged;
+            if (selectedIndexChanged != null)
+                selectedIndexChanged(this, e);
         }
 
         private void InternalDrawItem(object sender, DrawItemEventArgs e)

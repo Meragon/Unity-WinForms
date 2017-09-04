@@ -231,14 +231,15 @@
             {
                 for (int i = 0; i < tabViewIndex; i++)
                     pagesButtons[i].Visible = false;
-                for (int i = tabViewIndex, locX = 0; i < pagesButtons.Count; i++)
-                {
-                    var button = pagesButtons[i];
-                    button.Location = new Point(locX, button.Location.Y);
-                    button.Visible = button.Location.X < pagesButtonsPanel.Width;
+            }
 
-                    locX += button.Width - 1;
-                }
+            for (int i = tabViewIndex, locX = 0; i < pagesButtons.Count; i++)
+            {
+                var button = pagesButtons[i];
+                button.Location = new Point(locX, button.Location.Y);
+                button.Visible = button.Location.X < pagesButtonsPanel.Width;
+
+                locX += button.Width - 1;
             }
         }
         internal void UpdateSizes()
@@ -657,6 +658,12 @@
 
         internal class TabPageButton : Button
         {
+            internal bool adjustWidthToText;
+            internal Color enabledBackColor = Color.White;
+            internal Color enabledBackHoverColor = Color.White;
+            internal Color disabledBackColor = SystemColors.Control;
+            internal Color disabledBackHoverColor = Color.FromArgb(223, 238, 252);
+
             private readonly TabControl owner;
             private readonly int index;
             private bool hidden;
@@ -667,18 +674,7 @@
                 this.index = index;
 
                 uwfBorderSelectColor = Color.Transparent;
-                EnabledBackColor = Color.White;
-                EnabledBackHoverColor = Color.White;
-                DisabledBackColor = Color.FromArgb(235, 235, 235);
-                DisabledBackHoverColor = Color.FromArgb(223, 238, 252);
-
-                Click += TabPageButton_Click;
             }
-
-            public Color EnabledBackColor { get; set; }
-            public Color EnabledBackHoverColor { get; set; }
-            public Color DisabledBackColor { get; set; }
-            public Color DisabledBackHoverColor { get; set; }
 
             public void Hide()
             {
@@ -694,34 +690,47 @@
             {
                 if (hidden)
                 {
-                    BackColor = DisabledBackColor;
+                    BackColor = disabledBackColor;
                     Location = new Point(Location.X, 2);
                     Height = owner.ItemSize.Height - 2;
-                    uwfHoverColor = DisabledBackHoverColor;
+                    uwfHoverColor = disabledBackHoverColor;
                 }
                 else
                 {
-                    BackColor = EnabledBackColor;
+                    BackColor = enabledBackColor;
                     Location = new Point(Location.X, 0);
                     Height = owner.ItemSize.Height;
-                    uwfHoverColor = EnabledBackHoverColor;
+                    uwfHoverColor = enabledBackHoverColor;
                 }
             }
 
+            protected override void OnClick(EventArgs e)
+            {
+                base.OnClick(e);
+
+                owner.SelectTab(index);
+            }
             protected override void OnPaint(PaintEventArgs e)
             {
                 base.OnPaint(e);
 
+                var g = e.Graphics;
+
+                if (adjustWidthToText)
+                {
+                    Width = (int)g.MeasureString(Text, Font).Width + 12;
+                    adjustWidthToText = false;
+                    owner.UpdateButtons();
+                }
+
+                var w = Width;
+                var h = Height;
+
                 // Draw borders.
                 var borderPen = new Pen(owner.uwfBorderColor);
-                e.Graphics.DrawLine(borderPen, 0, 0, Width, 0); // Top.
-                e.Graphics.DrawLine(borderPen, 0, 0, 0, Height - 1); // Left.
-                e.Graphics.DrawLine(borderPen, Width - 1, 0, Width - 1, Height - 1); // Right.
-            }
-
-            private void TabPageButton_Click(object sender, EventArgs e)
-            {
-                owner.SelectTab(index);
+                g.DrawLine(borderPen, 0, 0, w, 0); // Top.
+                g.DrawLine(borderPen, 0, 0, 0, h - 1); // Left.
+                g.DrawLine(borderPen, w - 1, 0, w - 1, h - 1); // Right.
             }
         }
     }

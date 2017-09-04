@@ -330,11 +330,12 @@
         }
         public SizeF MeasureString(string text, Font font)
         {
-            int guiSkinFontSizeBuffer = GUI_SetFont(UE.GUI.skin.label, font);
+            var labelSkin = UE.GUI.skin.label;
+            int guiSkinFontSizeBuffer = GUI_SetFont(labelSkin, font);
 
-            var size = UE.GUI.skin.label.CalcSize(new UE.GUIContent(text));
+            var size = labelSkin.CalcSize(new UE.GUIContent(text));
 
-            UE.GUI.skin.label.fontSize = guiSkinFontSizeBuffer;
+            labelSkin.fontSize = guiSkinFontSizeBuffer;
 
             return new SizeF(size.x, size.y);
         }

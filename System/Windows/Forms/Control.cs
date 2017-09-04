@@ -6,7 +6,6 @@
     using System.Drawing;
     using System.Windows.Forms.Design;
 
-    [Serializable]
     public class Control : Component
     {
         internal static readonly Color defaultShadowColor = Color.FromArgb(12, 0, 0, 0);
@@ -37,6 +36,7 @@
         private int height;
         private bool fuwfContext;
         private Control parent;
+        private string text;
         private bool visible;
         private int width;
         private int x, y;
@@ -68,32 +68,32 @@
         public delegate void DrawHandler(PaintEventArgs e);
         public delegate void ResizeHandler(Point delta);
 
-        public event EventHandler Click = delegate { };
-        public event EventHandler ClientSizeChanged = delegate { };
-        public new event EventHandler Disposed = delegate { };
-        public event EventHandler DoubleClick = delegate { };
-        public event DragEventHandler DragDrop = delegate { };
-        public event DragEventHandler DragEnter = delegate { };
-        public event EventHandler DragLeave = delegate { };
-        public event EventHandler GotFocus = delegate { };
-        public event EventHandler LocationChanged = delegate { };
-        public event EventHandler LostFocus = delegate { };
-        public event KeyEventHandler KeyDown = delegate { };
-        public event KeyPressEventHandler KeyPress = delegate { };
-        public event KeyEventHandler KeyUp = delegate { };
-        public event MouseEventHandler MouseClick = delegate { };
-        public event MouseEventHandler MouseDoubleClick = delegate { };
-        public event MouseEventHandler MouseDown = delegate { };
-        public event EventHandler MouseEnter = delegate { };
-        public event EventHandler MouseHover = delegate { };
-        public event EventHandler MouseLeave = delegate { };
-        public event MouseEventHandler MouseUp = delegate { };
-        public event EventHandler Resize = delegate { };
-        public event EventHandler SizeChanged = delegate { };
-        public event EventHandler TextChanged = delegate { };
-        public event EventHandler VisibleChanged = delegate { };
+        public event EventHandler AutoSizeChanged;
+        public event EventHandler Click;
+        public event EventHandler ClientSizeChanged;
+        public event EventHandler DoubleClick;
+        public event DragEventHandler DragDrop;
+        public event DragEventHandler DragEnter;
+        public event EventHandler DragLeave;
+        public event EventHandler GotFocus;
+        public event KeyEventHandler KeyDown;
+        public event KeyPressEventHandler KeyPress;
+        public event KeyEventHandler KeyUp;
+        public event EventHandler LocationChanged;
+        public event EventHandler LostFocus;
+        public event MouseEventHandler MouseClick;
+        public event MouseEventHandler MouseDoubleClick;
+        public event MouseEventHandler MouseDown;
+        public event EventHandler MouseEnter;
+        public event EventHandler MouseHover;
+        public event EventHandler MouseLeave;
+        public event MouseEventHandler MouseUp;
+        public event EventHandler Resize;
+        public event EventHandler SizeChanged;
+        public event EventHandler TextChanged;
+        public event EventHandler VisibleChanged;
 
-        public event KeyEventHandler uwfKeyPress = delegate { };
+        public event KeyEventHandler uwfKeyPress;
 
         public static Application uwfDefaultController { get; set; }
         public static Point MousePosition
@@ -191,7 +191,7 @@
             {
                 if (parent == value)
                     return;
-                
+
                 if (value != null)
                     value.Controls.Add(this);
                 else
@@ -206,7 +206,18 @@
         public int TabIndex { get; set; }
         public bool TabStop { get; set; }
         public object Tag { get; set; }
-        public virtual string Text { get; set; }
+        public virtual string Text
+        {
+            get { return text; }
+            set
+            {
+                if (text == value)
+                    return;
+
+                text = value;
+                OnTextChanged(EventArgs.Empty);
+            }
+        }
         public int Top
         {
             get { return Location.Y; }
@@ -395,74 +406,72 @@
             OnGotFocus(EventArgs.Empty);
             return true; // TODO: CanFocus.
         }
-        internal void RaiseOnDragDrop(DragEventArgs drgevent)
+        internal virtual void RaiseOnDragDrop(DragEventArgs drgevent)
         {
             OnDragDrop(drgevent);
         }
-        internal void RaiseOnDragEnter(DragEventArgs drgevent)
+        internal virtual void RaiseOnDragEnter(DragEventArgs drgevent)
         {
             OnDragEnter(drgevent);
         }
-        internal void RaiseOnDragLeave(EventArgs e)
+        internal virtual void RaiseOnDragLeave(EventArgs e)
         {
             OnDragLeave(e);
         }
-        internal void RaiseOnMouseClick(MouseEventArgs e)
+        internal virtual void RaiseOnMouseClick(MouseEventArgs e)
         {
             OnMouseClick(e);
             OnClick(e);
         }
-        internal void RaiseOnMouseDoubleClick(MouseEventArgs e)
+        internal virtual void RaiseOnMouseDoubleClick(MouseEventArgs e)
         {
             OnMouseDoubleClick(e);
             OnDoubleClick(e);
         }
-        internal void RaiseOnMouseDown(MouseEventArgs e)
+        internal virtual void RaiseOnMouseDown(MouseEventArgs e)
         {
             OnMouseDown(e);
         }
-        internal void RaiseOnMouseEnter(EventArgs e)
+        internal virtual void RaiseOnMouseEnter(EventArgs e)
         {
             OnMouseEnter(e);
         }
-        internal void RaiseOnMouseHover(EventArgs e)
+        internal virtual void RaiseOnMouseHover(EventArgs e)
         {
             OnMouseHover(e);
         }
-        internal void RaiseOnMouseLeave(EventArgs e)
+        internal virtual void RaiseOnMouseLeave(EventArgs e)
         {
             OnMouseLeave(e);
         }
-        internal void RaiseOnMouseMove(MouseEventArgs e)
+        internal virtual void RaiseOnMouseMove(MouseEventArgs e)
         {
             OnMouseMove(e);
         }
-        internal void RaiseOnMouseUp(MouseEventArgs e)
+        internal virtual void RaiseOnMouseUp(MouseEventArgs e)
         {
             OnMouseUp(e);
         }
-        internal void RaiseOnMouseWheel(MouseEventArgs e)
+        internal virtual void RaiseOnMouseWheel(MouseEventArgs e)
         {
             OnMouseWheel(e);
         }
-        internal void RaiseOnKeyDown(KeyEventArgs e)
+        internal virtual void RaiseOnKeyDown(KeyEventArgs e)
         {
             OnKeyDown(e);
-            KeyDown(this, e);
         }
-        internal void RaiseOnKeyPress(KeyPressEventArgs e)
+        internal virtual void RaiseOnKeyPress(KeyPressEventArgs e)
         {
             OnKeyPress(e); // TODO: KeyPressEventArgs?
-            KeyPress(this, e);
 
-            uwfKeyPress(this, e.uwfKeyArgs);
+            if (uwfKeyPress != null)
+                uwfKeyPress(this, e.uwfKeyArgs);
         }
-        internal void RaiseOnKeyUp(KeyEventArgs e)
+        internal virtual void RaiseOnKeyUp(KeyEventArgs e)
         {
             OnKeyUp(e);
-            KeyUp(this, e);
         }
-        internal void RaiseOnPaint(PaintEventArgs e)
+        internal virtual void RaiseOnPaint(PaintEventArgs e)
         {
             uwfBatches = 0;
 
@@ -522,11 +531,11 @@
             if (uwfAutoGroup)
                 e.Graphics.GroupEnd();
         }
-        internal Size SizeFromClientSize(int argWidth, int argHeight)
+        internal virtual Size SizeFromClientSize(int argWidth, int argHeight)
         {
             return new Size(argWidth, argHeight);
         }
-        internal void uwfAddjustSizeToScreen(Size delta)
+        internal virtual void uwfAddjustSizeToScreen(Size delta)
         {
             ParentResized(new Point(delta.Width, delta.Height));
         }
@@ -559,7 +568,6 @@
             if (uwfContext)
                 uwfAppOwner.Contexts.Remove(this);
 
-            Disposed(this, EventArgs.Empty);
             IsDisposed = true;
 
             base.Dispose(release_all);
@@ -575,82 +583,128 @@
                 return;
             toInvoke.OnLostFocus(e);
         }
+        protected virtual void OnAutoSizeChanged(EventArgs e)
+        {
+            var autoSizeChanged = AutoSizeChanged;
+            if (autoSizeChanged != null)
+                autoSizeChanged(this, e);
+        }
         protected virtual void OnClick(EventArgs e)
         {
-            Click(this, e);
+            var click = Click;
+            if (click != null)
+                click(this, e);
         }
         protected virtual void OnClientSizeChanged(EventArgs e)
         {
-            ClientSizeChanged(this, e);
+            var clientSizeChanged = ClientSizeChanged;
+            if (clientSizeChanged != null)
+                clientSizeChanged(this, e);
         }
         protected virtual void OnDoubleClick(EventArgs e)
         {
-            if (DoubleClick != null)
-                DoubleClick(this, e);
+            var doubleClick = DoubleClick;
+            if (doubleClick != null)
+                doubleClick(this, e);
         }
         protected virtual void OnDragDrop(DragEventArgs drgevent)
         {
-            DragDrop(this, drgevent);
+            var dragDrop = DragDrop;
+            if (dragDrop != null)
+                dragDrop(this, drgevent);
         }
         protected virtual void OnDragEnter(DragEventArgs drgevent)
         {
-            DragEnter(this, drgevent);
+            var dragEnter = DragEnter;
+            if (dragEnter != null)
+                dragEnter(this, drgevent);
         }
         protected virtual void OnDragLeave(EventArgs e)
         {
-            DragLeave(this, e);
+            var dragLeave = DragLeave;
+            if (dragLeave != null)
+                dragLeave(this, e);
         }
         protected virtual void OnGotFocus(EventArgs e)
         {
             if (parent != null)
                 parent.uwfChildGotFocus(this);
 
-            GotFocus(this, e);
+            var gotFocus = GotFocus;
+            if (gotFocus != null)
+                gotFocus(this, e);
         }
         protected virtual void OnKeyDown(KeyEventArgs e)
         {
+            var keyDown = KeyDown;
+            if (keyDown != null)
+                keyDown(this, e);
         }
         protected virtual void OnKeyPress(KeyPressEventArgs e)
         {
+            var keyPress = KeyPress;
+            if (keyPress != null)
+                keyPress(this, e);
         }
         protected virtual void OnKeyUp(KeyEventArgs e)
         {
+            var keyUp = KeyUp;
+            if (keyUp != null)
+                keyUp(this, e);
         }
         protected virtual void OnLocationChanged(EventArgs e)
         {
-            LocationChanged(this, EventArgs.Empty);
+            var locationChanged = LocationChanged;
+            if (locationChanged != null)
+                locationChanged(this, EventArgs.Empty);
         }
         protected virtual void OnLostFocus(EventArgs e)
         {
-            LostFocus(this, e);
+            var lostFocus = LostFocus;
+            if (lostFocus != null)
+                lostFocus(this, e);
         }
         protected virtual void OnMouseClick(MouseEventArgs e)
         {
-            MouseClick(this, e);
+            var mouseClick = MouseClick;
+            if (mouseClick != null)
+                mouseClick(this, e);
         }
         protected virtual void OnMouseDoubleClick(MouseEventArgs e)
         {
-            if (MouseDoubleClick != null)
-                MouseDoubleClick(this, e);
+            var mouseDoubleClick = MouseDoubleClick;
+            if (mouseDoubleClick != null)
+                mouseDoubleClick(this, e);
         }
         protected virtual void OnMouseDown(MouseEventArgs e)
         {
             Focus();
-            MouseDown(this, e);
+
+            var mouseDown = MouseDown;
+            if (mouseDown != null)
+                mouseDown(this, e);
         }
         protected virtual void OnMouseEnter(EventArgs e)
         {
-            MouseEnter(this, e);
+            var mouseEnter = MouseEnter;
+            if (mouseEnter != null)
+                mouseEnter(this, e);
+
             if (Enabled)
                 hovered = true;
         }
         protected virtual void OnMouseHover(EventArgs e)
         {
-            MouseHover(this, e);
+            var mouseHover = MouseHover;
+            if (mouseHover != null)
+                mouseHover(this, e);
         }
         protected virtual void OnMouseLeave(EventArgs e)
         {
-            MouseLeave(this, e);
+            var mouseLeave = MouseLeave;
+            if (mouseLeave != null)
+                mouseLeave(this, e);
+
             hovered = false;
         }
         protected virtual void OnMouseMove(MouseEventArgs e)
@@ -658,7 +712,9 @@
         }
         protected virtual void OnMouseUp(MouseEventArgs e)
         {
-            MouseUp(this, e);
+            var mouseUp = MouseUp;
+            if (mouseUp != null)
+                mouseUp(this, e);
         }
         protected virtual void OnMouseWheel(MouseEventArgs e)
         {
@@ -675,11 +731,29 @@
         }
         protected virtual void OnResize(EventArgs e)
         {
-            Resize(this, e);
+            var resize = Resize;
+            if (resize != null)
+                resize(this, e);
+        }
+        protected virtual void OnSizeChanged(EventArgs e)
+        {
+            OnResize(EventArgs.Empty);
+
+            var sizeChanged = SizeChanged;
+            if (sizeChanged != null)
+                sizeChanged(this, e);
         }
         protected virtual void OnTextChanged(EventArgs e)
         {
-            TextChanged(this, e);
+            var textChanged = TextChanged;
+            if (textChanged != null)
+                textChanged(this, e);
+        }
+        protected virtual void OnVisibleChanged(EventArgs e)
+        {
+            var visibleChanged = VisibleChanged;
+            if (visibleChanged != null)
+                visibleChanged(this, e);
         }
         protected virtual void SetBoundsCore(int argX, int argY, int argWidth, int argHeight, BoundsSpecified specified)
         {
@@ -704,16 +778,6 @@
         protected void SetStyle(ControlStyles flag, bool value)
         {
             controlStyle = value ? controlStyle | flag : controlStyle & ~flag;
-        }
-        protected virtual void OnSizeChanged(EventArgs e)
-        {
-            OnResize(EventArgs.Empty);
-            SizeChanged(this, e);
-        }
-        protected virtual void OnVisibleChanged(EventArgs e)
-        {
-            if (VisibleChanged != null)
-                VisibleChanged(this, e);
         }
         protected virtual Size SizeFromClientSize(Size clientSize)
         {

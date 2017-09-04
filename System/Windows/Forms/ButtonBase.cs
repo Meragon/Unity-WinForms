@@ -72,6 +72,18 @@
             get { return new Size(75, 23); }
         }
 
+        internal override void RaiseOnMouseClick(MouseEventArgs e)
+        {
+            var iButtonControl = this as IButtonControl;
+            if (iButtonControl != null)
+            {
+                OnMouseClick(e);
+                iButtonControl.PerformClick(); // Originally in WndProc.
+            }
+            else
+                base.RaiseOnMouseClick(e);
+        }
+
         protected override void OnKeyUp(KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Space || e.KeyCode == Keys.Return)

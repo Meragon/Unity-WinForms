@@ -27,44 +27,52 @@
         }
         public static DialogResult Show(string text, string caption, Font textFont)
         {
-            Form form = new Form();
-            form.Size = new Size(220, 96 + 32);
+            var form = new Form();
+            form.FormBorderStyle = FormBorderStyle.FixedSingle;
             form.Location = new Point(
                 Screen.PrimaryScreen.WorkingArea.Width / 2 - form.Width / 2,
                 Screen.PrimaryScreen.WorkingArea.Height / 2 - form.Height / 2);
+            form.MinimumSize = new Size(154, 140);
+            form.Size = form.MinimumSize;
+            form.SizeGripStyle = SizeGripStyle.Hide;
             form.Text = caption;
             form.TopMost = true;
 
-            GroupBox formGroup = new GroupBox();
-            formGroup.Anchor = AnchorStyles.Left | AnchorStyles.Bottom | AnchorStyles.Right | AnchorStyles.Top;
-            formGroup.BackColor = Color.White;
-            formGroup.uwfBorderColor = form.uwfBorderColor;
-            formGroup.Size = new Size(form.Width - 16, form.Height - (int)form.uwfHeaderHeight - 8 - 28);
-            formGroup.Location = new Point(8, (int)form.uwfHeaderHeight);
+            var panel = new Panel();
+            panel.uwfBorderColor = Color.Transparent;
+            panel.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
+            panel.BackColor = Color.White;
+            panel.Location = new Point(0, 24);
+            panel.Size = new Size(form.Width, form.Height - 24 - 48);
 
-            form.Controls.Add(formGroup);
-
-            TextBox formLabel = new TextBox();
-            formLabel.Anchor = AnchorStyles.Left | AnchorStyles.Bottom | AnchorStyles.Right | AnchorStyles.Top;
-            formLabel.Font = textFont;
-            formLabel.Size = formGroup.Size;
-            formLabel.Text = text;
-            formLabel.ReadOnly = true;
-            formLabel.Multiline = true;
-
-            formGroup.Controls.Add(formLabel);
-
-            Button formButton_Ok = new Button();
-            formButton_Ok.Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
-            formButton_Ok.Location = new Point(form.Width - 8 - formButton_Ok.Width, form.Height - formButton_Ok.Height - 8);
-            formButton_Ok.TabIndex = 0;
-            formButton_Ok.Text = "Ok";
-            formButton_Ok.Click += (object sender, EventArgs args) =>
+            var label = new Label();
+            label.Anchor = AnchorStyles.Left | AnchorStyles.Top;
+            label.Font = textFont;
+            label.Location = new Point(0, 24);
+            label.Padding = new Padding(12, 24, 12, 24);
+            label.Text = text;
+            label.SizeChanged += (sender, args) =>
             {
-                form.Close();
+                var newSize = new Size(label.Width, label.Height + 24 + 48);
+                if (newSize.Width > form.MinimumSize.Width)
+                    form.Width = newSize.Width;
+                if (newSize.Height > form.MinimumSize.Height)
+                    form.Height = newSize.Height;
             };
 
-            form.Controls.Add(formButton_Ok);
+            form.Controls.Add(panel);
+            form.Controls.Add(label);
+
+            var buttonOk = new Button();
+            buttonOk.Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
+            buttonOk.TabIndex = 0;
+            buttonOk.Text = "Ok";
+            buttonOk.Size = new Size(86, 24);
+            buttonOk.Location = new Point(form.Width - 8 - buttonOk.Width, form.Height - buttonOk.Height - 12);
+            buttonOk.Click += (sender, args) => form.Close();
+
+            form.AcceptButton = buttonOk;
+            form.Controls.Add(buttonOk);
             form.ShowDialog();
 
             Last = form;

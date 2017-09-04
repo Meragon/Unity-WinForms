@@ -1,5 +1,7 @@
 ﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+
     public sealed class Cursors
     {
         private static AppGdiImages.CursorImages images = Unity.API.UnityWinForms.GdiImages.Cursors;
@@ -31,7 +33,7 @@
                 if (hand == null)
                 {
                     hand = new Cursor(images.Hand);
-                    hand.SetHotspot(Cursor.PointPositionTypes.Middle, Cursor.PointPositionTypes.Middle);
+                    hand.HotSpot = new Point(-12, -6);
                 }
                 return hand;
             }

@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Drawing;
-    using System.Linq;
 
     public class TreeView : Control
     {
@@ -41,7 +40,6 @@
             Padding = new Padding(4);
             root = new TreeNode(this);
             root.Expand();
-            Resize += TreeView_Resize;
             ScrollBarColor = Color.FromArgb(222, 222, 230);
             ScrollBarHoverColor = Color.FromArgb(136, 136, 136);
             ScrollSpeed = 2;
@@ -57,10 +55,10 @@
             uwfAppOwner.UpClick += _Application_UpClick;
         }
 
-        public event DrawTreeNodeEventHandler DrawNode = delegate { };
-        public event ItemDragEventHandler ItemDrag = delegate { };
-        public event TreeNodeMouseClickEventHandler NodeMouseClick = delegate { };
-        public event TreeNodeMouseClickEventHandler NodeMouseDoubleClick = delegate { };
+        public event DrawTreeNodeEventHandler DrawNode;
+        public event ItemDragEventHandler ItemDrag;
+        public event TreeNodeMouseClickEventHandler NodeMouseClick;
+        public event TreeNodeMouseClickEventHandler NodeMouseDoubleClick;
         public event TreeViewEventHandler SelectedNodeChanged = delegate { };
 
         public Color BorderColor
@@ -213,7 +211,9 @@
             {
                 if (dragPosition.Distance(e.Location) > 4)
                 {
-                    ItemDrag(this, new ItemDragEventArgs(e.Button, dragNode));
+                    var itemDrag = ItemDrag;
+                    if (itemDrag != null)
+                        itemDrag(this, new ItemDragEventArgs(e.Button, dragNode));
                     dragPosition = Point.Empty;
                     drag = false;
                 }
@@ -225,13 +225,15 @@
         }
         protected virtual void OnNodeMouseClick(TreeNodeMouseClickEventArgs e)
         {
-            if (NodeMouseClick != null)
-                NodeMouseClick(this, e);
+            var nodeMouseClick = NodeMouseClick;
+            if (nodeMouseClick != null)
+                nodeMouseClick(this, e);
         }
         protected virtual void OnNodeMouseDoubleClick(TreeNodeMouseClickEventArgs e)
         {
-            if (NodeMouseDoubleClick != null)
-                NodeMouseDoubleClick(this, e);
+            var nodeMouseDoubleClick = NodeMouseDoubleClick;
+            if (nodeMouseDoubleClick != null)
+                nodeMouseDoubleClick(this, e);
         }
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -258,6 +260,13 @@
 
                 OnDrawNode(nodeArgs);
             }
+        }
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            
+            _UpdateScrollList();
+            UpdateScrollBar();
         }
         protected override void uwfOnLatePaint(PaintEventArgs e)
         {
@@ -414,7 +423,9 @@
             graphics.uwfDrawString(stringToDraw, Font, node.ForeColor, xOffset, nodeY - 2, (WrapText ? Width : Width * 16), e.Bounds.Height + 4, ContentAlignment.MiddleLeft);
             // End of drawing.
 
-            DrawNode(this, e);
+            var drawNode = DrawNode;
+            if (drawNode != null)
+                drawNode(this, e);
         }
         private TreeNode _SelectAtPosition(MouseEventArgs e)
         {
@@ -474,11 +485,6 @@
             }
 
             return true;
-        }
-        private void TreeView_Resize(object sender, EventArgs e)
-        {
-            _UpdateScrollList();
-            UpdateScrollBar();
         }
         private void UpdateScrollBar()
         {
