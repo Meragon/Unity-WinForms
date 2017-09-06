@@ -1,6 +1,5 @@
 ﻿namespace System.Windows.Forms
 {
-    using System.ComponentModel;
     using System.Drawing;
 
     [Serializable]
@@ -20,6 +19,7 @@
         protected internal Button uwfSizeGripRenderer;
 
         private const int RESIZE_OFFSET = 8;
+        private static readonly Color defaultBorderColor = Color.FromArgb(192, 192, 192);
         private static readonly Color shadowColor = Color.FromArgb(12, 64, 64, 64);
         private static Point nextLocation = new Point(128, 64);
 
@@ -45,7 +45,7 @@
             MinimumSize = new Size(128, 48);
             Visible = false;
 
-            uwfBorderColor = Color.FromArgb(192, 192, 192);
+            uwfBorderColor = defaultBorderColor;
             uwfHeaderFont = Font;
             uwfHeaderTextAlign = ContentAlignment.MiddleLeft;
             uwfShadowBox = true;
@@ -61,8 +61,9 @@
                 nextLocation = new Point(nextLocation.X, 32);
         }
 
-        public event FormClosingEventHandler FormClosing = delegate { };
-        public event EventHandler Shown = delegate { };
+        public event FormClosedEventHandler FormClosed;
+        public event FormClosingEventHandler FormClosing;
+        public event EventHandler Shown;
 
         public IButtonControl AcceptButton { get; set; }
         public override Color BackColor
@@ -147,19 +148,7 @@
 
         public void Close()
         {
-            var fc_args = new FormClosingEventArgs(CloseReason.UserClosing, false);
-            var oc_args = new CancelEventArgs(false);
-            OnClosing(oc_args);
-            if (oc_args.Cancel) return;
-            FormClosing(this, fc_args);
-            if (!fc_args.Cancel)
-            {
-                OnClosed(null);
-                Dispose();
-            }
-
-            if (dialog && dialogCallback != null)
-                dialogCallback.Invoke(this, DialogResult);
+            CloseInternal(CloseReason.UserClosing);
         }
         public virtual ControlResizeTypes GetResizeAt(Point mclient)
         {
@@ -324,6 +313,23 @@
             if (Application.activeResizeControl == this)
                 Application.activeResizeControl = null;
         }
+        internal void CloseInternal(CloseReason closeReason)
+        {
+            var closingEventArgs = new FormClosingEventArgs(closeReason, false);
+
+            OnFormClosing(closingEventArgs);
+
+            if (!closingEventArgs.Cancel)
+            {
+                var closedEventArgs = new FormClosedEventArgs(closeReason);
+                OnFormClosed(closedEventArgs);
+                Dispose();
+            }
+
+            // Invoke dialog result action.
+            if (dialog && dialogCallback != null)
+                dialogCallback.Invoke(this, DialogResult);
+        }
 
         protected override void Dispose(bool release_all)
         {
@@ -336,11 +342,17 @@
                 uwfAppOwner.ModalForms.Remove(this);
             base.Dispose(release_all);
         }
-        protected virtual void OnClosed(EventArgs e)
+        protected virtual void OnFormClosed(FormClosedEventArgs e)
         {
+            var formClosed = FormClosed;
+            if (formClosed != null)
+                formClosed(this, e);
         }
-        protected virtual void OnClosing(CancelEventArgs e)
+        protected virtual void OnFormClosing(FormClosingEventArgs e)
         {
+            var formClosing = FormClosing;
+            if (formClosing != null)
+                formClosing(this, e);
         }
         protected virtual void OnLoad(EventArgs e)
         {
@@ -402,15 +414,19 @@
         }
         protected virtual void OnShown(EventArgs e)
         {
-            if (Shown != null)
-                Shown(this, e);
+            var shown = Shown;
+            if (shown != null)
+                shown(this, e);
         }
         protected override void uwfOnLatePaint(PaintEventArgs e)
         {
             base.uwfOnLatePaint(e);
 
-            e.Graphics.DrawLine(innerBorderPen, 0, uwfHeaderHeight - 1, Width, uwfHeaderHeight - 1);
-            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+            var g = e.Graphics;
+            var width = Width;
+
+            g.DrawLine(innerBorderPen, 0, uwfHeaderHeight - 1, width, uwfHeaderHeight - 1);
+            g.DrawRectangle(borderPen, 0, 0, width, Height);
         }
         protected override void SetBoundsCore(int x, int y, int width, int height, BoundsSpecified specified)
         {

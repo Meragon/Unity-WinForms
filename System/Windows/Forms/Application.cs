@@ -332,11 +332,12 @@
 
             var cursor = Cursor.CurrentSystem ?? Cursor.Current;
             var cursorSize = cursor.Size;
+            var mousePosition = Control.MousePosition;
             cursor.Draw(
                 paintEventArgs.Graphics,
                 new Drawing.Rectangle(
-                    Control.MousePosition.X,
-                    Control.MousePosition.Y,
+                    mousePosition.X,
+                    mousePosition.Y,
                     (int)(cursorSize.Width / scaleX),
                     (int)(cursorSize.Height / scaleY)));
         }
@@ -613,8 +614,8 @@
                     var m_args = new MouseEventArgs(MouseButtons.None, 0, (int)client_mpos.X, (int)client_mpos.Y, 0);
                     if (dragData != null)
                         dragndrop = true;
-                    else
-                        control.RaiseOnMouseMove(m_args);
+                    //else
+                        //control.RaiseOnMouseMove(m_args);
                 }
 
                 if (!contains && mouseEvent != MouseEvents.Up)

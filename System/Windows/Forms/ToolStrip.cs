@@ -161,12 +161,15 @@
 
             base.OnPaint(e);
 
-            p_args.Graphics = e.Graphics;
+            var graphics = e.Graphics;
+
+            p_args.Graphics = graphics;
             p_args.ClipRectangle = e.ClipRectangle;
-            p_args.Graphics.FillRectangle(brushBack, 0, 0, Width, Height);
+
+            graphics.FillRectangle(brushBack, 0, 0, Width, Height);
 
             if (Orientation == Orientation.Vertical)
-                p_args.Graphics.DrawLine(verticalLinePen, 30, 2, 30, Height - 2);
+                graphics.DrawLine(verticalLinePen, 30, 2, 30, Height - 2);
 
             for (int i = 0, x = Padding.Left, y = Padding.Top; i < items.Count; i++)
             {
@@ -181,7 +184,7 @@
                     y += item.Height;
             }
 
-            p_args.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+            graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
 
         private void Application_UpClick(object sender, EventArgs e)
