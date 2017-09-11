@@ -39,7 +39,6 @@
             form.TopMost = true;
 
             var panel = new Panel();
-            panel.uwfBorderColor = Color.Transparent;
             panel.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
             panel.BackColor = Color.White;
             panel.Location = new Point(0, 24);

@@ -23,7 +23,7 @@
         bool ICollection.IsSynchronized { get { return false; } }
         object ICollection.SyncRoot { get { return this; } }
         bool IList.IsFixedSize { get { return false; } }
-        
+
         object IList.this[int index]
         {
             get { return this[index]; }
@@ -113,6 +113,15 @@
         {
             if (Count > 0)
                 Array.Copy(items.ToArray(), 0, dest, index, Count);
+        }
+        public TreeNode[] Find(string key, bool searchAllChildren)
+        {
+            var foundNodes = FindInternal(key, searchAllChildren, this, new ArrayList());
+
+            var nodes = new TreeNode[foundNodes.Count];
+            foundNodes.CopyTo(nodes, 0);
+
+            return nodes;
         }
         public IEnumerator GetEnumerator()
         {
@@ -219,6 +228,35 @@
                 items[i].index = i;
         }
 
+        private static ArrayList FindInternal(string key, bool searchAllChildren, TreeNodeCollection collection, ArrayList nodes)
+        {
+            if (collection == null || nodes == null)
+                return null;
+
+            var collectionCount = collection.Count;
+            for (int i = 0; i < collectionCount; i++)
+            {
+                var node = collection[i];
+                if (node == null)
+                    continue;
+
+                if (WindowsFormsUtils.SafeCompareStrings(node.Name, key, true))
+                    nodes.Add(node);
+            }
+
+            if (searchAllChildren)
+                for (int i = 0; i < collectionCount; i++)
+                {
+                    var node = collection[i];
+                    if (node == null)
+                        continue;
+
+                    var nodeNodes = node.Nodes;
+                    if (nodeNodes != null && nodeNodes.Count > 0)
+                        nodes = FindInternal(key, true, nodeNodes, nodes);
+                }
+            return nodes;
+        }
         private int AddInternal(TreeNode node, int delta)
         {
             if (node == null)

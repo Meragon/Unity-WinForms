@@ -4,7 +4,7 @@ namespace System.Windows.Forms
 
     public class ColorPickerForm : Form
     {
-        private readonly Pen borderPen;
+        private new readonly Pen borderPen;
         private readonly AlphaPicker alphaPicker;
         private readonly ValueSaturationPicker vsPicker;
         private readonly HuePicker huePicker;

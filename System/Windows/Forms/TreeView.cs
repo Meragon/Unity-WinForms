@@ -6,22 +6,21 @@
 
     public class TreeView : Control
     {
+        internal readonly ScrollBar vScrollBar;
         internal int arrowSize = 16;
         internal TreeNode root;
 
-        protected List<TreeNode> scrollNodeList;
-        protected ScrollBar vScrollBar;
-
         private readonly Pen borderPen = new Pen(Color.White);
         private readonly DrawTreeNodeEventArgs nodeArgs = new DrawTreeNodeEventArgs(null, null, Rectangle.Empty, TreeNodeStates.Default);
+        private readonly List<TreeNode> nodeList = new List<TreeNode>();
         private readonly DrawTreeNodeEventHandler onDrawNode;
+        private readonly List<TreeNode> scrollNodeList = new List<TreeNode>();
 
         private bool drag;
         private TreeNode dragNode;
         private Point dragPosition;
         private string filter;
         private TreeNode hoveredNode;
-        private List<TreeNode> nodeList = new List<TreeNode>();
         private float resetFilterTime;
 
         public TreeView()
@@ -48,7 +47,6 @@
             SmoothScrolling = true;
 
             Nodes = new TreeNodeCollection(root);
-            scrollNodeList = new List<TreeNode>();
 
             onDrawNode = _OnDrawNode;
 
@@ -100,14 +98,10 @@
                 Nodes[i].ExpandAllInternal();
             Refresh();
         }
-        public TreeNode Find(Predicate<TreeNode> match)
-        {
-            return nodeList.Find(match);
-        }
         public override void Refresh()
         {
-            nodeList = new List<TreeNode>();
-            scrollNodeList = new List<TreeNode>();
+            nodeList.Clear();
+            scrollNodeList.Clear();
 
             ProccesNode(root);
             _UpdateScrollList();
@@ -124,6 +118,15 @@
             ScrollIndex = node.Bounds.Y;
 
             _UpdateScrollList();
+        }
+        /// <summary>
+        /// only for visible nodes.
+        /// </summary>
+        /// <param name="match"></param>
+        /// <returns></returns>
+        internal TreeNode Find(Predicate<TreeNode> match)
+        {
+            return nodeList.Find(match);
         }
 
         protected override void Dispose(bool release_all)
@@ -221,7 +224,8 @@
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            ScrollIndex -= e.Delta * ScrollSpeed;
+            if (vScrollBar != null && vScrollBar.Visible)
+                ScrollIndex -= e.Delta * ScrollSpeed;
         }
         protected virtual void OnNodeMouseClick(TreeNodeMouseClickEventArgs e)
         {
@@ -264,7 +268,7 @@
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
-            
+
             _UpdateScrollList();
             UpdateScrollBar();
         }
@@ -495,12 +499,22 @@
                 vScrollBar.SmallChange = ItemHeight;
                 vScrollBar.LargeChange = Height;
                 vScrollBar.Visible = vScrollBar.Maximum > Height;
+                if (vScrollBar.Visible == false)
+                    ScrollIndex = 0;
                 vScrollBar.ValueChanged += VScrollBarOnValueChanged;
             }
         }
         private void _UpdateScrollList()
         {
-            scrollNodeList = new List<TreeNode>();
+            scrollNodeList.Clear();
+
+            // Update maximum before calculations.
+            if (vScrollBar != null)
+            {
+                vScrollBar.ValueChanged -= VScrollBarOnValueChanged;
+                vScrollBar.Maximum = ItemHeight * nodeList.Count - 1;
+                vScrollBar.ValueChanged += VScrollBarOnValueChanged;
+            }
 
             int startNode = (int)(ScrollIndex / ItemHeight) - 1;
             if (startNode < 0) startNode = 0;
