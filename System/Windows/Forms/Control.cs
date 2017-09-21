@@ -93,9 +93,8 @@
         public event EventHandler TextChanged;
         public event EventHandler VisibleChanged;
 
-        public event KeyEventHandler uwfKeyPress;
+        internal event KeyEventHandler uwfKeyPress;
 
-        public static Application uwfDefaultController { get; set; }
         public static Point MousePosition
         {
             get
@@ -241,6 +240,7 @@
             set { SetBounds(x, y, value, height, BoundsSpecified.Width); }
         }
 
+        internal static Application uwfDefaultController { get; set; }
         internal virtual bool uwfContext // Close on click control.
         {
             get { return fuwfContext; }
@@ -291,10 +291,10 @@
                 }
             }
         }
-        public DragDropEffects DoDragDrop(object data, DragDropEffects allowedEffects, DragDropRenderHandler render = null)
+        public DragDropEffects DoDragDrop(object data, DragDropEffects allowedEffects)
         {
-            Application.DoDragDrop(data, allowedEffects, render);
-            return DragDropEffects.None; // TODO: ?
+            Application.DoDragDrop(data, allowedEffects);
+            return allowedEffects; // TODO: ?
         }
         public bool Focus()
         {
@@ -385,6 +385,11 @@
                     return false;
             }
             return true;
+        }
+        internal DragDropEffects DoDragDrop(object data, DragDropEffects allowedEffects, DragDropRenderHandler render)
+        {
+            Application.DoDragDrop(data, allowedEffects, render);
+            return allowedEffects; // TODO: ?
         }
         internal Form FindFormInternal()
         {
@@ -538,6 +543,16 @@
         internal virtual void uwfAddjustSizeToScreen(Size delta)
         {
             ParentResized(new Point(delta.Width, delta.Height));
+        }
+
+        protected internal virtual void uwfChildGotFocus(Control child)
+        {
+            if (parent == null) return;
+
+            parent.uwfChildGotFocus(child);
+        }
+        protected internal virtual void uwfOnLatePaint(PaintEventArgs e)
+        {
         }
 
         protected virtual ControlCollection CreateControlsInstance()
@@ -816,16 +831,6 @@
             OnClientSizeChanged(EventArgs.Empty);
         }
 
-        protected virtual void uwfChildGotFocus(Control child)
-        {
-            if (parent == null) return;
-
-            parent.uwfChildGotFocus(child);
-        }
-        protected virtual void uwfOnLatePaint(PaintEventArgs e)
-        {
-        }
-
         private void ParentResized(Point delta)
         {
             if (Anchor == AnchorStyles.None) return;
@@ -1046,6 +1051,4 @@
             }
         }
     }
-
-    public delegate void DragDropRenderHandler(Graphics g);
 }

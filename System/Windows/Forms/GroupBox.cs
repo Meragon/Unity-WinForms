@@ -8,8 +8,6 @@
 
         public GroupBox()
         {
-            BackColor = Color.FromArgb(240, 240, 240);
-            ForeColor = Color.Gray;
             TabIndex = -1;
 
             SetStyle(ControlStyles.Selectable, false);
@@ -26,11 +24,12 @@
             get { return new Size(200, 100); }
         }
 
-        protected override void uwfOnLatePaint(PaintEventArgs e)
+        protected internal override void uwfOnLatePaint(PaintEventArgs e)
         {
             base.uwfOnLatePaint(e);
             e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);

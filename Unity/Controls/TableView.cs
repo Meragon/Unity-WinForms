@@ -344,16 +344,23 @@
             AlignRows();
         }
 
+        protected internal override void uwfOnLatePaint(PaintEventArgs e)
+        {
+            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+        }
+        protected internal override void uwfChildGotFocus(Control child)
+        {
+            base.uwfChildGotFocus(child);
+
+            EnsureVisibleChild(child);
+        }
+
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             base.OnMouseWheel(e);
 
             if (vScroll != null)
                 vScroll.RaiseOnMouseWheel(e);
-        }
-        protected override void uwfOnLatePaint(PaintEventArgs e)
-        {
-            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -364,12 +371,6 @@
             base.OnResize(e);
 
             UpdateScrolls();
-        }
-        protected override void uwfChildGotFocus(Control child)
-        {
-            base.uwfChildGotFocus(child);
-
-            EnsureVisibleChild(child);
         }
 
         private void CreateTopLeftButton()

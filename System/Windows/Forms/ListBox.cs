@@ -265,6 +265,13 @@
             borderPen.Color = borderCurrentColor;
         }
 
+        protected internal override void uwfOnLatePaint(PaintEventArgs e)
+        {
+            base.uwfOnLatePaint(e);
+
+            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+        }
+
         protected virtual void OnDrawItem(DrawItemEventArgs e)
         {
             if (DrawItem != null)
@@ -313,12 +320,6 @@
                     }
                     break;
             }
-        }
-        protected override void uwfOnLatePaint(PaintEventArgs e)
-        {
-            base.uwfOnLatePaint(e);
-
-            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
         protected override void OnLostFocus(EventArgs e)
         {

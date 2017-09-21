@@ -10,7 +10,6 @@
         public CheckBox()
         {
             BackColor = Color.White;
-            ForeColor = Color.Black;
             TextAlign = ContentAlignment.MiddleLeft;
 
             uwfBorderColor = Color.FromArgb(112, 112, 112);

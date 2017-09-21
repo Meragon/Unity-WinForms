@@ -129,6 +129,11 @@
             return nodeList.Find(match);
         }
 
+        protected internal override void uwfOnLatePaint(PaintEventArgs e)
+        {
+            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+        }
+
         protected override void Dispose(bool release_all)
         {
             uwfAppOwner.UpClick -= _Application_UpClick;
@@ -271,10 +276,6 @@
 
             _UpdateScrollList();
             UpdateScrollBar();
-        }
-        protected override void uwfOnLatePaint(PaintEventArgs e)
-        {
-            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
         protected virtual void ProccesNode(TreeNode node)
         {

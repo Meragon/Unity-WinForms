@@ -5,22 +5,28 @@
     [Serializable]
     public class Form : ContainerControl, IResizableControl
     {
-        internal readonly Pen borderPen = new Pen(Color.White);
-        internal readonly Pen innerBorderPen = new Pen(Color.FromArgb(214, 214, 214));
+        internal readonly Pen borderPen = new Pen(defaultFormBorderColor);
+        internal readonly Pen innerBorderPen = new Pen(defaultFormInnerBorderColor);
         internal bool dialog;
-        internal Color uwfHeaderColor = Color.FromArgb(238, 238, 242);
+        internal Color uwfHeaderColor = defaultFormHeaderColor;
         internal Font uwfHeaderFont;
         internal int uwfHeaderHeight = 24;
-        internal Padding uwfHeaderPadding = new Padding(32, 0, 32, 0);
+        internal Padding uwfHeaderPadding = defaultFormPadding;
         internal ContentAlignment uwfHeaderTextAlign;
-        internal Color uwfHeaderTextColor = Color.FromArgb(64, 64, 64);
+        internal Color uwfHeaderTextColor = defaultFormHeaderTextColor;
         internal bool uwfMovable = true;
 
         protected internal Button uwfSizeGripRenderer;
 
+        #region Private vars.
+
         private const int RESIZE_OFFSET = 8;
-        private static readonly Color defaultBorderColor = Color.FromArgb(192, 192, 192);
-        private static readonly Color shadowColor = Color.FromArgb(12, 64, 64, 64);
+        private static readonly Color defaultFormBorderColor = Color.FromArgb(192, 192, 192);
+        private static readonly Color defaultFormInnerBorderColor = Color.FromArgb(214, 214, 214);
+        private static readonly Color defaultFormHeaderColor = Color.FromArgb(238, 238, 242);
+        private static readonly Color defaultFormHeaderTextColor = Color.FromArgb(64, 64, 64);
+        private static readonly Padding defaultFormPadding = new Padding(32, 0, 32, 0);
+        private static readonly Color defaultFormShadowColor = Color.FromArgb(12, 64, 64, 64);
         private static Point nextLocation = new Point(128, 64);
 
         private Color backColor = SystemColors.Control;
@@ -36,6 +42,8 @@
         private SizeGripStyle sizeGripStyle;
         private bool topMost;
 
+        #endregion
+
         public Form()
         {
             ControlBox = true;
@@ -45,7 +53,6 @@
             MinimumSize = new Size(128, 48);
             Visible = false;
 
-            uwfBorderColor = defaultBorderColor;
             uwfHeaderFont = Font;
             uwfHeaderTextAlign = ContentAlignment.MiddleLeft;
             uwfShadowBox = true;
@@ -331,6 +338,17 @@
                 dialogCallback.Invoke(this, DialogResult);
         }
 
+        protected internal override void uwfOnLatePaint(PaintEventArgs e)
+        {
+            base.uwfOnLatePaint(e);
+
+            var g = e.Graphics;
+            var width = Width;
+
+            g.DrawLine(innerBorderPen, 0, uwfHeaderHeight - 1, width, uwfHeaderHeight - 1);
+            g.DrawRectangle(borderPen, 0, 0, width, Height);
+        }
+
         protected override void Dispose(bool release_all)
         {
             uwfAppOwner.UpClick -= Application_UpClick;
@@ -418,16 +436,6 @@
             if (shown != null)
                 shown(this, e);
         }
-        protected override void uwfOnLatePaint(PaintEventArgs e)
-        {
-            base.uwfOnLatePaint(e);
-
-            var g = e.Graphics;
-            var width = Width;
-
-            g.DrawLine(innerBorderPen, 0, uwfHeaderHeight - 1, width, uwfHeaderHeight - 1);
-            g.DrawRectangle(borderPen, 0, 0, width, Height);
-        }
         protected override void SetBoundsCore(int x, int y, int width, int height, BoundsSpecified specified)
         {
             base.SetBoundsCore(x, y, width, height, specified);
@@ -442,9 +450,9 @@
             var height = Height;
             var g = e.Graphics;
 
-            g.uwfFillRectangle(shadowColor, locX - 3, locY, width + 6, height + 3);
-            g.uwfFillRectangle(shadowColor, locX - 2, locY, width + 4, height + 2);
-            g.uwfFillRectangle(shadowColor, locX - 1, locY - 1, width + 2, height + 2);
+            g.uwfFillRectangle(defaultFormShadowColor, locX - 3, locY, width + 6, height + 3);
+            g.uwfFillRectangle(defaultFormShadowColor, locX - 2, locY, width + 4, height + 2);
+            g.uwfFillRectangle(defaultFormShadowColor, locX - 1, locY - 1, width + 2, height + 2);
         }
         private void _MakeButtonClose()
         {

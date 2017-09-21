@@ -8,7 +8,7 @@
         private readonly SolidBrush backBrush = new SolidBrush(SystemColors.ControlLight);
         private readonly SolidBrush barBrush = new SolidBrush(Color.FromArgb(6, 176, 37));
         private readonly Pen borderPen = new Pen(SystemColors.ActiveBorder);
-        private readonly Color defaultForeColor = SystemColors.Highlight;
+        private readonly Color defaultProgressForeColor = SystemColors.Highlight;
 
         private float barX;
         private float barWidth;
@@ -23,7 +23,7 @@
 
         public ProgressBar()
         {
-            ForeColor = this.defaultForeColor;
+            ForeColor = this.defaultProgressForeColor;
             SetStyle(ControlStyles.UserPaint | ControlStyles.Selectable | ControlStyles.UseTextForAccessibility, false);
 
             uwfAppOwner.UpdateEvent += AppOwnerOnUpdateEvent;

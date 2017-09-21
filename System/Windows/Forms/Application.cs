@@ -2,15 +2,19 @@
 {
     using System.Collections.Generic;
     using System.Drawing;
+    using System.Globalization;
     using System.Linq;
 
     using UnityEngine;
 
     using Graphics = System.Drawing.Graphics;
 
+    internal delegate void DragDropRenderHandler(Graphics g);
+
     public class Application
     {
         internal static Control activeResizeControl;
+        internal static CultureInfo currentCulture;
         internal static bool dragndrop;
         internal static object dragData;
         internal readonly List<Control> Contexts = new List<Control>();
@@ -40,6 +44,8 @@
         public Application()
         {
             TabSwitching = true;
+            
+            currentCulture = ApiHolder.System.CurrentCulture;
             paintEventArgs = new PaintEventArgs();
             paintEventArgs.Graphics = new Graphics();
 

@@ -81,11 +81,8 @@
                 if (this.value == value)
                     return;
 
-                if (value > Maximum) value = Maximum;
-                if (value < Minimum) value = Minimum;
-
-                this.value = value;
-                valueText = value.ToString(CultureInfo.InvariantCulture);
+                this.value = Constrain(value);
+                valueText = this.value.ToString(Application.currentCulture);
 
                 OnValueChanged(EventArgs.Empty);
             }
@@ -111,12 +108,18 @@
             Value += Increment;
         }
 
+        protected internal override void uwfOnLatePaint(PaintEventArgs e)
+        {
+            base.uwfOnLatePaint(e);
+
+            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+        }
+
         protected void ConfirmValue()
         {
-            decimal value = Value;
-            if (decimal.TryParse(valueText, out value))
-                if (Value != value)
-                    Value = value;
+            decimal local;
+            if (decimal.TryParse(valueText, NumberStyles.Any, Application.currentCulture, out local))
+                Value = local;
         }
         protected override void OnLostFocus(EventArgs e)
         {
@@ -151,7 +154,7 @@
                 textPaddingRight = -16;
 
             var backColor = Enabled ? BackColor : uwfDisabledColor;
-            var foreColor = Enabled ? ForeColor : Color.Black;
+            var foreColor = Enabled ? ForeColor : SystemColors.ActiveBorder;
 
             g.uwfFillRectangle(backColor, 0, 0, Width, Height);
 
@@ -171,13 +174,17 @@
             if (ValueChanged != null)
                 ValueChanged(this, e);
         }
-        protected override void uwfOnLatePaint(PaintEventArgs e)
+
+        private decimal Constrain(decimal avalue)
         {
-            base.uwfOnLatePaint(e);
+            if (avalue < minimum)
+                avalue = minimum;
 
-            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+            if (avalue > maximum)
+                avalue = maximum;
+
+            return avalue;
         }
-
         private void UpdateButtonsLocation()
         {
             var width = Width;

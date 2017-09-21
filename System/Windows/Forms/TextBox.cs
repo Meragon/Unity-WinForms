@@ -4,18 +4,18 @@
 
     public class TextBox : Control
     {
-        private readonly Pen borderPen;
+        private static readonly Color defaultTextboxBackColor = Color.FromArgb(250, 250, 250);
+
+        private readonly Pen borderPen = new Pen(Color.White);
         private string text;
 
         public TextBox()
         {
-            borderPen = new Pen(Color.White);
             text = string.Empty;
 
-            BackColor = Color.FromArgb(250, 250, 250);
+            BackColor = defaultTextboxBackColor;
             BorderColor = Color.LightGray;
             BorderHoverColor = Color.FromArgb(126, 180, 234);
-            ForeColor = Color.Black;
             Padding = new Padding(2, 0, 2, 0);
             TextAlign = HorizontalAlignment.Left;
         }

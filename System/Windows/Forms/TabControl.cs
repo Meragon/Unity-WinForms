@@ -254,6 +254,33 @@
                 pagesButtonsPanel.Height = ItemSize.Height;
         }
 
+        protected internal override void uwfOnLatePaint(PaintEventArgs e)
+        {
+            // Borders.
+            if (tabPageCount > 0)
+            {
+                e.Graphics.DrawLine(borderPen, 0, Height - 1, Width, Height - 1); // Botttom.
+                e.Graphics.DrawLine(borderPen, 0, ItemSize.Height, 0, Height); // Left.
+                e.Graphics.DrawLine(borderPen, Width - 1, ItemSize.Height, Width - 1, Height); // Right.
+
+                if (selectedIndex != -1 && selectedIndex < tabPageCount)
+                {
+                    var activeButton = pagesButtons[selectedIndex];
+                    if (activeButton.Visible)
+                    {
+                        e.Graphics.DrawLine(borderPen, 0, ItemSize.Height, activeButton.Location.X + 1, ItemSize.Height);
+                        e.Graphics.DrawLine(borderPen, activeButton.Location.X + activeButton.Width - 1, ItemSize.Height, Width, ItemSize.Height);
+                    }
+                    else
+                        e.Graphics.DrawLine(borderPen, 0, ItemSize.Height, Width, ItemSize.Height);
+                }
+            }
+            else // Draw empty.
+            {
+                e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+            }
+        }
+
         protected override Control.ControlCollection CreateControlsInstance()
         {
             return new ControlCollection(this);
@@ -287,32 +314,6 @@
             navigationButtonRight.Dispose();
             navigationButtonLeft = null;
             navigationButtonRight = null;
-        }
-        protected override void uwfOnLatePaint(PaintEventArgs e)
-        {
-            // Borders.
-            if (tabPageCount > 0)
-            {
-                e.Graphics.DrawLine(borderPen, 0, Height - 1, Width, Height - 1); // Botttom.
-                e.Graphics.DrawLine(borderPen, 0, ItemSize.Height, 0, Height); // Left.
-                e.Graphics.DrawLine(borderPen, Width - 1, ItemSize.Height, Width - 1, Height); // Right.
-
-                if (selectedIndex != -1 && selectedIndex < tabPageCount)
-                {
-                    var activeButton = pagesButtons[selectedIndex];
-                    if (activeButton.Visible)
-                    {
-                        e.Graphics.DrawLine(borderPen, 0, ItemSize.Height, activeButton.Location.X + 1, ItemSize.Height);
-                        e.Graphics.DrawLine(borderPen, activeButton.Location.X + activeButton.Width - 1, ItemSize.Height, Width, ItemSize.Height);
-                    }
-                    else
-                        e.Graphics.DrawLine(borderPen, 0, ItemSize.Height, Width, ItemSize.Height);
-                }
-            }
-            else // Draw empty.
-            {
-                e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
-            }
         }
 
         private void CheckNavButtons()
