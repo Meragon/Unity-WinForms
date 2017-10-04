@@ -7,7 +7,7 @@
     /// </summary>
     public static class ControlHelper
     {
-        public static void AddDialogButtons(this Control f, Control buttonOk, Control buttonCancel, params Control[] additionalButtons)
+        public static void AddDialogButtons(this Control f, Control buttonOk, Control buttonCancel, params Button[] additionalButtons)
         {
             if (buttonOk == null) buttonOk = new Button();
             if (buttonCancel == null) buttonCancel = new Button();
@@ -31,10 +31,11 @@
                     if (additionalButtons[i] == null)
                         additionalButtons[i] = new Button();
 
-                    additionalButtons[i].Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
-                    additionalButtons[i].Location = new Point(lastLocation.X - additionalButtons[i].Width - 9, lastLocation.Y);
-                    lastLocation = additionalButtons[i].Location;
-                    f.Controls.Add(additionalButtons[i]);
+                    var aButton = additionalButtons[i];
+                    aButton.Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
+                    aButton.Location = new Point(lastLocation.X - aButton.Width - 9, lastLocation.Y);
+                    lastLocation = aButton.Location;
+                    f.Controls.Add(aButton);
                 }
             }
         }
@@ -60,9 +61,8 @@
         }
         public static void ToCenter(this Form f)
         {
-            f.Location = new Point(
-                (Screen.PrimaryScreen.WorkingArea.Width - f.Width) / 2,
-                (Screen.PrimaryScreen.WorkingArea.Height - f.Height) / 2);
+            var workingArea = Screen.PrimaryScreen.WorkingArea;
+            f.Location = new Point((workingArea.Width - f.Width) / 2, (workingArea.Height - f.Height) / 2);
         }
     }
 }

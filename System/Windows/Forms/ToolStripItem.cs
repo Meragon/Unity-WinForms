@@ -28,7 +28,7 @@
             Text = text;
         }
 
-        public event EventHandler Click = delegate { };
+        public event EventHandler Click;
 
         public virtual Color BackColor { get; set; }
         public virtual Rectangle Bounds { get { return new Rectangle(0, 0, Width, Height); } }
@@ -67,7 +67,7 @@
 
         internal void RaiseClick()
         {
-            Click(this, null);
+            OnClick(EventArgs.Empty);
         }
         internal void RaiseOnMouseDown(MouseEventArgs e)
         {
@@ -123,6 +123,12 @@
         protected override void Dispose(bool disposing)
         {
         }
+        protected virtual void OnClick(EventArgs e)
+        {
+            var handler = Click;
+            if (handler != null)
+                handler(this, e);
+        }
         protected virtual void OnMouseDown(MouseEventArgs e)
         {
         }
@@ -143,7 +149,7 @@
         protected virtual void OnMouseUp(MouseEventArgs e)
         {
             if (!Enabled) return;
-            Click(this, null);
+            OnClick(EventArgs.Empty);
             if (Parent.Parent == null)
                 Parent.Dispose();
         }

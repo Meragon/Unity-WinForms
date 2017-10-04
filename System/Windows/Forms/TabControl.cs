@@ -172,7 +172,7 @@
             pageButton.uwfBorderHoverColor = Color.Transparent;
             pageButton.uwfBorderColor = Color.Transparent;
             pageButton.Location = new Point(tabPageCount * pageButton.Width - tabPageCount, 0);
-            pageButton.Height = ItemSize.Height;
+            pageButton.Size = itemSize;
             pageButton.Text = tabPage.Text;
             pageButton.Hide();
 
@@ -183,6 +183,8 @@
 
             if (TabPages.Count > 0 && SelectedIndex == -1)
                 SelectTab(0);
+
+            UpdateButtons();
 
             return tabPageCount;
         }

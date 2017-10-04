@@ -401,7 +401,7 @@
             bool horizontalScroll_Left = child.Location.X + childOffset.X < 0;
             bool horizontalScroll_Right = child.Location.X + childOffset.X + child.Width > Width;
             bool verticalScroll_Top = child.Location.Y + childOffset.Y < 0;
-            bool verticalScroll_Bottom = child.Location.Y + childOffset.Y + child.Height > Height;
+            bool verticalScroll_Bottom = child.Location.Y + childOffset.Y + child.Height > Height && child.Height < Height;
 
             if (hScroll != null && Width > 0 && (horizontalScroll_Left || horizontalScroll_Right))
             {
@@ -878,24 +878,20 @@
     }
     public class TableRowCollection
     {
-        private List<TableRow> items = new List<TableRow>();
         internal TableView owner;
 
-        public int Count { get { return items.Count; } }
-
-        public TableRow this[int index]
-        {
-            get { return items[index]; }
-        }
+        private readonly List<TableRow> items = new List<TableRow>();
 
         public TableRowCollection(TableView table)
         {
             owner = table;
         }
 
-        internal void ClearList()
+        public int Count { get { return items.Count; } }
+
+        public TableRow this[int index]
         {
-            items.Clear();
+            get { return items[index]; }
         }
 
         public virtual int Add()
@@ -931,6 +927,15 @@
         {
             return items.FindIndex(x => x == row);
         }
+        public int Insert(int rowIndex, params object[] values)
+        {
+            var row = new TableRow(this);
+            row.Items = values;
+
+            items.Insert(rowIndex, row);
+            owner.UpdateRow(row);
+            return rowIndex;
+        }
         public TableRow Last()
         {
             return items.Last();
@@ -949,6 +954,11 @@
             items.Remove(row);
 
             owner.UpdateRows();
+        }
+
+        internal void ClearList()
+        {
+            items.Clear();
         }
     }
     public class TableColumn
