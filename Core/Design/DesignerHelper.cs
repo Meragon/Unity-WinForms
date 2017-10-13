@@ -2,9 +2,9 @@
 {
     internal static class DesignerHelper
     {
-        public static ControlDesigner GetDesigner(this Control c)
+        public static ObjectDesigner GetDesigner(this Control c)
         {
-            return new ControlDesigner(c);
+            return new ObjectDesigner(c);
         }
     }
 }

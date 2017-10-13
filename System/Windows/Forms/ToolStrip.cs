@@ -1,69 +1,100 @@
 ﻿namespace System.Windows.Forms
 {
     using System.Drawing;
+    using System.Linq;
+    using System.Text;
 
     public class ToolStrip : ScrollableControl
     {
-        private readonly SolidBrush brushBack = new SolidBrush(Color.Transparent);
-        private readonly Pen borderPen = new Pen(Color.Transparent);
+        internal ToolStripItem selectedItem;
+        internal bool shouldFixWidth;
+
         private readonly ToolStripItemCollection items;
-        private readonly PaintEventArgs p_args;
-        private readonly Pen verticalLinePen = new Pen(Color.FromArgb(215, 215, 215));
 
-        public ToolStrip()
+        private bool autoSize;
+        private Orientation orientation = Orientation.Horizontal;
+
+        public ToolStrip() : this(null)
         {
-            items = new ToolStripItemCollection(this, null);
-            p_args = new PaintEventArgs();
-
-            BackColor = Color.FromArgb(246, 246, 246);
-            BorderColor = Color.FromArgb(204, 206, 219);
-            Orientation = Orientation.Vertical;
-
-            uwfAppOwner.UpClick += Application_UpClick;
         }
         public ToolStrip(ToolStripItem[] items)
         {
             this.items = new ToolStripItemCollection(this, items);
-            this.items.AddRange(items);
 
-            BackColor = Color.FromArgb(246, 246, 246);
-            BorderColor = Color.FromArgb(204, 206, 219);
-            Orientation = Orientation.Vertical;
+            AutoSize = true;
+            BackColor = Color.White;
 
-            uwfAppOwner.UpClick += Application_UpClick;
+            MouseHook.MouseUp += MouseHookOnMouseUp;
         }
 
-        public event ToolStripItemClickedEventHandler ItemClicked = delegate { };
+        public event ToolStripItemClickedEventHandler ItemClicked;
 
-        public override Color BackColor
+        public override bool AutoSize
         {
-            get { return brushBack.Color; }
-            set { brushBack.Color = value; }
-        }
-        public Color BorderColor
-        {
-            get { return borderPen.Color; }
-            set { borderPen.Color = value; }
+            get { return autoSize; }
+            set
+            {
+                autoSize = value;
+                if (value)
+                    UpdateSize();
+            }
         }
         public virtual ToolStripItemCollection Items { get { return items; } }
-        public Orientation Orientation { get; set; }
-
-        internal ToolStripItem OwnerItem { get; set; }
+        public bool IsDropDown
+        {
+            get { return this is ToolStripDropDown; }
+        }
+        public Orientation Orientation
+        {
+            get { return orientation; }
+            internal set { orientation = value; }
+        }
 
         protected override Size DefaultSize
         {
             get { return new Size(100, 25); }
         }
-
-        public void ResetSelected()
+        protected override Padding DefaultPadding
         {
-            for (int i = 0; i < items.Count; i++)
-                items[i].Selected = false;
+            // It's look like original one have left offset, but padding is actually should be = 0, 0, 1, 0.
+            get { return new Padding(1, 0, 1, 0); }
         }
 
-        /// <summary>
-        /// For menu strips.
-        /// </summary>
+        public override string ToString()
+        {
+            var sb = new StringBuilder(base.ToString());
+            sb.Append(", Name: ");
+            sb.Append(Name);
+            sb.Append(", Items: ").Append(Items.Count);
+            return sb.ToString();
+        }
+
+        internal ToolStripItem ItemAt(Point position)
+        {
+            for (int i = 0; i < items.Count; i++)
+            {
+                var item = items[i];
+                var itemBounds = item.Bounds;
+                if (itemBounds.Contains(position))
+                    return item;
+
+                // Also check child toolStrips.
+                var dropDownItem = item as ToolStripDropDownItem;
+                if (dropDownItem == null)
+                    continue;
+
+                var dropDown = dropDownItem.DropDown;
+                if (dropDown != null && dropDown.IsDisposed == false)
+                {
+                    var screenPosition = PointToScreen(position);
+                    var dropDownRect = new Rectangle(dropDown.Location, dropDown.Size);
+                    if (dropDownRect.Contains(screenPosition))
+                        return item;
+                }
+            }
+
+            return null;
+        }
         internal void MakeShadow()
         {
             uwfShadowHandler = (g) =>
@@ -75,121 +106,228 @@
                 g.Graphics.uwfFillRectangle(color, loc.X - 1, loc.Y, Width + 2, Height + 1);
             };
         }
+        internal void NotifySelectionChange(ToolStripItem item)
+        {
+            throw new NotImplementedException();
+        }
+        internal ToolStripItem SelectNextToolStripItem(ToolStripItem start, bool forward)
+        {
+            var collection = Items;
+            if (collection.Count == 0)
+                return null;
 
+            if (collection.Any(item => item.CanSelect) == false)
+                return null;
+
+            if (collection.Count == 1)
+            {
+                collection[0].Select();
+                return collection[0];
+            }
+
+            var nextItem = start;
+            if (nextItem == null)
+                nextItem = forward ? collection[0] : collection[collection.Count - 1];
+            else
+            {
+                var currentIndex = collection.IndexOf(nextItem);
+                var nextIndex = forward ? currentIndex + 1 : currentIndex - 1;
+                if (nextIndex < 0)
+                    nextIndex = collection.Count - 1;
+                if (nextIndex >= collection.Count)
+                    nextIndex = 0;
+                nextItem = collection[nextIndex];
+            }
+
+            if (nextItem.CanSelect == false)
+                nextItem = SelectNextToolStripItem(nextItem, forward);
+
+            if (start != null)
+                start.Unselect();
+            if (nextItem != null)
+                nextItem.Select();
+
+            return nextItem;
+        }
+        internal virtual void Show()
+        {
+            UpdateSize();
+
+            for (int i = 0, x = Padding.Left, y = Padding.Top; i < items.Count; i++)
+            {
+                var item = items[i];
+                item.SetBounds(x, y, item.Width, item.Height);
+
+                if (Orientation == Orientation.Horizontal)
+                    x += item.Width;
+                if (Orientation == Orientation.Vertical)
+                    y += item.Height;
+            }
+        }
+        internal void UpdateItemsBounds()
+        {
+            var padding = Padding;
+            for (int i = 0, x = padding.Left, y = padding.Top; i < items.Count; i++)
+            {
+                var item = items[i];
+                item.UpdateBounds(x, y);
+
+                if (orientation == Orientation.Vertical)
+                    y += item.Height;
+                else
+                    x += item.Width;
+            }
+        }
+        internal void UpdateSize()
+        {
+            UpdateItemsBounds();
+
+            if (autoSize == false)
+                return;
+
+            if (orientation == Orientation.Vertical)
+            {
+                var padding = Padding;
+                int height = padding.Top;
+                for (int i = 0; i < items.Count; i++)
+                {
+                    var item = items[i];
+                    height += item.Height;
+                }
+
+                Height = height + padding.Bottom;
+            }
+        }
+
+        protected override ControlCollection CreateControlsInstance()
+        {
+            return new WindowsFormsUtils.ReadOnlyControlCollection(this, false);
+        }
         protected override void Dispose(bool release_all)
         {
-            uwfAppOwner.DownClick -= Application_UpClick;
+            MouseHook.MouseUp -= MouseHookOnMouseUp;
+
             base.Dispose(release_all);
         }
         protected override void OnMouseHover(EventArgs e)
         {
             base.OnMouseHover(e);
 
-            var mc_pos = ((MouseEventArgs)e).Location;
-            for (int i = 0, x = Padding.Left, y = Padding.Top; i < items.Count; i++)
-            {
-                if (items[i].JustVisual) continue;
-
-                items[i].RaiseOnMouseLeave(e);
-                if (mc_pos.X > x && mc_pos.X < x + items[i].Width && mc_pos.Y > y && mc_pos.Y < y + items[i].Height)
-                    items[i].RaiseOnMouseEnter(e);
-
-                if (Orientation == Orientation.Horizontal)
-                    x += items[i].Width;
-                if (Orientation == Orientation.Vertical)
-                    y += items[i].Height;
-            }
+            if (selectedItem != null)
+                selectedItem.RaiseOnMouseHover(e);
         }
-        protected override void OnMouseLeave(EventArgs e)
+        protected override void OnMouseMove(MouseEventArgs e)
         {
-            base.OnMouseLeave(e);
-            for (int i = 0; i < items.Count; i++)
+            base.OnMouseMove(e);
+
+            var prevHoveredItem = selectedItem;
+            selectedItem = ItemAt(PointToClient(MousePosition));
+            if (selectedItem != null)
+                selectedItem.RaiseOnMouseHover(e);
+
+            if (prevHoveredItem != selectedItem)
             {
-                if (items[i].JustVisual) continue;
-                items[i].RaiseOnMouseLeave(e);
+                if (prevHoveredItem != null)
+                    prevHoveredItem.RaiseOnMouseLeave(e);
+                if (selectedItem != null)
+                    selectedItem.RaiseOnMouseEnter(e);
             }
         }
         protected override void OnMouseUp(MouseEventArgs e) // Click.
         {
             base.OnMouseUp(e);
 
-            int prevSelected = -1;
-            for (int i = 0; i < items.Count; i++)
-            {
-                if (items[i].Selected) prevSelected = i;
-                items[i].Selected = false;
-            }
+            var item = selectedItem;
+            if (item == null)
+                return;
 
-            var mc_pos = e.Location;
-            for (int i = 0, x = Padding.Left, y = Padding.Top; i < items.Count; i++)
-            {
-                if (items[i].JustVisual) continue;
+            var handler = ItemClicked;
+            if (handler != null)
+                handler(this, new ToolStripItemClickedEventArgs(item));
 
-                if (mc_pos.X > x && mc_pos.X < x + items[i].Width && mc_pos.Y > y && mc_pos.Y < y + items[i].Height)
-                {
-                    if (i != prevSelected)
-                        items[i].Selected = true;
-
-                    ItemClicked(this, new ToolStripItemClickedEventArgs(items[i]));
-                    items[i].RaiseOnMouseUp(e);
-                    break;
-                }
-
-                if (Orientation == Orientation.Horizontal)
-                    x += items[i].Width;
-                if (Orientation == Orientation.Vertical)
-                    y += items[i].Height;
-            }
+            item.RaiseOnMouseUp(e);
         }
         protected override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
             switch (e.KeyCode)
             {
-                case Keys.Down: break;
-                case Keys.Left: break;
-                case Keys.Right: break;
-                case Keys.Up: break;
+                case Keys.Down:
+                    selectedItem = SelectNextToolStripItem(selectedItem, true);
+                    break;
+                case Keys.Up:
+                    selectedItem = SelectNextToolStripItem(selectedItem, false);
+                    break;
+                case Keys.Enter:
+                case Keys.Space:
+                    if (selectedItem != null)
+                        selectedItem.RaiseClick();
+                    break;
             }
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            if (OwnerItem != null && OwnerItem.Parent != null && OwnerItem.Parent.Orientation == Orientation.Horizontal && uwfShadowHandler == null)
-            {
-                MakeShadow();
-            }
-
             base.OnPaint(e);
 
             var graphics = e.Graphics;
+            var localItems = Items;
+            var totalWidth = 0;
+            var updateItemsBounds = false;
+            var width = Width;
+            var maxWidth = 68;
+            var padding = Padding;
 
-            p_args.Graphics = graphics;
-            p_args.ClipRectangle = e.ClipRectangle;
-
-            graphics.FillRectangle(brushBack, 0, 0, Width, Height);
-
-            if (Orientation == Orientation.Vertical)
-                graphics.DrawLine(verticalLinePen, 30, 2, 30, Height - 2);
-
-            for (int i = 0, x = Padding.Left, y = Padding.Top; i < items.Count; i++)
+            for (int i = 0; i < localItems.Count; i++)
             {
-                var item = items[i];
-                p_args.ClipRectangle = new Rectangle(x, y, item.Width, item.Height);
-                item.RaiseOnPaint(p_args);
+                var item = localItems[i];
+                if (item.boundsChanged) // We need to update all items bounds if any item bounds was changed.
+                    updateItemsBounds = true;
 
-                if (item.JustVisual) continue;
-                if (Orientation == Orientation.Horizontal)
-                    x += item.Width;
-                if (Orientation == Orientation.Vertical)
-                    y += item.Height;
+                if (item.AutoSize && item.boundsChanged) // Check if item size need to be updated.
+                {
+                    var itemTextWidth = item.GetEstimatedWidth(graphics);
+                    var itemWidth = itemTextWidth + item.Padding.Horizontal + 4;
+                    if (orientation == Orientation.Horizontal)
+                        item.Width = itemWidth;
+                    item.boundsChanged = false;
+                    maxWidth = Math.Max(maxWidth, itemWidth);
+                }
+
+                totalWidth += item.Width;
+
+                // Item's paint invoke.
+                item.RaiseOnPaint(e);
             }
 
-            graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+            if (updateItemsBounds)
+                UpdateItemsBounds();
+
+            if (AutoSize)
+            {
+                if (totalWidth != width)
+                {
+                    if (orientation == Orientation.Horizontal)
+                        Width = totalWidth + padding.Horizontal;
+                    else if (updateItemsBounds || shouldFixWidth) // Update for vertical.
+                    {
+                        shouldFixWidth = false;
+                        Width = maxWidth + padding.Horizontal;
+                        for (int i = 0; i < items.Count; i++)
+                            items[i].Width = Width - 4;
+                    }
+                }
+            }
+        }
+        protected override void OnSizeChanged(EventArgs e)
+        {
+            base.OnSizeChanged(e);
+
+            UpdateItemsBounds();
         }
 
-        private void Application_UpClick(object sender, EventArgs e)
+        private void MouseHookOnMouseUp(object sender, EventArgs e)
         {
-            bool reset = true;
+            /*bool reset = true;
             var toolStrip = sender as ToolStrip;
             if (toolStrip != null)
             {
@@ -215,7 +353,7 @@
             var mc_pos = PointToClient(MousePosition);
             if (!ClientRectangle.Contains(mc_pos) && reset)
                 for (int i = 0; i < items.Count; i++)
-                    items[i].Selected = false;
+                    items[i].Selected = false;*/
         }
     }
 }

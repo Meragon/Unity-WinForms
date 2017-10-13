@@ -68,7 +68,7 @@
             subtractButton.Click += (s, a) => { DoScroll(ScrollEventType.SmallDecrement); };
             Controls.Add(subtractButton);
 
-            uwfAppOwner.UpClick += Owner_UpClick;
+            MouseHook.MouseUp += Owner_UpClick;
             uwfAppOwner.UpdateEvent += Owner_UpdateEvent;
         }
 
@@ -267,7 +267,7 @@
 
         protected override void Dispose(bool release_all)
         {
-            uwfAppOwner.UpClick -= Owner_UpClick;
+            MouseHook.MouseUp -= Owner_UpClick;
             uwfAppOwner.UpdateEvent -= Owner_UpdateEvent;
 
             base.Dispose(release_all);

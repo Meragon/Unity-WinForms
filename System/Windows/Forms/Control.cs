@@ -22,7 +22,6 @@
         internal int uwfBatches;
         internal bool uwfShadowBox;
         internal DrawHandler uwfShadowHandler;
-        internal IControlDesigner uwfDesigner;
         internal Point uwfOffset;
 
         private AnchorStyles anchor = AnchorStyles.Top | AnchorStyles.Left;
@@ -31,6 +30,7 @@
         private int clientWidth;
         private ControlCollection controls;
         private ControlStyles controlStyle;
+        private bool enabled;
         private Font font = SystemFonts.uwfArial_12;
         private Color foreColor = defaultForeColor;
         private int height;
@@ -48,10 +48,12 @@
             else if (uwfDefaultController != null)
                 uwfDefaultController.Run(this);
 
+            uwfAutoGroup = true;
+
             Enabled = true;
+            Padding = DefaultPadding;
             TabIndex = -1;
             TabStop = true;
-            uwfAutoGroup = true;
             visible = true;
 
             SetStyle(
@@ -75,6 +77,7 @@
         public event DragEventHandler DragDrop;
         public event DragEventHandler DragEnter;
         public event EventHandler DragLeave;
+        public event EventHandler EnabledChanged;
         public event EventHandler GotFocus;
         public event KeyEventHandler KeyDown;
         public event KeyPressEventHandler KeyPress;
@@ -88,6 +91,7 @@
         public event EventHandler MouseHover;
         public event EventHandler MouseLeave;
         public event MouseEventHandler MouseUp;
+        public event EventHandler ParentChanged;
         public event EventHandler Resize;
         public event EventHandler SizeChanged;
         public event EventHandler TextChanged;
@@ -95,6 +99,10 @@
 
         internal event KeyEventHandler uwfKeyPress;
 
+        public static Color DefaultBackColor
+        {
+            get { return SystemColors.Control; }
+        }
         public static Point MousePosition
         {
             get
@@ -151,7 +159,19 @@
         }
         public virtual Rectangle DisplayRectangle { get { return ClientRectangle; } }
         public bool Disposing { get; private set; }
-        public bool Enabled { get; set; }
+        public bool Enabled
+        {
+            get { return enabled; }
+            set
+            {
+                if (enabled == value)
+                    return;
+
+                enabled = value;
+
+                OnEnabledChanged(EventArgs.Empty);
+            }
+        }
         public bool Focused { get { return selected; } }
         public virtual Font Font
         {
@@ -262,6 +282,10 @@
         {
             get { return Size.Empty; }
         }
+        protected virtual Padding DefaultPadding
+        {
+            get { return Padding.Empty; }
+        }
 
         public void BringToFront()
         {
@@ -300,12 +324,14 @@
         {
             return FocusInternal();
         }
-        public void Invalidate()
+        public virtual void Invalidate()
         {
         }
-        public void Invalidate(Rectangle rc)
+        public virtual void Invalidate(Rectangle rc)
         {
-            // Dunno.
+        }
+        public virtual void Invalidate(Rectangle rc, bool invalidateChildren)
+        {
         }
         public void PerformLayout()
         {
@@ -375,6 +401,11 @@
             // dunno.
         }
 
+        internal virtual void AssignParent(Control value)
+        {
+            parent = value;
+            OnParentChanged(EventArgs.Empty);
+        }
         internal virtual bool CanSelectCore()
         {
             if ((controlStyle & ControlStyles.Selectable) != ControlStyles.Selectable)
@@ -410,6 +441,19 @@
 
             OnGotFocus(EventArgs.Empty);
             return true; // TODO: CanFocus.
+        }
+        internal void PaintBackground(PaintEventArgs e, Rectangle rectangle)
+        {
+            PaintBackground(e, rectangle, this.BackColor, Point.Empty);
+        }
+        internal void PaintBackground(PaintEventArgs e, Rectangle rectangle, Color backColor, Point scrollOffset)
+        {
+            if (backColor.A > 0)
+                PaintBackColor(e, rectangle, backColor);
+
+            var bImage = BackgroundImage;
+            if (bImage != null)
+                ControlPaint.DrawBackgroundImage(e.Graphics, bImage, backColor, BackgroundImageLayout, ClientRectangle, rectangle);
         }
         internal virtual void RaiseOnDragDrop(DragEventArgs drgevent)
         {
@@ -565,7 +609,7 @@
 
             Disposing = true;
 
-            if (release_all)
+            if (release_all && Controls.IsReadOnly == false)
             {
                 for (; Controls.Count > 0;)
                     Controls[0].Dispose();
@@ -639,6 +683,12 @@
             var dragLeave = DragLeave;
             if (dragLeave != null)
                 dragLeave(this, e);
+        }
+        protected virtual void OnEnabledChanged(EventArgs e)
+        {
+            var handler = EnabledChanged;
+            if (handler != null)
+                handler(this, e);
         }
         protected virtual void OnGotFocus(EventArgs e)
         {
@@ -743,6 +793,13 @@
         }
         protected virtual void OnPaintBackground(PaintEventArgs pevent)
         {
+            PaintBackground(pevent, ClientRectangle);
+        }
+        protected virtual void OnParentChanged(EventArgs e)
+        {
+            var handler = ParentChanged;
+            if (handler != null)
+                handler(this, e);
         }
         protected virtual void OnResize(EventArgs e)
         {
@@ -831,6 +888,10 @@
             OnClientSizeChanged(EventArgs.Empty);
         }
 
+        private static void PaintBackColor(PaintEventArgs e, Rectangle rectangle, Color backColor)
+        {
+            e.Graphics.uwfFillRectangle(backColor, rectangle);
+        }
         private void ParentResized(Point delta)
         {
             if (Anchor == AnchorStyles.None) return;
@@ -888,6 +949,8 @@
             private readonly List<Control> items = new List<Control>();
             private readonly Control owner;
 
+            private int lastAccessedIndex = -1;
+
             public ControlCollection(Control owner)
             {
                 this.owner = owner;
@@ -906,11 +969,12 @@
                     return false;
                 }
             }
+            public virtual bool IsReadOnly { get { return false; } }
             bool IList.IsReadOnly
             {
                 get
                 {
-                    return false;
+                    return IsReadOnly;
                 }
             }
             public bool IsSynchronized
@@ -949,14 +1013,14 @@
             public virtual void Add(Control value)
             {
                 items.Add(value);
-                value.parent = owner;
+                value.AssignParent(owner);
             }
             public virtual void AddRange(Control[] controls)
             {
                 foreach (var c in controls)
                     Add(c);
             }
-            public void Clear()
+            public virtual void Clear()
             {
                 items.Clear();
             }
@@ -990,6 +1054,26 @@
             {
                 return items.IndexOf(control);
             }
+            public virtual int IndexOfKey(string key)
+            {
+                if (string.IsNullOrEmpty(key))
+                    return -1;
+
+                if (IsValidIndex(lastAccessedIndex))
+                    if (WindowsFormsUtils.SafeCompareStrings(this[lastAccessedIndex].Name, key, true))
+                        return lastAccessedIndex;
+
+                for (int i = 0; i < Count; i++)
+                {
+                    if (!WindowsFormsUtils.SafeCompareStrings(this[i].Name, key, true)) continue;
+
+                    lastAccessedIndex = i;
+                    return i;
+                }
+
+                lastAccessedIndex = -1;
+                return -1;
+            }
             public void Insert(int index, Control value)
             {
                 items.Insert(index, value);
@@ -1001,6 +1085,12 @@
             public void RemoveAt(int index)
             {
                 items.RemoveAt(index);
+            }
+            public virtual void RemoveByKey(string key)
+            {
+                int index = IndexOfKey(key);
+                if (IsValidIndex(index))
+                    RemoveAt(index);
             }
             public void Reset()
             {
@@ -1048,6 +1138,11 @@
 
                 cc.items.AddRange(items);
                 return cc;
+            }
+
+            private bool IsValidIndex(int index)
+            {
+                return index >= 0 && index < Count;
             }
         }
     }

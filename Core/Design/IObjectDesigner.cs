@@ -1,8 +1,8 @@
 ﻿namespace System.Windows.Forms.Design
 {
-    public interface IControlDesigner
+    public interface IObjectDesigner
     {
-        Control Control { get; }
+        object Value { get; }
 
         object Draw(int width, int height);
     }

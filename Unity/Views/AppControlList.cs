@@ -62,7 +62,7 @@ namespace Unity.Views
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
                     var w = AppControl.ShowWindow();
-                    (w as AppControl).Control = SWF.Control.uwfDefaultController.ModalForms[i];
+                    (w as AppControl).DesignerObject = SWF.Control.uwfDefaultController.ModalForms[i];
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));
@@ -85,7 +85,7 @@ namespace Unity.Views
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
                     var w = AppControl.ShowWindow();
-                    (w as AppControl).Control = SWF.Control.uwfDefaultController.Forms[i];
+                    (w as AppControl).DesignerObject = SWF.Control.uwfDefaultController.Forms[i];
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));
@@ -108,7 +108,7 @@ namespace Unity.Views
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
                     var w = AppControl.ShowWindow();
-                    (w as AppControl).Control = SWF.Control.uwfDefaultController.Contexts[i];
+                    (w as AppControl).DesignerObject = SWF.Control.uwfDefaultController.Contexts[i];
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));
@@ -128,7 +128,7 @@ namespace Unity.Views
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
                     var w = AppControl.ShowWindow();
-                    (w as AppControl).Control = hoveredControl;
+                    (w as AppControl).DesignerObject = hoveredControl;
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));

@@ -254,7 +254,13 @@
 
             #endregion
 
-            g.uwfFillRectangle(backColor, 0, 0, Width, Height);
+            var height = Height;
+            var width = Width;
+            var textWidth = width - DOWN_BUTTON_WIDTH;
+            if (WrapText == false)
+                textWidth *= 2;
+
+            g.uwfFillRectangle(backColor, 0, 0, width, height);
 
             switch (DropDownStyle)
             {
@@ -262,8 +268,7 @@
 
                     if (Focused && Enabled)
                     {
-                        var filterBuffer = g.uwfDrawTextField(filter, Font, ForeColor, 2, 0, Width - DOWN_BUTTON_WIDTH, Height,
-                            HorizontalAlignment.Left);
+                        var filterBuffer = g.uwfDrawTextField(filter, Font, ForeColor, 2, 0, textWidth, height, HorizontalAlignment.Left);
                         if (filterBuffer != filter)
                         {
                             if (listBox != null && !listBox.IsDisposed && !listBox.Disposing)
@@ -277,7 +282,7 @@
                         filter = filterBuffer;
                     }
                     else
-                        g.uwfDrawString(Text, Font, ForeColor, 5, 0, Width - DOWN_BUTTON_WIDTH, Height);
+                        g.uwfDrawString(Text, Font, ForeColor, 5, 0, textWidth, height);
 
                     if (uwfHovered)
                     {
@@ -299,11 +304,22 @@
                     }
                     break;
                 case ComboBoxStyle.DropDownList:
-                    g.uwfDrawString(Text, Font, ForeColor, 5, 0, Width - DOWN_BUTTON_WIDTH, Height);
+                    g.uwfDrawString(Text, Font, ForeColor, 5, 0, textWidth, height);
                     break;
             }
 
-            g.uwfDrawImage(uwfAppOwner.Resources.CurvedArrowDown, arrowColor, Width - 16 - 1, Height / 2 - 8, 16, 16);
+            // Arrow.
+            var arrowSize = 16;
+            g.uwfFillRectangle(backColor, width - arrowSize, 0, arrowSize, height);
+            g.uwfDrawImage(
+                uwfAppOwner.Resources.CurvedArrowDown,
+                arrowColor,
+                width - arrowSize,
+                height / 2 - arrowSize / 2,
+                arrowSize,
+                arrowSize);
+
+            // Border.
             g.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
         protected override void OnSelectedIndexChanged(EventArgs e)

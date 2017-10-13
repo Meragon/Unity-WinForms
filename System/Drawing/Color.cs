@@ -165,32 +165,18 @@
         public byte R { get { return r; } }
         public byte G { get { return g; } }
         public byte B { get { return b; } }
-
-        public static Color operator +(Color left, Color right)
-        {
-            int a = left.A + right.A; a = a > 255 ? 255 : a;
-            int r = left.R + right.R; r = r > 255 ? 255 : r;
-            int g = left.G + right.G; g = g > 255 ? 255 : g;
-            int b = left.B + right.B; b = b > 255 ? 255 : b;
-            return Color.FromArgb(a, r, g, b);
-        }
-        public static Color operator -(Color left, Color right)
-        {
-            int a = left.A - right.A; a = a < 0 ? 0 : a;
-            int r = left.R - right.R; r = r < 0 ? 0 : r;
-            int g = left.G - right.G; g = g < 0 ? 0 : g;
-            int b = left.B - right.B; b = b < 0 ? 0 : b;
-            return Color.FromArgb(a, r, g, b);
-        }
+        
         public static bool operator !=(Color left, Color right)
         {
-            if (left.a != right.a || left.r != right.r || left.g != right.g || left.b != right.b)
-                return true;
-            return false;
+            return !(left == right);
         }
         public static bool operator ==(Color left, Color right)
         {
-            if (left.a == right.a && left.r == right.r && left.g == right.g && left.b == right.b)
+            if (left.a == right.a && 
+                left.r == right.r && 
+                left.g == right.g && 
+                left.b == right.b && 
+                left.isEmpty == right.isEmpty)
                 return true;
             return false;
         }

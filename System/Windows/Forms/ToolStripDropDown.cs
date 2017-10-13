@@ -4,7 +4,10 @@
 
     public class ToolStripDropDown : ToolStrip
     {
-        private static readonly Color defaultToolStripDropDownHoverColor = Color.FromArgb(160, 210, 222, 245);
+        internal ToolStripDropDownDirection direction;
+
+        private readonly Pen borderPen = new Pen(Color.FromArgb(128, 128, 128));
+        private ToolStripItem ownerItem;
 
         public ToolStripDropDown()
         {
@@ -12,16 +15,22 @@
             Visible = false;
         }
 
-        public void Show()
+        public ToolStripItem OwnerItem
+        {
+            get { return ownerItem; }
+            set { ownerItem = value; }
+        }
+
+        public new void Show()
         {
             Location = new Point();
-            ShowCore();
+            SetVisibleCore();
         }
         public void Show(Control control, Point position)
         {
             Location = control == null ? position : control.PointToScreen(Point.Empty).Add(position);
 
-            ShowCore();
+            SetVisibleCore();
         }
         public void Show(Control control, int x, int y)
         {
@@ -30,65 +39,115 @@
         public void Show(Point screenLocation)
         {
             Location = screenLocation;
-            ShowCore();
+            SetVisibleCore();
         }
         public void Show(int x, int y)
         {
             Location = new Point(x, y);
-            ShowCore();
+            SetVisibleCore();
         }
 
-        private void ShowCore()
+        protected override void Dispose(bool release_all)
         {
-            int height = 0;
-            int width = 160;
+            var disposeIsBlocked = false; // By something unnatural.
 
+            for (int i = 0; i < Items.Count; i++)
+            {
+                var dropDownItem = Items[i] as ToolStripDropDownItem;
+                if (dropDownItem == null)
+                    continue;
+
+                if (dropDownItem.DropDown == null || dropDownItem.DropDown.IsDisposed) continue;
+
+                disposeIsBlocked = true; // We can't dispose parent before child.
+                break;
+            }
+
+            if (disposeIsBlocked)
+                return;
+
+            base.Dispose(release_all);
+        }
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+
+            switch (e.KeyCode)
+            {
+                case Keys.Escape:
+                case Keys.Left:
+                    {
+                        if (selectedItem != null)
+                        {
+                            var ownerDropDownItem = selectedItem.OwnerItem as ToolStripDropDownItem;
+                            if (ownerDropDownItem != null)
+                                ownerDropDownItem.CloseToolStrip();
+                        }
+                    }
+                    break;
+                case Keys.Right:
+                    {
+                        var dropDownItem = selectedItem as ToolStripDropDownItem;
+                        if (dropDownItem != null)
+                            dropDownItem.RaiseClick();
+                    }
+                    break;
+            }
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            var graphics = e.Graphics;
+
+            graphics.uwfFillRectangle(SystemColors.Control, 0, 0, 24, Height);
+
+            base.OnPaint(e);
+
+            graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+        }
+        protected override void SetBoundsCore(int argX, int argY, int argWidth, int argHeight, BoundsSpecified specified)
+        {
+            // Fix location
+            var workingArea = Screen.PrimaryScreen.WorkingArea;
+            var newBounds = WindowsFormsUtils.ConstrainToBounds(workingArea, new Rectangle(argX, argY, argWidth, argHeight));
+            var xFixed = argX != newBounds.X;
+
+            // TODO: need some code to prevent child going outside of screen.
+            /*if (OwnerItem != null)
+            {
+                var parentDropDown = OwnerItem.Owner as ToolStripDropDown;
+                if (parentDropDown != null && direction == ToolStripDropDownDirection.Right)
+                {
+                    // TODO: need to add other direction. Should be ToolStripDropDownItem, but the problem is that 
+                    // it's invoked after Graphics.MeasureString, which can only be done on paint thread.
+                    if (xFixed && newBounds.X + newBounds.Width - 2 >= parentDropDown.Location.X)
+                        newBounds = new Rectangle(parentDropDown.Location.X - argWidth + 2, newBounds.Y, newBounds.Width, newBounds.Height);
+                }
+            }*/
+
+            base.SetBoundsCore(newBounds.X, newBounds.Y, newBounds.Width, newBounds.Height, specified);
+        }
+        protected void SetVisibleCore()
+        {
             var itemsCount = Items.Count;
             if (itemsCount == 0)
                 return;
-
-            var workingArea = Screen.PrimaryScreen.WorkingArea;
-
-            for (int i = 0; i < itemsCount; i++)
-            {
-                var item = Items[i];
-                if (item.JustVisual) continue;
-
-                var menuItem = item as ToolStripMenuItem;
-                if (menuItem != null && !string.IsNullOrEmpty(menuItem.ShortcutKeys))
-                    width = 220;
-                height += 24;
-            }
-
-            Size = new Size(width, height);
-
-            if (Location.X + width > workingArea.Width)
-                Location = new Point(workingArea.Width - width, Location.Y);
 
             Visible = true;
 
             for (int i = 0; i < itemsCount; i++)
             {
                 var item = Items[i];
-                var dropDownItem = item as ToolStripDropDownItem;
-                if (dropDownItem != null)
-                {
-                    dropDownItem.ArrowImage = uwfAppOwner.Resources.DropDownRightArrow;
-                    dropDownItem.ArrowColor = Color.Black;
-                }
-
-                item.ForeColor = defaultForeColor;
-                item.HoverColor = defaultToolStripDropDownHoverColor;
-                item.TextAlign = ContentAlignment.MiddleLeft;
-                switch (Orientation)
-                {
-                    case Orientation.Horizontal:
-                        break;
-                    case Orientation.Vertical:
-                        item.Size = new Size(Size.Width, 24);
-                        break;
-                }
+                item.TextAlign = ContentAlignment.MiddleLeft; // I think it's impossible to use user text align consider to WinForms.
             }
+
+            Focus();
+        }
+
+        private bool ContainsMouse()
+        {
+
+
+            return false;
         }
     }
 }

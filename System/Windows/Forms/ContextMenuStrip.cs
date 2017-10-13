@@ -1,15 +1,17 @@
 ﻿namespace System.Windows.Forms
 {
-    using System.Drawing;
+    using System.ComponentModel;
 
     public class ContextMenuStrip : ToolStripDropDownMenu
     {
         public ContextMenuStrip()
         {
-            BackColor = Color.FromArgb(246, 246, 246);
-
-            uwfContext = true;
-            uwfShadowBox = true;
+        }
+        public ContextMenuStrip(IContainer container)
+        {
+            if (container == null)
+                throw new ArgumentNullException("container");
+            container.Add(this);
         }
     }
 }

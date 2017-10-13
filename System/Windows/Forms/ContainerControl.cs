@@ -1,10 +1,13 @@
 ﻿namespace System.Windows.Forms
 {
     [Serializable]
-    public class ContainerControl : ScrollableControl
+    public class ContainerControl : ScrollableControl, IContainerControl
     {
-        public ContainerControl()
+        public Control ActiveControl { get; set; }
+
+        public bool ActivateControl(Control active)
         {
+            throw new NotImplementedException();
         }
     }
 }

@@ -183,11 +183,8 @@
 
         private void InvalidateLink(Link link)
         {
-            if (LinkVisited == false)
-                foreColor = LinkColor;
-            else
-                foreColor = VisitedLinkColor;
-            underlinePen.Color = foreColor;
+            ForeColor = LinkVisited == false ? LinkColor : VisitedLinkColor;
+            underlinePen.Color = ForeColor;
         }
         private bool LinkInText(int start, int length)
         {

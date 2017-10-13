@@ -106,8 +106,11 @@
 #if UNITY_EDITOR
             MouseHook.MouseUp += (sender, args) =>
             {
+                if (sender == null)
+                    return;
+                
                 if (Views.AppControl.Self != null)
-                    Views.AppControl.Self.Control = sender as Control;
+                    Views.AppControl.Self.DesignerObject = sender;
             };
 #endif
         }

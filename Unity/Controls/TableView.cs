@@ -586,7 +586,7 @@
                 TabStop = false;
                 TextAlign = ContentAlignment.MiddleLeft;
 
-                uwfAppOwner.UpClick += Owner_UpClick;
+                MouseHook.MouseUp += Owner_UpClick;
             }
 
             private enum resizeTypes
@@ -618,7 +618,7 @@
             {
                 base.Dispose(release_all);
 
-                uwfAppOwner.UpClick -= Owner_UpClick;
+                MouseHook.MouseUp -= Owner_UpClick;
             }
             protected override void OnMouseDown(MouseEventArgs e)
             {

@@ -44,7 +44,7 @@
         public Application()
         {
             TabSwitching = true;
-            
+
             currentCulture = ApiHolder.System.CurrentCulture;
             paintEventArgs = new PaintEventArgs();
             paintEventArgs.Graphics = new Graphics();
@@ -54,8 +54,6 @@
 
         public delegate void UpdateEventDelegate();
 
-        internal event MouseEventHandler DownClick = delegate { };
-        internal event MouseEventHandler UpClick = delegate { };
         internal event UpdateEventDelegate UpdateEvent = delegate { };
 
         public enum MouseEvents
@@ -249,7 +247,7 @@
             if (mouseEvent == MouseEvents.None && !mousePositionChanged) return;
 
             // Dispose context first.
-            for (int i = 0; i < Contexts.Count; i++)
+            for (int i = Contexts.Count - 1; i >= 0; i--) // We want to dispose child context first.
             {
                 var contextControl = Contexts[i];
                 if (!contextControl.uwfContext) continue;
@@ -258,7 +256,6 @@
                 if (mouseEvent != MouseEvents.Down) continue;
 
                 contextControl.Dispose();
-                i--;
             }
 
             if (hoveredControl == null && mouseEvent == MouseEvents.Up)
@@ -274,14 +271,12 @@
             if (mouseEvent == MouseEvents.Down)
             {
                 var downArgs = new MouseEventArgs(mouseButton, 1, (int)mouseX, (int)mouseY, 0);
-                DownClick(hoveredControl, downArgs);
                 MouseHook.RaiseMouseDown(hoveredControl, downArgs);
             }
 
             if (mouseEvent == MouseEvents.Up)
             {
                 var upArgs = new MouseEventArgs(mouseButton, 1, (int)mouseX, (int)mouseY, 0);
-                UpClick(hoveredControl, upArgs);
                 MouseHook.RaiseMouseUp(hoveredControl, upArgs);
             }
         }
@@ -621,7 +616,7 @@
                     if (dragData != null)
                         dragndrop = true;
                     //else
-                        //control.RaiseOnMouseMove(m_args);
+                    //control.RaiseOnMouseMove(m_args);
                 }
 
                 if (!contains && mouseEvent != MouseEvents.Up)
@@ -765,6 +760,6 @@
                 control = FindControlAt(control, mousePosition);
 
             return control;
-        }  
+        }
     }
 }

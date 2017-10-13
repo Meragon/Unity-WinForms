@@ -50,7 +50,7 @@
 
             onDrawNode = _OnDrawNode;
 
-            uwfAppOwner.UpClick += _Application_UpClick;
+            MouseHook.MouseUp += _Application_UpClick;
         }
 
         public event DrawTreeNodeEventHandler DrawNode;
@@ -136,7 +136,7 @@
 
         protected override void Dispose(bool release_all)
         {
-            uwfAppOwner.UpClick -= _Application_UpClick;
+            MouseHook.MouseUp -= _Application_UpClick;
 
             base.Dispose(release_all);
         }

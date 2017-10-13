@@ -5,28 +5,49 @@
     /// </summary>
     public static class MouseHook
     {
-        public static event MouseEventHandler MouseDown = delegate { };
-        [Obsolete("not supported yet")]
-        public static event MouseEventHandler MouseMove = delegate { };
-        public static event MouseEventHandler MouseUp = delegate { };
-        [Obsolete("not supported yet")]
-        public static event MouseEventHandler MouseWheel = delegate { };
+        // usable by childs, ex: ToolStripItem will invoke MouseUp then parent will invoke same event,
+        // which will prevent unity designer to paint child fields and properties.
+        public static bool preventNextMouseUpInvoke; 
 
+        public static event MouseEventHandler MouseDown;
+        [Obsolete("not supported yet")]
+        public static event MouseEventHandler MouseMove;
+        public static event MouseEventHandler MouseUp;
+        [Obsolete("not supported yet")]
+        public static event MouseEventHandler MouseWheel;
+        
         public static void RaiseMouseDown(object sender, MouseEventArgs args)
         {
-            MouseDown(sender, args);
+            var handler = MouseDown;
+            if (handler != null)
+                handler(sender, args);
         }
         public static void RaiseMouseMove(object sender, MouseEventArgs args)
         {
-            MouseMove(sender, args);
+#pragma warning disable 618
+            var handler = MouseMove;
+#pragma warning restore 618
+            if (handler != null)
+                handler(sender, args);
         }
         public static void RaiseMouseWheel(object sender, MouseEventArgs args)
         {
-            MouseWheel(sender, args);
+#pragma warning disable 618
+            var handler = MouseWheel;
+#pragma warning restore 618
+            if (handler != null)
+                handler(sender, args);
         }
         public static void RaiseMouseUp(object sender, MouseEventArgs args)
         {
-            MouseUp(sender, args);
+            if (preventNextMouseUpInvoke == false)
+            {
+                var handler = MouseUp;
+                if (handler != null)
+                    handler(sender, args);
+            }
+            else
+                preventNextMouseUpInvoke = false;
         }
     }
 }

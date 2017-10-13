@@ -506,7 +506,7 @@ namespace System.Windows.Forms
                 image = new Bitmap(w, h);
                 UpdateImage();
 
-                uwfAppOwner.UpClick += UwfAppOwnerOnUpClick;
+                MouseHook.MouseUp += UwfAppOwnerOnUpClick;
             }
 
             public event EventHandler HueChanged = delegate { };
@@ -524,7 +524,7 @@ namespace System.Windows.Forms
 
             protected override void Dispose(bool release_all)
             {
-                uwfAppOwner.UpClick -= UwfAppOwnerOnUpClick;
+                MouseHook.MouseUp -= UwfAppOwnerOnUpClick;
 
                 base.Dispose(release_all);
             }

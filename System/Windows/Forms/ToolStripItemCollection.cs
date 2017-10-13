@@ -30,33 +30,24 @@
 
         public ToolStripItem Add(string text)
         {
-            ToolStripButton item = new ToolStripButton();
-            _InitItem(item);
+            var item = new ToolStripButton();
             item.Text = text;
-            items.Add(item);
+            AddInternal(item);
             return item;
         }
         public int Add(ToolStripItem value)
         {
-            _InitItem(value);
-            items.Add(value);
+            AddInternal(value);
             return items.Count - 1;
         }
         public void AddRange(ToolStripItem[] toolStripItems)
         {
-            foreach (var item in toolStripItems)
-            {
-                _InitItem(item);
-            }
-            items.AddRange(toolStripItems);
+            AddInternal(toolStripItems);
         }
         public void AddRange(ToolStripItemCollection toolStripItems)
         {
             foreach (var item in toolStripItems)
-            {
-                _InitItem(item);
-            }
-            items.AddRange(toolStripItems);
+                AddInternal(item);
         }
         public virtual void Clear()
         {
@@ -76,8 +67,7 @@
             {
                 if (items[i] == value)
                     return index;
-                if (items[i].JustVisual == false)
-                    index++;
+                index++;
             }
 
             return -1;
@@ -85,14 +75,21 @@
         public void Insert(int index, ToolStripItem value)
         {
             items.Insert(index, value);
+            SetOwner(value);
         }
         public void Remove(ToolStripItem value)
         {
             items.Remove(value);
+            OnAfterRemove(value);
         }
         public void RemoveAt(int index)
         {
+            if (index < 0 || index >= items.Count)
+                return;
+
+            var item = items[index];
             items.RemoveAt(index);
+            OnAfterRemove(item);
         }
 
         public bool MoveNext()
@@ -115,12 +112,27 @@
             return items.GetEnumerator();
         }
 
-        private void _InitItem(ToolStripItem item)
+        private void AddInternal(params ToolStripItem[] newItems)
         {
-            item.Parent = owner;
-            item.Owner = owner;
-            if (owner != null && owner.Orientation == Orientation.Horizontal)
-                item.TextAlign = ContentAlignment.MiddleCenter;
+            this.items.AddRange(newItems);
+            for (int i = 0; i < newItems.Length; i++)
+                SetOwner(newItems[i]);
+            if (owner != null)
+                owner.UpdateSize();
+        }
+        private void OnAfterRemove(ToolStripItem item)
+        {
+            if (item == null)
+                return;
+            item.SetOwner(null);
+        }
+        private void SetOwner(ToolStripItem item)
+        {
+            if (item == null) return;
+            if (item.Owner != null)
+                item.Owner.Items.Remove(item);
+
+            item.SetOwner(owner);
         }
     }
 }

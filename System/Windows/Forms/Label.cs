@@ -4,22 +4,12 @@
 
     public class Label : Control
     {
-        internal Color foreColor;
-
-        private static readonly Pen borderSinglePen = new Pen(SystemColors.WindowFrame);
-        private static readonly Pen borderFixed3dBottomPen = new Pen(SystemColors.Window);
-        private static readonly Pen borderFixed3dTopPen = new Pen(SystemColors.ButtonShadow);
-        private static readonly Padding defaultPadding = new Padding(4, 0, 4, 0);
-
         private bool adjustSize;
 
         public Label()
         {
-            foreColor = base.ForeColor;
-
             base.AutoSize = true;
             BackColor = Color.Transparent;
-            Padding = defaultPadding;
             TabStop = false;
             TextAlign = ContentAlignment.TopLeft;
 
@@ -43,13 +33,12 @@
             }
         }
         public virtual BorderStyle BorderStyle { get; set; }
-        public override Color ForeColor
-        {
-            get { return foreColor; }
-            set { foreColor = value; }
-        }
         public ContentAlignment TextAlign { get; set; }
 
+        protected override Padding DefaultPadding
+        {
+            get { return new Padding(4, 0, 4, 0); }
+        }
         protected override Size DefaultSize
         {
             get { return new Size(100, 23); } // Autosize ? Preferred height.
@@ -66,33 +55,21 @@
         protected override void OnPaint(PaintEventArgs e)
         {
             var g = e.Graphics;
-
-            if (adjustSize)
-            {
-                var size = g.MeasureString(Text, Font);
-                Size = new Size((int)size.Width + Padding.Horizontal, (int)size.Height + Padding.Vertical);
-                adjustSize = false;
-            }
-
             var p = Padding;
             var w = Width;
             var h = Height;
 
-            g.uwfFillRectangle(BackColor, 0, 0, w, h);
-            g.uwfDrawString(Text, Font, foreColor, p.Left, p.Top, w - p.Horizontal, h - p.Vertical, TextAlign);
-
-            switch (BorderStyle)
+            if (adjustSize)
             {
-                case BorderStyle.FixedSingle:
-                    g.DrawRectangle(borderSinglePen, 0, 0, w, h);
-                    break;
-                case BorderStyle.Fixed3D:
-                    g.DrawLine(borderFixed3dTopPen, 0, 0, w - 1, 0);
-                    g.DrawLine(borderFixed3dTopPen, 0, 0, 0, h - 1);
-                    g.DrawLine(borderFixed3dBottomPen, 0, h - 1, w - 1, h - 1);
-                    g.DrawLine(borderFixed3dBottomPen, w - 1, 0, w - 1, h - 1);
-                    break;
+                var size = g.MeasureString(Text, Font);
+                Size = new Size((int)size.Width + p.Horizontal, (int)size.Height + p.Vertical);
+                adjustSize = false;
             }
+
+            g.uwfFillRectangle(BackColor, 0, 0, w, h);
+            g.uwfDrawString(Text, Font, ForeColor, p.Left, p.Top, w - p.Horizontal, h - p.Vertical, TextAlign);
+
+            ControlPaint.PrintBorder(g, ClientRectangle, BorderStyle, Border3DStyle.SunkenOuter);
         }
         protected override void OnTextChanged(EventArgs e)
         {

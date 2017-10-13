@@ -27,7 +27,7 @@
             uwfBorderHoverColor = Color.Transparent;
             uwfBorderSelectColor = Color.Transparent;
 
-            uwfAppOwner.UpClick += Owner_UpClick;
+            MouseHook.MouseUp += Owner_UpClick;
         }
 
         public ControlResizeTypes GetResizeAt(Point mclient)
@@ -39,7 +39,7 @@
         {
             base.Dispose(release_all);
 
-            uwfAppOwner.UpClick -= Owner_UpClick;
+            MouseHook.MouseUp -= Owner_UpClick;
         }
         protected override void OnMouseDown(MouseEventArgs e)
         {

@@ -1,20 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
     public class KeyEventArgs : EventArgs
     {
-        public UnityEngine.KeyCode uwfKeyCode { get; set; }
-        public UnityEngine.EventModifiers uwfModifiers { get; set; }
-
+        private readonly Keys keyData;
         private Keys keyCode;
         private bool keyCodeCached;
-        private readonly Keys keyData;
         private bool handled;
         private bool suppressKeyPress;
+
+        public KeyEventArgs(Keys keyData)
+        {
+            this.keyData = keyData;
+        }
+        internal KeyEventArgs()
+        {
+
+        }
 
         public virtual bool Alt
         {
@@ -69,13 +70,7 @@ namespace System.Windows.Forms
             }
         }
 
-        internal KeyEventArgs()
-        {
-
-        }
-        public KeyEventArgs(Keys keyData)
-        {
-            this.keyData = keyData;
-        }
+        public UnityEngine.KeyCode uwfKeyCode { get; set; }
+        public UnityEngine.EventModifiers uwfModifiers { get; set; }
     }
 }

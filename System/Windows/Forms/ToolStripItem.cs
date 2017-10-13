@@ -5,66 +5,271 @@
 
     public abstract class ToolStripItem : Component
     {
-        protected Pen selectPen = new Pen(Color.Transparent);
+        internal bool boundsChanged;
+        internal bool locationChanged;
+        internal Color hoverColor = Color.FromArgb(196, 225, 255);
+        internal Pen selectPen = new Pen(Color.FromArgb(51, 153, 255));
 
-        private bool hovered;
-        private Color hoverColor;
+        private Color backColor = Color.Empty;
+        private Rectangle bounds = Rectangle.Empty;
+        private ToolStrip owner;
+        private Padding padding;
+        private bool paddingExists;
+        private ToolStrip parent;
+        private bool stateAutoSize = true;
+        private bool stateContstructing;
+        private bool statePressed;
+        private bool stateSelected;
+        private bool stateVisible = true;
+        private string text;
+        private ContentAlignment textAlign = ContentAlignment.MiddleCenter;
 
         protected ToolStripItem()
         {
+            stateContstructing = true;
+
+            BackgroundImageLayout = ImageLayout.Stretch; // tile default?
             Enabled = true;
             Font = SystemFonts.uwfArial_12;
-            ForeColor = Color.FromArgb(64, 64, 64);
-            HoverColor = Color.FromArgb(64, 200, 200, 200);
-            HoverPadding = new Size(2, 2);
-            ImageColor = Color.White;
-            Name = "toolStripItem";
-            Padding = new Forms.Padding(8, 0, 8, 0);
-            Size = new Drawing.Size(160, 24);
-            TextAlign = ContentAlignment.MiddleLeft;
+            ForeColor = Control.defaultForeColor;
+            Size = DefaultSize;
+
+            uwfImageColor = Color.White;
+
+            stateContstructing = false;
         }
-        protected ToolStripItem(string text) : this()
+        protected ToolStripItem(string text, Image image, EventHandler onClick) : this(text, image, onClick, null)
         {
+        }
+        protected ToolStripItem(string text, Image image, EventHandler onClick, string name) : this()
+        {
+            Image = image;
+            Name = name;
             Text = text;
+            if (onClick != null)
+                Click += onClick;
         }
 
+        public event EventHandler AvailableChanged;
+        public event EventHandler BackColorChanged;
         public event EventHandler Click;
+        public event EventHandler LocationChanged;
+        public event EventHandler TextChanged;
+        public event EventHandler VisibleChanged;
 
-        public virtual Color BackColor { get; set; }
-        public virtual Rectangle Bounds { get { return new Rectangle(0, 0, Width, Height); } }
+        public bool Available
+        {
+            get { return stateVisible; }
+            set { SetVisibleCore(value); }
+        }
+        public bool AutoSize
+        {
+            get { return stateAutoSize; }
+            set { stateAutoSize = value; }
+        }
+        public virtual Color BackColor
+        {
+            get
+            {
+                var c = RawBackColor;
+                if (c.IsEmpty == false)
+                    return c;
+
+                var p = ParentInternal;
+                if (p != null)
+                    return p.BackColor;
+
+                return Color.Transparent; // Control.DefaultColor?
+            }
+            set
+            {
+                if (backColor == value || value.IsEmpty)
+                    return;
+
+                backColor = value;
+                OnBackColorChanged(EventArgs.Empty);
+            }
+        }
+        public virtual Image BackgroundImage { get; set; }
+        public virtual ImageLayout BackgroundImageLayout { get; set; }
+        public virtual Rectangle Bounds { get { return bounds; } }
+        public virtual bool CanSelect { get { return true; } }
         public virtual bool Enabled { get; set; }
         public virtual Font Font { get; set; }
         public virtual Color ForeColor { get; set; }
-        public int Height { get; set; }
-        public bool Hovered { get { return hovered; } }
-        public Color HoverColor
+        public int Height
         {
-            get { return hoverColor; }
+            get { return Bounds.Height; }
             set
             {
-                hoverColor = value;
-                selectPen.Color = HoverColor - Color.FromArgb(0, 64, 64, 64);
+                var currentBounds = Bounds;
+                SetBounds(currentBounds.X, currentBounds.Y, currentBounds.Width, value);
             }
         }
-        public Size HoverPadding { get; set; }
-        public virtual Bitmap Image { get; set; }
-        public Color ImageColor { get; set; }
+        public virtual Image Image { get; set; }
+        public bool IsOnDropDown
+        {
+            get
+            {
+                if (ParentInternal != null)
+                    return ParentInternal.IsDropDown;
+
+                if (Owner != null && Owner.IsDropDown)
+                    return true;
+
+                return false;
+            }
+        }
         public string Name { get; set; }
-        public ToolStrip Owner { get; set; }
-        public ToolStripItem OwnerItem { get; internal set; }
-        public virtual Padding Padding { get; set; }
+        public ToolStrip Owner
+        {
+            get { return owner; }
+            set
+            {
+                if (owner == value)
+                    return;
+
+                if (owner != null)
+                    owner.Items.Remove(this);
+                if (value != null)
+                    value.Items.Add(this);
+            }
+        }
+        public ToolStripItem OwnerItem
+        {
+            get
+            {
+                ToolStripDropDown currentParent = null;
+                var parentInternal = ParentInternal;
+                if (parentInternal != null)
+                    currentParent = parentInternal as ToolStripDropDown;
+                else if (Owner != null)
+                    currentParent = Owner as ToolStripDropDown;
+
+                if (currentParent != null)
+                    return currentParent.OwnerItem;
+                return null;
+            }
+        }
+        public virtual Padding Padding
+        {
+            get
+            {
+                if (paddingExists)
+                    return padding;
+                return DefaultPadding;
+            }
+            set
+            {
+                padding = value;
+                paddingExists = true;
+            }
+        }
         public virtual bool Pressed { get { return false; } }
-        public virtual bool Selected { get; internal set; }
-        public Size Size { get { return new Size(Width, Height); } set { Width = value.Width; Height = value.Height; } }
-        public virtual string Text { get; set; }
-        public virtual ContentAlignment TextAlign { get; set; }
-        public bool Visible { get; set; }
-        public int Width { get; set; }
+        public virtual bool Selected { get { return stateSelected; } }
+        public Size Size
+        {
+            get { return Bounds.Size; }
+            set
+            {
+                var currentBounds = Bounds;
+                currentBounds.Size = value;
+                SetBounds(currentBounds);
+            }
+        }
+        public virtual string Text
+        {
+            get { return text; }
+            set
+            {
+                if (text == value)
+                    return;
 
-        internal bool JustVisual { get; set; }
+                text = value;
+                OnTextChanged(EventArgs.Empty);
+            }
+        }
+        public virtual ContentAlignment TextAlign
+        {
+            get { return textAlign; }
+            set { textAlign = value; }
+        }
+        public bool Visible
+        {
+            get { return ParentInternal != null && ParentInternal.Visible && Available; }
+            set { SetVisibleCore(value); }
+        }
+        public int Width
+        {
+            get { return Bounds.Width; }
+            set
+            {
+                var currentBounds = Bounds;
+                SetBounds(currentBounds.X, currentBounds.Y, value, currentBounds.Height);
+            }
+        }
 
-        protected internal ToolStrip Parent { get; set; }
+        internal ToolStrip ParentInternal
+        {
+            get { return parent; }
+            set
+            {
+                if (parent == value) return;
 
+                var oldParent = parent;
+                parent = value;
+                OnParentChanged(oldParent, value);
+            }
+        }
+        internal Color RawBackColor
+        {
+            get { return backColor; }
+        }
+        internal Color uwfImageColor { get; set; }
+
+        protected internal ToolStrip Parent
+        {
+            get { return ParentInternal; }
+            set { ParentInternal = value; }
+        }
+        protected virtual Padding DefaultPadding
+        {
+            get { return Padding.Empty; }
+        }
+        protected virtual Size DefaultSize
+        {
+            get { return new Size(23, 23); }
+        }
+
+        public void Invalidate()
+        {
+            if (this.ParentInternal != null)
+                ParentInternal.Invalidate(this.Bounds, true);
+        }
+        public void Select()
+        {
+            if (CanSelect == false)
+                return;
+
+            stateSelected = true;
+        }
+        public override string ToString()
+        {
+            var text = Text;
+            if (string.IsNullOrEmpty(text) == false)
+                return text;
+            return base.ToString();
+        }
+
+        internal void Push(bool push)
+        {
+            if (!CanSelect || !Enabled)
+                return;
+
+            statePressed = push;
+            if (Available)
+                Invalidate();
+        }
         internal void RaiseClick()
         {
             OnClick(EventArgs.Empty);
@@ -92,40 +297,113 @@
         internal void RaiseOnMouseUp(MouseEventArgs e)
         {
             OnMouseUp(e);
+
+#if UNITY_EDITOR
+            MouseHook.RaiseMouseUp(this, e);
+            MouseHook.preventNextMouseUpInvoke = true;
+#endif
         }
         internal void RaiseOnPaint(PaintEventArgs e)
         {
             OnPaint(e);
         }
-        internal void ResetSelected()
+        internal void SetBounds(int x, int y, int width, int height)
         {
-            if (Parent.uwfContext && Owner.OwnerItem != null)
+            SetBounds(new Rectangle(x, y, width, height));
+        }
+        internal void SetOwner(ToolStrip newOwner)
+        {
+            if (owner == newOwner) return;
+
+            owner = newOwner;
+            if (newOwner == null)
+                ParentInternal = null;
+        }
+        internal virtual void Unselect()
+        {
+            if (stateSelected == false)
+                return;
+
+            stateSelected = false;
+
+            if (Available && ParentInternal != null)
+                ParentInternal.NotifySelectionChange(this);
+        }
+        internal void UpdateBounds(int x, int y)
+        {
+            var currentOwner = Owner;
+            if (currentOwner == null)
+                return;
+
+            var currentBounds = Bounds;
+            var nx = 0;
+            var ny = y;
+            var nw = currentBounds.Width;
+            var nh = currentBounds.Height;
+            if (currentOwner.Orientation == Orientation.Vertical)
             {
-                var parent = Owner.OwnerItem.Owner;
-                while (true)
-                {
-                    if (parent == null) break;
-
-                    if (!parent.uwfContext)
-                    {
-                        parent.ResetSelected();
-                        break;
-                    }
-
-                    if (parent.OwnerItem != null)
-                        parent = parent.OwnerItem.Owner;
-                    else
-                        break;
-                }
+                nx = 2; // Border + 1 pixel offset (padding?).
+                ny = y;
+                if (AutoSize)
+                    nh = DefaultSize.Height + Padding.Vertical + 1; // Dunno where 1 pixel is missing.
             }
+            else
+            {
+                nx = x;
+                if (AutoSize)
+                    nh = Height;
+            }
+
+            SetBounds(nx, ny, nw, nh);
+        }
+
+        protected internal virtual int GetEstimatedWidth(Graphics graphics) // OnPaint only.
+        {
+            return (int)graphics.MeasureString(Text, Font).Width;
+        }
+        protected internal virtual void SetBounds(Rectangle nbounds)
+        {
+            var oldBounds = bounds;
+            bounds = nbounds;
+
+            if (stateContstructing)
+                return;
+
+            if (bounds != oldBounds)
+                OnBoundsChanged();
+
+            if (bounds.Location != oldBounds.Location)
+                OnLocationChanged(EventArgs.Empty);
         }
 
         protected override void Dispose(bool disposing)
         {
         }
+        protected virtual void OnAvailableChanged(System.EventArgs e)
+        {
+            var handler = AvailableChanged;
+            if (handler != null)
+                handler(this, e);
+        }
+        protected virtual void OnBackColorChanged(EventArgs e)
+        {
+            var handler = BackColorChanged;
+            if (handler != null)
+                handler(this, e);
+        }
+        protected virtual void OnBoundsChanged()
+        {
+            boundsChanged = true;
+        }
         protected virtual void OnClick(EventArgs e)
         {
             var handler = Click;
+            if (handler != null)
+                handler(this, e);
+        }
+        protected virtual void OnLocationChanged(EventArgs e)
+        {
+            var handler = LocationChanged;
             if (handler != null)
                 handler(this, e);
         }
@@ -134,14 +412,14 @@
         }
         protected virtual void OnMouseEnter(EventArgs e)
         {
-            hovered = true;
+            Select();
         }
         protected virtual void OnMouseHover(EventArgs e)
         {
         }
         protected virtual void OnMouseLeave(EventArgs e)
         {
-            hovered = false;
+            Unselect();
         }
         protected virtual void OnMouseMove(MouseEventArgs mea)
         {
@@ -149,54 +427,65 @@
         protected virtual void OnMouseUp(MouseEventArgs e)
         {
             if (!Enabled) return;
+
             OnClick(EventArgs.Empty);
-            if (Parent.Parent == null)
-                Parent.Dispose();
         }
         protected virtual void OnPaint(PaintEventArgs e)
         {
-            Graphics g = e.Graphics;
+            var localBackColor = stateSelected ? hoverColor : BackColor;
+            var image = Image;
+            var rect = Bounds;
+            var graphics = e.Graphics;
+            var textColor = Enabled ? ForeColor : SystemColors.InactiveCaption;
 
-            var ex = e.ClipRectangle.X;
-            var ey = e.ClipRectangle.Y;
-            var ew = e.ClipRectangle.Width;
-            var eh = e.ClipRectangle.Height;
+            // Text left offset for vertical ToolStrip.
+            var leftOffset = 0;
+            if (Owner != null && Owner.Orientation == Orientation.Vertical)
+                leftOffset = Owner.Padding.Left;
 
-            g.uwfFillRectangle(BackColor, ex, ey, ew, eh);
-            if (Image != null)
-                g.uwfDrawImage(Image, ImageColor, ex + 10, ey + 4, 12, 12);
-            if (Enabled)
-            {
-                var rect = Rectangle.Inflate(e.ClipRectangle, -HoverPadding.Width, -HoverPadding.Height);
-                if (!Selected)
-                {
-                    if (hovered)
-                    {
-                        g.uwfFillRectangle(HoverColor, rect);
-                        g.DrawRectangle(selectPen, rect);
-                    }
-                }
-                else
-                {
-                    if (Owner.Orientation == Orientation.Horizontal)
-                        g.uwfFillRectangle(Color.FromArgb(246, 246, 246), e.ClipRectangle);
-                    else
-                    {
-                        g.uwfFillRectangle(HoverColor, rect);
-                        g.DrawRectangle(selectPen, rect);
-                    }
-                }
-            }
+            // Paint back + backImage.
+            ControlPaint.DrawBackgroundImage(graphics, BackgroundImage, localBackColor, BackgroundImageLayout, rect, rect);
 
-            Color textColor = Enabled ? ForeColor : ForeColor + Color.FromArgb(0, 100, 100, 100);
-            if (Selected && Enabled) textColor = Color.FromArgb(64, 64, 64);
+            // Draw border for selected state.
+            if (stateSelected)
+                graphics.DrawRectangle(selectPen, rect);
 
-            if (Parent.Orientation == Orientation.Horizontal)
-            {
-                g.uwfDrawString(Text, Font, textColor, ex, ey, ew, eh, TextAlign);
-            }
-            else
-                g.uwfDrawString(Text, Font, textColor, ex + 40, ey, ew, eh, TextAlign);
+            // Image.
+            if (image != null)
+                graphics.uwfDrawImage(image, uwfImageColor, bounds.X, bounds.Y, bounds.Width, bounds.Height);
+
+            // Text.
+            graphics.uwfDrawString(Text, Font, textColor, rect.X + leftOffset, rect.Y, rect.Width - leftOffset, rect.Height, TextAlign);
+            ////graphics.DrawRectangle(new Pen(Color.Red), rect); // Debug.
+        }
+        protected virtual void OnParentChanged(ToolStrip oldParent, ToolStrip newParent)
+        {
+        }
+        protected virtual void OnTextChanged(EventArgs e)
+        {
+            var handler = TextChanged;
+            if (handler != null)
+                handler(this, e);
+
+            boundsChanged = true;
+        }
+        protected virtual void OnVisibleChanged(EventArgs e)
+        {
+            var handler = VisibleChanged;
+            if (handler != null)
+                handler(this, e);
+        }
+        protected virtual void SetVisibleCore(bool visible)
+        {
+            if (stateVisible == visible)
+                return;
+
+            stateVisible = visible;
+            Unselect();
+            Push(false);
+
+            OnAvailableChanged(EventArgs.Empty);
+            OnVisibleChanged(EventArgs.Empty);
         }
     }
 }

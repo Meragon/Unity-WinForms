@@ -6,34 +6,32 @@
     using System.Linq;
     using System.Reflection;
 
-    public class ControlDesigner : IControlDesigner
+    public class ObjectDesigner : IObjectDesigner
     {
         private readonly objectEditor editor;
 
-        public ControlDesigner(Control c)
+        public ObjectDesigner(object c)
         {
-            Control = c;
+            Value = c;
 
-            editor = new objectEditor(c, Control.GetType().Name);
+            editor = new objectEditor(c, c.GetType().Name);
             editor.toggleEditor = true;
         }
 
-        public Control Control { get; set; }
+        public object Value { get; set; }
 
         public virtual object Draw(int width, int height)
         {
-            if (Control == null) return null;
-
-            Control controlToSet;
+            if (Value == null) return null;
 
             Editor.SetBackColor(Color.White);
             Editor.BeginGroup(width - 24, "");
 
-            controlToSet = editor.Draw();
+            object objectToSet = editor.Draw();
 
             Editor.EndGroup();
 
-            return controlToSet;
+            return objectToSet;
         }
 
         private class controlProperty
@@ -93,9 +91,9 @@
                 }
             }
 
-            public Control Draw()
+            public object Draw()
             {
-                Control control = null;
+                object control = null;
                 if (props.Count == 0 && methods.Count == 0)
                 {
                     Editor.Label(name);
@@ -155,9 +153,9 @@
 
                 return control;
             }
-            public Control Draw(controlProperty p)
+            public object Draw(controlProperty p)
             {
-                Control controlToSet = null;
+                object controlToSet = null;
 
                 if (p.info.CanRead == false) return null;
 
@@ -323,7 +321,7 @@
 
                 return controlToSet;
             }
-            public Control Draw(FieldInfo f)
+            public object Draw(FieldInfo f)
             {
                 // TODO: editors for fields.
 
@@ -332,7 +330,7 @@
 
                 return null;
             }
-            public Control Draw(MethodInfo m)
+            public object Draw(MethodInfo m)
             {
                 if (Editor.Button(m.Name))
                 {

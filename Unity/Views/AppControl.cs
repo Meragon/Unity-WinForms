@@ -9,7 +9,11 @@ using UnityEditor;
 
 namespace Unity.Views
 {
-    public class AppControl : EditorWindow, IDisposable
+    using System.Windows.Forms;
+
+    using Application = UnityEngine.Application;
+
+    public class AppControl : EditorWindow
     {
         private static AppControl _self;
         public static AppControl Self
@@ -30,57 +34,50 @@ namespace Unity.Views
             return EditorWindow.GetWindow(typeof(AppControl), false, "SWF Inspector");
         }
 
-        private float _repaintWait;
-        private Vector2 _scrollPosition;
+        private IObjectDesigner designer;
+        private float repaintWait;
+        private Vector2 scrollPosition;
 
-        private System.Windows.Forms.Control _control;
-        public System.Windows.Forms.Control Control
-        {
-            get { return _control; }
-            set { _control = value; }
-        }
+        public object DesignerObject;
 
         void Awake()
         {
-            if (_control != null)
-            {
-                _control.Dispose();
-                _control = null;
-            }
+            var iDisposable = DesignerObject as IDisposable;
+            if (iDisposable != null)
+                iDisposable.Dispose();
+            DesignerObject = null;
         }
         void Update()
         {
-            if (_repaintWait < 1f)
-                _repaintWait += Time.deltaTime;
+            if (repaintWait < 1f)
+                repaintWait += Time.deltaTime;
             else
             {
                 Repaint();
-                _repaintWait = 0;
+                repaintWait = 0;
             }
         }
         void OnGUI()
         {
-            if (Control == null) return;
-            if (Control.Disposing || Control.IsDisposed || !Application.isPlaying)
+            if (DesignerObject == null) return;
+
+            var control = DesignerObject as Control;
+            if (control != null && (control.Disposing || control.IsDisposed) || !Application.isPlaying)
             {
-                _control = null;
+                DesignerObject = null;
                 return;
             }
 
-            _scrollPosition = UnityEngine.GUILayout.BeginScrollView(_scrollPosition);
+            scrollPosition = GUILayout.BeginScrollView(scrollPosition);
 
-            if (Control.uwfDesigner == null)
-                Control.uwfDesigner = Control.GetDesigner();
-
-            var control = Control.uwfDesigner.Draw((int)position.width - 8, int.MaxValue);
-
-            if (control is System.Windows.Forms.Control) Control = control as System.Windows.Forms.Control;
-            UnityEngine.GUILayout.EndScrollView();
-        }
-
-        public void Dispose()
-        {
-            if (_control != null) _control.Dispose();
+            if (designer == null || designer.Value != DesignerObject)
+                designer = new ObjectDesigner(DesignerObject);
+            
+            var newObject = designer.Draw((int)position.width - 8, int.MaxValue);
+            if (newObject != null)
+                DesignerObject = newObject;
+            
+            GUILayout.EndScrollView();
         }
     }
 }

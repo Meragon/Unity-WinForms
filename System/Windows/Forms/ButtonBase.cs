@@ -141,7 +141,7 @@
 
             // Text.
             var textColor = ForeColor;
-            if (enabled == false) textColor = ForeColor + Color.FromArgb(0, 128, 128, 128);
+            if (enabled == false) textColor = SystemColors.InactiveCaption;
             var padding = Padding;
             g.uwfDrawString(Text, Font, textColor,
                     padding.Left,

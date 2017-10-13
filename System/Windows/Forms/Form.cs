@@ -57,8 +57,9 @@
             uwfHeaderTextAlign = ContentAlignment.MiddleLeft;
             uwfShadowBox = true;
             uwfShadowHandler = DrawShadow;
-            uwfAppOwner.UpClick += Application_UpClick;
             uwfAppOwner.UpdateEvent += Application_UpdateEvent;
+
+            MouseHook.MouseUp += Application_UpClick;
 
             var workingArea = Screen.PrimaryScreen.WorkingArea;
             nextLocation = new Point(nextLocation.X + 26, nextLocation.Y + 26);
@@ -351,7 +352,7 @@
 
         protected override void Dispose(bool release_all)
         {
-            uwfAppOwner.UpClick -= Application_UpClick;
+            MouseHook.MouseUp -= Application_UpClick;
             uwfAppOwner.UpdateEvent -= Application_UpdateEvent;
 
             if (IsModal == false)
