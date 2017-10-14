@@ -4,9 +4,6 @@
     using System.Drawing;
     using System.Text;
 
-    using DiaSimu;
-    using DiaSimu.Utility;
-
     [Obsolete("WIP")]
     public class TextBoxBase : Control
     {
@@ -28,7 +25,6 @@
             cursor.ResetCursorPaintMode();
 
             BackColor = Color.FromArgb(245, 245, 245);
-            Font = Fonts.Consolas_14;
 
             Text = "test text \r\nnew line was there";
         }
