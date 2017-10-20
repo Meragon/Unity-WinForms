@@ -119,6 +119,22 @@ namespace System.Windows.Forms
             CloseToolStrip();
         }
 
+        protected internal override void DrawImage(Graphics graphics)
+        {
+            var image = Image;
+            if (image != null)
+            {
+                var rect = Bounds;
+                graphics.uwfDrawImage(
+                    image,
+                    uwfImageColor,
+                    rect.X + 2,
+                    rect.Y + 2,
+                    rect.Height - 4,
+                    rect.Height - 4);
+            }
+        }
+
         protected override void OnClick(EventArgs e)
         {
             if (Enabled == false)

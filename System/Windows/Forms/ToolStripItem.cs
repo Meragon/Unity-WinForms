@@ -357,6 +357,23 @@
             SetBounds(nx, ny, nw, nh);
         }
 
+        protected internal virtual void DrawImage(Graphics graphics)
+        {
+            var image = Image;
+
+            // TODO: image align.
+            if (image != null)
+            {
+                var rect = Bounds;
+                graphics.uwfDrawImage(
+                    image,
+                    uwfImageColor,
+                    rect.X + rect.Width / 2 - image.Width / 2,
+                    rect.Y + rect.Height / 2 - image.Height / 2,
+                    image.Width,
+                    image.Height);
+            }
+        }
         protected internal virtual int GetEstimatedWidth(Graphics graphics) // OnPaint only.
         {
             return (int)graphics.MeasureString(Text, Font).Width;
@@ -451,8 +468,7 @@
                 graphics.DrawRectangle(selectPen, rect);
 
             // Image.
-            if (image != null)
-                graphics.uwfDrawImage(image, uwfImageColor, bounds.X, bounds.Y, bounds.Width, bounds.Height);
+            DrawImage(graphics);
 
             // Text.
             graphics.uwfDrawString(Text, Font, textColor, rect.X + leftOffset, rect.Y, rect.Width - leftOffset, rect.Height, TextAlign);
