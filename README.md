@@ -36,7 +36,7 @@ Other controls:
 
 ### Usage
 
-1. Attach ApplicationBehaviour script to GameObject;
+1. Attach UnityWinForms script to GameObject;
 2. Add Arial font to resources;
 3. Add other fonts and images; 
 4. Create Form control in your MonoBehaviour script;
