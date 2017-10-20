@@ -37,6 +37,14 @@
         public static AppGdiImages GdiImages { get; private set; }
         public static AppResources gResources { get; private set; }
 
+        internal static void Inspect(object obj)
+        {
+            if (obj == null)
+                return;
+
+            if (Views.AppControl.Self != null)
+                Views.AppControl.Self.DesignerObject = obj;
+        }
         internal static invokeAction Invoke(Action a, float seconds)
         {
             if (a == null) return null;
@@ -104,14 +112,7 @@
             Control.uwfDefaultController = controller;
 
 #if UNITY_EDITOR
-            MouseHook.MouseUp += (sender, args) =>
-            {
-                if (sender == null)
-                    return;
-                
-                if (Views.AppControl.Self != null)
-                    Views.AppControl.Self.DesignerObject = sender;
-            };
+            MouseHook.MouseUp += (sender, args) => Inspect(sender);
 #endif
         }
         private void Update()

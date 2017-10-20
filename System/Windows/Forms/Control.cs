@@ -448,12 +448,11 @@
         }
         internal void PaintBackground(PaintEventArgs e, Rectangle rectangle, Color backColor, Point scrollOffset)
         {
-            if (backColor.A > 0)
-                PaintBackColor(e, rectangle, backColor);
-
             var bImage = BackgroundImage;
-            if (bImage != null)
+            if (bImage != null) // Fill back & draw image.
                 ControlPaint.DrawBackgroundImage(e.Graphics, bImage, backColor, BackgroundImageLayout, ClientRectangle, rectangle);
+            else if (backColor.A > 0) // Fill back.
+                PaintBackColor(e, rectangle, backColor);
         }
         internal virtual void RaiseOnDragDrop(DragEventArgs drgevent)
         {

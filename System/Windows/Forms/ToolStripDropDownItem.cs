@@ -59,6 +59,9 @@ namespace System.Windows.Forms
             if (Enabled == false)
                 return;
 
+            if (dropDownItems.Count == 0)
+                return;
+
             var dropDownBounds = new Rectangle(Point.Empty, Owner.Size);
 
             for (int i = 0; i < dropDownItems.Count; i++) // Reset items.
