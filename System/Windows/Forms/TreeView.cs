@@ -517,6 +517,8 @@
                 vScrollBar.ValueChanged += VScrollBarOnValueChanged;
             }
 
+            UpdateScrollBar();
+
             int startNode = (int)(ScrollIndex / ItemHeight) - 1;
             if (startNode < 0) startNode = 0;
             int nodesOnScreen = Height / ItemHeight + 3; // Magic number.
@@ -529,8 +531,6 @@
                 if (nodeBounds.Y + nodeBounds.Height > 0 && nodeBounds.Y - (int)ScrollIndex < Height)
                     scrollNodeList.Add(node);
             }
-
-            UpdateScrollBar();
 
             filter = string.Empty; // reset filter.
             resetFilterTime = 0;

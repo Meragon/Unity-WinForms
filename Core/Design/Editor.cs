@@ -281,6 +281,12 @@
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label(name + ":", GUILayout.Width(_nameWidth));
+            if (value != null && value.Length > 1024)
+            {
+                GUILayout.TextField(value.Substring(0, 1024) + "...", GUILayout.Width(_contentWidth));
+                GUILayout.EndHorizontal();
+                return new EditorValue<string>(value, false);
+            }
             var textBuffer = GUILayout.TextField(value, GUILayout.Width(_contentWidth));
             GUILayout.EndHorizontal();
 

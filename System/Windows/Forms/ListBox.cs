@@ -231,7 +231,7 @@
 
             if (vScroll != null)
             {
-                vScroll.Maximum = Items.Count * ItemHeight - 1;
+                vScroll.Maximum = Items.Count * ItemHeight;
                 vScroll.SmallChange = ItemHeight;
                 vScroll.LargeChange = vScroll.Height;
                 vScroll.Visible = ScrollAlwaysVisible || visibleItemsCount < Items.Count;
