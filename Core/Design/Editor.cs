@@ -149,8 +149,9 @@
 #if UNITY_EDITOR
             else
                 return UnityEditor.EditorGUILayout.Foldout(value, name);
-#endif
+#else
             return false;
+#endif
         }
         public static void Header(string text)
         {

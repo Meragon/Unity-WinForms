@@ -30,7 +30,11 @@
 
             var bPoints = GetBezierApproximation(points, segments); // decrease segments for better fps.
             for (int i = 0; i + 1 < bPoints.Length; i++)
-                DrawLine(pen, bPoints[i].X, bPoints[i].Y, bPoints[i + 1].X, bPoints[i + 1].Y);
+            {
+                var p1 = bPoints[i];
+                var p2 = bPoints[i + 1];
+                DrawLine(pen, p1.X, p1.Y, p2.X, p2.Y);
+            }
         }
         public void DrawImage(Image image, Rectangle rect)
         {
@@ -155,6 +159,17 @@
             return ApiGraphics.MeasureString(text, font);
         }
 
+        internal static PointF[] GetBezierApproximation(PointF[] controlPoints, int outputSegmentCount)
+        {
+            if (outputSegmentCount <= 0) return null;
+            var points = new PointF[outputSegmentCount + 1];
+            for (int i = 0; i <= outputSegmentCount; i++)
+            {
+                float t = (float)i / outputSegmentCount;
+                points[i] = GetBezierPoint(t, controlPoints, 0, controlPoints.Length);
+            }
+            return points;
+        }
         internal void GroupBegin(Control control)
         {
             var co = control.uwfOffset;
@@ -406,17 +421,6 @@
         }
         #endregion
 
-        private static PointF[] GetBezierApproximation(PointF[] controlPoints, int outputSegmentCount)
-        {
-            if (outputSegmentCount <= 0) return null;
-            PointF[] points = new PointF[outputSegmentCount + 1];
-            for (int i = 0; i <= outputSegmentCount; i++)
-            {
-                float t = (float)i / outputSegmentCount;
-                points[i] = GetBezierPoint(t, controlPoints, 0, controlPoints.Length);
-            }
-            return points;
-        }
         private static PointF GetBezierPoint(float t, PointF[] controlPoints, int index, int count)
         {
             if (count == 1)

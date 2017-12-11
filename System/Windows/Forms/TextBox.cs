@@ -49,7 +49,7 @@
         {
             base.OnPaint(e);
 
-            borderPen.Color = uwfHovered ? BorderHoverColor : BorderColor;
+            borderPen.Color = uwfHovered || Focused ? BorderHoverColor : BorderColor;
 
             var g = e.Graphics;
             var textX = Padding.Left;

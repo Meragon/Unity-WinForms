@@ -9,9 +9,10 @@
 
     public class UnityGdi : IApiGraphics
     {
-        private readonly PointF defaultPivot = PointF.Empty;
-
         public static UE.Texture2D defaultTexture;
+        public static bool GL_LINES;
+
+        private readonly PointF defaultPivot = PointF.Empty;
 
         public UnityGdi(UE.Texture2D defTexture)
         {
@@ -116,11 +117,25 @@
 
             if (x1 != x2 && y1 != y2)
             {
+                if (GL_LINES)
+                {
+                    UE.GL.Begin(UE.GL.LINES);
+                    UE.GL.Color(pen.Color.ToUnityColor());
+                    UE.GL.Vertex3(x1, y1, 0);
+                    UE.GL.Vertex3(x2, y2, 0);
+                    UE.GL.End();
+                    return;
+                }
+
                 float xDiff = x2 - x1;
                 float yDiff = y2 - y1;
-                var angle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
 
-                uwfDrawTexture(UnityWinForms.gResources.Images.Circle, x1, y1, (float)Math.Sqrt(xDiff * xDiff + yDiff * yDiff), penWidth, penColor, (float)angle, defaultPivot);
+                var angle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
+                var pivot = defaultPivot;
+                if (penWidth > 2)
+                    pivot = new PointF(0, penWidth / 2f);
+
+                uwfDrawTexture(defaultTexture, x1, y1, (float)Math.Sqrt(xDiff * xDiff + yDiff * yDiff), penWidth, penColor, (float)angle, pivot);
                 return;
             }
 

@@ -1,35 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-using UnityEngineInternal;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
-    public class MouseEventArgs : EventArgs
-    {
-        public MouseButtons Button { get; internal set; }
-        public int Clicks { get; internal set; }
-        public Point Location { get; internal set; }
-        public int X { get; internal set; }
-        public int Y { get; internal set; }
-        public int Delta { get; internal set; }
-
-        internal MouseEventArgs()
-        {
-            
-        }
-        public MouseEventArgs(MouseButtons button, int clicks, int x, int y, int delta)
-        {
-            Button = button;
-            Clicks = clicks;
-            X = x;
-            Y = y;
-            Location = new Point(X, Y);
-            Delta = delta;
-        }
-    }
+    using System.Drawing;
 
     public enum MouseButtons
     {
@@ -39,5 +10,29 @@ namespace System.Windows.Forms
         Middle = 4194304,
         XButton1 = 8388608,
         XButton2 = 16777216,
+    }
+
+    public class MouseEventArgs : EventArgs
+    {
+        public MouseEventArgs(MouseButtons button, int clicks, int x, int y, int delta)
+        {
+            Button = button;
+            Clicks = clicks;
+            X = x;
+            Y = y;
+            Location = new Point(X, Y);
+            Delta = delta;
+        }
+
+        internal MouseEventArgs()
+        {
+        }
+
+        public MouseButtons Button { get; internal set; }
+        public int Clicks { get; internal set; }
+        public Point Location { get; internal set; }
+        public int X { get; internal set; }
+        public int Y { get; internal set; }
+        public int Delta { get; internal set; }
     }
 }

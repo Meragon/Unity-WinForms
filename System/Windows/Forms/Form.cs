@@ -215,8 +215,7 @@
         {
             Visible = true;
 
-            int self = uwfAppOwner.Forms.FindIndex(x => x == this);
-            if (self == -1)
+            if (uwfAppOwner.Forms.Contains(this) == false)
                 uwfAppOwner.Forms.Add(this);
 
             if (fShouldFocus)

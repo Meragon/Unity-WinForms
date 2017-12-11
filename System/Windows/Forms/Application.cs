@@ -110,6 +110,17 @@
 
         public void ProccessKeys(KeyEventArgs args, KeyEvents keyEventType)
         {
+            // Raise hook events.
+            switch (keyEventType)
+            {
+                case KeyEvents.Down:
+                    KeyboardHook.RaiseKeyDown(this, args);
+                    break;
+                case KeyEvents.Up:
+                    KeyboardHook.RaiseKeyUp(this, args);
+                    break;
+            }
+
             // Close context if possible.
             if (args.KeyCode == Keys.Escape && keyEventType == KeyEvents.Down)
             {

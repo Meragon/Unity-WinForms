@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Drawing;
-    using System.Windows.Forms.Design;
 
     public class Control : Component
     {
@@ -949,6 +948,7 @@
             private readonly Control owner;
 
             private int lastAccessedIndex = -1;
+            private object syncRoot;
 
             public ControlCollection(Control owner)
             {
@@ -976,18 +976,21 @@
                     return IsReadOnly;
                 }
             }
-            public bool IsSynchronized
+            bool ICollection.IsSynchronized
             {
                 get
                 {
                     return false;
                 }
             }
-            public object SyncRoot
+            object ICollection.SyncRoot
             {
                 get
                 {
-                    return null;
+                    if (syncRoot == null)
+                        syncRoot = new object();
+
+                    return syncRoot;
                 }
             }
 

@@ -98,27 +98,38 @@
             var enabled = Enabled;
             var height = Height;
             var width = Width;
+            
+            // Image.
+            DrawImage(g); 
 
-            var backColorToDraw = Color.Transparent;
+            // Text.
+            var textColor = ForeColor;
+            if (enabled == false) textColor = SystemColors.InactiveCaption;
+            var padding = Padding;
+            g.uwfDrawString(
+                Text,
+                Font,
+                textColor,
+                padding.Left,
+                padding.Top,
+                width - padding.Horizontal,
+                height - padding.Vertical,
+                textAlign);
+
+            // Border.
             var borderColorToDraw = Color.Transparent;
 
             // Get colors from style.
             switch (flatStyle)
             {
                 case FlatStyle.Flat:
-                    if (uwfHovered) backColorToDraw = Color.FromArgb(32, 0, 0, 0);
                     borderColorToDraw = Color.Black;
                     break;
                 case FlatStyle.Popup:
-                    borderColorToDraw = Color.FromArgb(85, 85, 85); // TODO: border width for top-left corner.
+                    borderColorToDraw = SystemColors.ControlDark;
                     break;
                 case FlatStyle.Standard:
                 case FlatStyle.System:
-                    // Back.
-                    if (enabled)
-                        backColorToDraw = uwfHovered == false ? BackColor : uwfHoverColor;
-                    else
-                        backColorToDraw = uwfDisableColor;
 
                     // Border.
                     if (enabled == false)
@@ -134,59 +145,9 @@
 
             borderPen.Color = borderColorToDraw;
 
-            g.uwfFillRectangle(backColorToDraw, 0, 0, width, height);
             g.DrawRectangle(borderPen, 0, 0, width, height);
-            DrawBackgroundImage(g);
-            DrawImage(g);
-
-            // Text.
-            var textColor = ForeColor;
-            if (enabled == false) textColor = SystemColors.InactiveCaption;
-            var padding = Padding;
-            g.uwfDrawString(Text, Font, textColor,
-                    padding.Left,
-                    padding.Top,
-                    width - padding.Horizontal,
-                    height - padding.Vertical, textAlign);
         }
-
-        private void DrawBackgroundImage(Graphics g)
-        {
-            // Background image.
-            if (BackgroundImage != null)
-            {
-                var backgroundImage = BackgroundImage;
-                var imageColorToPaint = uwfImageColor;
-                if (uwfHovered)
-                {
-                    if (uwfImageHover != null)
-                        backgroundImage = uwfImageHover;
-                    imageColorToPaint = uwfImageHoverColor;
-                }
-
-                // Fix: wrong colors.
-                switch (BackgroundImageLayout)
-                {
-                    default:
-                    case ImageLayout.None:
-                        g.uwfDrawImage(backgroundImage, imageColorToPaint, 0, 0, backgroundImage.Width, backgroundImage.Height);
-                        break;
-                    case ImageLayout.Center:
-                        g.uwfDrawImage(backgroundImage, imageColorToPaint,
-                            Width / 2 - backgroundImage.Width / 2,
-                            Height / 2 - backgroundImage.Height / 2,
-                            backgroundImage.Width,
-                            backgroundImage.Height);
-                        break;
-                    case ImageLayout.Stretch:
-                        g.uwfDrawImage(backgroundImage, imageColorToPaint, 0, 0, Width, Height);
-                        break;
-                    case ImageLayout.Zoom:
-                        // TODO: not working.
-                        break;
-                }
-            }
-        }
+        
         private void DrawImage(Graphics g)
         {
             // Image.

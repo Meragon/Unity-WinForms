@@ -417,8 +417,11 @@
                 var image = ImageList.Images[node.ImageIndex];
                 if (image != null && image.uTexture != null)
                 {
-                    graphics.uwfDrawImage(image, node.ImageColor, xOffset, nodeY + nodeBounds.Height / 2f - image.Height / 2f, image.Width, image.Height);
-                    xOffset += image.Width + 2;
+                    var imageSize = nodeBounds.Height - 2;
+                    if (image.Height < imageSize)
+                        imageSize = image.Height;
+                    graphics.uwfDrawImage(image, node.ImageColor, xOffset + (nodeBounds.Height - imageSize) / 2f, nodeY + (nodeBounds.Height - imageSize) / 2f, imageSize, imageSize);
+                    xOffset += nodeBounds.Height;
                 }
             }
 
