@@ -147,7 +147,15 @@
 
             g.DrawRectangle(borderPen, 0, 0, width, height);
         }
-        
+        protected override void OnPaintBackground(PaintEventArgs pevent)
+        {
+            var backColor = BackColor;
+            if (hovered)
+                backColor = uwfHoverColor;
+
+            PaintBackground(pevent, ClientRectangle, backColor, Point.Empty);
+        }
+
         private void DrawImage(Graphics g)
         {
             // Image.

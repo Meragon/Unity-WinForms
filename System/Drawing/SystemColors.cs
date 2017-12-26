@@ -1,6 +1,6 @@
 ﻿namespace System.Drawing
 {
-    public sealed class SystemColors
+    public static class SystemColors
     {
         // fields have faster access.
         public static readonly Color ActiveBorder = Color.FromArgb(180, 180, 180);

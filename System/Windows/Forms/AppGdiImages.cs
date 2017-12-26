@@ -16,6 +16,7 @@
         public Bitmap CurvedArrowLeft;
         public Bitmap CurvedArrowRight;
         public Bitmap CurvedArrowUp;
+        public Bitmap DateTimePicker;
         public Bitmap DropDownRightArrow;
         public Bitmap FormResize;
         public Bitmap NumericDown;

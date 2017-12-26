@@ -496,7 +496,7 @@
             }
             public void Add(TabPage value)
             {
-                if (value == null) throw new NullReferenceException("tabPageCollection.Add");
+                if (value == null) throw new ArgumentNullException("value");
                 owner.Controls.Add(value);
             }
             public void Add(string key, string text)
@@ -523,7 +523,7 @@
             }
             public void AddRange(TabPage[] pages)
             {
-                if (pages == null) throw new NullReferenceException("tabPageCollection.AddRange");
+                if (pages == null) throw new ArgumentNullException("pages");
                 for (int i = 0; i < pages.Length; i++)
                     Add(pages[i]);
             }
@@ -577,7 +577,7 @@
             }
             public void Insert(int index, TabPage tabPage)
             {
-                if (tabPage == null) throw new NullReferenceException("tabPageCollection.Insert");
+                if (tabPage == null) throw new ArgumentNullException("tabPage");
 
                 owner.Controls.Insert(index, tabPage);
             }

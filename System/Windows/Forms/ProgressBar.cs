@@ -36,7 +36,7 @@
             set
             {
                 if (value < 0)
-                    throw new ArgumentOutOfRangeException("marqueeSpeed");
+                    throw new ArgumentOutOfRangeException("value");
 
                 marqueeSpeed = value;
             }
@@ -50,7 +50,7 @@
                     return;
 
                 if (value < 0)
-                    throw new ArgumentOutOfRangeException("maximum");
+                    throw new ArgumentOutOfRangeException("value");
 
                 if (minimum > value)
                     minimum = value;
@@ -72,7 +72,7 @@
                     return;
 
                 if (value < 0)
-                    throw new ArgumentOutOfRangeException("minimum");
+                    throw new ArgumentOutOfRangeException("value");
 
                 if (maximum < value)
                     maximum = value;

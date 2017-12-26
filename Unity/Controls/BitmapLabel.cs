@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-using System.Windows.Forms;
-using UnityEngine;
-using Color = System.Drawing.Color;
-
-namespace Unity.Controls
+﻿namespace Unity.Controls
 {
+    using System;
+    using System.Drawing;
+    using System.Windows.Forms;
+
     /// <summary>
     /// Less allocation, slower baking.
     /// Multiline not supported yet.
@@ -36,7 +31,7 @@ namespace Unity.Controls
         public BitmapLabel(BitmapFont font)
         {
             if (font == null || font.Loaded == false)
-                throw new NullReferenceException("font");
+                throw new ArgumentNullException("font");
 
             bmText = new BitmapText(font);
 

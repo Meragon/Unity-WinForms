@@ -9,16 +9,11 @@
 
     public class UnityGdi : IApiGraphics
     {
-        public static UE.Texture2D defaultTexture;
+        public static UE.Texture2D defaultTexture = UnityWinForms.DefaultSprite;
         public static bool GL_LINES;
 
         private readonly PointF defaultPivot = PointF.Empty;
-
-        public UnityGdi(UE.Texture2D defTexture)
-        {
-            defaultTexture = defTexture;
-        }
-
+        
         public void BeginGroup(float x, float y, float width, float height)
         {
             UE.GUI.BeginGroup(new UE.Rect(x, y, width, height));

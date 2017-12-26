@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using UnityEngineInternal;
-
-namespace System.Drawing
+﻿namespace System.Drawing
 {
+    using System.Globalization;
+
     [Serializable]
     public struct Rectangle : IEquatable<Rectangle>
     {

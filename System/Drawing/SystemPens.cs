@@ -1,6 +1,6 @@
 ﻿namespace System.Drawing
 {
-    public sealed class SystemPens
+    public static class SystemPens
     {
         public static Pen ControlDark = new Pen(SystemColors.ControlDark);
         public static Pen ControlDarkDark = new Pen(SystemColors.ControlDarkDark);

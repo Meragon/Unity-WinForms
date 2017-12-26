@@ -2,6 +2,8 @@
 {
     public class KeyEventArgs : EventArgs
     {
+        private static object[] keyValuesRaw;
+
         private readonly Keys keyData;
         private Keys keyCode;
         private bool keyCodeCached;
@@ -37,7 +39,7 @@
                 if (keyCodeCached == false)
                 {
                     var keys = keyData & Keys.KeyCode;
-                    keyCode = !Enum.IsDefined(typeof(Keys), keys) ? Keys.None : keys;
+                    keyCode = !IsKeyDefined(keys) ? Keys.None : keys;
                     keyCodeCached = true;
                 }
 
@@ -72,5 +74,28 @@
 
         public UnityEngine.KeyCode uwfKeyCode { get; set; }
         public UnityEngine.EventModifiers uwfModifiers { get; set; }
+
+        // Less allocation, will only work with integer types, like typeof(Keys).
+        internal static bool IsKeyDefined(Keys value)
+        {
+            if (keyValuesRaw == null)
+            {
+                var fields = typeof(Keys).GetFields(
+                    Reflection.BindingFlags.Public |
+                    Reflection.BindingFlags.NonPublic |
+                    Reflection.BindingFlags.Static);
+
+                keyValuesRaw = new object[fields.Length];
+                for (int i = 0; i < fields.Length; i++)
+                    keyValuesRaw[i] = fields[i].GetRawConstantValue();
+            }
+
+            var keyValuesRawLength = keyValuesRaw.Length;
+            for (int i = 0; i < keyValuesRawLength; i++)
+                if ((Keys)keyValuesRaw[i] == value)
+                    return true;
+            
+            return false;
+        }
     }
 }

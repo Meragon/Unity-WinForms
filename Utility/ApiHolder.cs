@@ -10,8 +10,8 @@
     /// </summary>
     public static class ApiHolder
     {
-        public static IApiGraphics Graphics = new UnityGdi(UnityWinForms.DefaultSprite);
-        public static IApiSystem System = new UnitSystem();
+        public static IApiGraphics Graphics = new UnityGdi();
+        public static IApiSystem System = new UnitySystem();
         public static IApiTiming Timing = new UnityTiming();
     }
 }

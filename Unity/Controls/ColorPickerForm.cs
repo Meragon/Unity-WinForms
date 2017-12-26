@@ -209,7 +209,7 @@ namespace System.Windows.Forms
             bNumeric.ValueChanged += bNumeric_ValueChanged;
 
             color = Color.FromArgb((int)(alphaPicker.Alpha * 255), rgbColor);
-            ColorChanged(this, null);
+            ColorChanged(this, EventArgs.Empty);
         }
         private void VsPickerSaturationChanged(object sender, EventArgs e)
         {
@@ -230,7 +230,7 @@ namespace System.Windows.Forms
             bNumeric.ValueChanged += bNumeric_ValueChanged;
 
             color = Color.FromArgb((int)(alphaPicker.Alpha * 255), rgbColor);
-            ColorChanged(this, null);
+            ColorChanged(this, EventArgs.Empty);
         }
         private void huePicker_HueChanged(object sender, EventArgs e)
         {
@@ -253,7 +253,7 @@ namespace System.Windows.Forms
             bNumeric.ValueChanged += bNumeric_ValueChanged;
 
             color = Color.FromArgb((int)(alphaPicker.Alpha * 255), rgbColor);
-            ColorChanged(this, null);
+            ColorChanged(this, EventArgs.Empty);
         }
         private void HueNumericValueChanged(object sender, EventArgs e)
         {
@@ -286,7 +286,7 @@ namespace System.Windows.Forms
             aNumeric.ValueChanged += aNumeric_ValueChanged;
 
             color = Color.FromArgb((int)(alphaPicker.Alpha * 255), Color);
-            ColorChanged(this, null);
+            ColorChanged(this, EventArgs.Empty);
         }
         private void aNumeric_ValueChanged(object sender, EventArgs e)
         {
@@ -295,7 +295,7 @@ namespace System.Windows.Forms
             alphaPicker.AlphaChanged += alphaPicker_AlphaChanged;
 
             color = Color.FromArgb((int)(alphaPicker.Alpha * 255), Color);
-            ColorChanged(this, null);
+            ColorChanged(this, EventArgs.Empty);
         }
         private void UpdateControlsFromRGB()
         {
@@ -340,7 +340,7 @@ namespace System.Windows.Forms
             bNumeric.ValueChanged += bNumeric_ValueChanged;
 
             color = Color.FromArgb((int)(alphaPicker.Alpha * 255), rgbColor);
-            ColorChanged(this, null);
+            ColorChanged(this, EventArgs.Empty);
         }
 
         private class ValueSaturationPicker : Button
@@ -373,7 +373,7 @@ namespace System.Windows.Forms
                 set
                 {
                     this.value = value;
-                    ValueChanged(this, null);
+                    ValueChanged(this, EventArgs.Empty);
                 }
             }
             public float Saturation
@@ -382,7 +382,7 @@ namespace System.Windows.Forms
                 set
                 {
                     saturation = value;
-                    SaturationChanged(this, null);
+                    SaturationChanged(this, EventArgs.Empty);
                 }
             }
 
@@ -518,7 +518,7 @@ namespace System.Windows.Forms
                 {
                     hue = value;
                     UpdateImage();
-                    HueChanged(this, null);
+                    HueChanged(this, EventArgs.Empty);
                 }
             }
 
@@ -635,7 +635,7 @@ namespace System.Windows.Forms
                     if (changed)
                     {
                         alpha = value;
-                        AlphaChanged(this, null);
+                        AlphaChanged(this, EventArgs.Empty);
                     }
                 }
             }

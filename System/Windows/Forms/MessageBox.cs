@@ -2,7 +2,7 @@
 {
     using System.Drawing;
 
-    public class MessageBox
+    public static class MessageBox
     {
         private static Form last;
 

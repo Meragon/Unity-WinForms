@@ -281,7 +281,7 @@
         }
         internal void uwfDrawString(string s, Font font, Brush brush, float x, float y, float width, float height, HorizontalAlignment horizontalAlignment)
         {
-            ContentAlignment alignment = ContentAlignment.MiddleLeft;
+            ContentAlignment alignment;
             switch (horizontalAlignment)
             {
                 default:

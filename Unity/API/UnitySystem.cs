@@ -6,7 +6,7 @@
 
     using UnityEngine;
 
-    public class UnitSystem : IApiSystem
+    public class UnitySystem : IApiSystem
     {
         public CultureInfo CurrentCulture
         {

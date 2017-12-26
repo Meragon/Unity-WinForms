@@ -1,7 +1,8 @@
 ﻿namespace System.Drawing
 {
-    public sealed class SystemBrushes
+    public static class SystemBrushes
     {
+        // TODO: fill this class.
         public static readonly Brush AppWorkspace = new SolidBrush(SystemColors.AppWorkspace);
     }
 }

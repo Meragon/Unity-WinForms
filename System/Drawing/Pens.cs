@@ -1,7 +1,8 @@
 ﻿namespace System.Drawing
 {
-    public sealed class Pens
+    public static class Pens
     {
+        // TODO: fill this class.
         public static readonly Pen Black = new Pen(Color.Black);
         public static readonly Pen DarkGray = new Pen(Color.DarkGray);
         public static readonly Pen DarkRed = new Pen(Color.DarkRed); 

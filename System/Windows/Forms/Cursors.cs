@@ -2,20 +2,20 @@
 {
     using System.Drawing;
 
-    public sealed class Cursors
+    public static class Cursors
     {
         private static AppGdiImages.CursorImages images = Unity.API.UnityWinForms.GdiImages.Cursors;
         
-        private static Cursor defaultCursor = null;
-        private static Cursor sizeAll = null;
-        private static Cursor sizeNESW = null;
-        private static Cursor sizeNS = null;
-        private static Cursor sizeNWSE = null;
-        private static Cursor sizeWE = null;
-        private static Cursor help = null;
-        private static Cursor hSplit = null;
-        private static Cursor vSplit = null;
-        private static Cursor hand = null;
+        private static Cursor defaultCursor;
+        private static Cursor sizeAll;
+        private static Cursor sizeNESW;
+        private static Cursor sizeNS;
+        private static Cursor sizeNWSE;
+        private static Cursor sizeWE;
+        private static Cursor help;
+        private static Cursor hSplit;
+        private static Cursor vSplit;
+        private static Cursor hand;
 
         public static Cursor Default
         {
@@ -35,6 +35,7 @@
                     hand = new Cursor(images.Hand);
                     hand.HotSpot = new Point(-12, -6);
                 }
+
                 return hand;
             }
         }
@@ -56,6 +57,7 @@
                     hSplit = new Cursor(images.HSplit);
                     HSplit.SetHotspot(Cursor.PointPositionTypes.Middle, Cursor.PointPositionTypes.Middle);
                 }
+
                 return hSplit;
             }
         }
@@ -68,6 +70,7 @@
                     sizeAll = new Cursor(images.SizeAll);
                     sizeAll.SetHotspot(Cursor.PointPositionTypes.Middle, Cursor.PointPositionTypes.Middle);
                 }
+
                 return sizeAll;
             }
         }
@@ -80,6 +83,7 @@
                     sizeNESW = new Cursor(images.SizeNESW);
                     sizeNESW.SetHotspot(Cursor.PointPositionTypes.Middle, Cursor.PointPositionTypes.Middle);
                 }
+
                 return sizeNESW;
             }
         }
@@ -92,6 +96,7 @@
                     sizeNS = new Cursor(images.SizeNS);
                     sizeNS.SetHotspot(Cursor.PointPositionTypes.Middle, Cursor.PointPositionTypes.Middle);
                 }
+
                 return sizeNS;
             }
         }
@@ -104,6 +109,7 @@
                     sizeNWSE = new Cursor(images.SizeNWSE);
                     sizeNWSE.SetHotspot(Cursor.PointPositionTypes.Middle, Cursor.PointPositionTypes.Middle);
                 }
+
                 return sizeNWSE;
             }
         }
@@ -116,6 +122,7 @@
                     sizeWE = new Cursor(images.SizeWE);
                     sizeWE.SetHotspot(Cursor.PointPositionTypes.Middle, Cursor.PointPositionTypes.Middle);
                 }
+
                 return sizeWE;
             }
         }
@@ -128,6 +135,7 @@
                     vSplit = new Cursor(images.VSplit);
                     vSplit.SetHotspot(Cursor.PointPositionTypes.Middle, Cursor.PointPositionTypes.Middle);
                 }
+
                 return vSplit;
             }
         }

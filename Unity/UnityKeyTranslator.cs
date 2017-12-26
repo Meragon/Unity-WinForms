@@ -1,19 +1,16 @@
 ﻿#define ALLOW_SPECIAL_KEYS
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using UE = UnityEngine;
-
 namespace Unity
 {
+    using System.Windows.Forms;
+
+    using UE = UnityEngine;
+
     public static class UnityKeyTranslator
     {
         public static Keys ToKeyData(UE.EventModifiers umods, UE.KeyCode ukey)
         {
-            var key = Keys.None;
+            Keys key;
 
             switch (ukey)
             {

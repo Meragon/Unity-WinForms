@@ -62,7 +62,7 @@
             set
             {
                 if (value < 1)
-                    throw new ArgumentOutOfRangeException("itemHeight");
+                    throw new ArgumentOutOfRangeException("value");
                 itemHeight = value;
             }
         }

@@ -2,7 +2,7 @@
 {
     using System.Drawing;
 
-    public class MathHelper
+    public static class MathHelper
     {
         public static float CatmullRom(float value1, float value2, float value3, float value4, float amount)
         {

@@ -1,6 +1,6 @@
 ﻿namespace System.Drawing
 {
-    public sealed class SystemFonts
+    public static class SystemFonts
     {
         public static readonly Font CaptionFont = new Font("Segoe UI", 11.25f);
         public static readonly Font DefaultFont = new Font("Microsoft Sans Serif", 8.25f);

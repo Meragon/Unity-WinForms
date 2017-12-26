@@ -82,6 +82,7 @@
             GdiImages.CurvedArrowLeft = gResources.Images.CurvedArrowLeft.ToBitmap();
             GdiImages.CurvedArrowRight = gResources.Images.CurvedArrowRight.ToBitmap();
             GdiImages.CurvedArrowUp = gResources.Images.CurvedArrowUp.ToBitmap();
+            GdiImages.DateTimePicker = gResources.Images.DateTimePicker.ToBitmap();
             GdiImages.DropDownRightArrow = gResources.Images.DropDownRightArrow.ToBitmap();
             GdiImages.FormResize = gResources.Images.FormResize.ToBitmap();
             GdiImages.NumericDown = gResources.Images.NumericDown.ToBitmap();

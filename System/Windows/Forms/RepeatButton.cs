@@ -6,8 +6,9 @@
         private bool repeatClick = false;
         private float repeatCooldown = 0;
         private float repeatCooldownCurrent = 0;
-        private float repeatCooldownMin = .1f;
-        private float repeatStartCooldown = .4f;
+        private bool repeatStarted;
+        private float cooldownBetweenClicks = .1f;
+        private float waitCooldown = .4f;
 
         public RepeatButton()
         {
@@ -17,21 +18,29 @@
 
         public float CooldownBetweenClicks
         {
-            get { return repeatCooldownMin; }
-            set { repeatCooldownMin = value; }
+            get { return cooldownBetweenClicks; }
+            set { cooldownBetweenClicks = value; }
         }
         /// <summary>
         /// After first click.
         /// </summary>
         public float WaitCooldown
         {
-            get { return repeatStartCooldown; }
-            set { repeatStartCooldown = value; }
+            get { return waitCooldown; }
+            set { waitCooldown = value; }
+        }
+
+        internal override void RaiseOnMouseClick(MouseEventArgs e)
+        {
+            // We want to prevent clicking a button after MouseUp event. So it wont be double clicking thing.
+            if (repeatStarted == false)
+                base.RaiseOnMouseClick(e);
         }
 
         protected override void Dispose(bool release_all)
         {
             MouseHook.MouseUp -= Owner_UpClick;
+            uwfAppOwner.UpdateEvent -= Owner_UpdateEvent;
 
             base.Dispose(release_all);
         }
@@ -56,7 +65,7 @@
             if (mdown)
             {
                 repeatClick = true;
-                repeatCooldown = repeatStartCooldown;
+                repeatCooldown = waitCooldown;
                 repeatCooldownCurrent = repeatCooldown;
             }
         }
@@ -71,27 +80,29 @@
         {
             mdown = false;
             repeatClick = false;
+            repeatStarted = false;
         }
         private void Owner_UpdateEvent()
         {
-            if (repeatClick)
-            {
-                if (repeatCooldownCurrent <= 0)
-                {
-                    PerformClick();
+            if (!repeatClick) return;
 
-                    repeatCooldown = repeatCooldownMin;
-                    repeatCooldownCurrent = repeatCooldown;
-                }
-                else
-                    repeatCooldownCurrent -= swfHelper.GetDeltaTime();
+            if (repeatCooldownCurrent <= 0)
+            {
+                repeatStarted = true;
+
+                PerformClick();
+
+                repeatCooldown = cooldownBetweenClicks;
+                repeatCooldownCurrent = repeatCooldown;
             }
+            else
+                repeatCooldownCurrent -= swfHelper.GetDeltaTime();
         }
         private void StartRepeat()
         {
             mdown = true;
             repeatClick = true;
-            repeatCooldown = repeatStartCooldown;
+            repeatCooldown = waitCooldown;
             repeatCooldownCurrent = repeatCooldown;
         }
     }

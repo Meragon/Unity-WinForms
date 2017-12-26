@@ -54,6 +54,9 @@ public class AppResources
         [Tooltip("VScrollBar")]
         public Image CurvedArrowUp;
 
+        [Tooltip("DateTimePicker button")]
+        public Image DateTimePicker;
+
         [Tooltip("ToolStripDropDown")]
         public Image DropDownRightArrow;
 

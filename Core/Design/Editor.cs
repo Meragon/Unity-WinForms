@@ -7,7 +7,7 @@
 
     using UnityEngine;
 
-    public class Editor
+    public static class Editor
     {
         private static readonly string[] boolOnOff = { "On", "Off" };
 
@@ -95,7 +95,6 @@
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label(name + ":", GUILayout.Width(_nameWidth));
-            Color colorBuffer = value;
             if (WinFormsCompatible)
             {
                 if (Button(value.ToString()))
@@ -114,7 +113,7 @@
 #if UNITY_EDITOR
             else
             {
-                colorBuffer = UnityEditor.EditorGUILayout.ColorField(value.ToUnityColor(), GUILayout.Width(_contentWidth)).ToColor();
+                var colorBuffer = UnityEditor.EditorGUILayout.ColorField(value.ToUnityColor(), GUILayout.Width(_contentWidth)).ToColor();
                 if (colorBuffer != value && setColor != null)
                     setColor.Invoke(colorBuffer);
             }
@@ -263,7 +262,7 @@
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label(name + ":", GUILayout.Width(_nameWidth));
-            float floatBuffer = value;
+            float floatBuffer;
             if (WinFormsCompatible)
             {
                 floatBuffer = GUILayout.HorizontalSlider(value, min, max, GUILayout.Width(_contentWidth - 96));

@@ -1,6 +1,6 @@
 ﻿namespace System.Drawing
 {
-    public sealed class ColorTranslator
+    public static class ColorTranslator
     {
         public static Color FromHtml(string htmlColor)
         {

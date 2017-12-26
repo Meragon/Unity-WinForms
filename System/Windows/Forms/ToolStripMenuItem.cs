@@ -1,9 +1,11 @@
 namespace System.Windows.Forms
 {
+    using System.Collections.Generic;
     using System.Drawing;
 
     public class ToolStripMenuItem : ToolStripDropDownItem
     {
+        private static Dictionary<int, string> cachedKeysValues;
         private ContentAlignment shortcutKeysFormat = ContentAlignment.MiddleLeft;
 
         private Keys shortcutKeys;
@@ -95,22 +97,67 @@ namespace System.Windows.Forms
             }
         }
 
+        private static string GetCachedString(Keys key)
+        {
+            if (cachedKeysValues == null)
+            {
+                // Fill cache.
+                cachedKeysValues = new Dictionary<int, string>();
+                string[] names;
+                object[] values;
+
+                GetEnumData(typeof(Keys), out names, out values);
+
+                for (int i = 0; i < names.Length; i++)
+                {
+                    var val = (int)values[i];
+                    if (cachedKeysValues.ContainsKey(val) == false)
+                        cachedKeysValues.Add(val, names[i]);
+                }
+            }
+
+            return cachedKeysValues[(int)key];
+        }
+        private static void GetEnumData(Type type, out string[] names, out object[] values)
+        {
+            // More efficient than Enum.GetNames(...).
+            var fields = type.GetFields(
+                Reflection.BindingFlags.Public |
+                Reflection.BindingFlags.NonPublic |
+                Reflection.BindingFlags.Static);
+
+            var fieldsLength = fields.Length;
+
+            names = new string[fieldsLength];
+            values = new object[fieldsLength];
+
+            for (int i = 0; i < fieldsLength; i++)
+            {
+                var field = fields[i];
+
+                names[i] = field.Name;
+                values[i] = field.GetRawConstantValue();
+            }
+        }
         private static Keys GetKeyCode(Keys keyData)
         {
             var keys = keyData & Keys.KeyCode;
-            if (!Enum.IsDefined(typeof(Keys), keys))
-                return Keys.None;
-            return keys;
+
+            if (KeyEventArgs.IsKeyDefined(keys))
+                return keys;
+
+            return Keys.None;
         }
         private static string ToShortcutString(Keys key)
         {
+            // TODO: move to KeysConverter.ConvertTo(object).
             var keyCode = GetKeyCode(key);
             var keyMods = key & Keys.Modifiers;
             var skeyMods = "";
             if (keyMods != Keys.None)
-                skeyMods = keyMods.ToString().Replace("Control", "Ctrl") + " + ";
+                skeyMods = GetCachedString(keyMods).Replace("Control", "Ctrl") + " + ";
 
-            var str = skeyMods + keyCode.ToString().Replace("Delete", "Del");
+            var str = skeyMods + GetCachedString(keyCode).Replace("Delete", "Del");
             return str;
         }
 
