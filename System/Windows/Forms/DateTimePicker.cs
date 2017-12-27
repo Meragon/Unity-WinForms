@@ -8,15 +8,20 @@
     /// </summary>
     public class DateTimePicker : Control
     {
-        internal Color uwfBorderHoverColor = Color.FromArgb(23, 23, 23);
-        internal Color uwfBorderNormalColor = Color.FromArgb(122, 122, 122);
-        internal Color uwfBroderSelectColor = Color.FromArgb(0, 120, 215);
+        internal Color uwfBorderHoverColor = Color.FromArgb(126, 180, 234);
+        internal Color uwfBorderNormalColor = Color.FromArgb(171, 173, 179);
+        internal Color uwfBorderSelectColor = Color.FromArgb(86, 157, 229);
+        internal Color uwfButtonBorderHoverColor = Color.FromArgb(126, 180, 234);
+        internal Color uwfButtonBorderSelectColor = Color.FromArgb(86, 157, 229);
+        internal Color uwfButtonHoverColor = Color.FromArgb(229, 241, 252);
+        internal Color uwfButtonSelectColor = Color.FromArgb(206, 229, 252);
+        internal int uwfButtonWidth = 34;
         internal CultureInfo uwfCultureInfo;
-        internal int uwfDropDownButtonWidth = 34;
 
         private readonly Pen borderPen = new Pen(Color.Transparent);
         private readonly Pen dropDownButtonPen = new Pen(Color.Transparent);
 
+        private MonthCalendar monthControl;
         private DateTime value;
         private string valueText;
 
@@ -58,7 +63,8 @@
             var screenLocation = PointToScreen(Point.Empty);
             screenLocation.Offset(0, Height);
 
-            var monthControl = new MonthCalendar();
+            monthControl = new MonthCalendar();
+            monthControl.uwfInnerPadding = new Padding(0);
             monthControl.uwfContext = true;
             monthControl.uwfShadowBox = true;
             monthControl.Location = screenLocation;
@@ -77,12 +83,12 @@
             var width = Width;
 
             // Value.
-            g.uwfDrawString(valueText, Font, ForeColor, 2, 0, Width - uwfDropDownButtonWidth - 2, Height);
+            g.uwfDrawString(valueText, Font, ForeColor, 2, 0, Width - uwfButtonWidth - 2, Height);
 
             // Finding border color.
             var borderColor = uwfBorderNormalColor;
             if (selected)
-                borderColor = uwfBroderSelectColor;
+                borderColor = uwfBorderSelectColor;
             else if (hovered)
                 borderColor = uwfBorderHoverColor;
 
@@ -91,16 +97,25 @@
             g.DrawRectangle(borderPen, 0, 0, width, height);
 
             // Dropdown button.
-            if (IsMouseInsideDropDownButton())
+            var buttonHovered = IsMouseInsideDropDownButton();
+            var buttonPressed = monthControl != null && monthControl.IsDisposed == false;
+            if (buttonHovered || buttonPressed)
             {
-                dropDownButtonPen.Color = uwfBroderSelectColor;
-                g.DrawRectangle(dropDownButtonPen, width - uwfDropDownButtonWidth, 0, uwfDropDownButtonWidth, height);
+                var buttonBackColor = buttonPressed ? uwfButtonSelectColor : uwfButtonHoverColor;
+                dropDownButtonPen.Color = buttonPressed ? uwfButtonBorderSelectColor : uwfButtonBorderHoverColor;
+
+                g.uwfFillRectangle(buttonBackColor, width - uwfButtonWidth, 0, uwfButtonWidth, height);
+                g.DrawRectangle(dropDownButtonPen, width - uwfButtonWidth, 0, uwfButtonWidth, height);
             }
 
             var buttonImage = uwfAppOwner.Resources.DateTimePicker;
             var arrowImage = uwfAppOwner.Resources.NumericDown;
-            g.DrawImage(buttonImage, width - uwfDropDownButtonWidth + 5, 3, buttonImage.Width, buttonImage.Height);
-            g.DrawImage(arrowImage, width - uwfDropDownButtonWidth + 19, 6, arrowImage.Width, arrowImage.Height);
+
+            if (buttonImage != null)
+                g.DrawImage(buttonImage, width - uwfButtonWidth + 5, 3, buttonImage.Width, buttonImage.Height);
+
+            if (arrowImage != null)
+                g.DrawImage(arrowImage, width - uwfButtonWidth + 20, 6, arrowImage.Width, arrowImage.Height);
         }
         protected override void OnPaintBackground(PaintEventArgs pevent)
         {
@@ -114,7 +129,7 @@
         private bool IsMouseInsideDropDownButton()
         {
             var mclient = PointToClient(MousePosition);
-            var dropDownButtonX = Width - uwfDropDownButtonWidth;
+            var dropDownButtonX = Width - uwfButtonWidth;
 
             return mclient.X > dropDownButtonX && ClientRectangle.Contains(mclient);
         }

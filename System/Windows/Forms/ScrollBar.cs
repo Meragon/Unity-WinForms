@@ -69,7 +69,7 @@
             Controls.Add(subtractButton);
 
             MouseHook.MouseUp += Owner_UpClick;
-            uwfAppOwner.UpdateEvent += Owner_UpdateEvent;
+            Application.UpdateEvent += ApplicationOnUpdateEvent;
         }
 
         public event ScrollEventHandler Scroll;
@@ -268,7 +268,7 @@
         protected override void Dispose(bool release_all)
         {
             MouseHook.MouseUp -= Owner_UpClick;
-            uwfAppOwner.UpdateEvent -= Owner_UpdateEvent;
+            Application.UpdateEvent -= ApplicationOnUpdateEvent;
 
             base.Dispose(release_all);
         }
@@ -386,7 +386,7 @@
             scrollDraging = false;
             scrollCanDrag = false;
         }
-        private void Owner_UpdateEvent()
+        private void ApplicationOnUpdateEvent()
         {
             var mclient = PointToClient(MousePosition);
 

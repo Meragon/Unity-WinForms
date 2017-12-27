@@ -54,7 +54,7 @@
 
         public delegate void UpdateEventDelegate();
 
-        internal event UpdateEventDelegate UpdateEvent = delegate { };
+        internal static event UpdateEventDelegate UpdateEvent;
 
         public enum MouseEvents
         {
@@ -447,7 +447,9 @@
                 }
             }
 
-            UpdateEvent();
+            var updateEventHandler = UpdateEvent;
+            if (updateEventHandler != null)
+                updateEventHandler();
         }
 
         internal static bool ControlIsVisible(Control control)

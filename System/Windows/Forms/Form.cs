@@ -57,7 +57,7 @@
             uwfHeaderTextAlign = ContentAlignment.MiddleLeft;
             uwfShadowBox = true;
             uwfShadowHandler = DrawShadow;
-            uwfAppOwner.UpdateEvent += Application_UpdateEvent;
+            Application.UpdateEvent += Application_UpdateEvent;
 
             MouseHook.MouseUp += Application_UpClick;
 
@@ -352,7 +352,7 @@
         protected override void Dispose(bool release_all)
         {
             MouseHook.MouseUp -= Application_UpClick;
-            uwfAppOwner.UpdateEvent -= Application_UpdateEvent;
+            Application.UpdateEvent -= Application_UpdateEvent;
 
             if (IsModal == false)
                 uwfAppOwner.Forms.Remove(this);

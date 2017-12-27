@@ -26,7 +26,7 @@
             ForeColor = this.defaultProgressForeColor;
             SetStyle(ControlStyles.UserPaint | ControlStyles.Selectable | ControlStyles.UseTextForAccessibility, false);
 
-            uwfAppOwner.UpdateEvent += AppOwnerOnUpdateEvent;
+            Application.UpdateEvent += ApplicationOnUpdateEvent;
         }
         public event EventHandler RightToLeftLayoutChanged = delegate { };
 
@@ -147,6 +147,12 @@
                 ", Value: " + value.ToString(CultureInfo.CurrentCulture);
         }
 
+        protected override void Dispose(bool release_all)
+        {
+            base.Dispose(release_all);
+
+            Application.UpdateEvent -= ApplicationOnUpdateEvent;
+        }
         protected override void OnPaint(PaintEventArgs e)
         {
             var g = e.Graphics;
@@ -169,7 +175,7 @@
             RightToLeftLayoutChanged(this, e);
         }
 
-        private void AppOwnerOnUpdateEvent()
+        private void ApplicationOnUpdateEvent()
         {
             if (updatePos == false && Style != ProgressBarStyle.Marquee)
                 return;

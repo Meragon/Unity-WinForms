@@ -6,6 +6,7 @@ This is WinForms wrapper (including System.Drawing). Here you can create base co
 - Button;
 - CheckBox;
 - ComboBox;
+- DateTimePicker;
 - Form;
 - GroupBox;
 - HScrollBar;
@@ -23,6 +24,7 @@ This is WinForms wrapper (including System.Drawing). Here you can create base co
 - SaveFileDialog;
 - TabControl;
 - TextBox;
+- Timer;
 - ToolStrip;
 - ToolTip;
 - TreeView;

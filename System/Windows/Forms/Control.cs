@@ -5,7 +5,7 @@
     using System.ComponentModel;
     using System.Drawing;
 
-    public class Control : Component
+    public class Control : Component, IDropTarget
     {
         internal static readonly Color defaultShadowColor = Color.FromArgb(12, 0, 0, 0);
         internal static readonly Color defaultForeColor = Color.FromArgb(64, 64, 64); // SystemColors.ControlText is too dark.
@@ -400,6 +400,23 @@
             // dunno.
         }
 
+        void IDropTarget.OnDragEnter(DragEventArgs drgEvent)
+        {
+            OnDragEnter(drgEvent);
+        }
+        void IDropTarget.OnDragDrop(DragEventArgs drgEvent)
+        {
+            OnDragDrop(drgEvent);
+        }
+        void IDropTarget.OnDragLeave(EventArgs e)
+        {
+            OnDragLeave(e);
+        }
+        void IDropTarget.OnDragOver(DragEventArgs drgEvent)
+        {
+            OnDragOver(drgEvent);
+        }
+
         internal virtual void AssignParent(Control value)
         {
             parent = value;
@@ -681,6 +698,10 @@
             var dragLeave = DragLeave;
             if (dragLeave != null)
                 dragLeave(this, e);
+        }
+        protected virtual void OnDragOver(DragEventArgs drgevent)
+        {
+            throw new NotImplementedException();
         }
         protected virtual void OnEnabledChanged(EventArgs e)
         {

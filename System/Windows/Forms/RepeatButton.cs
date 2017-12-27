@@ -13,7 +13,7 @@
         public RepeatButton()
         {
             MouseHook.MouseUp += Owner_UpClick;
-            uwfAppOwner.UpdateEvent += Owner_UpdateEvent;
+            Application.UpdateEvent += ApplicationOnUpdateEvent;
         }
 
         public float CooldownBetweenClicks
@@ -40,7 +40,7 @@
         protected override void Dispose(bool release_all)
         {
             MouseHook.MouseUp -= Owner_UpClick;
-            uwfAppOwner.UpdateEvent -= Owner_UpdateEvent;
+            Application.UpdateEvent -= ApplicationOnUpdateEvent;
 
             base.Dispose(release_all);
         }
@@ -82,7 +82,7 @@
             repeatClick = false;
             repeatStarted = false;
         }
-        private void Owner_UpdateEvent()
+        private void ApplicationOnUpdateEvent()
         {
             if (!repeatClick) return;
 
