@@ -262,7 +262,7 @@
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label(name + ":", GUILayout.Width(_nameWidth));
-            float floatBuffer;
+            float floatBuffer = value;
             if (WinFormsCompatible)
             {
                 floatBuffer = GUILayout.HorizontalSlider(value, min, max, GUILayout.Width(_contentWidth - 96));
