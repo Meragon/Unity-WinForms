@@ -4,19 +4,22 @@
 
     public class CheckBox : ButtonBase
     {
+        internal Color uwfBoxBackColor = Color.White;
+        internal Color uwfBoxBackHoverColor = Color.FromArgb(243, 249, 255);
+        internal Color uwfBoxBackDisableColor = Color.FromArgb(230, 230, 230);
+
         private readonly Pen borderPen = new Pen(Color.Transparent);
         private CheckState checkState;
 
         public CheckBox()
         {
-            BackColor = Color.White;
+            BackColor = Color.Transparent;
             TextAlign = ContentAlignment.MiddleLeft;
 
             uwfBorderColor = Color.FromArgb(112, 112, 112);
             uwfBorderHoverColor = Color.FromArgb(51, 153, 255);
             uwfBorderDisableColor = Color.FromArgb(188, 188, 188);
-            uwfDisableColor = Color.FromArgb(230, 230, 230);
-            uwfHoverColor = Color.FromArgb(243, 249, 255);
+            uwfHoverColor = Color.Transparent;
 
             Click += CheckBox_Click;
         }
@@ -55,20 +58,20 @@
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            Graphics g = e.Graphics;
+            var g = e.Graphics;
 
-            var backColor = uwfDisableColor;
+            var boxBackColor = uwfBoxBackDisableColor;
             borderPen.Color = uwfBorderDisableColor;
             if (Enabled)
             {
                 if (uwfHovered)
                 {
-                    backColor = uwfHoverColor;
+                    boxBackColor = uwfBoxBackHoverColor;
                     borderPen.Color = uwfBorderHoverColor;
                 }
                 else
                 {
-                    backColor = BackColor;
+                    boxBackColor = uwfBoxBackColor;
                     borderPen.Color = uwfBorderColor;
                 }
             }
@@ -77,7 +80,7 @@
             var checkRectY = Padding.Top + Height / 2 - 6;
             var checkRectWH = 12;
 
-            g.uwfFillRectangle(backColor, checkRectX, checkRectY, checkRectWH, checkRectWH);
+            g.uwfFillRectangle(boxBackColor, checkRectX, checkRectY, checkRectWH, checkRectWH);
             g.DrawRectangle(borderPen, checkRectX, checkRectY, checkRectWH, checkRectWH);
             if (Checked)
                 g.DrawImage(uwfAppOwner.Resources.Checked, checkRectX, checkRectY, checkRectWH, checkRectWH);

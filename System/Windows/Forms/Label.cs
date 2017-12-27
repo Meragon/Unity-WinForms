@@ -46,10 +46,7 @@
 
         internal void AdjustSize()
         {
-            if (AutoSize == false)
-                return;
-
-            adjustSize = true;
+            adjustSize = AutoSize;
         }
 
         protected override void OnPaint(PaintEventArgs e)
