@@ -1,37 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms.Design;
-#if UNITY_EDITOR
-using UnityEngine;
-using UnityEditor;
+﻿#if UNITY_EDITOR
 
 namespace Unity.Views
 {
+    using System;
+    using System.Windows.Forms.Design;
     using System.Windows.Forms;
 
-    using Application = UnityEngine.Application;
+    using UnityEngine;
+    using UnityEditor;
 
-    public class AppControl : EditorWindow
+    public class ControlInspector : EditorWindow
     {
-        private static AppControl _self;
-        public static AppControl Self
+        private static ControlInspector _self;
+        public static ControlInspector Self
         {
             get
             {
                 if (_self == null)
                 {
-                    _self = (AppControl)ShowWindow();
+                    _self = (ControlInspector)EditorMenu.ShowInspector();
                 }
                 return _self;
             }
-        }
-
-        [MenuItem("Window/NetWinForms/SWF Inspector")]
-        public static EditorWindow ShowWindow()
-        {
-            return EditorWindow.GetWindow(typeof(AppControl), false, "SWF Inspector");
         }
 
         private IObjectDesigner designer;
@@ -62,7 +52,7 @@ namespace Unity.Views
             if (DesignerObject == null) return;
 
             var control = DesignerObject as Control;
-            if (control != null && (control.Disposing || control.IsDisposed) || !Application.isPlaying)
+            if (control != null && (control.Disposing || control.IsDisposed) || !UnityEngine.Application.isPlaying)
             {
                 DesignerObject = null;
                 return;

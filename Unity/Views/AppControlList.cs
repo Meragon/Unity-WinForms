@@ -12,12 +12,6 @@ namespace Unity.Views
 {
     public class AppControlList : EditorWindow
     {
-        [MenuItem("Window/NetWinForms/AppControlList")]
-        public static void ShowWindow()
-        {
-            EditorWindow.GetWindow(typeof(AppControlList), false, "AppControlList");
-        }
-
         private string _filter = "";
         private float _repaintWait;
         private Vector2 _scrollPosition;
@@ -61,8 +55,8 @@ namespace Unity.Views
                 GUILayout.BeginHorizontal(GUILayout.Width(width));
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
-                    var w = AppControl.ShowWindow();
-                    (w as AppControl).DesignerObject = SWF.Control.uwfDefaultController.ModalForms[i];
+                    var w = EditorMenu.ShowInspector();
+                    (w as ControlInspector).DesignerObject = SWF.Control.uwfDefaultController.ModalForms[i];
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));
@@ -84,8 +78,8 @@ namespace Unity.Views
                 GUILayout.BeginHorizontal(GUILayout.Width(width));
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
-                    var w = AppControl.ShowWindow();
-                    (w as AppControl).DesignerObject = SWF.Control.uwfDefaultController.Forms[i];
+                    var w = EditorMenu.ShowInspector();
+                    (w as ControlInspector).DesignerObject = SWF.Control.uwfDefaultController.Forms[i];
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));
@@ -107,8 +101,8 @@ namespace Unity.Views
                 GUILayout.BeginHorizontal(GUILayout.Width(width));
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
-                    var w = AppControl.ShowWindow();
-                    (w as AppControl).DesignerObject = SWF.Control.uwfDefaultController.Contexts[i];
+                    var w = EditorMenu.ShowInspector();
+                    (w as ControlInspector).DesignerObject = SWF.Control.uwfDefaultController.Contexts[i];
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));
@@ -127,8 +121,8 @@ namespace Unity.Views
                 GUILayout.BeginHorizontal(GUILayout.Width(width));
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
-                    var w = AppControl.ShowWindow();
-                    (w as AppControl).DesignerObject = hoveredControl;
+                    var w = EditorMenu.ShowInspector();
+                    (w as ControlInspector).DesignerObject = hoveredControl;
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));

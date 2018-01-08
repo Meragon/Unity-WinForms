@@ -42,8 +42,8 @@
             if (obj == null)
                 return;
 #if UNITY_EDITOR
-            if (Views.AppControl.Self != null)
-                Views.AppControl.Self.DesignerObject = obj;
+            if (Views.ControlInspector.Self != null)
+                Views.ControlInspector.Self.DesignerObject = obj;
 #endif
         }
         internal static invokeAction Invoke(Action a, float seconds)
