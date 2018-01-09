@@ -450,7 +450,6 @@
         protected virtual void OnPaint(PaintEventArgs e)
         {
             var localBackColor = stateSelected ? hoverColor : BackColor;
-            var image = Image;
             var rect = Bounds;
             var graphics = e.Graphics;
             var textColor = Enabled ? ForeColor : SystemColors.InactiveCaption;

@@ -27,7 +27,7 @@
         private static readonly Color defaultFormHeaderTextColor = Color.FromArgb(64, 64, 64);
         private static readonly Padding defaultFormPadding = new Padding(32, 0, 32, 0);
         private static readonly Color defaultFormShadowColor = Color.FromArgb(12, 64, 64, 64);
-        private static Point nextLocation = new Point(128, 64);
+        private static Point nextLocation = new Point(156, 156);
 
         private Color backColor = SystemColors.Control;
         private Button closeButton;
@@ -35,11 +35,13 @@
         private MenuStrip mainMenuStrip;
         private bool windowMove;
         private Point windowMove_StartPosition;
+        private Form owner;
         private ControlResizeTypes resizeType;
         private Size resizeOriginal;
         private Point resizePosition;
         private Point resizeDelta;
         private SizeGripStyle sizeGripStyle;
+        private FormStartPosition startPosition = FormStartPosition.WindowsDefaultLocation;
         private bool topMost;
 
         #endregion
@@ -49,7 +51,6 @@
             ControlBox = true;
             Font = SystemFonts.uwfArial_14;
             FormBorderStyle = FormBorderStyle.Sizable;
-            Location = nextLocation;
             MinimumSize = new Size(128, 48);
             Visible = false;
 
@@ -57,16 +58,9 @@
             uwfHeaderTextAlign = ContentAlignment.MiddleLeft;
             uwfShadowBox = true;
             uwfShadowHandler = DrawShadow;
+
             Application.UpdateEvent += Application_UpdateEvent;
-
             MouseHook.MouseUp += Application_UpClick;
-
-            var workingArea = Screen.PrimaryScreen.WorkingArea;
-            nextLocation = new Point(nextLocation.X + 26, nextLocation.Y + 26);
-            if (nextLocation.X + Width > workingArea.Width - 32)
-                nextLocation = new Point(32, nextLocation.Y);
-            if (nextLocation.Y + Height > workingArea.Height - 32)
-                nextLocation = new Point(nextLocation.X, 32);
         }
 
         public event FormClosedEventHandler FormClosed;
@@ -114,6 +108,11 @@
         public FormBorderStyle FormBorderStyle { get; set; }
         public bool KeyPreview { get; set; }
         public MenuStrip MainMenuStrip { get { return mainMenuStrip; } set { mainMenuStrip = value; } }
+        public Form Owner
+        {
+            get { return owner; }
+            set { owner = value; }
+        }
         public SizeGripStyle SizeGripStyle
         {
             get { return sizeGripStyle; }
@@ -131,6 +130,11 @@
                 else
                     _MakeButtonResize();
             }
+        }
+        public FormStartPosition StartPosition
+        {
+            get { return startPosition; }
+            set { startPosition = value; }
         }
         public override string Text { get; set; }
         public bool TopMost
@@ -160,7 +164,9 @@
         }
         public virtual ControlResizeTypes GetResizeAt(Point mclient)
         {
+#pragma warning disable 618
             if (!(FormBorderStyle == FormBorderStyle.Sizable || FormBorderStyle == FormBorderStyle.SizableToolWindow)) return ControlResizeTypes.None;
+#pragma warning restore 618
 
             var r_type = ControlResizeTypes.None;
 
@@ -213,6 +219,11 @@
         }
         public void Show(bool fShouldFocus = true)
         {
+            if (Visible)
+                return;
+
+            PlaceAtStartPosition(startPosition);
+
             Visible = true;
 
             if (uwfAppOwner.Forms.Contains(this) == false)
@@ -226,8 +237,16 @@
 
             OnShown(EventArgs.Empty);
         }
+        public void Show(Form owner) // original: public void Show(IWin32Window owner)
+        {
+            this.owner = owner;
+
+            Show();
+        }
         public DialogResult ShowDialog(Action<Form, DialogResult> onClosed = null)
         {
+            PlaceAtStartPosition(startPosition);
+
             dialog = true;
             dialogCallback = onClosed;
 
@@ -247,9 +266,10 @@
 
         internal virtual void Application_UpdateEvent()
         {
-            #region ResizeComponent
-
+            // ResizeComponent.
+#pragma warning disable 618
             if (resizeType != ControlResizeTypes.None && (FormBorderStyle == FormBorderStyle.Sizable || FormBorderStyle == FormBorderStyle.SizableToolWindow))
+#pragma warning restore 618
             {
                 int estimatedWidth = 0;
                 int estimatedHeight = 0;
@@ -308,10 +328,7 @@
                     estimatedHeight = MaximumSize.Height;
 
                 Size = new Size(estimatedWidth, estimatedHeight);
-
-
             }
-            #endregion
         }
         internal virtual void Application_UpClick(object sender, MouseEventArgs e)
         {
@@ -378,7 +395,7 @@
         protected override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
-            
+
             if (e.KeyCode == Keys.Enter && AcceptButton != null)
                 AcceptButton.PerformClick();
             if (e.KeyCode == Keys.Escape && CancelButton != null)
@@ -493,6 +510,57 @@
         private void OnCloseButtonOnClick(object o, EventArgs e)
         {
             Close();
+        }
+        private void PlaceAtStartPosition(FormStartPosition formStartPosition)
+        {
+            var workingArea = Screen.PrimaryScreen.WorkingArea;
+
+            switch (formStartPosition)
+            {
+                case FormStartPosition.CenterParent:
+                    {
+                        if (owner != null)
+                        {
+                            var ex = owner.Location.X + (owner.Width - Width) / 2;
+                            var ey = owner.Location.Y + (owner.Height - Height) / 2;
+
+                            Location = new Point(ex, ey);
+                        }
+                        else
+
+                            // Use default position.
+                            PlaceAtStartPosition(FormStartPosition.WindowsDefaultLocation);
+                    }
+                    break;
+                case FormStartPosition.CenterScreen:
+                    {
+                        var ex = (workingArea.Width - Width) / 2;
+                        var ey = (workingArea.Height - Height) / 2;
+
+                        Location = new Point(ex, ey);
+                    }
+                    break;
+#pragma warning disable 618
+                case FormStartPosition.WindowsDefaultBounds: // TODO: Need size calculation algorithm.
+#pragma warning restore 618
+                case FormStartPosition.WindowsDefaultLocation:
+                    {
+                        var ex = nextLocation.X;
+                        var ey = nextLocation.Y;
+
+                        if (ex + Width > workingArea.Width)
+                            ex = workingArea.Width - Width;
+                        if (ey + Height > workingArea.Height)
+                            ey = workingArea.Height - Height;
+
+                        Location = new Point(ex, ey);
+
+                        nextLocation = new Point(nextLocation.X + 26, nextLocation.Y + 26);
+                        if (nextLocation.X >= 260) nextLocation = new Point(26, nextLocation.Y);
+                        if (nextLocation.Y >= 260) nextLocation = new Point(nextLocation.X, 26);
+                    }
+                    break;
+            }
         }
         private void _SelectFirstControl()
         {

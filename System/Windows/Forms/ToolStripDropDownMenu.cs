@@ -4,16 +4,16 @@
 
     public class ToolStripDropDownMenu : ToolStripDropDown
     {
-        private static Padding arrowPadding = new Padding(0, 0, 8, 0);
-        private static Padding checkPadding = new Padding(5, 2, 2, 2);
-        private static Padding imagePadding = new Padding(2);
+        ////private static Padding arrowPadding = new Padding(0, 0, 8, 0);
+        ////private static Padding checkPadding = new Padding(5, 2, 2, 2);
+        ////private static Padding imagePadding = new Padding(2);
         private static Padding textPadding = new Padding(8, 1, 9, 1);
 
-        private Rectangle arrowRectangle = Rectangle.Empty;
-        private Rectangle checkRectangle = Rectangle.Empty;
+        ////private Rectangle arrowRectangle = Rectangle.Empty;
+        ////private Rectangle checkRectangle = Rectangle.Empty;
         private Rectangle imageMarginBounds = Rectangle.Empty;
-        private Rectangle imageRectangle = Rectangle.Empty;
-        private Rectangle textRectangle = Rectangle.Empty;
+        ////private Rectangle imageRectangle = Rectangle.Empty;
+        ////private Rectangle textRectangle = Rectangle.Empty;
 
         public ToolStripDropDownMenu()
         {

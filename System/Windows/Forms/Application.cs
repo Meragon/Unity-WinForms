@@ -625,11 +625,8 @@
                 var client_mpos = control.PointToClient(new Point((int)mousePosition.X, (int)mousePosition.Y));
                 if (mousePositionChanged)
                 {
-                    var m_args = new MouseEventArgs(MouseButtons.None, 0, (int)client_mpos.X, (int)client_mpos.Y, 0);
                     if (dragData != null)
                         dragndrop = true;
-                    //else
-                    //control.RaiseOnMouseMove(m_args);
                 }
 
                 if (!contains && mouseEvent != MouseEvents.Up)

@@ -224,7 +224,7 @@
             for (int i = 0; i < cnt; i++)
                 GUILayout.Label(string.Empty);
         }
-        public static EditorValue<Object> ObjectField(string name, UnityEngine.Object value, Type type)
+        public static EditorValue<UnityEngine.Object> ObjectField(string name, UnityEngine.Object value, Type type)
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label(name + ":", GUILayout.Width(_nameWidth));
@@ -235,11 +235,11 @@
 
 #if UNITY_EDITOR
             else
-                objectBuffer = UnityEditor.EditorGUILayout.ObjectField(value, type, GUILayout.Width(_contentWidth));
+                objectBuffer = UnityEditor.EditorGUILayout.ObjectField(value, type, true, GUILayout.Width(_contentWidth));
 #endif
             GUILayout.EndHorizontal();
 
-            return new EditorValue<Object>(objectBuffer, objectBuffer != value);
+            return new EditorValue<UnityEngine.Object>(objectBuffer, objectBuffer != value);
         }
         public static EditorValue<int> Popup(string name, int index, string[] values)
         {

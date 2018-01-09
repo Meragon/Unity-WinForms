@@ -109,7 +109,7 @@
             // Fix location
             var workingArea = Screen.PrimaryScreen.WorkingArea;
             var newBounds = WindowsFormsUtils.ConstrainToBounds(workingArea, new Rectangle(argX, argY, argWidth, argHeight));
-            var xFixed = argX != newBounds.X;
+            ////var xFixed = argX != newBounds.X;
 
             // TODO: need some code to prevent child going outside of screen.
             /*if (OwnerItem != null)
