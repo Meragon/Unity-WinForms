@@ -29,12 +29,10 @@
         {
             var form = new Form();
             form.FormBorderStyle = FormBorderStyle.FixedSingle;
-            form.Location = new Point(
-                Screen.PrimaryScreen.WorkingArea.Width / 2 - form.Width / 2,
-                Screen.PrimaryScreen.WorkingArea.Height / 2 - form.Height / 2);
             form.MinimumSize = new Size(154, 140);
             form.Size = form.MinimumSize;
             form.SizeGripStyle = SizeGripStyle.Hide;
+            form.StartPosition = FormStartPosition.CenterScreen;
             form.Text = caption;
             form.TopMost = true;
 
