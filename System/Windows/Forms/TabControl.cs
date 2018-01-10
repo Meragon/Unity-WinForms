@@ -7,6 +7,8 @@
 
     public class TabControl : Control
     {
+        internal bool buttonAdjustSize;
+        internal Padding buttonTextPadding;
         internal List<TabPageButton> pagesButtons = new List<TabPageButton>();
         internal int tabPageCount;
         internal int tabViewIndex;
@@ -32,6 +34,11 @@
 
             ((ControlCollection)Controls).AddInternal(pagesButtonsPanel);
         }
+
+        public event TabControlEventHandler Deselected;
+        public event TabControlCancelEventHandler Deselecting;
+        public event TabControlEventHandler Selected;
+        public event TabControlCancelEventHandler Selecting;
 
         public new Rectangle DisplayRectangle
         {
@@ -137,13 +144,29 @@
         {
             HideSelectedPage();
 
+            if (index == -1)
+            {
+                selectedIndex = index;
+                return;
+            }
+
+            if (index >= TabPages.Count)
+                throw new ArgumentOutOfRangeException("index");
+
+            var selectedPage = TabPages[index];
+            var cancelArgs = new TabControlCancelEventArgs(selectedPage, index, false, TabControlAction.Selecting);
+
+            OnSelecting(cancelArgs);
+            
+            if (cancelArgs.Cancel)
+                return;
+
             selectedIndex = index;
 
-            if (selectedIndex == -1) return;
-            if (selectedIndex >= TabPages.Count) throw new ArgumentOutOfRangeException("index");
-
             pagesButtons[selectedIndex].Show();
-            TabPages[index].Visible = true;
+            selectedPage.Visible = true;
+
+            OnSelected(new TabControlEventArgs(selectedPage, index, TabControlAction.Selected));
         }
         public void SelectTab(string tabPageName)
         {
@@ -167,13 +190,15 @@
 
         internal int AddTabPage(TabPage tabPage)
         {
-            TabPageButton pageButton = new TabPageButton(this, tabPageCount);
+            var pageButton = new TabPageButton(this, tabPageCount);
             pageButton.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom;
+            pageButton.adjustWidthToText = buttonAdjustSize;
             pageButton.uwfBorderHoverColor = Color.Transparent;
             pageButton.uwfBorderColor = Color.Transparent;
             pageButton.Location = new Point(tabPageCount * pageButton.Width - tabPageCount, 0);
             pageButton.Size = itemSize;
             pageButton.Text = tabPage.Text;
+            pageButton.textPadding = buttonTextPadding;
             pageButton.Hide();
 
             pagesButtonsPanel.Controls.Add(pageButton);
@@ -197,13 +222,25 @@
 
             return -1;
         }
-        internal void HideSelectedPage()
+        internal bool HideSelectedPage()
         {
-            if (selectedIndex == -1) return;
-            if (selectedIndex >= TabPages.Count) return;
+            if (selectedIndex == -1) return true;
+            if (selectedIndex >= TabPages.Count) return true;
+
+            var selectedPage = TabPages[selectedIndex];
+            var cancelArgs = new TabControlCancelEventArgs(selectedPage, selectedIndex, false, TabControlAction.Deselecting);
+
+            OnDeselecting(cancelArgs);
+
+            if (cancelArgs.Cancel)
+                return false;
 
             pagesButtons[selectedIndex].Hide();
             TabPages[selectedIndex].Visible = false;
+
+            OnDeselected(new TabControlEventArgs(selectedPage, selectedIndex, TabControlAction.Deselected));
+
+            return true;
         }
         internal void RemoveTabPage(int index)
         {
@@ -287,6 +324,18 @@
         {
             return new ControlCollection(this);
         }
+        protected virtual void OnDeselected(TabControlEventArgs e)
+        {
+            var handler = Deselected;
+            if (handler != null)
+                handler(this, e);
+        }
+        protected virtual void OnDeselecting(TabControlCancelEventArgs e)
+        {
+            var handler = Deselecting;
+            if (handler != null)
+                handler(this, e);
+        }
         protected override void OnPaint(PaintEventArgs e)
         {
             e.Graphics.uwfFillRectangle(BackColor, 0, 0, Width, Height);
@@ -316,6 +365,18 @@
             navigationButtonRight.Dispose();
             navigationButtonLeft = null;
             navigationButtonRight = null;
+        }
+        protected virtual void OnSelected(TabControlEventArgs e)
+        {
+            var handler = Selected;
+            if (handler != null)
+                handler(this, e);
+        }
+        protected virtual void OnSelecting(TabControlCancelEventArgs e)
+        {
+            var handler = Selecting;
+            if (handler != null)
+                handler(this, e);
         }
 
         private void CheckNavButtons()
@@ -496,7 +557,9 @@
             }
             public void Add(TabPage value)
             {
-                if (value == null) throw new ArgumentNullException("value");
+                if (value == null)
+                    throw new ArgumentNullException("value");
+
                 owner.Controls.Add(value);
             }
             public void Add(string key, string text)
@@ -666,6 +729,7 @@
             internal Color enabledBackHoverColor = Color.White;
             internal Color disabledBackColor = SystemColors.Control;
             internal Color disabledBackHoverColor = Color.FromArgb(223, 238, 252);
+            internal Padding textPadding = new Padding(6, 0, 6, 0);
 
             private readonly TabControl owner;
             private readonly int index;
@@ -721,7 +785,7 @@
 
                 if (adjustWidthToText)
                 {
-                    Width = (int)g.MeasureString(Text, Font).Width + 12;
+                    Width = (int)g.MeasureString(Text, Font).Width + textPadding.Horizontal;
                     adjustWidthToText = false;
                     owner.UpdateButtons();
                 }

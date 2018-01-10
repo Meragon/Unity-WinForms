@@ -1,15 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
-    public interface IResizableControl
-    {
-        ControlResizeTypes GetResizeAt(Point mclient);
-    }
+    using System.Drawing;
 
     public enum ControlResizeTypes
     {
@@ -24,5 +15,10 @@ namespace System.Windows.Forms
         LeftDown,
         LeftUp,
         RightUp
+    }
+
+    public interface IResizableControl
+    {
+        ControlResizeTypes GetResizeAt(Point mclient);
     }
 }

@@ -29,6 +29,7 @@
         private int clientWidth;
         private ControlCollection controls;
         private ControlStyles controlStyle;
+        private CreateParams createParams;
         private bool enabled;
         private Font font = SystemFonts.uwfArial_12;
         private Color foreColor = defaultForeColor;
@@ -277,6 +278,22 @@
         }
         internal bool uwfHovered { get { return hovered; } }
 
+        protected virtual CreateParams CreateParams
+        {
+            get
+            {
+                if (createParams == null)
+                    createParams = new CreateParams();
+
+                createParams.Caption = text;
+                createParams.X = x;
+                createParams.Y = y;
+                createParams.Width = width;
+                createParams.Height = height;
+
+                return createParams;
+            }
+        }
         protected virtual Size DefaultSize
         {
             get { return Size.Empty; }

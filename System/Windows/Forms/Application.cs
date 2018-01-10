@@ -14,7 +14,7 @@
     public class Application
     {
         internal static Control activeResizeControl;
-        internal static CultureInfo currentCulture;
+        internal static CultureInfo currentCulture = ApiHolder.System.CurrentCulture;
         internal static bool dragndrop;
         internal static object dragData;
         internal readonly List<Control> Contexts = new List<Control>();
@@ -44,8 +44,7 @@
         public Application()
         {
             TabSwitching = true;
-
-            currentCulture = ApiHolder.System.CurrentCulture;
+            
             paintEventArgs = new PaintEventArgs();
             paintEventArgs.Graphics = new Graphics();
 

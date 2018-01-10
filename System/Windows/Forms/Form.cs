@@ -217,7 +217,7 @@
                     break;
             }
         }
-        public void Show(bool fShouldFocus = true)
+        public void Show()
         {
             if (Visible)
                 return;
@@ -229,11 +229,7 @@
             if (uwfAppOwner.Forms.Contains(this) == false)
                 uwfAppOwner.Forms.Add(this);
 
-            if (fShouldFocus)
-            {
-                Focus();
-                _SelectFirstControl();
-            }
+            TryFocus();
 
             OnShown(EventArgs.Empty);
         }
@@ -245,6 +241,12 @@
         }
         public DialogResult ShowDialog(Action<Form, DialogResult> onClosed = null)
         {
+            return ShowDialog(null, onClosed);
+        }
+        public DialogResult ShowDialog(Form owner, Action<Form, DialogResult> onClosed = null)
+        {
+            this.owner = owner;
+
             PlaceAtStartPosition(startPosition);
 
             dialog = true;
@@ -256,8 +258,7 @@
             if (self == -1)
                 uwfAppOwner.ModalForms.Add(this);
 
-            Focus();
-            _SelectFirstControl();
+            TryFocus();
 
             OnShown(EventArgs.Empty);
 
@@ -570,6 +571,19 @@
                     Controls[i].Select();
                     return;
                 }
+        }
+        private bool TryFocus()
+        {
+            // Check if we should focus form.
+            if ((CreateParams.ExStyle & (NativeMethods.WS_DISABLED | NativeMethods.WS_EX_TOOLWINDOW)) == 0)
+            {
+                Focus();
+                _SelectFirstControl();
+
+                return true;
+            }
+
+            return false;
         }
 
         private class formSystemButton : Button
