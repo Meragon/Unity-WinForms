@@ -8,6 +8,7 @@
         internal readonly Pen borderPen = new Pen(defaultFormBorderColor);
         internal readonly Pen innerBorderPen = new Pen(defaultFormInnerBorderColor);
         internal bool dialog;
+        internal bool formMoving;
         internal Color uwfHeaderColor = defaultFormHeaderColor;
         internal Font uwfHeaderFont;
         internal int uwfHeaderHeight = 24;
@@ -33,7 +34,6 @@
         private Button closeButton;
         private Action<Form, DialogResult> dialogCallback;
         private MenuStrip mainMenuStrip;
-        private bool windowMove;
         private Point windowMove_StartPosition;
         private Form owner;
         private ControlResizeTypes resizeType;
@@ -333,7 +333,7 @@
         }
         internal virtual void Application_UpClick(object sender, MouseEventArgs e)
         {
-            windowMove = false;
+            formMoving = false;
             resizeType = ControlResizeTypes.None;
             if (Application.activeResizeControl == this)
                 Application.activeResizeControl = null;
@@ -418,7 +418,7 @@
                         if (e.Location.Y < uwfHeaderHeight)
                         {
                             windowMove_StartPosition = e.Location;
-                            windowMove = true;
+                            formMoving = true;
                         }
                 }
             }
@@ -426,7 +426,7 @@
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
-            if (windowMove)
+            if (formMoving)
             {
                 if (Parent == null)
                     Location = PointToScreen(e.Location).Subtract(windowMove_StartPosition);

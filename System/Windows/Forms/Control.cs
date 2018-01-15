@@ -18,7 +18,6 @@
 
         internal Application uwfAppOwner;
         internal bool uwfAutoGroup;
-        internal int uwfBatches;
         internal bool uwfShadowBox;
         internal DrawHandler uwfShadowHandler;
         internal Point uwfOffset;
@@ -554,8 +553,6 @@
         }
         internal virtual void RaiseOnPaint(PaintEventArgs e)
         {
-            uwfBatches = 0;
-
             if (uwfShadowBox)
             {
                 if (uwfShadowHandler == null)

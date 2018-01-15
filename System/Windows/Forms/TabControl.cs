@@ -157,7 +157,7 @@
             var cancelArgs = new TabControlCancelEventArgs(selectedPage, index, false, TabControlAction.Selecting);
 
             OnSelecting(cancelArgs);
-            
+
             if (cancelArgs.Cancel)
                 return;
 
@@ -731,6 +731,7 @@
             internal Color disabledBackHoverColor = Color.FromArgb(223, 238, 252);
             internal Padding textPadding = new Padding(6, 0, 6, 0);
 
+            private readonly Pen borderPen = new Pen(Color.Gray);
             private readonly TabControl owner;
             private readonly int index;
             private bool hidden;
@@ -794,7 +795,7 @@
                 var h = Height;
 
                 // Draw borders.
-                var borderPen = new Pen(owner.uwfBorderColor);
+                borderPen.Color = owner.uwfBorderColor;
                 g.DrawLine(borderPen, 0, 0, w, 0); // Top.
                 g.DrawLine(borderPen, 0, 0, 0, h - 1); // Left.
                 g.DrawLine(borderPen, w - 1, 0, w - 1, h - 1); // Right.

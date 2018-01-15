@@ -12,11 +12,13 @@
         public static UE.Texture2D defaultTexture = UnityWinForms.DefaultSprite;
         public static bool GL_LINES;
 
+        private static readonly UE.GUIContent textContent = new UE.GUIContent(""); // GUIContent.Temp(text) replacement.
+
         private readonly PointF defaultPivot = PointF.Empty;
         
         public void BeginGroup(float x, float y, float width, float height)
         {
-            UE.GUI.BeginGroup(new UE.Rect(x, y, width, height));
+            UE.GUI.BeginGroup(new UE.Rect(x, y, width, height), UE.GUIContent.none, UE.GUIStyle.none);
         }
         public void Clear(Color color)
         {
@@ -301,7 +303,11 @@
 
             UE.GUI.color = color.ToUnityColor();
             labelSkin.alignment = uAlign;
-            UE.GUI.Label(new UE.Rect(x, y, width, height), text);
+
+            textContent.text = text;
+            
+            // It's faster to invoke less methods and use your own GUIContent. Not that much, but anyway.
+            UE.GUI.Label(new UE.Rect(x, y, width, height), textContent, labelSkin);
 
             labelSkin.fontSize = guiSkinFontSizeBuffer;
         }
