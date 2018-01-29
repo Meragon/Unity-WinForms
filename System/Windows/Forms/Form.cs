@@ -362,8 +362,7 @@
             if (uwfSizeGripRenderer == null)
                 return;
 
-            var img = uwfSizeGripRenderer.Image;
-            uwfSizeGripRenderer.Location = new Point(Width - img.Width - 2, Height - img.Height - 2);
+            uwfSizeGripRenderer.Location = new Point(Width - 12, Height - 12); // TODO: img error: Internal_GetWidth.
         }
 
         protected internal override void uwfOnLatePaint(PaintEventArgs e)
