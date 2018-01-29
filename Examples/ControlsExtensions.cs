@@ -93,17 +93,30 @@
             var parentControls = parent.Controls;
             if (parentControls.Count > 0)
             {
-                var lastChild = parentControls[parentControls.Count - 1];
-                var lastChildY = lastChild.Location.Y;
-                if (lastChildY >= topOffset)
+                Control lastChild = null;
+                for (int i = parentControls.Count - 1; i >= 0; i--)
                 {
-                    if (placeToRight)
+                    var child = parentControls[i];
+                    if (child.uwfSystem)
+                        continue;
+
+                    lastChild = child;
+                    break;
+                }
+
+                if (lastChild != null)
+                {
+                    var lastChildY = lastChild.Location.Y;
+                    if (lastChildY >= topOffset)
                     {
-                        leftOffset = lastChild.Location.X + lastChild.Width + margin;
-                        topOffset = lastChildY;
+                        if (placeToRight)
+                        {
+                            leftOffset = lastChild.Location.X + lastChild.Width + margin;
+                            topOffset = lastChildY;
+                        }
+                        else
+                            topOffset = lastChildY + lineHeight;
                     }
-                    else
-                        topOffset = lastChildY + lineHeight;
                 }
             }
 

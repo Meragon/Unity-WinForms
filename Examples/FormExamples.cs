@@ -104,7 +104,7 @@
             treeView.Refresh();
 
             // Grip renderer is normal control. Bring it to front if you use it over other controls that can technicaly hide it.
-            // Unfortunately it will not dock with scrollbars.
+            // Unfortunately it will not dock with panel scrollbars.
             uwfSizeGripRenderer.BringToFront();
         }
 
@@ -133,7 +133,6 @@
             Controls.Add(currentPanel);
 
             currentPanel.Initialize();
-            currentPanel.UpdateScroll();
 
             uwfSizeGripRenderer.BringToFront();
         }
