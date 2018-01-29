@@ -28,7 +28,7 @@ namespace Unity.Views
         private float repaintWait;
         private Vector2 scrollPosition;
 
-        public object DesignerObject;
+        internal object DesignerObject;
 
         void Awake()
         {

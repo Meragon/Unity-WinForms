@@ -2,7 +2,7 @@
 {
     using System.Drawing;
 
-    public class AppGdiImages
+    internal class AppGdiImages
     {
         public Bitmap ArrowDown;
         public Bitmap ArrowLeft;

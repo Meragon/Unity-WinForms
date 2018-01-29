@@ -31,7 +31,7 @@
         private static Point nextLocation = new Point(156, 156);
 
         private Color backColor = SystemColors.Control;
-        private Button closeButton;
+        private formSystemButton closeButton;
         private Action<Form, DialogResult> dialogCallback;
         private MenuStrip mainMenuStrip;
         private Point windowMove_StartPosition;
@@ -129,6 +129,8 @@
                 }
                 else
                     _MakeButtonResize();
+
+                PerformLayout();
             }
         }
         public FormStartPosition StartPosition
@@ -355,13 +357,34 @@
             if (dialog && dialogCallback != null)
                 dialogCallback.Invoke(this, DialogResult);
         }
+        internal void ResetGripRendererLocation()
+        {
+            if (uwfSizeGripRenderer == null)
+                return;
+
+            var img = uwfSizeGripRenderer.Image;
+            uwfSizeGripRenderer.Location = new Point(Width - img.Width - 2, Height - img.Height - 2);
+        }
 
         protected internal override void uwfOnLatePaint(PaintEventArgs e)
         {
             base.uwfOnLatePaint(e);
 
             var g = e.Graphics;
+            var headerHeight = uwfHeaderHeight;
+            var headerPadding = uwfHeaderPadding;
             var width = Width;
+
+            g.uwfFillRectangle(uwfHeaderColor, 0, 0, width, headerHeight);
+            g.uwfDrawString(Text, uwfHeaderFont, uwfHeaderTextColor, headerPadding.Left, headerPadding.Top, width - headerPadding.Horizontal, headerHeight - headerPadding.Vertical, uwfHeaderTextAlign);
+
+            // System controls.
+            if (closeButton != null)
+            {
+                closeButton.formPainting = true;
+                closeButton.RaiseOnPaint(e);
+                closeButton.formPainting = false;
+            }
 
             g.DrawLine(innerBorderPen, 0, uwfHeaderHeight - 1, width, uwfHeaderHeight - 1);
             g.DrawRectangle(borderPen, 0, 0, width, Height);
@@ -439,13 +462,9 @@
         protected override void OnPaint(PaintEventArgs e)
         {
             var g = e.Graphics;
-
             var headerHeight = uwfHeaderHeight;
-            var headerPadding = uwfHeaderPadding;
             var width = Width;
 
-            g.uwfFillRectangle(uwfHeaderColor, 0, 0, width, headerHeight);
-            g.uwfDrawString(Text, uwfHeaderFont, uwfHeaderTextColor, headerPadding.Left, headerPadding.Top, width - headerPadding.Horizontal, headerHeight - headerPadding.Vertical, uwfHeaderTextAlign);
             g.uwfFillRectangle(BackColor, 0, headerHeight, width, Height - headerHeight);
         }
         protected virtual void OnShown(EventArgs e)
@@ -493,6 +512,7 @@
             closeButton.uwfHoverColor = Color.FromArgb(64, 252, 252, 252);
             closeButton.uwfImageColor = Color.FromArgb(64, 64, 64);
             closeButton.uwfImageHoverColor = Color.FromArgb(128, 128, 128);
+            closeButton.uwfSystem = true;
 
             closeButton.BringToFront();
             closeButton.Click += OnCloseButtonOnClick;
@@ -505,8 +525,11 @@
             if (img == null) return;
 
             uwfSizeGripRenderer = new ResizeButton(this, img);
-            uwfSizeGripRenderer.Location = new Point(Width - img.Width - 2, Height - img.Height - 2);
+            uwfSizeGripRenderer.uwfSystem = true;
+
             Controls.Add(uwfSizeGripRenderer);
+
+            ResetGripRendererLocation();
         }
         private void OnCloseButtonOnClick(object o, EventArgs e)
         {
@@ -588,9 +611,17 @@
 
         private class formSystemButton : Button
         {
+            internal bool formPainting;
+
             public formSystemButton()
             {
                 SetStyle(ControlStyles.Selectable, false);
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                if (formPainting)
+                    base.OnPaint(e);
             }
         }
     }

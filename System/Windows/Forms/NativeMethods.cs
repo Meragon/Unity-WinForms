@@ -121,5 +121,8 @@
                          WS_EX_NOINHERITLAYOUT = 0x00100000,
                          WPF_SETMINPOSITION = 0x0001,
                          WM_CHOOSEFONT_GETLOGFONT = 0x0400 + 1;
+
+        public const int SB_HORZ = 0,
+                         SB_VERT = 1;
     }
 }

@@ -20,7 +20,7 @@
         private float lastHeight;
         private bool paused;
 
-        public static UE.Texture2D DefaultSprite
+        internal static UE.Texture2D DefaultSprite
         {
             get
             {
@@ -34,8 +34,8 @@
                 return defaultSprite;
             }
         }
-        public static AppGdiImages GdiImages { get; private set; }
-        public static AppResources gResources { get; private set; }
+        internal static AppGdiImages GdiImages { get; private set; }
+        internal static AppResources gResources { get; private set; }
 
         internal static void Inspect(object obj)
         {

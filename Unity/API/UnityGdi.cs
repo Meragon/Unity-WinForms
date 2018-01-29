@@ -224,17 +224,21 @@
             if (penColor.A <= 0 || penWidth <= 0) return;
             UE.GUI.color = penColor.ToUnityColor();
 
+            var blendMode = pen.Color.A > 0;
+            var scaleMode = UE.ScaleMode.StretchToFill;
+            var aspect = 0f;
+
             var penDash = pen.DashStyle;
             switch (penDash)
             {
                 case System.Drawing.Drawing2D.DashStyle.Solid:
-                    UE.GUI.DrawTexture(new UE.Rect(x, y, width, penWidth), defaultTexture);
-                    UE.GUI.DrawTexture(new UE.Rect(x + width - penWidth, y + penWidth, penWidth, height - penWidth * 2), defaultTexture);
+                    UE.GUI.DrawTexture(new UE.Rect(x, y, width, penWidth), defaultTexture, scaleMode, blendMode, aspect);
+                    UE.GUI.DrawTexture(new UE.Rect(x + width - penWidth, y + penWidth, penWidth, height - penWidth * 2), defaultTexture, scaleMode, blendMode, aspect);
                     if (height > 1)
-                        UE.GUI.DrawTexture(new UE.Rect(x, y + height - penWidth, width, penWidth), defaultTexture);
+                        UE.GUI.DrawTexture(new UE.Rect(x, y + height - penWidth, width, penWidth), defaultTexture, scaleMode, blendMode, aspect);
 
                     if (width > 1)
-                        UE.GUI.DrawTexture(new UE.Rect(x, y + penWidth, penWidth, height - penWidth * 2), defaultTexture);
+                        UE.GUI.DrawTexture(new UE.Rect(x, y + penWidth, penWidth, height - penWidth * 2), defaultTexture, scaleMode, blendMode, aspect);
 
                     break;
                 case System.Drawing.Drawing2D.DashStyle.Dash:
@@ -245,16 +249,16 @@
                         if (i + dash_width > width)
                             dash_width = width - i;
 
-                        UE.GUI.DrawTexture(new UE.Rect(x + i, y, dash_width, penWidth), defaultTexture); // Top.
-                        UE.GUI.DrawTexture(new UE.Rect(x + i, y + height - penWidth, dash_width, penWidth), defaultTexture); // Bottom.
+                        UE.GUI.DrawTexture(new UE.Rect(x + i, y, dash_width, penWidth), defaultTexture, scaleMode, blendMode, aspect); // Top.
+                        UE.GUI.DrawTexture(new UE.Rect(x + i, y + height - penWidth, dash_width, penWidth), defaultTexture, scaleMode, blendMode, aspect); // Bottom.
                     }
                     for (float i = 0; i < height; i += dash_step)
                     {
                         float dash_height = dash_step - 2;
                         if (i + dash_height > height)
                             dash_height = height - i;
-                        UE.GUI.DrawTexture(new UE.Rect(x + width - penWidth, y + i, penWidth, dash_height), defaultTexture); // Right.
-                        UE.GUI.DrawTexture(new UE.Rect(x, y + i, penWidth, dash_height), defaultTexture); // Left.
+                        UE.GUI.DrawTexture(new UE.Rect(x + width - penWidth, y + i, penWidth, dash_height), defaultTexture, scaleMode, blendMode, aspect); // Right.
+                        UE.GUI.DrawTexture(new UE.Rect(x, y + i, penWidth, dash_height), defaultTexture, scaleMode, blendMode, aspect); // Left.
                     }
                     break;
             }

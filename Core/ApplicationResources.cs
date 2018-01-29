@@ -1,6 +1,6 @@
 ﻿namespace System.Windows.Forms
 {
-    public static class ApplicationResources
+    internal static class ApplicationResources
     {
         public static AppGdiImages Items
         {

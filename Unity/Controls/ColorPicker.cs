@@ -48,14 +48,20 @@
         }
         protected override void OnMouseClick(MouseEventArgs e)
         {
+            var formStartPosition = FormStartPosition.CenterParent;
+            var parentForm = FindFormInternal();
+            if (parentForm == null)
+                formStartPosition = FormStartPosition.WindowsDefaultLocation;
+
             var colorPickerForm = new ColorPickerForm();
             colorPickerForm.Color = Color;
+            colorPickerForm.StartPosition = formStartPosition;
             colorPickerForm.ColorChanged += (sender, args) =>
             {
                 Color = ((ColorPickerForm)sender).Color;
                 OnColorChanged(this, args);
             };
-            colorPickerForm.ShowDialog();
+            colorPickerForm.ShowDialog(parentForm);
         }
         protected override void OnMouseEnter(EventArgs e)
         {

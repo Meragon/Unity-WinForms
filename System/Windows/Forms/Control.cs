@@ -17,10 +17,11 @@
         internal bool shouldFocus;
 
         internal Application uwfAppOwner;
-        internal bool uwfAutoGroup;
+        internal bool uwfAutoGroup; // Used by GUI.BeginGroup & GUI.EndGroup. Allows to paint controls using their relevant position Rect(0, 0, Width, Height).
         internal bool uwfShadowBox;
         internal DrawHandler uwfShadowHandler;
-        internal Point uwfOffset;
+        internal Point uwfOffset; // Position for scrolling. Affects rendering.
+        internal bool uwfSystem; // Indicates that Control can be handled by OS (like scrollbars).
 
         private AnchorStyles anchor = AnchorStyles.Top | AnchorStyles.Left;
         private Color backColor = SystemColors.Control;
@@ -72,6 +73,8 @@
         public event EventHandler AutoSizeChanged;
         public event EventHandler Click;
         public event EventHandler ClientSizeChanged;
+        public event ControlEventHandler ControlAdded;
+        public event ControlEventHandler ControlRemoved;
         public event EventHandler DoubleClick;
         public event DragEventHandler DragDrop;
         public event DragEventHandler DragEnter;
@@ -350,6 +353,7 @@
         }
         public void PerformLayout()
         {
+            PerformLayout(null);
         }
         public Point PointToClient(Point p)
         {
@@ -485,6 +489,10 @@
                 ControlPaint.DrawBackgroundImage(e.Graphics, bImage, backColor, BackgroundImageLayout, ClientRectangle, rectangle);
             else if (backColor.A > 0) // Fill back.
                 PaintBackColor(e, rectangle, backColor);
+        }
+        internal void PerformLayout(object args)
+        {
+            OnLayout(args);
         }
         internal virtual void RaiseOnDragDrop(DragEventArgs drgevent)
         {
@@ -689,6 +697,18 @@
             if (clientSizeChanged != null)
                 clientSizeChanged(this, e);
         }
+        protected virtual void OnControlAdded(ControlEventArgs e)
+        {
+            var handler = ControlAdded;
+            if (handler != null)
+                handler(this, e);
+        }
+        protected virtual void OnControlRemoved(ControlEventArgs e)
+        {
+            var handler = ControlRemoved;
+            if (handler != null)
+                handler(this, e);
+        }
         protected virtual void OnDoubleClick(EventArgs e)
         {
             var doubleClick = DoubleClick;
@@ -749,6 +769,9 @@
             var keyUp = KeyUp;
             if (keyUp != null)
                 keyUp(this, e);
+        }
+        protected virtual void OnLayout(object levent)
+        {
         }
         protected virtual void OnLocationChanged(EventArgs e)
         {
@@ -839,6 +862,8 @@
             var resize = Resize;
             if (resize != null)
                 resize(this, e);
+
+            PerformLayout();
         }
         protected virtual void OnSizeChanged(EventArgs e)
         {
@@ -919,6 +944,8 @@
 
             OnSizeChanged(EventArgs.Empty);
             OnClientSizeChanged(EventArgs.Empty);
+
+            PerformLayout();
         }
 
         private static void PaintBackColor(PaintEventArgs e, Rectangle rectangle, Color backColor)
@@ -1049,8 +1076,14 @@
             }
             public virtual void Add(Control value)
             {
+                if (value == null)
+                    return;
+
                 items.Add(value);
                 value.AssignParent(owner);
+
+                owner.PerformLayout();
+                owner.OnControlAdded(new ControlEventArgs(value));
             }
             public virtual void AddRange(Control[] controls)
             {
@@ -1059,7 +1092,8 @@
             }
             public virtual void Clear()
             {
-                items.Clear();
+                while (Count != 0)
+                    RemoveAt(Count - 1);
             }
             public bool Contains(Control control)
             {
@@ -1117,11 +1151,16 @@
             }
             public virtual void Remove(Control item)
             {
+                if (item == null)
+                    return;
+                
                 items.Remove(item);
+                owner.PerformLayout();
+                owner.OnControlRemoved(new ControlEventArgs(item));
             }
             public void RemoveAt(int index)
             {
-                items.RemoveAt(index);
+                Remove(this[index]);
             }
             public virtual void RemoveByKey(string key)
             {
