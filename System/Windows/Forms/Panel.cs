@@ -16,8 +16,10 @@
             get { return new Size(200, 100); }
         }
 
-        protected override void OnPaint(PaintEventArgs e)
+        protected internal override void uwfOnLatePaint(PaintEventArgs e)
         {
+            base.uwfOnLatePaint(e);
+
             ControlPaint.PrintBorder(e.Graphics, ClientRectangle, BorderStyle, Border3DStyle.Sunken);
         }
     }

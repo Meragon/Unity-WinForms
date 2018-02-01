@@ -107,14 +107,13 @@
                 if (lastChild != null)
                 {
                     var lastChildY = lastChild.Location.Y;
-                    if (lastChildY >= topOffset)
                     {
                         if (placeToRight)
                         {
                             leftOffset = lastChild.Location.X + lastChild.Width + margin;
                             topOffset = lastChildY;
                         }
-                        else
+                        else if (lastChildY >= topOffset)
                             topOffset = lastChildY + lineHeight;
                     }
                 }

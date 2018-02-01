@@ -9,8 +9,7 @@
         internal readonly ScrollBar vScrollBar;
         internal int arrowSize = 16;
         internal TreeNode root;
-
-        private readonly Pen borderPen = new Pen(Color.White);
+        
         private readonly DrawTreeNodeEventArgs nodeArgs = new DrawTreeNodeEventArgs(null, null, Rectangle.Empty, TreeNodeStates.Default);
         private readonly List<TreeNode> nodeList = new List<TreeNode>();
         private readonly DrawTreeNodeEventHandler onDrawNode;
@@ -33,12 +32,11 @@
             Controls.Add(vScrollBar);
 
             BackColor = Color.White;
-            BorderColor = Color.FromArgb(130, 135, 144);
+            BorderStyle = BorderStyle.Fixed3D;
             ImageList = new ImageList();
             ItemHeight = 22;
             Padding = new Padding(4);
-            root = new TreeNode(this);
-            root.Expand();
+            
             ScrollBarColor = Color.FromArgb(222, 222, 230);
             ScrollBarHoverColor = Color.FromArgb(136, 136, 136);
             ScrollSpeed = 2;
@@ -46,6 +44,8 @@
             SelectionHoverColor = Color.FromArgb(221, 238, 253);
             SmoothScrolling = true;
 
+            root = new TreeNode(this);
+            root.Expand();
             Nodes = new TreeNodeCollection(root);
 
             onDrawNode = _OnDrawNode;
@@ -53,31 +53,27 @@
             MouseHook.MouseUp += _Application_UpClick;
         }
 
+        public event TreeViewEventHandler AfterSelect;
         public event DrawTreeNodeEventHandler DrawNode;
         public event ItemDragEventHandler ItemDrag;
         public event TreeNodeMouseClickEventHandler NodeMouseClick;
         public event TreeNodeMouseClickEventHandler NodeMouseDoubleClick;
-        public event TreeViewEventHandler SelectedNodeChanged = delegate { };
 
-        public Color BorderColor
-        {
-            get { return borderPen.Color; }
-            set { borderPen.Color = value; }
-        }
+        public BorderStyle BorderStyle { get; set; }
         public ImageList ImageList { get; set; }
         public int ItemHeight { get; set; }
         public TreeNodeCollection Nodes { get; private set; }
-        public Color ScrollBarColor { get; set; }
-        public Color ScrollBarHoverColor { get; set; }
-        public float ScrollSpeed { get; set; }
         public TreeNode SelectedNode { get; set; }
-        public Color SelectionColor { get; set; }
-        public Color SelectionHoverColor { get; set; }
-        public bool SmoothScrolling { get; set; }
-        public bool UseNodeBoundsForSelection { get; set; }
-        public bool WrapText { get; set; }
-
+        
+        internal Color ScrollBarColor { get; set; }
+        internal Color ScrollBarHoverColor { get; set; }
         internal float ScrollIndex { get { return vScrollBar.Value; } set { vScrollBar.Value = (int)value; } }
+        internal float ScrollSpeed { get; set; }
+        internal Color SelectionColor { get; set; }
+        internal Color SelectionHoverColor { get; set; }
+        internal bool SmoothScrolling { get; set; }
+        internal bool UseNodeBoundsForSelection { get; set; }
+        internal bool WrapText { get; set; }
 
         protected override Size DefaultSize
         {
@@ -131,7 +127,7 @@
 
         protected internal override void uwfOnLatePaint(PaintEventArgs e)
         {
-            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+            ControlPaint.PrintBorder(e.Graphics, ClientRectangle, BorderStyle, Border3DStyle.Flat);
         }
 
         protected override void Dispose(bool release_all)
@@ -139,6 +135,12 @@
             MouseHook.MouseUp -= _Application_UpClick;
 
             base.Dispose(release_all);
+        }
+        protected virtual void OnAfterSelect(TreeViewEventArgs e)
+        {
+            var handler = AfterSelect;
+            if (handler != null)
+                handler(this, e);
         }
         protected virtual void OnDrawNode(DrawTreeNodeEventArgs e)
         {
@@ -313,7 +315,7 @@
             }
         }
 
-        private void _AddjustScrollIndexToSelectedNode()
+        private void AdjustScrollIndexToSelectedNode()
         {
             if (SelectedNode != null)
             {
@@ -441,7 +443,8 @@
             if (node == null || node.Enabled == false) return null;
 
             SelectedNode = node;
-            SelectedNodeChanged(this, new TreeViewEventArgs(SelectedNode));
+
+            OnAfterSelect(new TreeViewEventArgs(SelectedNode));
 
             return SelectedNode;
         }
@@ -460,8 +463,9 @@
                 if (nodeList[fromIndex + 1].Enabled == false) return false;
 
                 SelectedNode = nodeList[fromIndex + 1];
-                _AddjustScrollIndexToSelectedNode();
-                SelectedNodeChanged(this, new TreeViewEventArgs(SelectedNode));
+                AdjustScrollIndexToSelectedNode();
+
+                OnAfterSelect(new TreeViewEventArgs(SelectedNode));
                 return true;
             }
 
@@ -470,7 +474,8 @@
         private void _SelectNode(TreeNode node)
         {
             SelectedNode = node;
-            SelectedNodeChanged(this, new TreeViewEventArgs(node));
+
+            OnAfterSelect(new TreeViewEventArgs(node));
         }
         private void _SelectPrevious()
         {
@@ -487,8 +492,9 @@
                 if (nodeList[fromIndex - 1].Enabled == false) return false;
 
                 SelectedNode = nodeList[fromIndex - 1];
-                _AddjustScrollIndexToSelectedNode();
-                SelectedNodeChanged(this, new TreeViewEventArgs(SelectedNode));
+                AdjustScrollIndexToSelectedNode();
+
+                OnAfterSelect(new TreeViewEventArgs(SelectedNode));
                 return true;
             }
 

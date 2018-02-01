@@ -318,9 +318,8 @@
 
                 filesTree = new TreeView();
                 filesTree.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
-                filesTree.BorderColor = Color.LightGray;
                 filesTree.Size = new Drawing.Size(Width, Height);
-                filesTree.SelectedNodeChanged += filesTree_SelectedNodeChanged;
+                filesTree.AfterSelect += filesTree_SelectedNodeChanged;
                 filesTree.NodeMouseDoubleClick += filesTree_NodeMouseDoubleClick;
                 Controls.Add(filesTree);
 

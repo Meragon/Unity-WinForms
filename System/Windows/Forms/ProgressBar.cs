@@ -7,6 +7,8 @@
     {
         private readonly SolidBrush backBrush = new SolidBrush(SystemColors.ControlLight);
         private readonly SolidBrush barBrush = new SolidBrush(Color.FromArgb(6, 176, 37));
+        private readonly SolidBrush barBrushLight1 = new SolidBrush(Color.FromArgb(83, 200, 105));
+        private readonly SolidBrush barBrushLight2 = new SolidBrush(Color.FromArgb(43, 188, 69));
         private readonly Pen borderPen = new Pen(SystemColors.ActiveBorder);
         private readonly Color defaultProgressForeColor = SystemColors.Highlight;
 
@@ -160,6 +162,8 @@
             g.FillRectangle(backBrush, 0, 0, Width, Height);
             g.DrawRectangle(borderPen, 0, 0, Width, Height);
             g.FillRectangle(barBrush, barX, 1, barWidth, Height - 2);
+            g.FillRectangle(barBrushLight1, barX, Height - 3, barWidth, 3);
+            g.FillRectangle(barBrushLight2, barX, Height - 5, barWidth, 2);
         }
         protected override void OnResize(EventArgs e)
         {
@@ -191,7 +195,7 @@
             }
 
             barX = 0;
-            barWidth = MathHelper.Step(barWidth, (value / maximum) * Width, 200);
+            barWidth = (value / (float)maximum) * Width;
             updatePos = false;
         }
         private void UpdatePos()

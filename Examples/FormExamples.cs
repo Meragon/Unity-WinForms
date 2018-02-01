@@ -25,7 +25,6 @@
 
             treeView = new TreeView();
             treeView.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom;
-            treeView.BorderColor = uwfBorderColor;
             treeView.Location = new Point(0, uwfHeaderHeight - 1); // All controls should be placed with Form header offset.
             treeView.Height = Height - uwfHeaderHeight + 1;
             treeView.Width = 220;
@@ -36,7 +35,12 @@
             var labelNote = new Label();
             labelNote.Font = new Font("Arial", 14, FontStyle.Bold);
             labelNote.Location = new Point(treeView.Location.X + treeView.Width + 16, treeView.Location.Y);
-            labelNote.Text = "This is not completed overview of UWF controls. \r\nWork in progress.";
+            labelNote.Text = 
+                "This is not completed overview of UWF controls.\r\n" + 
+                "Work in progress.\r\n\r\n" +
+                "Do not forget that you can still modify controls\r\n" + 
+                "with 'SWF Inspector' which is located in drop down\r\n" + 
+                "menu 'Window' -> 'UnityWinForms'.";
             
             Controls.Add(labelNote);
 
@@ -70,6 +74,9 @@
             var nodeNumericUpDown = new TreeNode("NumericUpDown");
             nodeNumericUpDown.Tag = typeof(PanelNumericUpDown);
 
+            var nodePanel = new TreeNode("Panel");
+            nodePanel.Tag = typeof(PanelPanel);
+
             var nodePictureBox = new TreeNode("PictureBox");
             nodePictureBox.Tag = typeof(PanelPictureBox);
 
@@ -90,6 +97,7 @@
             nodeControls.Nodes.Add(nodeMenuStrip);
             nodeControls.Nodes.Add(nodeMonthCalendar);
             nodeControls.Nodes.Add(nodeNumericUpDown);
+            nodeControls.Nodes.Add(nodePanel);
             nodeControls.Nodes.Add(nodePictureBox);
             nodeControls.Nodes.Add(nodeProgressBar);
             nodeControls.Nodes.Add(nodeScrollBar);
@@ -104,8 +112,7 @@
             treeView.Refresh();
 
             // Grip renderer is normal control. Bring it to front if you use it over other controls that can technicaly hide it.
-            // Unfortunately it will not dock with panel scrollbars.
-            uwfSizeGripRenderer.BringToFront();
+            // uwfSizeGripRenderer.BringToFront();
         }
 
         private void TreeViewOnNodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -127,14 +134,12 @@
             currentPanel = panel;
             currentPanel.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
             currentPanel.Location = new Point(treeView.Location.X + treeView.Width, uwfHeaderHeight);
-            currentPanel.Height = Height - uwfHeaderHeight;
+            currentPanel.Height = Height - uwfHeaderHeight - 16; // We don't want to hide SizeGripRenderer with scrollbars.
             currentPanel.Width = Width - treeView.Width;
 
             Controls.Add(currentPanel);
 
             currentPanel.Initialize();
-
-            uwfSizeGripRenderer.BringToFront();
         }
     }
 }

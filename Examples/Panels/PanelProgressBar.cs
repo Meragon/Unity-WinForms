@@ -8,17 +8,31 @@
 
         public override void Initialize()
         {
-            var progressBar = this.Create<ProgressBar>();
-            progressBar.Style = ProgressBarStyle.Marquee;
+            var labelMarqueeText = "Marguee. Value: ";
+            var labelMarquee = this.Create<Label>(labelMarqueeText);
+
+            var progressBarMarquee = this.Create<ProgressBar>();
+            progressBarMarquee.Style = ProgressBarStyle.Marquee;
+
+            var labelBlocksText = "Blocks. Value: ";
+            var labelBlocks = this.Create<Label>(labelBlocksText, false, 8, lineOffset);
+
+            var progressBarBlocks = this.Create<ProgressBar>();
+            progressBarBlocks.Style = ProgressBarStyle.Blocks;
 
             timer = new Timer();
             timer.Interval = 100;
             timer.Tick += (sender, args) =>
             {
-                var nextValue = progressBar.Value + 1;
-                if (nextValue > progressBar.Maximum)
+                var nextValue = progressBarMarquee.Value + 1;
+                if (nextValue > progressBarMarquee.Maximum)
                     nextValue = 0;
-                progressBar.Value = nextValue;
+
+                progressBarMarquee.Value = nextValue;
+                progressBarBlocks.Value = nextValue;
+
+                labelMarquee.Text = labelMarqueeText + progressBarMarquee.Value;
+                labelBlocks.Text = labelBlocksText + progressBarBlocks.Value;
             };
             timer.Start();
         }

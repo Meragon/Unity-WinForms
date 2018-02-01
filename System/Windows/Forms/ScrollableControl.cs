@@ -30,7 +30,11 @@
         public virtual bool AutoScroll
         {
             get { return GetScrollState(ScrollStateAutoScrolling); }
-            set { SetScrollState(ScrollStateAutoScrolling, value); }
+            set
+            {
+                SetScrollState(ScrollStateAutoScrolling, value);
+                PerformLayout();
+            }
         }
         public override Rectangle DisplayRectangle
         {
@@ -113,6 +117,7 @@
             {
                 if (oriV && vscroll != null)
                 {
+                    vscroll.Value = 0; // Reset view.
                     vscroll.ValueChanged -= Scroll_ValueChanged;
                     vscroll.Dispose();
                     vscroll = null;
@@ -120,6 +125,7 @@
 
                 if (oriH && hscroll != null)
                 {
+                    hscroll.Value = 0; // Reset view.
                     hscroll.ValueChanged -= Scroll_ValueChanged;
                     hscroll.Dispose();
                     hscroll = null;
@@ -135,6 +141,22 @@
             if (oriH) return hscroll;
 
             return null;
+        }
+
+        protected internal override void uwfOnLatePaint(PaintEventArgs e)
+        {
+            if (this is Form)
+                return;
+            if (vscroll == null || hscroll == null)
+                return;
+
+            // Fill rect between two scrollbars.
+            var rx = hscroll.Location.X + hscroll.Width;
+            var ry = vscroll.Location.Y + vscroll.Height;
+            var rw = Width - rx;
+            var rh = Height - ry;
+
+            e.Graphics.uwfFillRectangle(vscroll.BackColor, rx, ry, rw, rh);
         }
 
         protected bool GetScrollState(int bit)
@@ -223,9 +245,8 @@
             var autoScroll = (scrollState & ScrollStateAutoScrolling) != 0;
             if (autoScroll == false)
             {
-                HorizontalScroll.UpdateScrollInfo();
-                VerticalScroll.UpdateScrollInfo();
-                UpdateScrollRects();
+                Native_EnableScrollBar(false, NativeMethods.SB_VERT);
+                Native_EnableScrollBar(false, NativeMethods.SB_HORZ);
                 return;
             }
 
@@ -258,7 +279,6 @@
 
             UpdateScrollRects();
         }
-
         private void UpdateScrollRects()
         {
             var hRightOffset = 0;
@@ -279,26 +299,27 @@
                         gripOriginLocation.Offset(-vscroll.Width, 0);
                     if (hscroll != null && vscroll == null)
                         gripOriginLocation.Offset(0, -hscroll.Height);
-                    if (vscroll != null && hscroll != null)
-                    {
-                        hRightOffset += 14; // img.Width + bottomRight offset
-                        vBottomOffset += 14;
-                    }
-
+                    
                     form.uwfSizeGripRenderer.Location = gripOriginLocation;
                 }
             }
 
+            if (vscroll != null && hscroll != null)
+            {
+                hRightOffset += 14;
+                vBottomOffset += 14;
+            }
+
             if (vscroll != null)
             {
-                vscroll.Location = new Point(Width - vscroll.Width, vTopOffset);
-                vscroll.Height = Height - vTopOffset - vBottomOffset;
+                vscroll.Location = new Point(Width - vscroll.Width - 1, vTopOffset - 1);
+                vscroll.Height = Height - vTopOffset - vBottomOffset - 2;
             }
 
             if (hscroll != null)
             {
-                hscroll.Location = new Point(0, Height - hscroll.Height);
-                hscroll.Width = Width - hRightOffset;
+                hscroll.Location = new Point(1, Height - hscroll.Height - 1);
+                hscroll.Width = Width - hRightOffset - 2;
             }
         }
     }
