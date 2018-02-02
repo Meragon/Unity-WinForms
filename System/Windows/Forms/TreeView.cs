@@ -9,7 +9,7 @@
         internal readonly ScrollBar vScrollBar;
         internal int arrowSize = 16;
         internal TreeNode root;
-        
+
         private readonly DrawTreeNodeEventArgs nodeArgs = new DrawTreeNodeEventArgs(null, null, Rectangle.Empty, TreeNodeStates.Default);
         private readonly List<TreeNode> nodeList = new List<TreeNode>();
         private readonly DrawTreeNodeEventHandler onDrawNode;
@@ -20,6 +20,8 @@
         private Point dragPosition;
         private string filter;
         private TreeNode hoveredNode;
+        private ToolTip nodeToolTip;
+        private TreeNode nodeToolTipLast;
         private float resetFilterTime;
 
         public TreeView()
@@ -36,7 +38,7 @@
             ImageList = new ImageList();
             ItemHeight = 22;
             Padding = new Padding(4);
-            
+
             ScrollBarColor = Color.FromArgb(222, 222, 230);
             ScrollBarHoverColor = Color.FromArgb(136, 136, 136);
             ScrollSpeed = 2;
@@ -58,13 +60,15 @@
         public event ItemDragEventHandler ItemDrag;
         public event TreeNodeMouseClickEventHandler NodeMouseClick;
         public event TreeNodeMouseClickEventHandler NodeMouseDoubleClick;
+        public event TreeNodeMouseHoverEventHandler NodeMouseHover;
 
         public BorderStyle BorderStyle { get; set; }
         public ImageList ImageList { get; set; }
         public int ItemHeight { get; set; }
         public TreeNodeCollection Nodes { get; private set; }
         public TreeNode SelectedNode { get; set; }
-        
+        public bool ShowNodeToolTips { get; set; }
+
         internal Color ScrollBarColor { get; set; }
         internal Color ScrollBarHoverColor { get; set; }
         internal float ScrollIndex { get { return vScrollBar.Value; } set { vScrollBar.Value = (int)value; } }
@@ -86,6 +90,25 @@
             for (int i = 0; i < nodesCount; i++)
                 Nodes[i].CollapseInternal();
             Refresh();
+        }
+        public TreeNode GetNodeAt(int x, int y)
+        {
+            var scrollNodeListCount = scrollNodeList.Count;
+            for (int i = 0; i < scrollNodeListCount; i++)
+            {
+                var node = scrollNodeList[i];
+                var nodeY = node.Bounds.Y - ScrollIndex;
+                var nodeH = node.Bounds.Height;
+
+                if (y >= nodeY && y < nodeY + nodeH)
+                    return node;
+            }
+
+            return null;
+        }
+        public TreeNode GetNodeAt(Point pt)
+        {
+            return GetNodeAt(pt.X, pt.Y);
         }
         public void ExpandAll()
         {
@@ -213,7 +236,31 @@
         {
             var mclient = PointToClient(MousePosition);
 
-            hoveredNode = _GetNodeAtPosition(root, mclient);
+            hoveredNode = GetNodeAt(mclient);
+            if (hoveredNode != null)
+            {
+                if (ShowNodeToolTips)
+                {
+                    if (string.IsNullOrEmpty(hoveredNode.ToolTipText) == false)
+                    {
+                        if (nodeToolTip == null)
+                        {
+                            nodeToolTip = new ToolTip();
+                            nodeToolTip.InitialDelay = 0;
+                        }
+
+                        if (hoveredNode != nodeToolTipLast)
+                            nodeToolTip.Show(hoveredNode.ToolTipText, mclient);
+
+                        nodeToolTipLast = hoveredNode;
+                    }
+                    else
+                        nodeToolTipLast = null;
+                }
+
+                // Tooltip will show previous ToolTipText. Override OnMouseHover if neccesary.
+                OnNodeMouseHover(new TreeNodeMouseHoverEventArgs(hoveredNode));
+            }
         }
         protected override void OnMouseMove(MouseEventArgs e)
         {
@@ -245,6 +292,12 @@
             var nodeMouseDoubleClick = NodeMouseDoubleClick;
             if (nodeMouseDoubleClick != null)
                 nodeMouseDoubleClick(this, e);
+        }
+        protected virtual void OnNodeMouseHover(TreeNodeMouseHoverEventArgs e)
+        {
+            var handler = NodeMouseHover;
+            if (handler != null)
+                handler(this, e);
         }
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -331,21 +384,6 @@
             drag = false;
             dragNode = null;
             dragPosition = Point.Empty;
-        }
-        private TreeNode _GetNodeAtPosition(TreeNode rootNode, Point position)
-        {
-            var scrollNodeListCount = scrollNodeList.Count;
-            for (int i = 0; i < scrollNodeListCount; i++)
-            {
-                var node = scrollNodeList[i];
-                var nodeY = node.Bounds.Y - ScrollIndex;
-                var nodeH = node.Bounds.Height;
-
-                if (position.Y >= nodeY && position.Y < nodeY + nodeH)
-                    return node;
-            }
-
-            return null;
         }
         private Rectangle _GetNodeBounds(TreeNode node)
         {
@@ -439,7 +477,7 @@
         }
         private TreeNode _SelectAtPosition(MouseEventArgs e)
         {
-            var node = _GetNodeAtPosition(root, e.Location);
+            var node = GetNodeAt(e.Location);
             if (node == null || node.Enabled == false) return null;
 
             SelectedNode = node;

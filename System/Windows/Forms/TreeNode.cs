@@ -111,6 +111,7 @@
         }
         public object Tag { get; set; }
         public string Text { get; set; }
+        public string ToolTipText { get; set; }
         public TreeView TreeView
         {
             get
