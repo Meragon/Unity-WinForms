@@ -6,7 +6,7 @@
 
     public class TreeView : Control
     {
-        internal readonly ScrollBar vScrollBar;
+        internal ScrollBar vScrollBar;
         internal int arrowSize = 16;
         internal TreeNode root;
 
@@ -19,6 +19,7 @@
         private TreeNode dragNode;
         private Point dragPosition;
         private string filter;
+        private ImageList imageList;
         private TreeNode hoveredNode;
         private ToolTip nodeToolTip;
         private TreeNode nodeToolTipLast;
@@ -26,16 +27,8 @@
 
         public TreeView()
         {
-            vScrollBar = new VScrollBar();
-            vScrollBar.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
-            vScrollBar.Location = new Point(Width - vScrollBar.Width, 0);
-            vScrollBar.Height = Height;
-            vScrollBar.ValueChanged += VScrollBarOnValueChanged;
-            Controls.Add(vScrollBar);
-
             BackColor = Color.White;
             BorderStyle = BorderStyle.Fixed3D;
-            ImageList = new ImageList();
             ItemHeight = 22;
             Padding = new Padding(4);
 
@@ -47,7 +40,8 @@
             SmoothScrolling = true;
 
             root = new TreeNode(this);
-            root.Expand();
+            root.IsExpanded = true;
+
             Nodes = new TreeNodeCollection(root);
 
             onDrawNode = _OnDrawNode;
@@ -63,7 +57,11 @@
         public event TreeNodeMouseHoverEventHandler NodeMouseHover;
 
         public BorderStyle BorderStyle { get; set; }
-        public ImageList ImageList { get; set; }
+        public ImageList ImageList
+        {
+            get { return imageList; }
+            set { imageList = value; }
+        }
         public int ItemHeight { get; set; }
         public TreeNodeCollection Nodes { get; private set; }
         public TreeNode SelectedNode { get; set; }
@@ -71,7 +69,22 @@
 
         internal Color ScrollBarColor { get; set; }
         internal Color ScrollBarHoverColor { get; set; }
-        internal float ScrollIndex { get { return vScrollBar.Value; } set { vScrollBar.Value = (int)value; } }
+
+        internal float ScrollIndex
+        {
+            get
+            {
+                if (vScrollBar == null)
+                    return 0;
+                return vScrollBar.Value;
+            }
+            set
+            {
+                if (vScrollBar != null)
+                    vScrollBar.Value = (int)value;
+            }
+        }
+
         internal float ScrollSpeed { get; set; }
         internal Color SelectionColor { get; set; }
         internal Color SelectionHoverColor { get; set; }
@@ -420,7 +433,7 @@
                 Bitmap arrowTexture = null;
                 if (node.IsExpanded)
                 {
-                    if (node.ImageIndex_Expanded > -1)
+                    if (node.ImageIndex_Expanded > -1 && imageList != null)
                     {
                         var img = ImageList.Images[node.ImageIndex_Expanded];
                         if (img != null)
@@ -431,7 +444,7 @@
                 }
                 else
                 {
-                    if (node.ImageIndex_Collapsed > -1)
+                    if (node.ImageIndex_Collapsed > -1 && imageList != null)
                     {
                         var img = ImageList.Images[node.ImageIndex_Collapsed];
                         if (img != null)
@@ -452,9 +465,9 @@
             xOffset += arrowSize;
 
             // Draw image.
-            if (node.ImageIndex > -1)
+            if (node.ImageIndex > -1 && imageList != null)
             {
-                var image = ImageList.Images[node.ImageIndex];
+                var image = imageList.Images[node.ImageIndex];
                 if (image != null && image.uTexture != null)
                 {
                     var imageSize = nodeBounds.Height - 2;
@@ -540,16 +553,35 @@
         }
         private void UpdateScrollBar()
         {
-            if (vScrollBar != null)
+            var scrollMaximum = ItemHeight * nodeList.Count - 1;
+            var scrollVisible = scrollMaximum > Height;
+
+            if (scrollVisible)
             {
+                if (vScrollBar == null)
+                {
+                    vScrollBar = new VScrollBar();
+                    vScrollBar.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
+                    vScrollBar.Location = new Point(Width - vScrollBar.Width, 0);
+                    vScrollBar.Height = Height;
+                    vScrollBar.ValueChanged += VScrollBarOnValueChanged;
+                    Controls.Add(vScrollBar);
+                }
+
                 vScrollBar.ValueChanged -= VScrollBarOnValueChanged;
-                vScrollBar.Maximum = ItemHeight * nodeList.Count - 1;
+                vScrollBar.Maximum = scrollMaximum;
                 vScrollBar.SmallChange = ItemHeight;
                 vScrollBar.LargeChange = Height;
-                vScrollBar.Visible = vScrollBar.Maximum > Height;
-                if (vScrollBar.Visible == false)
-                    ScrollIndex = 0;
+                vScrollBar.Visible = true;
                 vScrollBar.ValueChanged += VScrollBarOnValueChanged;
+            }
+            else
+            {
+                if (vScrollBar != null)
+                {
+                    vScrollBar.Visible = false; // we can dispose scrollbar, but I think it's not effective.
+                    ScrollIndex = 0;
+                }
             }
         }
         private void _UpdateScrollList()

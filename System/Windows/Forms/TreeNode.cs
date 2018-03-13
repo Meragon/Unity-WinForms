@@ -11,47 +11,63 @@
         internal TreeView treeView;
         internal TreeNodeCollection nodes;
 
+        private Color backColor = Color.Transparent;
+        private bool enabled = true;
         private bool expanded;
+        private Color foreColor = DEFAULT_FORE_COLOR;
+        private Color imageColor = Color.White;
         private int imageIndex = -1;
         private int imageIndex_collapsed = -1;
         private int imageIndex_expanded = -1;
+        private string text;
         private bool visible = true;
 
         public TreeNode(string text) : this(text, null)
         {
-            Text = text;
+            this.text = text;
         }
         public TreeNode(string text, TreeNode[] children)
         {
-            nodes = new TreeNodeCollection(this);
+            this.text = text;
 
-            BackColor = Color.Transparent;
-            Enabled = true;
-            ForeColor = DEFAULT_FORE_COLOR;
-            ImageColor = Color.White;
-            Text = text;
             if (children != null)
-                nodes.AddRange(children);
+                Nodes.AddRange(children);
         }
         internal TreeNode(TreeView treeView) : this(string.Empty)
         {
             this.treeView = treeView;
         }
 
-        public Color BackColor { get; set; }
+        public Color BackColor
+        {
+            get { return backColor; }
+            set { backColor = value; }
+        }
         public Rectangle Bounds { get; internal set; }
-        public bool Enabled { get; set; }
+        public bool Enabled
+        {
+            get { return enabled; }
+            set { enabled = value; }
+        }
         public TreeNode FirstNode
         {
             get
             {
-                if (nodes.Count == 0) return null;
+                if (Nodes.Count == 0) return null;
 
                 return nodes[0];
             }
         }
-        public Color ForeColor { get; set; }
-        public Color ImageColor { get; set; }
+        public Color ForeColor
+        {
+            get { return foreColor; }
+            set { foreColor = value; }
+        }
+        public Color ImageColor
+        {
+            get { return imageColor; }
+            set { imageColor = value; }
+        }
         public int ImageIndex
         {
             get
@@ -78,7 +94,7 @@
         {
             get
             {
-                if (nodes.Count == 0) return null;
+                if (Nodes.Count == 0) return null;
 
                 return nodes[nodes.Count - 1];
             }
@@ -96,7 +112,12 @@
         }
         public TreeNodeCollection Nodes
         {
-            get { return nodes; }
+            get
+            {
+                if (nodes == null)
+                    nodes = new TreeNodeCollection(this);
+                return nodes;
+            }
         }
         public TreeNode Parent { get { return parent; } }
         public TreeNode PrevNode
@@ -110,7 +131,11 @@
             }
         }
         public object Tag { get; set; }
-        public string Text { get; set; }
+        public string Text
+        {
+            get { return text; }
+            set { text = value; }
+        }
         public string ToolTipText { get; set; }
         public TreeView TreeView
         {
