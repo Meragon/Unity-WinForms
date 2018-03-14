@@ -397,6 +397,11 @@
             selected = true;
             lastSelected = this;
         }
+        public void SendToBack()
+        {
+            if (parent != null)
+                parent.Controls.SetChildIndex(this, 0);
+        }
         public void SetBounds(int argX, int argY, int argWidth, int argHeight)
         {
             if (x != argX || y != argY || (width != argWidth || height != argHeight))
@@ -1117,6 +1122,17 @@
             {
                 return items.FindIndex(match);
             }
+            public int GetChildIndex(Control child)
+            {
+                return GetChildIndex(child, true);
+            }
+            public virtual int GetChildIndex(Control child, bool throwException)
+            {
+                var index = IndexOf(child);
+                if (index == -1 && throwException)
+                    throw new ArgumentException("child");
+                return index;
+            }
             public IEnumerator<Control> GetEnumerator()
             {
                 return items.GetEnumerator();
@@ -1148,12 +1164,15 @@
             public void Insert(int index, Control value)
             {
                 items.Insert(index, value);
+
+                owner.PerformLayout();
+                owner.OnControlAdded(new ControlEventArgs(value));
             }
             public virtual void Remove(Control item)
             {
                 if (item == null)
                     return;
-                
+
                 items.Remove(item);
                 owner.PerformLayout();
                 owner.OnControlRemoved(new ControlEventArgs(item));
@@ -1170,6 +1189,19 @@
             }
             public void Reset()
             {
+            }
+            public virtual void SetChildIndex(Control child, int newIndex)
+            {
+                SetChildIndexInternal(child, newIndex);
+            }
+
+            internal virtual void SetChildIndexInternal(Control child, int newIndex)
+            {
+                if (child == null)
+                    throw new ArgumentNullException("child");
+
+                items.Remove(child);
+                items.Insert(newIndex, child);
             }
 
             int IList.Add(object value)

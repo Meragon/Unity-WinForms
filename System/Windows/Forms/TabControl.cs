@@ -217,7 +217,7 @@
         {
             if (TabPages != null)
                 for (int i = 0; i < tabPageCount; i++)
-                    if (TabPages[i].Equals(tabPage))
+                    if (TabPages[i] != null && TabPages[i].Equals(tabPage))
                         return i;
 
             return -1;

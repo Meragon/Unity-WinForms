@@ -34,6 +34,8 @@
         private formSystemButton closeButton;
         private Action<Form, DialogResult> dialogCallback;
         private MenuStrip mainMenuStrip;
+        private MdiClient mdiClient;
+        private Form mdiParent;
         private Point windowMove_StartPosition;
         private Form owner;
         private ControlResizeTypes resizeType;
@@ -104,10 +106,53 @@
             }
         }
         public DialogResult DialogResult { get; set; }
+        public bool IsMdiChild
+        {
+            get { return mdiParent != null; }
+        }
+        public bool IsMdiContainer
+        {
+            get { return mdiClient != null; }
+            set
+            {
+                if (IsMdiContainer == value)
+                    return;
+
+                if (value)
+                {
+                    mdiClient = new MdiClient();
+                    mdiClient.Location = new Point(0, uwfHeaderHeight);
+                    mdiClient.Size = new Size(Width, Height - uwfHeaderHeight);
+                    Controls.Add(mdiClient);
+                }
+                else
+                {
+                    mdiClient.Dispose();
+                    mdiClient = null;
+                }
+            }
+        }
         public bool IsModal { get { return uwfAppOwner.ModalForms.Contains(this); } }
         public FormBorderStyle FormBorderStyle { get; set; }
         public bool KeyPreview { get; set; }
         public MenuStrip MainMenuStrip { get { return mainMenuStrip; } set { mainMenuStrip = value; } }
+        public Form MdiParent
+        {
+            get { return mdiParent; }
+            set
+            {
+                if (mdiParent == value && (value != null || Parent == null))
+                    return;
+
+                if (value == null)
+                    Parent = null;
+                else
+                {
+                    mdiParent = value;
+                    Parent = value.MdiClient;
+                }
+            }
+        }
         public Form Owner
         {
             get { return owner; }
@@ -149,6 +194,10 @@
             }
         }
 
+        internal MdiClient MdiClient
+        {
+            get { return mdiClient; }
+        }
         internal Color uwfBorderColor
         {
             get { return borderPen.Color; }
@@ -159,7 +208,7 @@
         {
             get { return new Size(300, 300); }
         }
-
+        
         public void Close()
         {
             CloseInternal(CloseReason.UserClosing);
@@ -228,7 +277,8 @@
 
             Visible = true;
 
-            if (uwfAppOwner.Forms.Contains(this) == false)
+
+            if (MdiParent == null && uwfAppOwner.Forms.Contains(this) == false)
                 uwfAppOwner.Forms.Add(this);
 
             TryFocus();
@@ -389,6 +439,10 @@
             g.DrawRectangle(borderPen, 0, 0, width, Height);
         }
 
+        protected override Control.ControlCollection CreateControlsInstance()
+        {
+            return new ControlCollection(this);
+        }
         protected override void Dispose(bool release_all)
         {
             MouseHook.MouseUp -= Application_UpClick;
@@ -460,10 +514,14 @@
         }
         protected override void OnPaint(PaintEventArgs e)
         {
+            if (mdiClient != null)
+                return;
+
             var g = e.Graphics;
             var headerHeight = uwfHeaderHeight;
             var width = Width;
 
+            // Background color.
             g.uwfFillRectangle(BackColor, 0, headerHeight, width, Height - headerHeight);
         }
         protected virtual void OnShown(EventArgs e)
@@ -536,7 +594,10 @@
         }
         private void PlaceAtStartPosition(FormStartPosition formStartPosition)
         {
-            var workingArea = Screen.PrimaryScreen.WorkingArea;
+            var workingSize = Screen.PrimaryScreen.WorkingArea.Size;
+
+            if (MdiParent != null)
+                workingSize = MdiParent.MdiClient.Size;
 
             switch (formStartPosition)
             {
@@ -546,6 +607,9 @@
                         {
                             var ex = owner.Location.X + (owner.Width - Width) / 2;
                             var ey = owner.Location.Y + (owner.Height - Height) / 2;
+
+                            if (ex < 0) ex = 0;
+                            if (ey < 0) ey = 0;
 
                             Location = new Point(ex, ey);
                         }
@@ -557,8 +621,11 @@
                     break;
                 case FormStartPosition.CenterScreen:
                     {
-                        var ex = (workingArea.Width - Width) / 2;
-                        var ey = (workingArea.Height - Height) / 2;
+                        var ex = (workingSize.Width - Width) / 2;
+                        var ey = (workingSize.Height - Height) / 2;
+
+                        if (ex < 0) ex = 0;
+                        if (ey < 0) ey = 0;
 
                         Location = new Point(ex, ey);
                     }
@@ -571,10 +638,13 @@
                         var ex = nextLocation.X;
                         var ey = nextLocation.Y;
 
-                        if (ex + Width > workingArea.Width)
-                            ex = workingArea.Width - Width;
-                        if (ey + Height > workingArea.Height)
-                            ey = workingArea.Height - Height;
+                        if (ex + Width > workingSize.Width)
+                            ex = workingSize.Width - Width;
+                        if (ey + Height > workingSize.Height)
+                            ey = workingSize.Height - Height;
+
+                        if (ex < 0) ex = 0;
+                        if (ey < 0) ey = 0;
 
                         Location = new Point(ex, ey);
 
@@ -606,6 +676,35 @@
             }
 
             return false;
+        }
+
+        private new class ControlCollection : Control.ControlCollection
+        {
+            private readonly Form owner;
+
+            public ControlCollection(Form owner) : base(owner)
+            {
+                this.owner = owner;
+            }
+
+            public override void Add(Control value)
+            {
+                var client = value as MdiClient;
+                if (client != null && owner.mdiClient == null)
+                    owner.mdiClient = client;
+
+                base.Add(value);
+
+                if (client != null)
+                    client.SendToBack();
+            }
+            public override void Remove(Control item)
+            {
+                if (item == owner.mdiClient)
+                    owner.mdiClient = null;
+
+                base.Remove(item);
+            }
         }
 
         private class formSystemButton : Button
