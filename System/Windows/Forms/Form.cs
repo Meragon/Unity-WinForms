@@ -514,9 +514,6 @@
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            if (mdiClient != null)
-                return;
-
             var g = e.Graphics;
             var headerHeight = uwfHeaderHeight;
             var width = Width;

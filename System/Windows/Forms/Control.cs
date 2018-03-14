@@ -22,7 +22,7 @@
         internal DrawHandler uwfShadowHandler;
         internal Point uwfOffset; // Position for scrolling. Affects rendering.
         internal bool uwfSystem; // Indicates that Control can be handled by OS (like scrollbars).
-
+        
         private AnchorStyles anchor = AnchorStyles.Top | AnchorStyles.Left;
         private Color backColor = SystemColors.Control;
         private int clientHeight;
@@ -569,25 +569,9 @@
             if (uwfShadowBox)
             {
                 if (uwfShadowHandler == null)
-                {
-                    uwfShadowHandler = (pArgs) =>
-                    {
-                        var psLoc = PointToScreen(Point.Empty);
-                        int shX = psLoc.X + 6;
-                        int shY = psLoc.Y + 6;
-                        var shadowColor = defaultShadowColor;
-                        var localWidth = Width;
-                        var localHeight = Height;
-                        var graphics = pArgs.Graphics;
-                        graphics.uwfFillRectangle(shadowColor, shX + 6, shY + 6, localWidth - 12, localHeight - 12);
-                        graphics.uwfFillRectangle(shadowColor, shX + 5, shY + 5, localWidth - 10, localHeight - 10);
-                        graphics.uwfFillRectangle(shadowColor, shX + 4, shY + 4, localWidth - 8, localHeight - 8);
-                        graphics.uwfFillRectangle(shadowColor, shX + 3, shY + 3, localWidth - 6, localHeight - 6);
-                        graphics.uwfFillRectangle(shadowColor, shX + 2, shY + 2, localWidth - 4, localHeight - 4);
-                    };
-                }
-
-                uwfShadowHandler(e);
+                    PaintShadow(e, this);
+                else
+                    uwfShadowHandler(e);
             }
 
             if (uwfAutoGroup)
@@ -957,6 +941,22 @@
         {
             e.Graphics.uwfFillRectangle(backColor, rectangle);
         }
+        private static void PaintShadow(PaintEventArgs pArgs, Control c)
+        {
+            var psLoc = c.PointToScreen(Point.Empty);
+            int shX = psLoc.X + 6;
+            int shY = psLoc.Y + 6;
+            var shadowColor = defaultShadowColor;
+            var localWidth = c.Width;
+            var localHeight = c.Height;
+            var graphics = pArgs.Graphics;
+            graphics.uwfFillRectangle(shadowColor, shX + 6, shY + 6, localWidth - 12, localHeight - 12);
+            graphics.uwfFillRectangle(shadowColor, shX + 5, shY + 5, localWidth - 10, localHeight - 10);
+            graphics.uwfFillRectangle(shadowColor, shX + 4, shY + 4, localWidth - 8, localHeight - 8);
+            graphics.uwfFillRectangle(shadowColor, shX + 3, shY + 3, localWidth - 6, localHeight - 6);
+            graphics.uwfFillRectangle(shadowColor, shX + 2, shY + 2, localWidth - 4, localHeight - 4);
+        }
+
         private void ParentResized(Point delta)
         {
             if (Anchor == AnchorStyles.None) return;
