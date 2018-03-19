@@ -385,6 +385,13 @@
         }
         internal virtual void Application_UpClick(object sender, MouseEventArgs e)
         {
+            if (formMoving)
+            {
+                // Fix location here.
+                if (Location.Y < 0) // Preventing Form to go over top of rendering window and mdiclient parent.
+                    Location = new Point(Location.X, 0);
+            }
+
             formMoving = false;
             resizeType = ControlResizeTypes.None;
             if (Application.activeResizeControl == this)

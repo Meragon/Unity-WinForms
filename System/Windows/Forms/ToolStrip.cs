@@ -13,6 +13,11 @@
 
         private bool autoSize;
         private Orientation orientation = Orientation.Horizontal;
+        private bool showItemToolTips = true;
+        private ToolTip toolTip;
+        private ToolStripItem toolTipItem;
+        private Point toolTipNextLocation;
+        private string toolTipNextText;
 
         public ToolStrip() : this(null)
         {
@@ -48,6 +53,19 @@
         {
             get { return orientation; }
             internal set { orientation = value; }
+        }
+        public bool ShowItemToolTips
+        {
+            get { return showItemToolTips; }
+            set
+            {
+                if (showItemToolTips == value)
+                    return;
+
+                showItemToolTips = value;
+                if (!showItemToolTips)
+                    UpdateToolTip(null);
+            }
         }
 
         protected override Size DefaultSize
@@ -198,6 +216,48 @@
                 Height = height + padding.Bottom;
             }
         }
+        internal void UpdateToolTip(ToolStripItem item)
+        {
+            if (ShowItemToolTips == false)
+            {
+                if (toolTip != null)
+                {
+                    toolTip.Dispose();
+                    toolTip = null;
+                }
+
+                return;
+            }
+
+            if (item == toolTipItem)
+                return;
+
+            toolTipItem = item;
+
+            if (item == null)
+            {
+                if (toolTip != null)
+                    toolTip.Show(null, Location);
+                return;
+            }
+
+            if (toolTip == null)
+            {
+                toolTip = new ToolTip();
+                toolTip.SetToolTip(this, null);
+            }
+
+            var itemLocation = PointToClient(item.Bounds.Location);
+
+            if (toolTip.alphaState > 0)
+            {
+                toolTipNextLocation = itemLocation;
+                toolTipNextText = item.ToolTipText;
+                toolTip.alphaState = 3;
+            }
+            else
+                toolTip.Show(item.ToolTipText, itemLocation);
+        }
 
         protected override ControlCollection CreateControlsInstance()
         {
@@ -232,6 +292,8 @@
                 if (selectedItem != null)
                     selectedItem.RaiseOnMouseEnter(e);
             }
+
+            UpdateToolTip(selectedItem);
         }
         protected override void OnMouseUp(MouseEventArgs e) // Click.
         {
@@ -317,6 +379,13 @@
                     }
                 }
             }
+
+            // ToolTip text smooth transition update.
+            if (string.IsNullOrEmpty(toolTipNextText) == false && toolTip != null && toolTip.alphaState == 3 && ToolTip.instance == null)
+            {
+                toolTip.Show(toolTipNextText, toolTipNextLocation);
+                toolTipNextText = null;
+            }
         }
         protected override void OnSizeChanged(EventArgs e)
         {
@@ -327,6 +396,8 @@
 
         private void MouseHookOnMouseUp(object sender, EventArgs e)
         {
+            // TODO: reset selected items.
+
             /*bool reset = true;
             var toolStrip = sender as ToolStrip;
             if (toolStrip != null)

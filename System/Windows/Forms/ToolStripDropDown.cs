@@ -12,6 +12,7 @@
         public ToolStripDropDown()
         {
             Orientation = Orientation.Vertical;
+            ShowItemToolTips = false; // I'm not really sure.
             Visible = false;
         }
 

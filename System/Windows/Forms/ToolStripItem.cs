@@ -17,12 +17,14 @@
         private bool paddingExists;
         private ToolStrip parent;
         private bool stateAutoSize = true;
+        private bool stateAutoToolTip = true;
         private bool stateContstructing;
         private bool statePressed;
         private bool stateSelected;
         private bool stateVisible = true;
         private string text;
         private ContentAlignment textAlign = ContentAlignment.MiddleCenter;
+        private string toolTipText;
 
         protected ToolStripItem()
         {
@@ -66,6 +68,11 @@
         {
             get { return stateAutoSize; }
             set { stateAutoSize = value; }
+        }
+        public bool AutoToolTip
+        {
+            get { return stateAutoToolTip; }
+            set { stateAutoToolTip = value; }
         }
         public virtual Color BackColor
         {
@@ -193,6 +200,21 @@
         {
             get { return textAlign; }
             set { textAlign = value; }
+        }
+        public string ToolTipText
+        {
+            get
+            {
+                if (AutoToolTip == false || string.IsNullOrEmpty(toolTipText) == false)
+                    return toolTipText;
+
+                string toolText = Text;
+                if (WindowsFormsUtils.ContainsMnemonic(toolText))
+                    toolText = string.Join("", toolText.Split('&'));
+                
+                return toolText;
+            }
+            set { toolTipText = value; }
         }
         public bool Visible
         {
@@ -364,10 +386,11 @@
             // TODO: image align.
             if (image != null)
             {
+                var imageColor = Enabled ? uwfImageColor : Color.Gray;
                 var rect = Bounds;
                 graphics.uwfDrawImage(
                     image,
-                    uwfImageColor,
+                    imageColor,
                     rect.X + rect.Width / 2 - image.Width / 2,
                     rect.Y + rect.Height / 2 - image.Height / 2,
                     image.Width,
@@ -449,7 +472,7 @@
         }
         protected virtual void OnPaint(PaintEventArgs e)
         {
-            var localBackColor = stateSelected ? hoverColor : BackColor;
+            var localBackColor = stateSelected && Enabled ? hoverColor : BackColor;
             var rect = Bounds;
             var graphics = e.Graphics;
             var textColor = Enabled ? ForeColor : SystemColors.InactiveCaption;
@@ -463,7 +486,7 @@
             ControlPaint.DrawBackgroundImage(graphics, BackgroundImage, localBackColor, BackgroundImageLayout, rect, rect);
 
             // Draw border for selected state.
-            if (stateSelected)
+            if (stateSelected && Enabled)
                 graphics.DrawRectangle(selectPen, rect);
 
             // Image.

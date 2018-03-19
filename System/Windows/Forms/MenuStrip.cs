@@ -4,6 +4,11 @@
     
     public class MenuStrip : ToolStrip
     {
+        public MenuStrip()
+        {
+            ShowItemToolTips = false;
+        }
+
         protected override Padding DefaultPadding
         {
             get { return new Padding(6, 2, 0, 2); }

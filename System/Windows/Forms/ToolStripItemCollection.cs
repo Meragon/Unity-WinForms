@@ -116,7 +116,14 @@
         {
             this.items.AddRange(newItems);
             for (int i = 0; i < newItems.Length; i++)
-                SetOwner(newItems[i]);
+            {
+                var item = newItems[i];
+                if (item == null)
+                    throw new ArgumentException("item is null");
+
+                SetOwner(item);
+            }
+
             if (owner != null)
                 owner.UpdateSize();
         }

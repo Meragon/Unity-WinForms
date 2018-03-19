@@ -4,6 +4,18 @@
 
     internal sealed class WindowsFormsUtils
     {
+        public static bool ContainsMnemonic(string text)
+        {
+            if (text == null)
+                return false;
+
+            int length = text.Length;
+            int firstAmpersand = text.IndexOf('&', 0);
+            if (firstAmpersand < 0 || firstAmpersand > length - 2)
+                return false;
+
+            return text.IndexOf('&', firstAmpersand + 1) == -1;
+        }
         public static bool SafeCompareStrings(string string1, string string2, bool ignoreCase)
         {
             return string1 != null && string2 != null && string1.Length == string2.Length && string.Compare(string1, string2, ignoreCase) == 0;
