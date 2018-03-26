@@ -147,7 +147,7 @@
             var nodeIndex = nodeList.FindIndex(x => x == node);
             if (nodeIndex == -1) return; // Is not exist in tree.
 
-            ScrollIndex = node.Bounds.Y;
+            AdjustScrollIndexToNode(node);
 
             _UpdateScrollList();
         }
@@ -381,16 +381,17 @@
             }
         }
 
-        private void AdjustScrollIndexToSelectedNode()
+        private void AdjustScrollIndexToNode(TreeNode node)
         {
-            if (SelectedNode != null)
-            {
-                if (ScrollIndex > SelectedNode.Bounds.Y)
-                    ScrollIndex = SelectedNode.Bounds.Y;
+            if (node == null) return;
 
-                if (ScrollIndex + Height < SelectedNode.Bounds.Y + ItemHeight)
-                    ScrollIndex = SelectedNode.Bounds.Y + ItemHeight - Height;
-            }
+            var nodeY = node.Bounds.Y;
+
+            if (ScrollIndex > nodeY)
+                ScrollIndex = nodeY;
+
+            if (ScrollIndex + Height < nodeY + ItemHeight)
+                ScrollIndex = nodeY + ItemHeight - Height;
         }
         private void _Application_UpClick(object sender, MouseEventArgs e)
         {
@@ -514,7 +515,7 @@
                 if (nodeList[fromIndex + 1].Enabled == false) return false;
 
                 SelectedNode = nodeList[fromIndex + 1];
-                AdjustScrollIndexToSelectedNode();
+                AdjustScrollIndexToNode(SelectedNode);
 
                 OnAfterSelect(new TreeViewEventArgs(SelectedNode));
                 return true;
@@ -543,7 +544,7 @@
                 if (nodeList[fromIndex - 1].Enabled == false) return false;
 
                 SelectedNode = nodeList[fromIndex - 1];
-                AdjustScrollIndexToSelectedNode();
+                AdjustScrollIndexToNode(SelectedNode);
 
                 OnAfterSelect(new TreeViewEventArgs(SelectedNode));
                 return true;

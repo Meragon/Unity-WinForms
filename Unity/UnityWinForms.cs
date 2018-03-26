@@ -18,6 +18,7 @@
         private Application controller;
         private float lastWidth;
         private float lastHeight;
+        private bool shiftPressed;
         private bool paused;
 
         internal static UE.Texture2D DefaultSprite
@@ -172,16 +173,39 @@
 
                 // Keys.
                 var currentEvent = UE.Event.current;
-                if (currentEvent.keyCode != UE.KeyCode.None)
+                var currentEventType = currentEvent.type;
+                var currentKeyCode = currentEvent.keyCode;
+                var currentKeyModifiers = currentEvent.modifiers;
+
+                // Manualy set event for 'shift' key.
+                if (shiftPressed)
                 {
-                    var keyData = UnityKeyTranslator.ToKeyData(currentEvent.modifiers, currentEvent.keyCode);
+                    if (currentKeyCode == UE.KeyCode.None)
+                        currentKeyCode = UE.KeyCode.LeftShift;
+                    else
+                        currentKeyModifiers = UE.EventModifiers.Shift;
+
+                    currentEventType = UE.EventType.KeyDown;
+                }
+
+                // Try release 'shift'.
+                var prevShift = shiftPressed;
+                shiftPressed = currentEvent.shift;
+
+                if (prevShift && shiftPressed == false)
+                    currentEventType = UE.EventType.KeyUp;
+                
+                // Proccess.
+                if (currentKeyCode != UE.KeyCode.None)
+                {
+                    var keyData = UnityKeyTranslator.ToKeyData(currentKeyModifiers, currentKeyCode);
                     var keyArgs = new KeyEventArgs(keyData);
-                    keyArgs.uwfKeyCode = currentEvent.keyCode;
-                    keyArgs.uwfModifiers = currentEvent.modifiers;
+                    keyArgs.uwfKeyCode = currentKeyCode;
+                    keyArgs.uwfModifiers = currentKeyModifiers;
                     if ((keyArgs.uwfModifiers & UE.EventModifiers.FunctionKey) != 0)
                         keyArgs.uwfModifiers &= ~UE.EventModifiers.FunctionKey;
 
-                    var keyEventType = (Application.KeyEvents)(currentEvent.type - 3);
+                    var keyEventType = (Application.KeyEvents)(currentEventType - 3);
                     if (keyEventType == Application.KeyEvents.Down || keyEventType == Application.KeyEvents.Up)
                         controller.ProccessKeys(keyArgs, keyEventType);
                 }
