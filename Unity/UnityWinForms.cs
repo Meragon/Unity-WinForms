@@ -19,6 +19,7 @@
         private float lastWidth;
         private float lastHeight;
         private bool shiftPressed;
+        private float shiftWait; // Shift pressing is really fast.
         private bool paused;
 
         internal static UE.Texture2D DefaultSprite
@@ -178,22 +179,26 @@
                 var currentKeyModifiers = currentEvent.modifiers;
 
                 // Manualy set event for 'shift' key.
-                if (shiftPressed)
+                if (shiftPressed && currentKeyCode == UE.KeyCode.None)
                 {
-                    if (currentKeyCode == UE.KeyCode.None)
+                    if (shiftWait <= 0)
+                    {
                         currentKeyCode = UE.KeyCode.LeftShift;
-                    else
-                        currentKeyModifiers = UE.EventModifiers.Shift;
+                        currentEventType = UE.EventType.KeyDown;
 
-                    currentEventType = UE.EventType.KeyDown;
+                        shiftWait = .2f;
+                    }
+                    else
+                        shiftWait -= swfHelper.GetDeltaTime();
                 }
 
-                // Try release 'shift'.
-                var prevShift = shiftPressed;
+                // Try release 'shift'. 
+                // Fix: it's presses additional time when using Shift + any key.
+                /*var prevShift = shiftPressed;
                 shiftPressed = currentEvent.shift;
 
-                if (prevShift && shiftPressed == false)
-                    currentEventType = UE.EventType.KeyUp;
+                if (prevShift && shiftPressed == false && currentKeyCode == UE.KeyCode.LeftShift)
+                    currentEventType = UE.EventType.KeyUp;*/
                 
                 // Proccess.
                 if (currentKeyCode != UE.KeyCode.None)

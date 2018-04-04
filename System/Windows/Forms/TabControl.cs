@@ -8,7 +8,7 @@
     public class TabControl : Control
     {
         internal bool buttonAdjustSize;
-        internal Padding buttonTextPadding;
+        internal Padding buttonTextPadding = new Padding(6, 0, 6, 0);
         internal List<TabPageButton> pagesButtons = new List<TabPageButton>();
         internal int tabPageCount;
         internal int tabViewIndex;

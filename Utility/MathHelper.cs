@@ -18,15 +18,43 @@
         }
         public static byte Clamp(byte value, byte min, byte max)
         {
-            return (value > max ? max : value) < min ? min : value;
+            if (value > max)
+                value = max;
+
+            if (value < min)
+                value = min;
+
+            return value;
         }
         public static int Clamp(int value, int min, int max)
         {
-            return (value > max ? max : value) < min ? min : value;
+            if (value > max)
+                value = max;
+
+            if (value < min)
+                value = min;
+
+            return value;
         }
         public static float Clamp(float value, float min, float max)
         {
-            return (value > max ? max : value) < min ? min : value;
+            if (value > max)
+                value = max;
+
+            if (value < min)
+                value = min;
+
+            return value;
+        }
+        public static double Clamp(double value, double min, double max)
+        {
+            if (value > max)
+                value = max;
+
+            if (value < min)
+                value = min;
+
+            return value;
         }
         public static Color ColorLerp(Color from, Color to, float speed)
         {

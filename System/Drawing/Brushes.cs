@@ -3,7 +3,7 @@
     public static class Brushes
     {
         public static Brush AliceBlue { get { return new SolidBrush(Color.AliceBlue); } }
-        public static Brush AntiqueWhite { get { return new SolidBrush(Color.AntiqueWhie); } }
+        public static Brush AntiqueWhite { get { return new SolidBrush(Color.AntiqueWhite); } }
         public static Brush Aqua { get { return new SolidBrush(Color.Aqua); } }
         public static Brush Aquamarine { get { return new SolidBrush(Color.Aquamarine); } }
         public static Brush Azure { get { return new SolidBrush(Color.Azure); } }

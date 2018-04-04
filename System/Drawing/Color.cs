@@ -7,7 +7,7 @@
 
         // fields have faster access.
         public static readonly Color AliceBlue = Color.FromArgb(0xF0, 0xF8, 0xFF);
-        public static readonly Color AntiqueWhie = Color.FromArgb(0xFA, 0xEB, 0xD7);
+        public static readonly Color AntiqueWhite = Color.FromArgb(0xFA, 0xEB, 0xD7);
         public static readonly Color Aqua = Color.FromArgb(0x00, 0xFF, 0xFF);
         public static readonly Color Aquamarine = Color.FromArgb(0x7F, 0xFF, 0xD4);
         public static readonly Color Azure = Color.FromArgb(0xF0, 0xFF, 0xFF);
