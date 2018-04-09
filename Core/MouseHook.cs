@@ -3,7 +3,7 @@
     /// <summary>
     /// implement your windows hook here.
     /// </summary>
-    public static class MouseHook
+    internal static class MouseHook
     {
         // usable by childs, ex: ToolStripItem will invoke MouseUp then parent will invoke same event,
         // which will prevent unity designer to paint child fields and properties.

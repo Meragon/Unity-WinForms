@@ -47,8 +47,6 @@
                 if (form == null || form.IsMdiChild == false)
                     throw new ArgumentException("form");
 
-                form.uwfShadowBox = false;
-
                 owner.items.Add(form);
 
                 base.Add(value);

@@ -1,6 +1,6 @@
 ﻿namespace System.Windows.Forms
 {
-    public static class KeyboardHook
+    internal static class KeyboardHook
     {
         public static event KeyEventHandler KeyDown;
         public static event KeyEventHandler KeyUp;

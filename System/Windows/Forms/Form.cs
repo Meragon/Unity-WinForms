@@ -208,7 +208,7 @@
         {
             get { return new Size(300, 300); }
         }
-        
+
         public void Close()
         {
             CloseInternal(CloseReason.UserClosing);
@@ -445,6 +445,15 @@
             g.DrawLine(innerBorderPen, 0, uwfHeaderHeight - 1, width, uwfHeaderHeight - 1);
             g.DrawRectangle(borderPen, 0, 0, width, Height);
         }
+        protected internal override Point uwfShadowPointToScreen(Point p)
+        {
+            // PointToScreen is not checking for AutoGroup, 
+            // which is creating new gui group and thats why shadow cannot be drawn normally inside controls.
+            if (uwfAutoGroup)
+                return p;
+
+            return base.uwfShadowPointToScreen(p);
+        }
 
         protected override Control.ControlCollection CreateControlsInstance()
         {
@@ -541,7 +550,7 @@
 
         private void DrawShadow(PaintEventArgs e)
         {
-            var loc = PointToScreen(Point.Empty);
+            var loc = uwfShadowPointToScreen(Location);
             var locX = loc.X;
             var locY = loc.Y;
             var width = Width;

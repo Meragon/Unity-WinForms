@@ -309,7 +309,9 @@
         {
             if (AlwaysFocused) return;
 
-            if (parent != null)
+            if (parent != null && 
+                parent.controls.Count > 0 && 
+                parent.controls[parent.controls.Count - 1] != this)
             {
                 var parentControls = parent.controls;
                 parentControls.Remove(this);
@@ -623,6 +625,17 @@
         }
         protected internal virtual void uwfOnLatePaint(PaintEventArgs e)
         {
+        }
+        protected internal virtual Point uwfShadowPointToScreen(Point p)
+        {
+            // See Form.
+            if (parent != null)
+                p = parent.uwfShadowPointToScreen(p);
+
+            var localuwfOffset = uwfOffset;
+
+            p.Offset(x + localuwfOffset.X, y + localuwfOffset.Y);
+            return p;
         }
 
         protected virtual ControlCollection CreateControlsInstance()
@@ -943,7 +956,7 @@
         }
         private static void PaintShadow(PaintEventArgs pArgs, Control c)
         {
-            var psLoc = c.PointToScreen(Point.Empty);
+            var psLoc = c.uwfShadowPointToScreen(Point.Empty);
             int shX = psLoc.X + 6;
             int shY = psLoc.Y + 6;
             var shadowColor = defaultShadowColor;
