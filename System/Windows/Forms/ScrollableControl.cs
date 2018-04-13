@@ -5,6 +5,9 @@
 
     public class ScrollableControl : Control
     {
+        internal HScrollBar hscroll; // In case you want to scroll manually.
+        internal VScrollBar vscroll;
+
         protected const int ScrollStateAutoScrolling = 0x0001;
         protected const int ScrollStateHScrollVisible = 0x0002;
         protected const int ScrollStateVScrollVisible = 0x0004;
@@ -13,9 +16,6 @@
 
         private Rectangle displayRect = Rectangle.Empty;
         private int scrollState;
-
-        private HScrollBar hscroll;
-        private VScrollBar vscroll;
 
         private HScrollProperties horizontalScroll;
         private VScrollProperties verticalScroll;

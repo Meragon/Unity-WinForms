@@ -138,10 +138,14 @@
                 // Tab switching through controls.
                 if (TabSwitching && Event.current.keyCode == KeyCode.Tab && keyEventType == KeyEvents.Down)
                 {
-                    if (Event.current.modifiers == EventModifiers.None)
-                        NextTabControl(keyControl);
-                    else if (Event.current.modifiers == EventModifiers.Shift)
-                        PrevTabControl(keyControl);
+                    var containerControl = GetRootControl(keyControl) as ContainerControl;
+                    if (containerControl != null)
+                    {
+                        if (Event.current.modifiers == EventModifiers.None)
+                            containerControl.RaiseProcessTabKey(true, keyControl);
+                        else if (Event.current.modifiers == EventModifiers.Shift)
+                            containerControl.RaiseProcessTabKey(false, keyControl);
+                    }
                 }
 
                 var parentForm = GetParentForm(Control.lastSelected);
@@ -498,46 +502,6 @@
 
             return control;
         }
-        internal static void NextTabControl(Control control)
-        {
-            var controlForm = GetRootControl(control) as Form;
-            if (controlForm == null || controlForm.Controls.Count <= 0) return;
-
-            var formControls = new List<Control>();
-            _FillListWithVisibleControls(controlForm, formControls);
-
-            var possibleControls = formControls.FindAll(x => x.IsDisposed == false && x.CanSelect && x.TabStop);
-            if (possibleControls.Count == 0) return;
-
-            possibleControls.Sort(TabComparison);
-
-            int controlIndex = possibleControls.FindIndex(x => x == control);
-
-            var nextControlIndex = controlIndex + 1;
-            if (nextControlIndex >= possibleControls.Count)
-                nextControlIndex = 0;
-            possibleControls[nextControlIndex].Focus();
-        }
-        internal static void PrevTabControl(Control control)
-        {
-            var controlForm = GetRootControl(control) as Form;
-            if (controlForm == null || controlForm.Controls.Count <= 0) return;
-
-            var formControls = new List<Control>();
-            _FillListWithVisibleControls(controlForm, formControls);
-
-            var possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.CanSelect && x.TabStop);
-            if (possibleControls.Count == 0) return;
-
-            possibleControls.Sort(TabComparison);
-
-            int controlIndex = possibleControls.FindIndex(x => x == control);
-
-            var nextControlIndex = controlIndex - 1;
-            if (nextControlIndex < 0)
-                nextControlIndex = possibleControls.Count - 1;
-            possibleControls[nextControlIndex].Focus();
-        }
         internal void UpdatePaintClipRect()
         {
             paintEventArgs.ClipRectangle = new Rectangle(0, 0, Screen.width, Screen.height);
@@ -575,7 +539,7 @@
 
             return currentControl;
         }
-        private static void _FillListWithVisibleControls(Control control, List<Control> list)
+        internal static void _FillListWithVisibleControls(Control control, List<Control> list)
         {
             for (int i = 0; i < control.Controls.Count; i++)
             {
