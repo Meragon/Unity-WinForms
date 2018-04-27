@@ -35,8 +35,8 @@
             if (form != null)
             {
                 form.DialogResult = dialogResult;
-                if (form.AcceptButton == this && form.dialog)
-                    form.Close();
+                /*if (form.AcceptButton == this && form.dialog)
+                    form.Close();*/
             }
 
             base.OnClick(e);
