@@ -581,7 +581,9 @@
                 if (vScrollBar != null)
                 {
                     vScrollBar.Visible = false; // we can dispose scrollbar, but I think it's not effective.
-                    ScrollIndex = 0;
+                    vScrollBar.ValueChanged -= VScrollBarOnValueChanged;
+                    vScrollBar.Value = 0;
+                    vScrollBar.ValueChanged += VScrollBarOnValueChanged;
                 }
             }
         }
