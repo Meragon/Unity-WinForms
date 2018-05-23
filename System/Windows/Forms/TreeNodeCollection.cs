@@ -101,7 +101,11 @@
         }
         public virtual void Clear()
         {
+            for (int i = 0; i < items.Count; i++)
+                items[i].parent = null;
+
             items.Clear();
+
             if (owner.TreeView != null)
                 owner.TreeView.Refresh();
         }

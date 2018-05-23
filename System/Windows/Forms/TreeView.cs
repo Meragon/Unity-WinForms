@@ -554,7 +554,7 @@
         }
         private void UpdateScrollBar()
         {
-            var scrollMaximum = ItemHeight * nodeList.Count - 1;
+            var scrollMaximum = ItemHeight * nodeList.Count - 1 + Padding.Vertical;
             var scrollVisible = scrollMaximum > Height;
 
             if (scrollVisible)
@@ -595,7 +595,7 @@
             if (vScrollBar != null)
             {
                 vScrollBar.ValueChanged -= VScrollBarOnValueChanged;
-                vScrollBar.Maximum = ItemHeight * nodeList.Count - 1;
+                vScrollBar.Maximum = ItemHeight * nodeList.Count - 1 + Padding.Vertical;
                 vScrollBar.ValueChanged += VScrollBarOnValueChanged;
             }
 
