@@ -362,7 +362,7 @@
 
         private static int GUI_SetFont(UE.GUIStyle style, Font font)
         {
-            int guiSkinFontSizeBuffer = UE.GUI.skin.label.fontSize;
+            int guiSkinFontSizeBuffer = style.fontSize;
             if (font != null)
             {
                 if (font.UFont == null && Unity.API.UnityWinForms.gResources != null)
@@ -390,7 +390,7 @@
                 }
 
                 var fontStyle = font.Style;
-                style.fontSize = (int)(font.Size);
+                style.fontSize = (int)font.Size;
                 bool styleBold = (fontStyle & FontStyle.Bold) == FontStyle.Bold;
                 bool styleItalic = (fontStyle & FontStyle.Italic) == FontStyle.Italic;
                 if (styleBold)

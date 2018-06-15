@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Drawing;
 
+    // TODO: rename not original properties.
     public class ComboBox : ListControl
     {
         private const int DOWN_BUTTON_WIDTH = 17;
@@ -38,7 +39,9 @@
             Padding = new Padding(4, 0, 4, 0);
         }
 
-        public event EventHandler SelectedIndexChanged = delegate { };
+        public event EventHandler DropDown;
+        public event EventHandler DropDownClosed;
+        public event EventHandler SelectedIndexChanged;
 
         public AutoCompleteMode AutoCompleteMode { get; set; }
         public AutoCompleteSource AutoCompleteSource { get; set; }
@@ -117,6 +120,18 @@
             return res;
         }
 
+        protected virtual void OnDropDown(EventArgs e)
+        {
+            var handler = DropDown;
+            if (handler != null)
+                handler(this, e);
+        }
+        protected virtual void OnDropDownClosed(EventArgs e)
+        {
+            var handler = DropDownClosed;
+            if (handler != null)
+                handler(this, e);
+        }
         protected override void OnKeyPress(KeyPressEventArgs args)
         {
             base.OnKeyPress(args);
@@ -324,7 +339,9 @@
         }
         protected override void OnSelectedIndexChanged(EventArgs e)
         {
-            SelectedIndexChanged(this, e);
+            var handler = SelectedIndexChanged;
+            if (handler != null)
+                handler(this, e);
         }
         protected virtual void OnSelectedItemChanged(EventArgs e)
         {
@@ -399,6 +416,8 @@
                 listBox.MouseUp += ListBoxOnMouseUp;
                 listBox.KeyDown += ListBoxOnKeyDown;
                 listBox.Disposed += ListBoxOnDisposed;
+                
+                OnDropDown(EventArgs.Empty);
             }
             else
                 listBoxOpened = false;
@@ -433,6 +452,8 @@
             listBox.Disposed -= ListBoxOnDisposed;
 
             listBox = null;
+            
+            OnDropDownClosed(EventArgs.Empty);
         }
         private void UpdateComboBoxDDStyle()
         {
