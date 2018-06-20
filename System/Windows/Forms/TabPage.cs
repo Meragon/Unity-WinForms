@@ -8,7 +8,7 @@
         {
             BackColor = Color.White;
         }
-        public TabPage(string text)
+        public TabPage(string text) : this()
         {
             Text = text;
         }

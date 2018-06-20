@@ -379,7 +379,7 @@
                 handler(this, e);
         }
 
-        private void CheckNavButtons()
+        internal void CheckNavButtons()
         {
             if (HeaderWidth > Width)
             {

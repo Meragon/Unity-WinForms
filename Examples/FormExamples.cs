@@ -58,7 +58,13 @@
 
             var nodeFileDialog = new TreeNode("FileDialog");
             nodeFileDialog.Tag = typeof(PanelFileDialog);
+            
+            var nodeForm = new TreeNode("Form");
+            nodeForm.Tag = typeof(PanelForm);
 
+            var nodeGroupBox = new TreeNode("GroupBox");
+            nodeGroupBox.Tag = typeof(PanelGroupBox);
+            
             var nodeLabel = new TreeNode("Label");
             nodeLabel.Tag = typeof(PanelLabel);
 
@@ -82,9 +88,15 @@
 
             var nodeProgressBar = new TreeNode("ProgressBar");
             nodeProgressBar.Tag = typeof(PanelProgressBar);
+            
+            var nodeRadioButton = new TreeNode("RadioButton");
+            nodeRadioButton.Tag = typeof(PanelRadioButton);
 
             var nodeScrollBar = new TreeNode("ScrollBar");
             nodeScrollBar.Tag = typeof(PanelScrollBar);
+            
+            var nodeTabControl = new TreeNode("TabControl");
+            nodeTabControl.Tag = typeof(PanelTabControl);
 
             var nodeControls = new TreeNode("Controls");
             nodeControls.Nodes.Add(nodeButton);
@@ -92,6 +104,8 @@
             nodeControls.Nodes.Add(nodeComboBox);
             nodeControls.Nodes.Add(nodeDateTimePicker);
             nodeControls.Nodes.Add(nodeFileDialog);
+            nodeControls.Nodes.Add(nodeForm);
+            nodeControls.Nodes.Add(nodeGroupBox);
             nodeControls.Nodes.Add(nodeLabel);
             nodeControls.Nodes.Add(nodeLinkLabel);
             nodeControls.Nodes.Add(nodeMenuStrip);
@@ -100,7 +114,9 @@
             nodeControls.Nodes.Add(nodePanel);
             nodeControls.Nodes.Add(nodePictureBox);
             nodeControls.Nodes.Add(nodeProgressBar);
+            nodeControls.Nodes.Add(nodeRadioButton);
             nodeControls.Nodes.Add(nodeScrollBar);
+            nodeControls.Nodes.Add(nodeTabControl);
 
             treeView.Nodes.Add(nodeControls);
 

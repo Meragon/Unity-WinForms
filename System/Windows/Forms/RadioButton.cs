@@ -23,7 +23,7 @@
             uwfHoverColor = Color.Transparent;
         }
 
-        public event EventHandler CheckedChanged = delegate { };
+        public event EventHandler CheckedChanged;
 
         public bool AutoCheck
         {
@@ -58,8 +58,9 @@
 
         protected virtual void OnCheckedChanged(EventArgs e)
         {
-            if (CheckedChanged != null)
-                CheckedChanged(this, e);
+            var handler = CheckedChanged;
+            if (handler != null)
+                handler(this, e);
         }
         protected override void OnClick(EventArgs e)
         {
