@@ -8,8 +8,8 @@
 
         private readonly Pen borderPen = new Pen(Color.White);
         private char passwordChar = (char)0;
-        public string passwordText;
-        public string text;
+        private string passwordText;
+        private string text;
         
         public TextBox()
         {
