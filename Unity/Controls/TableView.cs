@@ -324,7 +324,7 @@
 
                     int controlColumn = i;
                     TextBox itemControl = new TextBox();
-                    itemControl.BorderColor = Color.Transparent;
+                    itemControl.uwfBorderColor = Color.Transparent;
                     itemControl.Size = new Size(Columns[i].Width, row.Height);
                     itemControl.TextChanged += (s, a) =>
                     {

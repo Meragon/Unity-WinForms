@@ -19,7 +19,6 @@
         internal static object dragData;
         internal readonly List<Control> Contexts = new List<Control>();
         internal readonly FormCollection Forms = new FormCollection();
-        internal readonly List<Control> HoveredControls = new List<Control>();
         internal readonly List<Form> ModalForms = new List<Form>();
         internal Control hoveredControl;
         internal AppGdiImages Resources;
@@ -634,21 +633,6 @@
             if (!contains)
                 control.RaiseOnMouseLeave(null);
             return false;
-        }
-        private static int TabComparison(Control c1, Control c2)
-        {
-            if (c1.TabIndex >= 0 || c2.TabIndex >= 0)
-                return c1.TabIndex.CompareTo(c2.TabIndex);
-
-            var c1Location = c1.Location;
-            var c2Location = c2.Location;
-
-            if (c1Location.Y != c2Location.Y)
-                return c1Location.Y.CompareTo(c2Location.Y);
-            if (c1Location.X == c2Location.X)
-                return 0;
-
-            return c1Location.X.CompareTo(c2Location.X);
         }
         private static void RaiseKeyEvent(KeyEventArgs args, KeyEvents keyEventType, Control keyControl)
         {

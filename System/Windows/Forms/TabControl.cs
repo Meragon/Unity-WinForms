@@ -15,7 +15,7 @@
 
         private readonly Pen borderPen = new Pen(Color.FromArgb(172, 172, 172));
         private readonly Control pagesButtonsPanel;
-        private Size itemSize = new Size(42, 30);
+        private Size itemSize = new Size(62, 21);
         private Button navigationButtonLeft;
         private Button navigationButtonRight;
         private Padding padding;
@@ -182,12 +182,7 @@
                 return;
             SelectTab(index);
         }
-        public void SetPageButtonWidth(int index, int width)
-        {
-            pagesButtons[index].Width = width;
-            UpdateButtons();
-        }
-
+        
         internal int AddTabPage(TabPage tabPage)
         {
             var pageButton = new TabPageButton(this, tabPageCount);
@@ -257,6 +252,11 @@
                 SelectedIndex = tabPageCount - 1;
 
             SelectTab(SelectedIndex);
+            UpdateButtons();
+        }
+        internal void SetPageButtonWidth(int index, int width)
+        {
+            pagesButtons[index].Width = width;
             UpdateButtons();
         }
         internal void UpdateButtons()
@@ -561,6 +561,7 @@
                     throw new ArgumentNullException("value");
 
                 owner.Controls.Add(value);
+                owner.CheckNavButtons();
             }
             public void Add(string key, string text)
             {
@@ -643,6 +644,7 @@
                 if (tabPage == null) throw new ArgumentNullException("tabPage");
 
                 owner.Controls.Insert(index, tabPage);
+                owner.CheckNavButtons();
             }
             public void Insert(int index, string key, string text)
             {
@@ -670,6 +672,7 @@
             public void Remove(TabPage value)
             {
                 owner.Controls.Remove(value);
+                owner.CheckNavButtons();
             }
             public void RemoveAt(int index)
             {

@@ -69,8 +69,6 @@
             Screen.width = (int)(UE.Screen.width / Application.ScaleX);
             Screen.height = (int)(UE.Screen.height / Application.ScaleY);
 
-            Graphics.ApiGraphics = ApiHolder.Graphics;
-
             // Enum + dictionary?
             GdiImages = new AppGdiImages();
             GdiImages.ArrowDown = gResources.Images.ArrowDown.ToBitmap();

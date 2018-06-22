@@ -1,6 +1,7 @@
 ﻿namespace Unity.API
 {
     using System.Drawing;
+    using System.Drawing.API;
 
     public class UnityGdiSprite : ITexture
     {

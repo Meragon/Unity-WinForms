@@ -38,7 +38,7 @@
             get { return initialDelay; }
             set
             {
-                initialDelay = UnityEngine.Mathf.Clamp(value, 0, 32767);
+                initialDelay = MathHelper.Clamp(value, 0, 32767);
             }
         }
         public Padding Padding { get; set; }

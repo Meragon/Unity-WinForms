@@ -5,5 +5,6 @@
     public interface IApiSystem
     {
         CultureInfo CurrentCulture { get; }
+        Point MousePosition { get; }
     }
 }

@@ -66,5 +66,18 @@
                 return CultureInfo.GetCultures(CultureTypes.AllCultures).FirstOrDefault(c => c.Name == name);
             }
         }
+        public Point MousePosition 
+        { 
+            get
+            {
+                var mp = UnityEngine.Input.mousePosition;
+                var mx = mp.x;
+                var my = UnityEngine.Screen.height - mp.y;
+                var sx = System.Windows.Forms.Application.ScaleX;
+                var sy = System.Windows.Forms.Application.ScaleY;
+                
+                return new Point((int) (mx / sx), (int) (my / sy));
+            }
+        }
     }
 }

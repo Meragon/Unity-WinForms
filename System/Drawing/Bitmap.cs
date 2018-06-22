@@ -1,5 +1,7 @@
 ﻿namespace System.Drawing
 {
+    using System.Drawing.API;
+    
     [Serializable]
     public class Bitmap : Image
     {

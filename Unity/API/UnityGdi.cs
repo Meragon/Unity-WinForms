@@ -1,4 +1,6 @@
-﻿namespace Unity.API
+﻿using System.Windows.Forms;
+
+namespace Unity.API
 {
     using System;
     using System.Drawing;
@@ -359,13 +361,84 @@
 
             return new SizeF(size.x, size.y);
         }
+        
+        internal string uwfDrawPasswordField(string s, Font font, Color color, float x, float y, float width, float height, HorizontalAlignment alignment)
+        {
+            if (s == null) s = "";
 
+            UE.GUI.skin.textField.alignment = UE.TextAnchor.UpperLeft;
+            switch (alignment)
+            {
+                case HorizontalAlignment.Center:
+                    UE.GUI.skin.textField.alignment = UE.TextAnchor.MiddleCenter;
+                    break;
+                default:
+                    UE.GUI.skin.textField.alignment = UE.TextAnchor.MiddleLeft;
+                    break;
+                case HorizontalAlignment.Right:
+                    UE.GUI.skin.textField.alignment = UE.TextAnchor.MiddleRight;
+                    break;
+            }
+
+            GUI_SetFont(UE.GUI.skin.textField, font);
+            
+            UE.GUI.color = color.ToUnityColor();
+
+            return UE.GUI.PasswordField(new UE.Rect(x, y, width, height), s, '*');
+        }
+        internal string uwfDrawTextArea(string s, Font font, Color color, float x, float y, float width, float height)
+        {
+            if (s == null) s = "";
+
+            UE.GUI.skin.textArea.alignment = UE.TextAnchor.UpperLeft;
+
+            UE.GUI.color = color.ToUnityColor();
+            //GUI.skin.textArea.hover.textColor = brush.Color.ToUColor();
+
+            GUI_SetFont(UE.GUI.skin.textArea, font);
+
+            UE.GUI.skin.textArea.hover.background = null;
+            UE.GUI.skin.textArea.active.background = null;
+            UE.GUI.skin.textArea.focused.background = null;
+            UE.GUI.skin.textArea.normal.background = null;
+
+            return UE.GUI.TextArea(new UE.Rect(x, y, width, height), s);
+        }
+        internal string uwfDrawTextField(string s, Font font, Color color, float x, float y, float width, float height, HorizontalAlignment alignment)
+        {
+            if (s == null) s = "";
+
+            UE.GUI.skin.textField.alignment = UE.TextAnchor.UpperLeft;
+            switch (alignment)
+            {
+                case HorizontalAlignment.Center:
+                    UE.GUI.skin.textField.alignment = UE.TextAnchor.MiddleCenter;
+                    break;
+                default:
+                    UE.GUI.skin.textField.alignment = UE.TextAnchor.MiddleLeft;
+                    break;
+                case HorizontalAlignment.Right:
+                    UE.GUI.skin.textField.alignment = UE.TextAnchor.MiddleRight;
+                    break;
+            }
+
+            GUI_SetFont(UE.GUI.skin.textField, font);
+
+            UE.GUI.color = color.ToUnityColor();
+            UE.GUI.skin.textField.hover.background = null;
+            UE.GUI.skin.textField.active.background = null;
+            UE.GUI.skin.textField.focused.background = null;
+            UE.GUI.skin.textField.normal.background = null;
+
+            return UE.GUI.TextField(new UE.Rect(x, y, width, height), s);
+        }
+        
         private static int GUI_SetFont(UE.GUIStyle style, Font font)
         {
             int guiSkinFontSizeBuffer = style.fontSize;
             if (font != null)
             {
-                if (font.UFont == null && Unity.API.UnityWinForms.gResources != null)
+                if (font.fontObject == null && Unity.API.UnityWinForms.gResources != null)
                 {
                     var fonts = Unity.API.UnityWinForms.gResources.Fonts;
                     if (fonts != null)
@@ -374,13 +447,13 @@
                             var fontItem = fonts[i];
                             if (fontItem.fontNames[0] != font.Name) continue;
 
-                            font.UFont = fontItem;
+                            font.fontObject = fontItem;
                             break;
                         }
                 }
 
-                if (font.UFont != null)
-                    style.font = font.UFont;
+                if (font.fontObject != null)
+                    style.font = (UE.Font)font.fontObject;
                 else
                 {
                     style.font = null;
@@ -411,7 +484,7 @@
                     var _font = UnityWinForms.gResources.Fonts[0];
                     if (_font != null)
                         style.font = _font;
-                    style.fontSize = (int)(12);
+                    style.fontSize = 12;
                     style.fontStyle = UnityEngine.FontStyle.Normal;
                 }
             }

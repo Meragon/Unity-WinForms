@@ -107,12 +107,7 @@
         }
         public static Point MousePosition
         {
-            get
-            {
-                return new Point(
-                    (int)(UnityEngine.Input.mousePosition.x / Application.ScaleX),
-                    (int)((UnityEngine.Screen.height - UnityEngine.Input.mousePosition.y) / Application.ScaleY));
-            }
+            get { return ApiHolder.System.MousePosition; }
         }
 
         public virtual bool AllowDrop { get; set; }

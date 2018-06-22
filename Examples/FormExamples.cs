@@ -44,93 +44,51 @@
             
             Controls.Add(labelNote);
 
-            var nodeButton = new TreeNode("Button");
-            nodeButton.Tag = typeof(PanelButton);
-
-            var nodeCheckBox = new TreeNode("CheckBox");
-            nodeCheckBox.Tag = typeof(PanelCheckBox);
-
-            var nodeComboBox = new TreeNode("ComboBox");
-            nodeComboBox.Tag = typeof(PanelComboBox);
-
-            var nodeDateTimePicker = new TreeNode("DateTimePicker");
-            nodeDateTimePicker.Tag = typeof(PanelDateTimePicker);
-
-            var nodeFileDialog = new TreeNode("FileDialog");
-            nodeFileDialog.Tag = typeof(PanelFileDialog);
-            
-            var nodeForm = new TreeNode("Form");
-            nodeForm.Tag = typeof(PanelForm);
-
-            var nodeGroupBox = new TreeNode("GroupBox");
-            nodeGroupBox.Tag = typeof(PanelGroupBox);
-            
-            var nodeLabel = new TreeNode("Label");
-            nodeLabel.Tag = typeof(PanelLabel);
-
-            var nodeLinkLabel = new TreeNode("LinkLabel");
-            nodeLinkLabel.Tag = typeof(PanelLinkLabel);
-
-            var nodeMenuStrip = new TreeNode("MenuStrip");
-            nodeMenuStrip.Tag = typeof(PanelMenuStrip);
-
-            var nodeMonthCalendar = new TreeNode("MonthCalendar");
-            nodeMonthCalendar.Tag = typeof(PanelMonthCalendar);
-
-            var nodeNumericUpDown = new TreeNode("NumericUpDown");
-            nodeNumericUpDown.Tag = typeof(PanelNumericUpDown);
-
-            var nodePanel = new TreeNode("Panel");
-            nodePanel.Tag = typeof(PanelPanel);
-
-            var nodePictureBox = new TreeNode("PictureBox");
-            nodePictureBox.Tag = typeof(PanelPictureBox);
-
-            var nodeProgressBar = new TreeNode("ProgressBar");
-            nodeProgressBar.Tag = typeof(PanelProgressBar);
-            
-            var nodeRadioButton = new TreeNode("RadioButton");
-            nodeRadioButton.Tag = typeof(PanelRadioButton);
-
-            var nodeScrollBar = new TreeNode("ScrollBar");
-            nodeScrollBar.Tag = typeof(PanelScrollBar);
-            
-            var nodeTabControl = new TreeNode("TabControl");
-            nodeTabControl.Tag = typeof(PanelTabControl);
-
             var nodeControls = new TreeNode("Controls");
-            nodeControls.Nodes.Add(nodeButton);
-            nodeControls.Nodes.Add(nodeCheckBox);
-            nodeControls.Nodes.Add(nodeComboBox);
-            nodeControls.Nodes.Add(nodeDateTimePicker);
-            nodeControls.Nodes.Add(nodeFileDialog);
-            nodeControls.Nodes.Add(nodeForm);
-            nodeControls.Nodes.Add(nodeGroupBox);
-            nodeControls.Nodes.Add(nodeLabel);
-            nodeControls.Nodes.Add(nodeLinkLabel);
-            nodeControls.Nodes.Add(nodeMenuStrip);
-            nodeControls.Nodes.Add(nodeMonthCalendar);
-            nodeControls.Nodes.Add(nodeNumericUpDown);
-            nodeControls.Nodes.Add(nodePanel);
-            nodeControls.Nodes.Add(nodePictureBox);
-            nodeControls.Nodes.Add(nodeProgressBar);
-            nodeControls.Nodes.Add(nodeRadioButton);
-            nodeControls.Nodes.Add(nodeScrollBar);
-            nodeControls.Nodes.Add(nodeTabControl);
-
+            AddNode(nodeControls, "Button", typeof(PanelButton));
+            AddNode(nodeControls, "CheckBox", typeof(PanelCheckBox));
+            AddNode(nodeControls, "ComboBox", typeof(PanelComboBox));
+            AddNode(nodeControls, "DateTimePicker", typeof(PanelDateTimePicker));
+            AddNode(nodeControls, "Button", typeof(PanelButton));
+            AddNode(nodeControls, "FileDialog", typeof(PanelFileDialog));
+            AddNode(nodeControls, "Form", typeof(PanelForm));
+            AddNode(nodeControls, "GroupBox", typeof(PanelGroupBox));
+            AddNode(nodeControls, "Label", typeof(PanelLabel));
+            AddNode(nodeControls, "LinkLabel", typeof(PanelLinkLabel));
+            AddNode(nodeControls, "MenuStrip", typeof(PanelMenuStrip));
+            AddNode(nodeControls, "MonthCalendar", typeof(PanelMonthCalendar));
+            AddNode(nodeControls, "NumericUpDown", typeof(PanelNumericUpDown));
+            AddNode(nodeControls, "Panel", typeof(PanelPanel));
+            AddNode(nodeControls, "PictureBox", typeof(PanelPictureBox));
+            AddNode(nodeControls, "ProgressBar", typeof(PanelProgressBar));
+            AddNode(nodeControls, "RadioButton", typeof(PanelRadioButton));
+            AddNode(nodeControls, "ScrollBar", typeof(PanelScrollBar));
+            AddNode(nodeControls, "TabControl", typeof(PanelTabControl));
+            
             treeView.Nodes.Add(nodeControls);
 
-            nodeControls.Expand();
+            var nodeOtherControls = new TreeNode("Other");
+            AddNode(nodeOtherControls, "ColorPicker", typeof(PanelColorPicker));
+            AddNode(nodeOtherControls, "TableView", typeof(PanelTableView));
+            
+            treeView.Nodes.Add(nodeOtherControls);
 
             // Refresh method or ExpandAll will update view list. 
             // NOTE: most controls don't need to be refreshed. Make sure to take a look 
             // at Refresh implementation in Control that you think is not working.
-            treeView.Refresh();
+            treeView.ExpandAll();
 
             // Grip renderer is normal control. Bring it to front if you use it over other controls that can technicaly hide it.
             // uwfSizeGripRenderer.BringToFront();
         }
 
+        private static void AddNode(TreeNode parent, string text, object tag)
+        {
+            var node = new TreeNode(text);
+            node.Tag = tag;
+            
+            parent.Nodes.Add(node);
+        }
         private void TreeViewOnNodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
             if (e.Button != MouseButtons.Left || e.Node == null || e.Node.Tag == null)

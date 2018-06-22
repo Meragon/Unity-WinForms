@@ -1,4 +1,6 @@
-﻿namespace System.Drawing
+﻿using System.Drawing.API;
+
+namespace System.Drawing
 {
     [Flags]
     public enum FontStyle
@@ -12,7 +14,7 @@
     
     public sealed class Font
     {
-        internal UnityEngine.Font UFont;
+        internal object fontObject;
 
         private readonly string name;
         private readonly FontStyle style;
