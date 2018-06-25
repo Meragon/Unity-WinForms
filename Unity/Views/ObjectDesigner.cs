@@ -1,10 +1,12 @@
-﻿namespace System.Windows.Forms.Design
+﻿namespace Unity.Views
 {
+    using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Drawing;
     using System.Linq;
     using System.Reflection;
+    using System.Windows.Forms;
 
     public class ObjectDesigner : IObjectDesigner
     {

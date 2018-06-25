@@ -2,12 +2,6 @@
 {
     internal static class ApplicationResources
     {
-        public static AppGdiImages Items
-        {
-            get
-            {
-                return Unity.API.UnityWinForms.GdiImages;
-            }
-        }
+        public static AppGdiImages Items;
     }
 }

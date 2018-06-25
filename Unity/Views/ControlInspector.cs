@@ -3,7 +3,6 @@
 namespace Unity.Views
 {
     using System;
-    using System.Windows.Forms.Design;
     using System.Windows.Forms;
 
     using UnityEngine;

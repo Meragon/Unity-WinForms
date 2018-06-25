@@ -1,4 +1,4 @@
-﻿namespace System.Windows.Forms.Design
+﻿namespace Unity.Views
 {
     public interface IObjectDesigner
     {

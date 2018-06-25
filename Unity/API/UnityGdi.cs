@@ -383,7 +383,11 @@ namespace Unity.API
             GUI_SetFont(UE.GUI.skin.textField, font);
             
             UE.GUI.color = color.ToUnityColor();
-
+            UE.GUI.skin.textField.hover.background = null;
+            UE.GUI.skin.textField.active.background = null;
+            UE.GUI.skin.textField.focused.background = null;
+            UE.GUI.skin.textField.normal.background = null;
+            
             return UE.GUI.PasswordField(new UE.Rect(x, y, width, height), s, '*');
         }
         internal string uwfDrawTextArea(string s, Font font, Color color, float x, float y, float width, float height)

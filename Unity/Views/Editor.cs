@@ -1,5 +1,6 @@
-﻿namespace System.Drawing
+﻿namespace Unity.Views
 {
+    using System;
     using System.Globalization;
     using System.Windows.Forms;
 
@@ -91,7 +92,7 @@
         {
             return GUILayout.Button(text, GUILayout.Width(width));
         }
-        public static void ColorField(string name, Color value, Action<Color> setColor)
+        public static void ColorField(string name, System.Drawing.Color value, Action<System.Drawing.Color> setColor)
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label(name + ":", GUILayout.Width(_nameWidth));
@@ -296,7 +297,7 @@
         {
             return GUILayout.Toggle(value, name, GUILayout.Width(_width));
         }
-        public static void SetBackColor(Color color)
+        public static void SetBackColor(System.Drawing.Color color)
         {
             GUI.backgroundColor = color.ToUnityColor();
         }
