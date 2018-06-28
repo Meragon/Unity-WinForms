@@ -37,9 +37,7 @@
         private readonly PaintEventArgs paintEventArgs;
         private float mousePositionX;
         private float mousePositionY;
-        private MouseEvents userMouseEvent;
-        private MouseEventArgs userMouseArgs;
-
+        
         public Application()
         {
             TabSwitching = true;
@@ -157,107 +155,30 @@
             if (keyEventType == KeyEvents.Down)
                 currentKeyDown = args.KeyCode;
         }
-        public void ProccessMouse(float mouseX, float mouseY)
+        public void ProccessMouse(MouseEvents mE, float mX, float mY, MouseButtons mButton, int clicks, int delta)
         {
             if (scaleX != 1f || scaleY != 1f)
             {
-                mouseX /= scaleX;
-                mouseY /= scaleY;
+                mX /= scaleX;
+                mY /= scaleY;
             }
 
-            mouseEvent = MouseEvents.None;
-            mouseButton = MouseButtons.None;
+            mouseEvent = mE;
+            mouseButton = mButton;
+            mouseWheelDelta = delta;
 
-            mousePositionChanged = mousePositionX != mouseX || mousePositionY != mouseY;
+            mousePositionChanged = mousePositionX != mX || mousePositionY != mY;
             if (mousePositionChanged)
                 updateHoveredControl = true;
 
-            mousePositionX = mouseX;
-            mousePositionY = mouseY;
-
-            #region Set events.
-
-            int eventButton = -1;
-            int eventClicks = 0;
-            float eventDelta = 0;
-            EventType eventType = EventType.Ignore;
-
-            if (userMouseArgs != null)
-            {
-                switch (userMouseArgs.Button)
-                {
-                    case MouseButtons.Left: eventButton = 0; break;
-                    case MouseButtons.Right: eventButton = 1; break;
-                    case MouseButtons.Middle: eventButton = 2; break;
-                }
-                eventClicks = userMouseArgs.Clicks;
-                eventDelta = userMouseArgs.Delta;
-                switch (userMouseEvent)
-                {
-                    case MouseEvents.Down: eventType = EventType.MouseDown; break;
-                    case MouseEvents.Up: eventType = EventType.MouseUp; break;
-                    case MouseEvents.Wheel: eventType = EventType.ScrollWheel; break;
-                }
-                userMouseArgs = null;
-            }
-            else
-            {
-                eventButton = Event.current.button;
-                eventClicks = Event.current.clickCount;
-                eventDelta = Event.current.delta.y;
-                eventType = Event.current.type;
-            }
-
-            switch (eventType)
-            {
-                case EventType.MouseDown:
-                    switch (eventButton)
-                    {
-                        case 0:
-                            mouseButton = MouseButtons.Left;
-                            mouseEvent = MouseEvents.Down;
-                            if (eventClicks > 1)
-                                mouseEvent = MouseEvents.DoubleClick;
-                            break;
-                        case 1:
-                            mouseButton = MouseButtons.Right;
-                            mouseEvent = MouseEvents.Down;
-                            break;
-                        case 2:
-                            mouseButton = MouseButtons.Middle;
-                            mouseEvent = MouseEvents.Down;
-                            break;
-                    }
-                    break;
-                case EventType.MouseUp:
-                    switch (eventButton)
-                    {
-                        case 0:
-                            mouseButton = MouseButtons.Left;
-                            mouseEvent = MouseEvents.Up;
-                            break;
-                        case 1:
-                            mouseButton = MouseButtons.Right;
-                            mouseEvent = MouseEvents.Up;
-                            break;
-                        case 2:
-                            mouseButton = MouseButtons.Middle;
-                            mouseEvent = MouseEvents.Up;
-                            break;
-                    }
-                    break;
-                case EventType.ScrollWheel:
-                    mouseEvent = MouseEvents.Wheel;
-                    mouseWheelDelta = eventDelta;
-                    break;
-            }
-
-            #endregion
-
+            mousePositionX = mX;
+            mousePositionY = mY;
+            
             //if (_mouseLastClickControl != null && _mouseEvent == MouseEvents.None && _mouseMovePosition != mousePosition)
             //    _ProcessControl(mousePosition, _mouseLastClickControl, true);
 
-            if (mouseEvent == MouseEvents.None && !mousePositionChanged) return;
+            if (mE == MouseEvents.None && !mousePositionChanged) 
+                return;
 
             // Dispose context first.
             for (int i = Contexts.Count - 1; i >= 0; i--) // We want to dispose child context first.
@@ -266,12 +187,12 @@
                 if (!contextControl.uwfContext) continue;
 
                 if (Contains(contextControl, hoveredControl)) continue;
-                if (mouseEvent != MouseEvents.Down) continue;
+                if (mE != MouseEvents.Down) continue;
 
                 contextControl.Dispose();
             }
 
-            if (hoveredControl == null && mouseEvent == MouseEvents.Up)
+            if (hoveredControl == null && mE == MouseEvents.Up)
             {
                 dragndrop = false;
                 dragData = null;
@@ -279,40 +200,30 @@
             }
 
             if (hoveredControl != null)
-                _ProcessControl(new PointF(mouseX, mouseY), hoveredControl, false);
+                _ProcessControl(new PointF(mX, mY), hoveredControl, false);
 
-            if (mouseEvent == MouseEvents.Down)
+            if (mE == MouseEvents.Down)
             {
-                var downArgs = new MouseEventArgs(mouseButton, 1, (int)mouseX, (int)mouseY, 0);
+                var downArgs = new MouseEventArgs(mouseButton, clicks, (int) mX, (int) mY, delta);
                 MouseHook.RaiseMouseDown(hoveredControl, downArgs);
             }
 
-            if (mouseEvent == MouseEvents.Up)
+            if (mE == MouseEvents.Up)
             {
-                var upArgs = new MouseEventArgs(mouseButton, 1, (int)mouseX, (int)mouseY, 0);
+                var upArgs = new MouseEventArgs(mouseButton, clicks, (int) mX, (int) mY, delta);
                 MouseHook.RaiseMouseUp(hoveredControl, upArgs);
             }
         }
-        public void ProccessMouse(PointF mousePosition)
-        {
-            ProccessMouse(mousePosition.X, mousePosition.Y);
-        }
         public void RaiseMouseEvent(MouseEvents mEv, MouseEventArgs mArgs)
         {
-            userMouseEvent = mEv;
-            userMouseArgs = mArgs;
-
-            ProccessMouse(new Drawing.PointF(mArgs.X, mArgs.Y));
+            if (mArgs != null)
+                ProccessMouse(mEv, mArgs.X, mArgs.Y, mArgs.Button, mArgs.Clicks, mArgs.Delta);
         }
         /// <summary>
         /// Redrawing the whole screen.
         /// </summary>
         public void Redraw()
         {
-            // Scale if needed.
-            if (scaleX != 1f || scaleY != 1f)
-                UnityEngine.GUI.matrix = UnityEngine.Matrix4x4.TRS(Vector3.zero, Quaternion.AngleAxis(0, Vector3.up), new Vector3(scaleX, scaleY, 1));
-
             paintEventArgs.Graphics.Clear(System.Drawing.Color.White);
 
             for (int i = 0; i < Forms.Count; i++)

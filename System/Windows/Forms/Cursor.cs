@@ -35,7 +35,7 @@
                 if (current == null)
                     current = Cursors.Default;
 
-                UnityEngine.Cursor.visible = IsVisible;
+                ApiHolder.Input.CursorVisible = IsVisible;
             }
         }
         public static Point Position
@@ -55,7 +55,7 @@
 
                 currentSystem = value;
 
-                UnityEngine.Cursor.visible = IsVisible;
+                ApiHolder.Input.CursorVisible = IsVisible;
             }
         }
         internal static bool IsVisible

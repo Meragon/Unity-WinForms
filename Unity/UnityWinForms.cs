@@ -4,23 +4,23 @@
     using System.Collections.Generic;
     using System.Drawing;
     using System.Windows.Forms;
-
     using Color = UnityEngine.Color;
     using UE = UnityEngine;
+    using SWF = System.Windows.Forms;
 
     public sealed class UnityWinForms : UE.MonoBehaviour
     {
         public AppResources Resources;
 
         private static readonly List<invokeAction> actions = new List<invokeAction>();
-        private static UE.Texture2D defaultSprite;
+        private static          UE.Texture2D       defaultSprite;
 
         private Application controller;
-        private float lastWidth;
-        private float lastHeight;
-        private bool shiftPressed;
-        private float shiftWait; // Shift pressing is really fast.
-        private bool paused;
+        private float       lastWidth;
+        private float       lastHeight;
+        private bool        shiftPressed;
+        private float       shiftWait; // Shift pressing is really fast.
+        private bool        paused;
 
         internal static UE.Texture2D DefaultSprite
         {
@@ -30,8 +30,8 @@
 
                 defaultSprite = new UE.Texture2D(32, 32);
                 for (int i = 0; i < defaultSprite.height; i++)
-                    for (int k = 0; k < defaultSprite.width; k++)
-                        defaultSprite.SetPixel(k, i, Color.white);
+                for (int k = 0; k < defaultSprite.width; k++)
+                    defaultSprite.SetPixel(k, i, Color.white);
                 defaultSprite.Apply();
                 return defaultSprite;
             }
@@ -53,10 +53,10 @@
             if (a == null) return null;
 
             var ia = new invokeAction()
-                         {
-                             Action = a,
-                             Seconds = seconds
-                         };
+            {
+                Action = a,
+                Seconds = seconds
+            };
 
             actions.Add(ia);
             return ia;
@@ -64,10 +64,15 @@
 
         private void Awake()
         {
+            ApiHolder.Graphics = new UnityGdi();
+            ApiHolder.Input = new UnityInput();
+            ApiHolder.System = new UnitySystem();
+            ApiHolder.Timing = new UnityTiming();
+            
             gResources = Resources;
 
-            Screen.width = (int)(UE.Screen.width / Application.ScaleX);
-            Screen.height = (int)(UE.Screen.height / Application.ScaleY);
+            Screen.width = (int) (UE.Screen.width / Application.ScaleX);
+            Screen.height = (int) (UE.Screen.height / Application.ScaleY);
 
             // Enum + dictionary?
             GdiImages = new AppGdiImages();
@@ -105,6 +110,7 @@
             GdiImages.Cursors.VSplit = gResources.Images.Cursors.VSplit.ToBitmap();
 
             ApplicationResources.Items = GdiImages;
+            Cursors.images = GdiImages.Cursors;
             
             lastWidth = UE.Screen.width;
             lastHeight = UE.Screen.height;
@@ -124,22 +130,23 @@
             var ueScreenWidth = UE.Screen.width;
             var ueScreenHeight = UE.Screen.height;
 
-            Screen.width = (int)(ueScreenWidth / Application.ScaleX);
-            Screen.height = (int)(ueScreenHeight / Application.ScaleY);
+            Screen.width = (int) (ueScreenWidth / Application.ScaleX);
+            Screen.height = (int) (ueScreenHeight / Application.ScaleY);
 
             if (controller != null)
             {
                 if (lastWidth != ueScreenWidth || lastHeight != ueScreenHeight)
                 {
                     Size deltaSize = new Size(
-                        (int)(lastWidth - UE.Screen.width),
-                        (int)(lastHeight - UE.Screen.height));
+                        (int) (lastWidth - UE.Screen.width),
+                        (int) (lastHeight - UE.Screen.height));
                     for (int i = 0; i < controller.ModalForms.Count; i++)
                         controller.ModalForms[i].uwfAddjustSizeToScreen(deltaSize);
                     for (int i = 0; i < controller.Forms.Count; i++)
                         controller.Forms[i].uwfAddjustSizeToScreen(deltaSize);
                     controller.UpdatePaintClipRect();
                 }
+
                 lastWidth = ueScreenWidth;
                 lastHeight = ueScreenHeight;
 
@@ -169,22 +176,81 @@
 
             if (paused == false)
             {
-                // Mouse.
-                controller.ProccessMouse(UE.Input.mousePosition.x, UE.Screen.height - UE.Input.mousePosition.y);
-
-                // Keys.
                 var currentEvent = UE.Event.current;
-                var currentEventType = currentEvent.type;
+                
+                var currentButton = currentEvent.button;
+                var currentClicks = currentEvent.clickCount;
+                var currentDelta = currentEvent.delta.y;
                 var currentKeyCode = currentEvent.keyCode;
                 var currentKeyModifiers = currentEvent.modifiers;
+                var currentType = currentEvent.type;
+                
+                // Prepare mouse.
+                var mouseButton = MouseButtons.None;
+                var mouseEvent = Application.MouseEvents.None;
+                var mouseWheelDelta = 0f;
+                
+                switch (currentType)
+                {
+                    case UE.EventType.MouseDown:
+                        switch (currentButton)
+                        {
+                            case 0:
+                                mouseButton = MouseButtons.Left;
+                                mouseEvent = Application.MouseEvents.Down;
+                                if (currentClicks > 1)
+                                    mouseEvent = Application.MouseEvents.DoubleClick;
+                                break;
+                            case 1:
+                                mouseButton = MouseButtons.Right;
+                                mouseEvent = Application.MouseEvents.Down;
+                                break;
+                            case 2:
+                                mouseButton = MouseButtons.Middle;
+                                mouseEvent = Application.MouseEvents.Down;
+                                break;
+                        }
 
+                        break;
+                    case UE.EventType.MouseUp:
+                        switch (currentButton)
+                        {
+                            case 0:
+                                mouseButton = MouseButtons.Left;
+                                mouseEvent = Application.MouseEvents.Up;
+                                break;
+                            case 1:
+                                mouseButton = MouseButtons.Right;
+                                mouseEvent = Application.MouseEvents.Up;
+                                break;
+                            case 2:
+                                mouseButton = MouseButtons.Middle;
+                                mouseEvent = Application.MouseEvents.Up;
+                                break;
+                        }
+
+                        break;
+                    case UE.EventType.ScrollWheel:
+                        mouseEvent = Application.MouseEvents.Wheel;
+                        mouseWheelDelta = currentDelta;
+                        break;
+                }
+
+                // Mouse.
+                var mouseX = UE.Input.mousePosition.x;
+                var mouseY = UE.Screen.height - UE.Input.mousePosition.y;
+                
+                controller.ProccessMouse(mouseEvent, mouseX, mouseY, mouseButton, currentClicks, (int)mouseWheelDelta);
+
+                // Keys.
+                
                 // Manualy set event for 'shift' key.
                 if (shiftPressed && currentKeyCode == UE.KeyCode.None)
                 {
                     if (shiftWait <= 0)
                     {
                         currentKeyCode = UE.KeyCode.LeftShift;
-                        currentEventType = UE.EventType.KeyDown;
+                        currentType = UE.EventType.KeyDown;
 
                         shiftWait = .2f;
                     }
@@ -199,7 +265,7 @@
 
                 if (prevShift && shiftPressed == false && currentKeyCode == UE.KeyCode.LeftShift)
                     currentEventType = UE.EventType.KeyUp;*/
-                
+
                 // Proccess.
                 if (currentKeyCode != UE.KeyCode.None)
                 {
@@ -210,11 +276,20 @@
                     if ((keyArgs.uwfModifiers & UE.EventModifiers.FunctionKey) != 0)
                         keyArgs.uwfModifiers &= ~UE.EventModifiers.FunctionKey;
 
-                    var keyEventType = (Application.KeyEvents)(currentEventType - 3);
+                    var keyEventType = (Application.KeyEvents) (currentType - 3);
                     if (keyEventType == Application.KeyEvents.Down || keyEventType == Application.KeyEvents.Up)
                         controller.ProccessKeys(keyArgs, keyEventType);
                 }
             }
+
+            // Scale if needed.
+            var scaleX = SWF.Application.ScaleX;
+            var scaleY = SWF.Application.ScaleY;
+            if (scaleX != 1f || scaleY != 1f)
+                UnityEngine.GUI.matrix = UnityEngine.Matrix4x4.TRS(
+                    UE.Vector3.zero,
+                    UE.Quaternion.AngleAxis(0, UE.Vector3.up),
+                    new UE.Vector3(scaleX, scaleY, 1));
 
             controller.Redraw();
         }

@@ -84,6 +84,7 @@
         public event KeyEventHandler KeyDown;
         public event KeyPressEventHandler KeyPress;
         public event KeyEventHandler KeyUp;
+        public event LayoutEventHandler Layout;
         public event EventHandler LocationChanged;
         public event EventHandler LostFocus;
         public event MouseEventHandler MouseClick;
@@ -350,7 +351,7 @@
         }
         public void PerformLayout()
         {
-            PerformLayout(null);
+            OnLayout(null);
         }
         public Point PointToClient(Point p)
         {
@@ -492,9 +493,9 @@
             else if (backColor.A > 0) // Fill back.
                 PaintBackColor(e, rectangle, backColor);
         }
-        internal void PerformLayout(object args)
+        internal void PerformLayout(Control affectedControl, string affectedProperty)
         {
-            OnLayout(args);
+            OnLayout(new LayoutEventArgs(affectedControl, affectedProperty));
         }
         internal virtual void RaiseOnDragDrop(DragEventArgs drgevent)
         {
@@ -767,8 +768,11 @@
             if (keyUp != null)
                 keyUp(this, e);
         }
-        protected virtual void OnLayout(object levent)
+        protected virtual void OnLayout(LayoutEventArgs e)
         {
+            var handler = Layout;
+            if (handler != null)
+                handler(this, e);
         }
         protected virtual void OnLocationChanged(EventArgs e)
         {

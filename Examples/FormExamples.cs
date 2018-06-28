@@ -82,6 +82,22 @@
             // uwfSizeGripRenderer.BringToFront();
         }
 
+        public void SetPanel(BaseExamplePanel panel)
+        {
+            if (currentPanel != null && currentPanel.IsDisposed == false)
+                currentPanel.Dispose();
+
+            currentPanel = panel;
+            currentPanel.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
+            currentPanel.Location = new Point(treeView.Location.X + treeView.Width, uwfHeaderHeight);
+            currentPanel.Height = Height - uwfHeaderHeight - 16; // We don't want to hide SizeGripRenderer with scrollbars.
+            currentPanel.Width = Width - treeView.Width;
+
+            Controls.Add(currentPanel);
+
+            currentPanel.Initialize();
+        }
+        
         private static void AddNode(TreeNode parent, string text, object tag)
         {
             var node = new TreeNode(text);
@@ -102,18 +118,7 @@
             if (panel == null)
                 return;
 
-            if (currentPanel != null && currentPanel.IsDisposed == false)
-                currentPanel.Dispose();
-
-            currentPanel = panel;
-            currentPanel.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
-            currentPanel.Location = new Point(treeView.Location.X + treeView.Width, uwfHeaderHeight);
-            currentPanel.Height = Height - uwfHeaderHeight - 16; // We don't want to hide SizeGripRenderer with scrollbars.
-            currentPanel.Width = Width - treeView.Width;
-
-            Controls.Add(currentPanel);
-
-            currentPanel.Initialize();
+            SetPanel(panel);
         }
     }
 }

@@ -4,7 +4,7 @@
 
     public static class Cursors
     {
-        private static AppGdiImages.CursorImages images = Unity.API.UnityWinForms.GdiImages.Cursors;
+        internal static AppGdiImages.CursorImages images;
         
         private static Cursor defaultCursor;
         private static Cursor sizeAll;

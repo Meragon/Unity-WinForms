@@ -163,9 +163,9 @@
         {
             return (bit & scrollState) == bit;
         }
-        protected override void OnLayout(object levent)
+        protected override void OnLayout(LayoutEventArgs e)
         {
-            base.OnLayout(levent);
+            base.OnLayout(e);
 
             UpdateScrolls();
         }
