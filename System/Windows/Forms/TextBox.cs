@@ -62,6 +62,19 @@
             get { return new Size(100, 24); }
         }
 
+        protected override void OnMouseEnter(EventArgs e)
+        {
+            base.OnMouseEnter(e);
+
+            if (Enabled && ReadOnly == false)
+                Cursor.Current = Cursors.IBeam;
+        }
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            base.OnMouseLeave(e);
+
+            Cursor.Current = Cursors.Default;
+        }
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);

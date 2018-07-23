@@ -12,8 +12,7 @@
     {
         public AppResources Resources;
 
-        private static readonly List<invokeAction> actions = new List<invokeAction>();
-        private static          UE.Texture2D       defaultSprite;
+        private static UE.Texture2D defaultSprite;
 
         private Application controller;
         private float       lastWidth;
@@ -48,19 +47,6 @@
                 Views.ControlInspector.Self.DesignerObject = obj;
 #endif
         }
-        internal static invokeAction Invoke(Action a, float seconds)
-        {
-            if (a == null) return null;
-
-            var ia = new invokeAction()
-            {
-                Action = a,
-                Seconds = seconds
-            };
-
-            actions.Add(ia);
-            return ia;
-        }
 
         private void Awake()
         {
@@ -68,7 +54,7 @@
             ApiHolder.Input = new UnityInput();
             ApiHolder.System = new UnitySystem();
             ApiHolder.Timing = new UnityTiming();
-            
+
             gResources = Resources;
 
             Screen.width = (int) (UE.Screen.width / Application.ScaleX);
@@ -99,9 +85,10 @@
             GdiImages.TreeNodeExpanded = gResources.Images.TreeNodeExpanded.ToBitmap();
 
             GdiImages.Cursors.Default = gResources.Images.Cursors.Default.ToBitmap();
-            GdiImages.Cursors.HSplit = gResources.Images.Cursors.HSplit.ToBitmap();
             GdiImages.Cursors.Hand = gResources.Images.Cursors.Hand.ToBitmap();
             GdiImages.Cursors.Help = gResources.Images.Cursors.Help.ToBitmap();
+            GdiImages.Cursors.HSplit = gResources.Images.Cursors.HSplit.ToBitmap();
+            GdiImages.Cursors.IBeam = gResources.Images.Cursors.IBeam.ToBitmap();
             GdiImages.Cursors.SizeAll = gResources.Images.Cursors.SizeAll.ToBitmap();
             GdiImages.Cursors.SizeNESW = gResources.Images.Cursors.SizeNESW.ToBitmap();
             GdiImages.Cursors.SizeNS = gResources.Images.Cursors.SizeNS.ToBitmap();
@@ -111,7 +98,7 @@
 
             ApplicationResources.Items = GdiImages;
             Cursors.images = GdiImages.Cursors;
-            
+
             lastWidth = UE.Screen.width;
             lastHeight = UE.Screen.height;
 
@@ -152,17 +139,6 @@
 
                 controller.Update();
             }
-
-            for (int i = 0; i < actions.Count; i++)
-            {
-                var a = actions[i];
-                a.Seconds -= UE.Time.deltaTime;
-                if (a.Seconds > 0) continue;
-
-                a.Action();
-                actions.RemoveAt(i);
-                i--;
-            }
         }
         private void OnApplicationFocus(bool focusStatus)
         {
@@ -177,19 +153,19 @@
             if (paused == false)
             {
                 var currentEvent = UE.Event.current;
-                
+
                 var currentButton = currentEvent.button;
                 var currentClicks = currentEvent.clickCount;
                 var currentDelta = currentEvent.delta.y;
                 var currentKeyCode = currentEvent.keyCode;
                 var currentKeyModifiers = currentEvent.modifiers;
                 var currentType = currentEvent.type;
-                
+
                 // Prepare mouse.
                 var mouseButton = MouseButtons.None;
                 var mouseEvent = Application.MouseEvents.None;
                 var mouseWheelDelta = 0f;
-                
+
                 switch (currentType)
                 {
                     case UE.EventType.MouseDown:
@@ -239,11 +215,11 @@
                 // Mouse.
                 var mouseX = UE.Input.mousePosition.x;
                 var mouseY = UE.Screen.height - UE.Input.mousePosition.y;
-                
-                controller.ProccessMouse(mouseEvent, mouseX, mouseY, mouseButton, currentClicks, (int)mouseWheelDelta);
+
+                controller.ProccessMouse(mouseEvent, mouseX, mouseY, mouseButton, currentClicks, (int) mouseWheelDelta);
 
                 // Keys.
-                
+
                 // Manualy set event for 'shift' key.
                 if (shiftPressed && currentKeyCode == UE.KeyCode.None)
                 {
@@ -292,12 +268,6 @@
                     new UE.Vector3(scaleX, scaleY, 1));
 
             controller.Redraw();
-        }
-
-        internal class invokeAction
-        {
-            public Action Action { get; set; }
-            public float Seconds { get; set; }
         }
     }
 }

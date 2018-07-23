@@ -41,7 +41,8 @@ namespace Unity.Views
 
             var imgCursorHand = images.Find(x => x.name == "hand");
             var imgCursorHelp = images.Find(x => x.name == "help");
-            var imgCursorHSpplit = images.Find(x => x.name == "hsplit");
+            var imgCursorHSplit = images.Find(x => x.name == "hsplit");
+            var imgCursorIBeam = images.Find(x => x.name == "ibeam");
             var imgCursorSizeAll = images.Find(x => x.name == "sizeall");
             var imgCursorSizeNESW = images.Find(x => x.name == "sizenesw");
             var imgCursorSizeNS = images.Find(x => x.name == "sizens");
@@ -84,7 +85,8 @@ namespace Unity.Views
                 if (obj.Resources.Images.Close == null) obj.Resources.Images.Close = imgClose;
                 if (obj.Resources.Images.Cursors.Hand == null) obj.Resources.Images.Cursors.Hand = imgCursorHand;
                 if (obj.Resources.Images.Cursors.Help == null) obj.Resources.Images.Cursors.Help = imgCursorHelp;
-                if (obj.Resources.Images.Cursors.HSplit == null) obj.Resources.Images.Cursors.HSplit = imgCursorHSpplit;
+                if (obj.Resources.Images.Cursors.HSplit == null) obj.Resources.Images.Cursors.HSplit = imgCursorHSplit;
+                if (obj.Resources.Images.Cursors.IBeam == null) obj.Resources.Images.Cursors.IBeam = imgCursorIBeam;
                 if (obj.Resources.Images.Cursors.SizeAll == null) obj.Resources.Images.Cursors.SizeAll = imgCursorSizeAll;
                 if (obj.Resources.Images.Cursors.SizeNESW == null) obj.Resources.Images.Cursors.SizeNESW = imgCursorSizeNESW;
                 if (obj.Resources.Images.Cursors.SizeNS == null) obj.Resources.Images.Cursors.SizeNS = imgCursorSizeNS;

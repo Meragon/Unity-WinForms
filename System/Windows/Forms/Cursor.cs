@@ -100,7 +100,12 @@
         }
         public void Draw(Graphics g, Rectangle targetRect)
         {
-            g.DrawImage(image, targetRect.X + HotSpot.X / Application.ScaleX, targetRect.Y + HotSpot.Y / Application.ScaleY, targetRect.Width, targetRect.Height);
+            g.DrawImage(
+                image, 
+                targetRect.X + HotSpot.X / Application.ScaleX, 
+                targetRect.Y + HotSpot.Y / Application.ScaleY, 
+                targetRect.Width, 
+                targetRect.Height);
         }
     }
 }

@@ -89,6 +89,7 @@ public class AppResources
         public Image Hand;
         public Image Help;
         public Image HSplit;
+        public Image IBeam;
         public Image SizeAll;
         public Image SizeNESW;
         public Image SizeNS;

@@ -34,6 +34,7 @@
             public Bitmap Hand;
             public Bitmap Help;
             public Bitmap HSplit;
+            public Bitmap IBeam;
             public Bitmap SizeAll;
             public Bitmap SizeNESW;
             public Bitmap SizeNS;

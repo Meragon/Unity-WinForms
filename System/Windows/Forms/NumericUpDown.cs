@@ -134,6 +134,19 @@
             if (e.KeyCode == Keys.Return)
                 ConfirmValue();
         }
+        protected override void OnMouseEnter(EventArgs e)
+        {
+            base.OnMouseEnter(e);
+
+            if (Enabled)
+                Cursor.Current = Cursors.IBeam;
+        }
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            base.OnMouseLeave(e);
+            
+            Cursor.Current = Cursors.Default;
+        }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             if (!Focused) return;

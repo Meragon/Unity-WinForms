@@ -190,8 +190,8 @@
                 char c = KeyHelper.GetLastInputChar();
                 if (char.IsLetterOrDigit(c) || char.IsPunctuation(c))
                 {
-                    filter += c;
-                    var itemIndex = listBox.FindItemIndex(x => x != null && x.ToString().Contains(filter));
+                    filter += char.ToLower(c);
+                    var itemIndex = listBox.FindItemIndex(x => x != null && x.ToString().ToLower().Contains(filter));
                     if (itemIndex > -1)
                         listBox.SelectItem(itemIndex);
                 }
@@ -212,6 +212,25 @@
                 keyFlag = true;
                 CreateListBox(String.Empty);
             }
+        }
+        protected override void OnMouseHover(EventArgs e)
+        {
+            base.OnMouseHover(e);
+
+            if (Enabled && DropDownStyle == ComboBoxStyle.DropDown)
+            {
+                var mclient = PointToClient(MousePosition);
+                if (mclient.X < Width - 16)
+                    Cursor.Current = Cursors.IBeam;
+                else
+                    Cursor.Current = Cursors.Default;
+            }            
+        }
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            base.OnMouseLeave(e);
+            
+            Cursor.Current = Cursors.Default;
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {

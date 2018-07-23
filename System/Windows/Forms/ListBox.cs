@@ -22,8 +22,8 @@
         private bool integralHeightAdjust = true;
         private int itemHeight = DefaultItemHeight;
         private string keyFilter = "";
-        private Unity.API.UnityWinForms.invokeAction keyFilterIA;
-        private float keyFilterResetTime = 3;
+        private Timer keyTimer;
+        private int keyFilterResetTime = 3; // seconds.
         private int visibleItemsCount = 0;
         private bool scrollAlwaysVisible;
         private int selectedIndex = -1;
@@ -314,9 +314,15 @@
                         var itemIndex = FindItemIndex(x => x != null && x.ToString().ToLower().StartsWith(keyFilter));
                         SelectItem(itemIndex);
 
-                        if (keyFilterIA == null)
-                            keyFilterIA = Unity.API.UnityWinForms.Invoke(ResetKeyFilter, keyFilterResetTime);
-                        keyFilterIA.Seconds = keyFilterResetTime;
+                        if (keyTimer == null)
+                        {
+                            keyTimer = new Timer();
+                            keyTimer.Interval = keyFilterResetTime * 1000;
+                            keyTimer.Tick += (sender, args) => ResetKeyFilter();
+                        }
+                        
+                        keyTimer.Stop();
+                        keyTimer.Start();
                     }
                     break;
             }
@@ -466,7 +472,8 @@
         private void ResetKeyFilter()
         {
             keyFilter = "";
-            keyFilterIA = null;
+            keyTimer.Dispose();
+            keyTimer = null;
         }
 
         public class ObjectCollection : IList

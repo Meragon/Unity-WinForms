@@ -14,7 +14,7 @@ namespace System.Windows.Forms
             dropDownItems = new ToolStripItemCollection(Parent, null);
 
             ArrowColor = Color.Black;
-            ArrowImage = Unity.API.UnityWinForms.GdiImages.DropDownRightArrow;
+            ArrowImage = ApplicationResources.Items.DropDownRightArrow;
         }
 
         public ToolStripDropDown DropDown

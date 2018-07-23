@@ -16,6 +16,7 @@
         private static Cursor hSplit;
         private static Cursor vSplit;
         private static Cursor hand;
+        private static Cursor iBeam;
 
         public static Cursor Default
         {
@@ -59,6 +60,19 @@
                 }
 
                 return hSplit;
+            }
+        }
+        public static Cursor IBeam
+        {
+            get
+            {
+                if (iBeam == null)
+                {
+                    iBeam = new Cursor(images.IBeam);
+                    iBeam.SetHotspot(Cursor.PointPositionTypes.Middle, Cursor.PointPositionTypes.Middle);
+                }
+
+                return iBeam;
             }
         }
         public static Cursor SizeAll

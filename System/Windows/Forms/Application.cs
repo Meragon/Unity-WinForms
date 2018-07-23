@@ -5,10 +5,6 @@
     using System.Globalization;
     using System.Linq;
 
-    using UnityEngine;
-
-    using Graphics = System.Drawing.Graphics;
-
     internal delegate void DragDropRenderHandler(Graphics g);
 
     public class Application
@@ -71,17 +67,6 @@
         }
 
         internal static bool IsDraging { get { return dragndrop; } }
-        internal static bool IsStandalone
-        {
-            get
-            {
-#if UNITY_STANDALONE
-                return true;
-#else
-                return false;
-#endif
-            }
-        }
         internal static float ScaleX
         {
             get { return scaleX; }
@@ -133,14 +118,14 @@
                 var keyControl = Control.lastSelected;
 
                 // Tab switching through controls.
-                if (TabSwitching && Event.current.keyCode == KeyCode.Tab && keyEventType == KeyEvents.Down)
+                if (TabSwitching && args.KeyCode == Keys.Tab && keyEventType == KeyEvents.Down)
                 {
                     var containerControl = GetRootControl(keyControl) as ContainerControl;
                     if (containerControl != null)
                     {
-                        if (Event.current.modifiers == EventModifiers.None)
+                        if (args.Modifiers == Keys.None)
                             containerControl.RaiseProcessTabKey(true, keyControl);
-                        else if (Event.current.modifiers == EventModifiers.Shift)
+                        else if (args.Shift)
                             containerControl.RaiseProcessTabKey(false, keyControl);
                     }
                 }
@@ -213,11 +198,6 @@
                 var upArgs = new MouseEventArgs(mouseButton, clicks, (int) mX, (int) mY, delta);
                 MouseHook.RaiseMouseUp(hoveredControl, upArgs);
             }
-        }
-        public void RaiseMouseEvent(MouseEvents mEv, MouseEventArgs mArgs)
-        {
-            if (mArgs != null)
-                ProccessMouse(mEv, mArgs.X, mArgs.Y, mArgs.Button, mArgs.Clicks, mArgs.Delta);
         }
         /// <summary>
         /// Redrawing the whole screen.
