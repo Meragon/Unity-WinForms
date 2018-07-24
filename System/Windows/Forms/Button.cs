@@ -31,13 +31,9 @@
 
         protected override void OnClick(EventArgs e)
         {
-            Form form = FindFormInternal();
+            var form = FindFormInternal();
             if (form != null)
-            {
                 form.DialogResult = dialogResult;
-                /*if (form.AcceptButton == this && form.dialog)
-                    form.Close();*/
-            }
 
             base.OnClick(e);
         }

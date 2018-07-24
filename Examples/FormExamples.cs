@@ -49,7 +49,6 @@
             AddNode(nodeControls, "CheckBox", typeof(PanelCheckBox));
             AddNode(nodeControls, "ComboBox", typeof(PanelComboBox));
             AddNode(nodeControls, "DateTimePicker", typeof(PanelDateTimePicker));
-            AddNode(nodeControls, "Button", typeof(PanelButton));
             AddNode(nodeControls, "FileDialog", typeof(PanelFileDialog));
             AddNode(nodeControls, "Form", typeof(PanelForm));
             AddNode(nodeControls, "GroupBox", typeof(PanelGroupBox));

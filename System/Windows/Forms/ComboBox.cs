@@ -4,9 +4,17 @@
     using System.Collections.Generic;
     using System.Drawing;
 
-    // TODO: rename not original properties.
     public class ComboBox : ListControl
     {
+        internal Color uwfBackColorDropDownList = Color.FromArgb(235, 235, 235);
+        internal Color uwfBorderColor = Color.DarkGray;
+        internal Color uwfBorderColorDisabled = Color.FromArgb(217, 217, 217);
+        internal Color uwfBorderColorHovered = Color.FromArgb(126, 180, 234);
+        internal Color uwfDisabledColor = SystemColors.Control;
+        internal Color uwfHoverColor = Color.White;
+        internal Color uwfHoverColorDropDownList = Color.FromArgb(227, 240, 252);
+        internal bool  uwfWrapText;
+        
         private const int DOWN_BUTTON_WIDTH = 17;
 
         private readonly Pen borderPen = new Pen(Color.Transparent);
@@ -28,14 +36,7 @@
             AutoCompleteMode = AutoCompleteMode.None;
             AutoCompleteSource = AutoCompleteSource.None;
             BackColor = Color.White;
-            BackColorDropDownList = Color.FromArgb(235, 235, 235);
-            BorderColor = Color.DarkGray;
-            BorderColorDisabled = Color.FromArgb(217, 217, 217);
-            BorderColorHovered = Color.FromArgb(126, 180, 234);
-            DisabledColor = SystemColors.Control;
             DropDownStyle = ComboBoxStyle.DropDown;
-            HoverColor = Color.White;
-            HoverColorDropDownList = Color.FromArgb(227, 240, 252);
             Padding = new Padding(4, 0, 4, 0);
         }
 
@@ -45,11 +46,6 @@
 
         public AutoCompleteMode AutoCompleteMode { get; set; }
         public AutoCompleteSource AutoCompleteSource { get; set; }
-        public Color BackColorDropDownList { get; set; }
-        public Color BorderColor { get; set; }
-        public Color BorderColorDisabled { get; set; }
-        public Color BorderColorHovered { get; set; }
-        public Color DisabledColor { get; set; }
         public ComboBoxStyle DropDownStyle
         {
             get { return dropDownStyle; }
@@ -70,8 +66,6 @@
             }
         }
         public ComboBox.ObjectCollection Items { get; private set; }
-        public Color HoverColor { get; set; }
-        public Color HoverColorDropDownList { get; set; }
         public int MaxDropDownItems
         {
             get { return maxDropDownItems; }
@@ -101,7 +95,6 @@
             }
             set { SelectedIndex = Items.IndexOf(value); }
         }
-        public bool WrapText { get; set; }
 
         protected override Size DefaultSize
         {
@@ -257,7 +250,7 @@
 
             #region get colors.
             var backColor = BackColor;
-            var borderColor = BorderColor;
+            var borderColor = uwfBorderColor;
             var arrowColor = Color.FromArgb(96, 96, 96);
             if (Enabled)
             {
@@ -266,22 +259,22 @@
                     case ComboBoxStyle.DropDown:
                         if (Focused || uwfHovered)
                         {
-                            backColor = HoverColor;
-                            borderColor = BorderColorHovered;
+                            backColor = uwfHoverColor;
+                            borderColor = uwfBorderColorHovered;
                         }
                         break;
                     case ComboBoxStyle.DropDownList:
-                        backColor = Focused || uwfHovered ? HoverColorDropDownList : BackColorDropDownList;
+                        backColor = Focused || uwfHovered ? uwfHoverColorDropDownList : uwfBackColorDropDownList;
                         break;
                 }
 
                 if (Focused || uwfHovered)
-                    borderColor = BorderColorHovered;
+                    borderColor = uwfBorderColorHovered;
             }
             else
             {
-                backColor = DisabledColor;
-                borderColor = BorderColorDisabled;
+                backColor = uwfDisabledColor;
+                borderColor = uwfBorderColorDisabled;
             }
 
             borderPen.Color = borderColor;
@@ -291,7 +284,7 @@
             var height = Height;
             var width = Width;
             var textWidth = width - DOWN_BUTTON_WIDTH;
-            if (WrapText == false)
+            if (uwfWrapText == false)
                 textWidth *= 2;
 
             g.uwfFillRectangle(backColor, 0, 0, width, height);
@@ -327,8 +320,8 @@
                         if (bRect.Contains(mclient))
                         {
                             arrowColor = Color.Black;
-                            downButtonBackColor = HoverColorDropDownList;
-                            downButtonBorderPen.Color = BorderColorHovered;
+                            downButtonBackColor = uwfHoverColorDropDownList;
+                            downButtonBorderPen.Color = uwfBorderColorHovered;
                         }
                         else
                             downButtonBorderPen.Color = Color.Transparent;
@@ -397,9 +390,9 @@
                 listBox.Width = Width;
                 listBox.ItemHeight = ItemHeight;
                 listBox.Height = listBox.ItemHeight * (Items.Count > MaxDropDownItems ? MaxDropDownItems : Items.Count);
-                listBox.WrapText = false;
+                listBox.uwfWrapText = false;
                 listBox.uwfShadowBox = true;
-                listBox.BorderColor = listBox.BorderSelectColor;
+                listBox.uwfBorderColor = listBox.uwfBorderSelectColor;
                 if (listBox.Height < listBox.ItemHeight) listBox.Height = listBox.ItemHeight;
 
                 bool selectedIndexChanged = false;

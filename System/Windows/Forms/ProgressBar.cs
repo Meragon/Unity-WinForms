@@ -5,23 +5,23 @@
 
     public class ProgressBar : Control
     {
-        private readonly SolidBrush backBrush = new SolidBrush(SystemColors.ControlLight);
-        private readonly SolidBrush barBrush = new SolidBrush(Color.FromArgb(6, 176, 37));
-        private readonly SolidBrush barBrushLight1 = new SolidBrush(Color.FromArgb(83, 200, 105));
-        private readonly SolidBrush barBrushLight2 = new SolidBrush(Color.FromArgb(43, 188, 69));
-        private readonly Pen borderPen = new Pen(SystemColors.ActiveBorder);
-        private readonly Color defaultProgressForeColor = SystemColors.Highlight;
+        private readonly SolidBrush backBrush                = new SolidBrush(SystemColors.ControlLight);
+        private readonly SolidBrush barBrush                 = new SolidBrush(Color.FromArgb(6, 176, 37));
+        private readonly SolidBrush barBrushLight1           = new SolidBrush(Color.FromArgb(83, 200, 105));
+        private readonly SolidBrush barBrushLight2           = new SolidBrush(Color.FromArgb(43, 188, 69));
+        private readonly Pen        borderPen                = new Pen(SystemColors.ActiveBorder);
+        private readonly Color      defaultProgressForeColor = SystemColors.Highlight;
 
         private float barX;
         private float barWidth;
-        private int marqueeSpeed = 100;
-        private int marqueeWidth = 127;
-        private int maximum = 100;
-        private int minimum;
-        private bool rightToLeftLayout;
-        private int step = 10;
-        private bool updatePos;
-        private int value;
+        private int   marqueeSpeed = 100;
+        private int   marqueeWidth = 127;
+        private int   maximum      = 100;
+        private int   minimum;
+        private bool  rightToLeftLayout;
+        private int   step = 10;
+        private bool  updatePos;
+        private int   value;
 
         public ProgressBar()
         {

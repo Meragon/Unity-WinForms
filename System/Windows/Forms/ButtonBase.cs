@@ -12,6 +12,7 @@
         internal Color uwfHoverColor = Color.FromArgb(223, 238, 252);
         internal Bitmap uwfImageHover;
         internal Color uwfImageColor = Color.White;
+        internal Color uwfImageDisabledColor = Color.White;
         internal Color uwfImageHoverColor = Color.White;
 
         private const float IMAGE_BORDER_OFFSET = 2f;
@@ -168,7 +169,9 @@
             var imageWidth = imageToPaint.Width;
             var imageHeight = imageToPaint.Height;
             var imageColorToPaint = uwfImageColor;
-            if (uwfHovered)
+            if (Enabled == false)
+                imageColorToPaint = uwfImageDisabledColor;
+            else if (uwfHovered)
             {
                 if (uwfImageHover != null)
                     imageToPaint = uwfImageHover;

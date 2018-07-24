@@ -6,13 +6,19 @@
     {
         public override void Initialize()
         {
-            var labelPath = this.Create<Label>("path");
+            var labelFilter = this.Create<Label>("Filter:");
+            var textFilter = this.Create<TextBox>();
+            textFilter.Text = "All files|*.*";
+            textFilter.Width = 320;
+            
+            var labelPath = this.Create<Label>("Selected path");
             var buttonOpen = this.Create<Button>("Open");
             var buttonSave = this.Create<Button>("Save");
 
             buttonOpen.Click += (sender, args) =>
             {
                 var ofd = new OpenFileDialog();
+                ofd.Filter = textFilter.Text;
                 ofd.ShowDialog(
                     (form, result) =>
                     {
@@ -23,6 +29,7 @@
             buttonSave.Click += (sender, args) =>
             {
                 var sfd = new SaveFileDialog();
+                sfd.Filter = textFilter.Text;
                 sfd.ShowDialog(
                     (form, result) =>
                     {

@@ -6,34 +6,36 @@
     {
         internal Button addButton;
         internal Button subtractButton;
+        
+        internal Color uwfScrollColor = SystemColors.ScrollBar;
+        internal Color uwfScrollHoverColor = Color.FromArgb(166, 166, 166);
 
         protected ScrollOrientation scrollOrientation;
 
         private readonly int minScrollSize = 17;
 
-        private int largeChange = 10;
-        private int maximum = 100;
-        private int minimum = 0;
-        private bool scrollCanDrag;
-        private Color scrollCurrentColor;
-        private float scrollCurrentColorA;
-        private float scrollCurrentColorR;
-        private float scrollCurrentColorG;
-        private float scrollCurrentColorB;
-        private Color scrollDestinationColor;
-        private Point scrollDragStartLocation;
-        private Point scrollDragRectOffset;
-        private bool scrollDraging;
+        private int       largeChange = 10;
+        private int       maximum     = 100;
+        private int       minimum     = 0;
+        private bool      scrollCanDrag;
+        private Color     scrollCurrentColor;
+        private float     scrollCurrentColorA;
+        private float     scrollCurrentColorR;
+        private float     scrollCurrentColorG;
+        private float     scrollCurrentColorB;
+        private Color     scrollDestinationColor;
+        private Point     scrollDragStartLocation;
+        private Point     scrollDragRectOffset;
+        private bool      scrollDraging;
         private Rectangle scrollRect;
-        private int smallChange = 1;
-        private int value = 0;
+        private int       smallChange = 1;
+        private int       value       = 0;
 
         protected ScrollBar()
         {
             BackColor = Color.FromArgb(240, 240, 240);
-            ScrollColor = SystemColors.ScrollBar;
-            ScrollHoverColor = Color.FromArgb(166, 166, 166);
-            scrollCurrentColor = ScrollColor;
+            
+            scrollCurrentColor = uwfScrollColor;
             scrollCurrentColorA = scrollCurrentColor.A;
             scrollCurrentColorR = scrollCurrentColor.R;
             scrollCurrentColorG = scrollCurrentColor.G;
@@ -98,8 +100,6 @@
             get { return minimum; }
             set { minimum = value; }
         }
-        public Color ScrollColor { get; set; }
-        public Color ScrollHoverColor { get; set; }
         public int SmallChange
         {
             get { return smallChange; }
@@ -342,9 +342,9 @@
         protected override void OnPaint(PaintEventArgs e)
         {
             if (uwfHovered || scrollDraging)
-                scrollDestinationColor = ScrollHoverColor;
+                scrollDestinationColor = uwfScrollHoverColor;
             else
-                scrollDestinationColor = ScrollColor;
+                scrollDestinationColor = uwfScrollColor;
             MathHelper.ColorLerp(scrollDestinationColor, 4, ref scrollCurrentColorA, ref scrollCurrentColorR, ref scrollCurrentColorG, ref scrollCurrentColorB);
             scrollCurrentColor = Color.FromArgb((int)scrollCurrentColorA, (int)scrollCurrentColorR, (int)scrollCurrentColorR, (int)scrollCurrentColorB);
 

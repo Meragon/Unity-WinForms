@@ -6,21 +6,21 @@
 
     public abstract class FileDialog : Form
     {
+        internal static Size savedFormSize = new Size(720, 400);
+
         internal FileRenderer fileRenderer;
-
-        protected static Size savedFormSize = new Size(720, 400);
-
-        protected Button buttonOk;
-        protected Button buttonCancel;
-        protected Button buttonBack;
-        protected Button buttonUp;
-        protected Button buttonRefresh;
-        protected ComboBox comboFilter;
-        protected Label labelFilename;
-        protected TextBox textBoxPath;
-        protected TextBox textBoxFilename;
+        internal Button       buttonOk;
+        internal Button       buttonCancel;
+        internal Button       buttonBack;
+        internal Button       buttonUp;
+        internal Button       buttonRefresh;
+        internal ComboBox     comboFilter;
+        internal Label        labelFilename;
+        internal TextBox      textBoxPath;
+        internal TextBox      textBoxFilename;           
         
         private readonly bool handleFormSize;
+        private readonly Pen splitterPen = new Pen(Color.FromArgb(232, 232, 232));
 
         internal FileDialog()
         {
@@ -40,29 +40,32 @@
             Size = savedFormSize;
             handleFormSize = true;
 
-            #region Button Back.
+            // Button Back.
             buttonBack = new Button();
             buttonBack.BackgroundImageLayout = ImageLayout.Center;
             buttonBack.Enabled = false;
             buttonBack.Font = new Drawing.Font("Arial", 16, FontStyle.Bold);
-            buttonBack.Image = FolderNavBack;
+            buttonBack.Image = ApplicationResources.Items.FileDialogBack;
             buttonBack.Location = new Point(Padding.Left, uwfHeaderHeight + Padding.Top);
             buttonBack.BackColor = Color.Transparent;
             buttonBack.uwfBorderColor = Color.Transparent;
+            buttonBack.uwfBorderDisableColor = Color.Transparent;
+            buttonBack.uwfImageColor = Color.Gray;
+            buttonBack.uwfImageHoverColor = buttonBack.uwfImageColor;
+            buttonBack.uwfImageDisabledColor = Color.FromArgb(207, 207, 207);
             buttonBack.Size = new Size(22, 22);
             if (buttonBack.Image == null) buttonBack.Text = "◀";
             buttonBack.Click += (sender, args) => ButtonBack();
             Controls.Add(buttonBack);
 
-            ToolTip buttonBackTooltip = new ToolTip();
+            var buttonBackTooltip = new ToolTip();
             buttonBackTooltip.SetToolTip(buttonBack, "Back (ALT + Left Arrow)");
-            #endregion;
-
+            
             #region Button Up.
             buttonUp = new Button();
             buttonUp.BackgroundImageLayout = ImageLayout.Center;
             buttonUp.Font = new Drawing.Font("Arial", 16, FontStyle.Bold);
-            buttonUp.Image = FolderNavUp;
+            buttonUp.Image = ApplicationResources.Items.FileDialogUp;
             buttonUp.Location = new Point(buttonBack.Location.X + buttonBack.Width + 8, buttonBack.Location.Y);
             buttonUp.BackColor = Color.Transparent;
             buttonUp.uwfBorderColor = Color.Transparent;
@@ -78,13 +81,14 @@
             #region Button Refresh.
             buttonRefresh = new Button();
             buttonRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            buttonRefresh.Image = FolderNavRefresh;
-            buttonRefresh.uwfImageColor = Color.FromArgb(64, 64, 64);
-            buttonRefresh.uwfImageHoverColor = buttonRefresh.uwfImageColor;
             buttonRefresh.BackColor = Color.Transparent;
-            buttonRefresh.uwfBorderColor = Color.Transparent;
+            buttonRefresh.Image = ApplicationResources.Items.FileDialogRefresh;
             buttonRefresh.Size = new Size(22, 22);
             buttonRefresh.Location = new Point(Width - Padding.Right - buttonRefresh.Width, buttonUp.Location.Y);
+            //buttonRefresh.uwfImageColor = Color.FromArgb(64, 64, 64);
+            //buttonRefresh.uwfImageHoverColor = buttonRefresh.uwfImageColor;
+            //buttonRefresh.uwfBorderColor = Color.Transparent;
+            
             buttonRefresh.Click += (sender, args) => ButtonRefresh();
             if (buttonRefresh.Image == null) buttonRefresh.Text = "R";
             Controls.Add(buttonRefresh);
@@ -96,9 +100,9 @@
             #region Textbox Path.
             textBoxPath = new PathTextBox(this);
             textBoxPath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            textBoxPath.Font = new Drawing.Font("Arial", 14);
+            textBoxPath.Font = new Drawing.Font("Arial", 12);
             textBoxPath.Location = new Point(buttonUp.Location.X + buttonUp.Width + 8, buttonUp.Location.Y);
-            textBoxPath.Size = new Drawing.Size(Width - textBoxPath.Location.X - Padding.Right - buttonRefresh.Width - 8, buttonBack.Height);
+            textBoxPath.Size = new Drawing.Size(Width - textBoxPath.Location.X - Padding.Right - buttonRefresh.Width + 1, buttonBack.Height);
             Controls.Add(textBoxPath);
             #endregion
 
@@ -186,39 +190,33 @@
             Shown += FileDialog_Shown;
         }
 
-        public static Bitmap FolderNavBack { get; set; }
-        public static Bitmap FolderNavRefresh { get; set; }
-        public static Bitmap FolderNavUp { get; set; }
-
         public string FileName { get; set; }
         public string Filter { get; set; }
-        public Bitmap ImageFile { get; set; }
-        public Bitmap ImageFolder { get; set; }
 
-        protected string currentFilter
+        internal string currentFilter
         {
             get
             {
-                if (comboFilter.SelectedIndex < 0) return "*.*";
-
+                if (comboFilter.SelectedIndex < 0 || string.IsNullOrEmpty(Filter)) return "*.*";
+                
                 var fs = Filter.Split('|');
                 return fs[comboFilter.SelectedIndex * 2 + 1];
             }
         }
-        protected virtual void ButtonBack()
+        protected internal virtual void ButtonBack()
         {
             buttonBack.Enabled = fileRenderer.Back() && fileRenderer.prevPathes.Count > 0;
             textBoxPath.Text = fileRenderer.currentPath;
         }
-        protected virtual void ButtonUp()
+        protected internal virtual void ButtonUp()
         {
             fileRenderer.Up();
         }
-        protected virtual void ButtonRefresh()
+        protected internal virtual void ButtonRefresh()
         {
             fileRenderer.SetDirectory(fileRenderer.currentPath);
         }
-        protected virtual void filesTree_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        protected internal virtual void filesTree_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
             {
@@ -264,6 +262,17 @@
                 }
             }
         }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+
+            if (fileRenderer != null)
+            {
+                var grayFillY = fileRenderer.Location.Y;
+                e.Graphics.DrawLine(splitterPen, 0, grayFillY - 1, Width, grayFillY - 1);
+                e.Graphics.uwfFillRectangle(SystemColors.Control, 0, grayFillY, Width, Height - grayFillY);
+            }
+        }
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
@@ -271,7 +280,7 @@
             if (handleFormSize)
                 savedFormSize = Size;
         }
-        protected void OpenFile()
+        protected internal void OpenFile()
         {
             FileName = fileRenderer.currentPath + "/" + textBoxFilename.Text;
             DialogResult = DialogResult.OK;
@@ -280,17 +289,28 @@
 
         private void FileDialog_Shown(object sender, EventArgs e)
         {
-            var fs = Filter.Split('|');
-            for (int i = 0; i < fs.Length; i += 2)
-                comboFilter.Items.Add(fs[i]);
-
-            if (comboFilter.Items.Count > 0)
+            if (string.IsNullOrEmpty(Filter))
             {
-                comboFilter.SelectedIndex = 0;
-                comboFilter.SelectedIndexChanged += (s, a) =>
+                comboFilter.Visible = false;
+                textBoxFilename.Width = Width - textBoxFilename.Location.X - (Width - comboFilter.Location.X - comboFilter.Width);
+            }
+            else
+            {
+                var fs = Filter.Split('|');
+                if (fs.Length % 2 != 0)
                 {
-                    fileRenderer.SetDirectory(fileRenderer.currentPath);
-                };
+                    Close();
+                    throw new ArgumentException("filter");
+                }
+
+                for (int i = 0; i < fs.Length; i += 2)
+                    comboFilter.Items.Add(fs[i] + " (" + fs[i + 1] + ")");
+
+                if (comboFilter.Items.Count > 0)
+                {
+                    comboFilter.SelectedIndex = 0;
+                    comboFilter.SelectedIndexChanged += (s, a) => { fileRenderer.SetDirectory(fileRenderer.currentPath); };
+                }
             }
 
             fileRenderer.SetDirectory(fileRenderer.currentPath);
@@ -316,19 +336,17 @@
 
                 prevPathes = new List<string>();
 
-                filesTree = new TreeView();
+                filesTree = new FileTreeView();
                 filesTree.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
+                filesTree.BorderStyle = BorderStyle.None;
                 filesTree.Size = new Drawing.Size(Width, Height);
                 filesTree.AfterSelect += filesTree_SelectedNodeChanged;
                 filesTree.NodeMouseDoubleClick += filesTree_NodeMouseDoubleClick;
                 Controls.Add(filesTree);
 
-                Bitmap folderImage = this.owner.ImageFolder != null ? this.owner.ImageFolder : GenDefaultFolderImage();
-                Bitmap fileImage = this.owner.ImageFile != null ? this.owner.ImageFile : GenDefaultFileImage();
-
                 filesTree.ImageList = new ImageList();
-                filesTree.ImageList.Images.Add(folderImage);
-                filesTree.ImageList.Images.Add(fileImage);
+                filesTree.ImageList.Images.Add(ApplicationResources.Items.FileDialogFolder);
+                filesTree.ImageList.Images.Add(ApplicationResources.Items.FileDialogFile);
 
                 currentPath = UnityEngine.Application.dataPath;
             }
@@ -376,13 +394,22 @@
                 if (System.IO.Directory.Exists(path) == false) return;
 
                 currentPath = path.Replace("\\", "/");
-
-                string[] files = null;
-                if (owner.currentFilter == "*.*")
-                    files = System.IO.Directory.GetFiles(currentPath, "*.*").Select(f => f.Substring(currentPath.Length)).ToArray();
+                var filter = owner.currentFilter;
+                
+                string[] files;
+                if (filter == "*" || filter == "*.*")
+                    files = System.IO.Directory.GetFiles(currentPath, "*.*")
+                        .Select(f => f.Substring(currentPath.Length))
+                        .ToArray();
                 else
-                    files = System.IO.Directory.GetFiles(currentPath, "*.*").Where(f => owner.currentFilter.Contains(System.IO.Path.GetExtension(f).ToLower())).Select(f => f.Substring(currentPath.Length)).ToArray();
-                var dirs = System.IO.Directory.GetDirectories(currentPath).Select(f => f.Substring(currentPath.Length)).ToArray();
+                    files = System.IO.Directory.GetFiles(currentPath, "*.*")
+                        .Where(f => filter.Contains(System.IO.Path.GetExtension(f).ToLower()))
+                        .Select(f => f.Substring(currentPath.Length))
+                        .ToArray();
+                
+                var dirs = System.IO.Directory.GetDirectories(currentPath)
+                    .Select(f => f.Substring(currentPath.Length))
+                    .ToArray();
 
                 currentFiles = new FileInfo[dirs.Length + files.Length];
                 for (int i = 0; i < dirs.Length; i++)
@@ -428,166 +455,6 @@
 #endif
             }
 
-            // TODO: move this to resources.
-            private static Bitmap GenDefaultFileImage()
-            {
-                Bitmap fileImage = new Bitmap(16, 16);
-                for (int i = 0; i < fileImage.Width; i++)
-                for (int k = 0; k < fileImage.Height; k++)
-                    fileImage.SetPixel(i, k, Color.Transparent);
-
-                for (int i = 0; i < 2; i++) fileImage.SetPixel(i, 1, Color.Transparent);
-                for (int i = 2; i < 10; i++) fileImage.SetPixel(i, 1, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 10; i < 13; i++) fileImage.SetPixel(i, 1, Color.Transparent);
-                for (int i = 13; i < 14; i++) fileImage.SetPixel(i, 1, Color.Transparent);
-                for (int i = 0; i < 2; i++) fileImage.SetPixel(i, 2, Color.Transparent);
-                for (int i = 2; i < 3; i++) fileImage.SetPixel(i, 2, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 3; i < 8; i++) fileImage.SetPixel(i, 2, Color.FromArgb(255, 233, 233, 233));
-                for (int i = 8; i < 9; i++) fileImage.SetPixel(i, 2, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 9; i < 10; i++) fileImage.SetPixel(i, 2, Color.FromArgb(255, 233, 233, 233));
-                for (int i = 10; i < 11; i++) fileImage.SetPixel(i, 2, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 11; i < 13; i++) fileImage.SetPixel(i, 2, Color.Transparent);
-                for (int i = 13; i < 14; i++) fileImage.SetPixel(i, 2, Color.Transparent);
-                for (int i = 0; i < 2; i++) fileImage.SetPixel(i, 3, Color.Transparent);
-                for (int i = 2; i < 3; i++) fileImage.SetPixel(i, 3, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 3; i < 8; i++) fileImage.SetPixel(i, 3, Color.FromArgb(255, 233, 233, 233));
-                for (int i = 8; i < 9; i++) fileImage.SetPixel(i, 3, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 9; i < 11; i++) fileImage.SetPixel(i, 3, Color.FromArgb(255, 233, 233, 233));
-                for (int i = 11; i < 12; i++) fileImage.SetPixel(i, 3, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 12; i < 13; i++) fileImage.SetPixel(i, 3, Color.Transparent);
-                for (int i = 13; i < 14; i++) fileImage.SetPixel(i, 3, Color.Transparent);
-                for (int i = 0; i < 2; i++) fileImage.SetPixel(i, 4, Color.Transparent);
-                for (int i = 2; i < 3; i++) fileImage.SetPixel(i, 4, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 3; i < 8; i++) fileImage.SetPixel(i, 4, Color.FromArgb(255, 233, 233, 233));
-                for (int i = 8; i < 9; i++) fileImage.SetPixel(i, 4, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 9; i < 12; i++) fileImage.SetPixel(i, 4, Color.FromArgb(255, 233, 233, 233));
-                for (int i = 12; i < 13; i++) fileImage.SetPixel(i, 4, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 13; i < 14; i++) fileImage.SetPixel(i, 4, Color.Transparent);
-                for (int i = 0; i < 2; i++) fileImage.SetPixel(i, 5, Color.Transparent);
-                for (int i = 2; i < 3; i++) fileImage.SetPixel(i, 5, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 3; i < 8; i++) fileImage.SetPixel(i, 5, Color.FromArgb(255, 233, 233, 233));
-                for (int i = 8; i < 13; i++) fileImage.SetPixel(i, 5, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 13; i < 14; i++) fileImage.SetPixel(i, 5, Color.Transparent);
-                for (int i = 0; i < 2; i++) fileImage.SetPixel(i, 6, Color.Transparent);
-                for (int i = 2; i < 3; i++) fileImage.SetPixel(i, 6, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 3; i < 12; i++) fileImage.SetPixel(i, 6, Color.FromArgb(255, 233, 233, 233));
-                for (int i = 12; i < 13; i++) fileImage.SetPixel(i, 6, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 13; i < 14; i++) fileImage.SetPixel(i, 6, Color.Transparent);
-                for (int i = 0; i < 2; i++) fileImage.SetPixel(i, 7, Color.Transparent);
-                for (int i = 2; i < 3; i++) fileImage.SetPixel(i, 7, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 3; i < 12; i++) fileImage.SetPixel(i, 7, Color.FromArgb(255, 233, 233, 233));
-                for (int i = 12; i < 13; i++) fileImage.SetPixel(i, 7, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 13; i < 14; i++) fileImage.SetPixel(i, 7, Color.Transparent);
-                for (int i = 0; i < 2; i++) fileImage.SetPixel(i, 8, Color.Transparent);
-                for (int i = 2; i < 3; i++) fileImage.SetPixel(i, 8, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 3; i < 12; i++) fileImage.SetPixel(i, 8, Color.FromArgb(255, 233, 233, 233));
-                for (int i = 12; i < 13; i++) fileImage.SetPixel(i, 8, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 13; i < 14; i++) fileImage.SetPixel(i, 8, Color.Transparent);
-                for (int i = 0; i < 2; i++) fileImage.SetPixel(i, 9, Color.Transparent);
-                for (int i = 2; i < 3; i++) fileImage.SetPixel(i, 9, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 3; i < 12; i++) fileImage.SetPixel(i, 9, Color.FromArgb(255, 233, 233, 233));
-                for (int i = 12; i < 13; i++) fileImage.SetPixel(i, 9, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 13; i < 14; i++) fileImage.SetPixel(i, 9, Color.Transparent);
-                for (int i = 0; i < 2; i++) fileImage.SetPixel(i, 10, Color.Transparent);
-                for (int i = 2; i < 3; i++) fileImage.SetPixel(i, 10, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 3; i < 12; i++) fileImage.SetPixel(i, 10, Color.FromArgb(255, 233, 233, 233));
-                for (int i = 12; i < 13; i++) fileImage.SetPixel(i, 10, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 13; i < 14; i++) fileImage.SetPixel(i, 10, Color.Transparent);
-                for (int i = 0; i < 2; i++) fileImage.SetPixel(i, 11, Color.Transparent);
-                for (int i = 2; i < 3; i++) fileImage.SetPixel(i, 11, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 3; i < 12; i++) fileImage.SetPixel(i, 11, Color.FromArgb(255, 233, 233, 233));
-                for (int i = 12; i < 13; i++) fileImage.SetPixel(i, 11, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 13; i < 14; i++) fileImage.SetPixel(i, 11, Color.Transparent);
-                for (int i = 0; i < 2; i++) fileImage.SetPixel(i, 12, Color.Transparent);
-                for (int i = 2; i < 3; i++) fileImage.SetPixel(i, 12, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 3; i < 12; i++) fileImage.SetPixel(i, 12, Color.FromArgb(255, 233, 233, 233));
-                for (int i = 12; i < 13; i++) fileImage.SetPixel(i, 12, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 13; i < 14; i++) fileImage.SetPixel(i, 12, Color.Transparent);
-                for (int i = 0; i < 2; i++) fileImage.SetPixel(i, 13, Color.Transparent);
-                for (int i = 2; i < 3; i++) fileImage.SetPixel(i, 13, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 3; i < 12; i++) fileImage.SetPixel(i, 13, Color.FromArgb(255, 233, 233, 233));
-                for (int i = 12; i < 13; i++) fileImage.SetPixel(i, 13, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 13; i < 14; i++) fileImage.SetPixel(i, 13, Color.Transparent);
-                for (int i = 0; i < 2; i++) fileImage.SetPixel(i, 14, Color.Transparent);
-                for (int i = 2; i < 13; i++) fileImage.SetPixel(i, 14, Color.FromArgb(255, 180, 180, 180));
-                for (int i = 13; i < 14; i++) fileImage.SetPixel(i, 14, Color.Transparent);
-
-                fileImage.Apply();
-                return fileImage;
-            }
-            private static Bitmap GenDefaultFolderImage()
-            {
-                Bitmap folderImage = new Bitmap(16, 16);
-                for (int i = 0; i < folderImage.Width; i++)
-                for (int k = 0; k < folderImage.Height; k++)
-                    folderImage.SetPixel(i, k, Color.Transparent);
-
-                for (int i = 0; i < 3; i++) folderImage.SetPixel(i, 0, Color.Transparent);
-                for (int i = 3; i < 13; i++) folderImage.SetPixel(i, 0, Color.Transparent);
-                for (int i = 13; i < 15; i++) folderImage.SetPixel(i, 0, Color.Transparent);
-                for (int i = 0; i < 1; i++) folderImage.SetPixel(i, 1, Color.Transparent);
-                for (int i = 0; i < 3; i++) folderImage.SetPixel(i, 2, Color.Transparent);
-                for (int i = 3; i < 12; i++) folderImage.SetPixel(i, 2, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 0; i < 3; i++) folderImage.SetPixel(i, 3, Color.Transparent);
-                for (int i = 3; i < 4; i++) folderImage.SetPixel(i, 3, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 4; i < 9; i++) folderImage.SetPixel(i, 3, Color.FromArgb(255, 248, 239, 215));
-                for (int i = 9; i < 10; i++) folderImage.SetPixel(i, 3, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 10; i < 11; i++) folderImage.SetPixel(i, 3, Color.FromArgb(255, 237, 219, 179));
-                for (int i = 11; i < 12; i++) folderImage.SetPixel(i, 3, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 0; i < 3; i++) folderImage.SetPixel(i, 4, Color.Transparent);
-                for (int i = 3; i < 4; i++) folderImage.SetPixel(i, 4, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 4; i < 9; i++) folderImage.SetPixel(i, 4, Color.FromArgb(255, 248, 239, 215));
-                for (int i = 9; i < 10; i++) folderImage.SetPixel(i, 4, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 10; i < 11; i++) folderImage.SetPixel(i, 4, Color.FromArgb(255, 237, 219, 179));
-                for (int i = 11; i < 12; i++) folderImage.SetPixel(i, 4, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 0; i < 3; i++) folderImage.SetPixel(i, 5, Color.Transparent);
-                for (int i = 3; i < 4; i++) folderImage.SetPixel(i, 5, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 4; i < 9; i++) folderImage.SetPixel(i, 5, Color.FromArgb(255, 248, 239, 215));
-                for (int i = 9; i < 10; i++) folderImage.SetPixel(i, 5, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 10; i < 11; i++) folderImage.SetPixel(i, 5, Color.FromArgb(255, 237, 219, 179));
-                for (int i = 11; i < 12; i++) folderImage.SetPixel(i, 5, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 0; i < 3; i++) folderImage.SetPixel(i, 6, Color.Transparent);
-                for (int i = 3; i < 4; i++) folderImage.SetPixel(i, 6, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 4; i < 9; i++) folderImage.SetPixel(i, 6, Color.FromArgb(255, 248, 239, 215));
-                for (int i = 9; i < 10; i++) folderImage.SetPixel(i, 6, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 10; i < 11; i++) folderImage.SetPixel(i, 6, Color.FromArgb(255, 237, 219, 179));
-                for (int i = 11; i < 12; i++) folderImage.SetPixel(i, 6, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 0; i < 3; i++) folderImage.SetPixel(i, 7, Color.Transparent);
-                for (int i = 3; i < 4; i++) folderImage.SetPixel(i, 7, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 4; i < 9; i++) folderImage.SetPixel(i, 7, Color.FromArgb(255, 248, 239, 215));
-                for (int i = 9; i < 10; i++) folderImage.SetPixel(i, 7, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 10; i < 11; i++) folderImage.SetPixel(i, 7, Color.FromArgb(255, 237, 219, 179));
-                for (int i = 11; i < 12; i++) folderImage.SetPixel(i, 7, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 0; i < 3; i++) folderImage.SetPixel(i, 8, Color.Transparent);
-                for (int i = 3; i < 4; i++) folderImage.SetPixel(i, 8, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 4; i < 9; i++) folderImage.SetPixel(i, 8, Color.FromArgb(255, 248, 239, 215));
-                for (int i = 9; i < 10; i++) folderImage.SetPixel(i, 8, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 10; i < 11; i++) folderImage.SetPixel(i, 8, Color.FromArgb(255, 237, 219, 179));
-                for (int i = 11; i < 13; i++) folderImage.SetPixel(i, 8, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 0; i < 3; i++) folderImage.SetPixel(i, 9, Color.Transparent);
-                for (int i = 3; i < 4; i++) folderImage.SetPixel(i, 9, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 4; i < 9; i++) folderImage.SetPixel(i, 9, Color.FromArgb(255, 248, 239, 215));
-                for (int i = 9; i < 10; i++) folderImage.SetPixel(i, 9, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 10; i < 12; i++) folderImage.SetPixel(i, 9, Color.FromArgb(255, 237, 219, 179));
-                for (int i = 12; i < 13; i++) folderImage.SetPixel(i, 9, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 0; i < 3; i++) folderImage.SetPixel(i, 10, Color.Transparent);
-                for (int i = 3; i < 4; i++) folderImage.SetPixel(i, 10, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 4; i < 9; i++) folderImage.SetPixel(i, 10, Color.FromArgb(255, 248, 239, 215));
-                for (int i = 9; i < 10; i++) folderImage.SetPixel(i, 10, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 10; i < 12; i++) folderImage.SetPixel(i, 10, Color.FromArgb(255, 237, 219, 179));
-                for (int i = 12; i < 13; i++) folderImage.SetPixel(i, 10, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 0; i < 3; i++) folderImage.SetPixel(i, 11, Color.Transparent);
-                for (int i = 3; i < 4; i++) folderImage.SetPixel(i, 11, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 4; i < 9; i++) folderImage.SetPixel(i, 11, Color.FromArgb(255, 248, 239, 215));
-                for (int i = 9; i < 10; i++) folderImage.SetPixel(i, 11, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 10; i < 12; i++) folderImage.SetPixel(i, 11, Color.FromArgb(255, 237, 219, 179));
-                for (int i = 12; i < 13; i++) folderImage.SetPixel(i, 11, Color.FromArgb(255, 218, 191, 127));
-                for (int i = 0; i < 3; i++) folderImage.SetPixel(i, 12, Color.Transparent);
-                for (int i = 3; i < 12; i++) folderImage.SetPixel(i, 12, Color.FromArgb(255, 218, 191, 127));
-
-                folderImage.Apply();
-                return folderImage;
-            }
             private void filesTree_SelectedNodeChanged(object sender, TreeViewEventArgs e)
             {
                 if (e.Node != null)
@@ -597,10 +464,95 @@
             {
                 Next();
             }
+
+            private class FileTreeView : TreeView
+            {
+                public Pen selectionPen = new Pen(Color.White);
+
+                public FileTreeView()
+                {
+                    uwfSelectionColor = Color.Transparent;
+                    uwfSelectionHoverColor = Color.Transparent;
+                }
+                
+                protected override void OnDrawNode(DrawTreeNodeEventArgs e)
+                {
+                    var selectionBounds = new Rectangle(e.Node.Bounds.X, e.Node.Bounds.Y, 660, e.Node.Bounds.Height);
+                    
+                    if (e.Node.IsSelected || e.Node == hoveredNode)
+                    {
+                        var backColor = Color.FromArgb(209, 232, 255);
+                        
+                        if (e.Node.IsSelected)
+                        {
+                            if (Focused)
+                                selectionPen.Color = Color.FromArgb(60, 162, 223);
+                            else
+                            {
+                                backColor = Color.FromArgb(247, 247, 247);
+                                selectionPen.Color = Color.FromArgb(222, 222, 222);
+                            }
+                        }
+                        else
+                        {
+                            // Hovered.
+                            backColor = Color.FromArgb(229, 243, 251);
+                            selectionPen.Color = Color.FromArgb(112, 192, 231);
+                        }
+                        
+                        e.Graphics.uwfFillRectangle(backColor, selectionBounds);
+                        e.Graphics.DrawRectangle(selectionPen, selectionBounds);
+                    }
+                    
+                    base.OnDrawNode(e);
+
+                    var info = e.Node.Tag as FileInfo;
+                    if (info == null)
+                        return;
+
+                    var fInfo = info.Info;
+                    if (fInfo == null)
+                        return;
+                    
+                    e.Graphics.uwfDrawString(
+                        HumanizeBytes(fInfo.Length), 
+                        Font, 
+                        e.Node.ForeColor, 
+                        selectionBounds.X + 400,
+                        selectionBounds.Y,
+                        selectionBounds.Width - 400,
+                        selectionBounds.Height,
+                        ContentAlignment.MiddleRight);
+                }
+                
+                private static string HumanizeBytes(long bytes)
+                {
+                    if (bytes < 1024)
+                        return " 1KB";
+                    if (bytes < 1024 * 1024)
+                        return (bytes / 1024) + " KB";
+
+                    return "WE";
+                }
+            }
         }
 
         internal class FileInfo
         {
+#if UNITY_STANDALONE
+            private System.IO.FileInfo info;
+            public System.IO.FileInfo Info
+            {
+                get
+                {
+                    if (info == null)
+                        info = new System.IO.FileInfo(Name);
+                    
+                    return info;
+                }
+            }
+#endif
+            
             public bool IsDirectory { get; set; }
             public string Name { get; set; }
 
@@ -764,6 +716,7 @@
                         break;
 
                     var button = new pathButton(dir.FullName);
+                    button.Font = Font;
                     button.Height = Height - 2;
                     button.Width = (int)estimatedWidth;
                     button.Text = dir.Name;

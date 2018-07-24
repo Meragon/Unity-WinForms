@@ -12,7 +12,6 @@
         private readonly ObjectCollection items;
         private readonly VScrollBar vScroll;
 
-        private Color borderCurrentColor;
         private Color borderColor;
         private Color borderSelectColor;
         private int borderOffset = 2;
@@ -33,17 +32,18 @@
             items = new ObjectCollection(this);
 
             BackColor = Color.White;
-            BorderColor = Color.FromArgb(130, 135, 144);
-            BorderSelectColor = Color.FromArgb(126, 180, 234);
-            DisabledColor = Color.Gray;
             DrawMode = DrawMode.Normal;
             DrawItem = InternalDrawItem;
-            HoverColor = Color.FromArgb(221, 238, 253);
-            SelectionBackColor = SystemColors.Highlight;
-            SelectionDisabledColor = Color.FromArgb(101, 203, 255);
-            SelectionForeColor = SystemColors.HighlightText;
-            WrapText = true;
+            uwfWrapText = true;
 
+            uwfBorderColor = Color.FromArgb(130, 135, 144);
+            uwfBorderSelectColor = Color.FromArgb(126, 180, 234);
+            uwfItemDisabledColor = Color.Gray;
+            uwfItemHoverColor = Color.FromArgb(221, 238, 253);
+            uwfSelectionBackColor = SystemColors.Highlight;
+            uwfSelectionDisabledColor = Color.FromArgb(101, 203, 255);
+            uwfSelectionForeColor = SystemColors.HighlightText;
+            
             vScroll = new VScrollBar();
             vScroll.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
             vScroll.Location = new Point(Width - vScroll.Width, 0);
@@ -58,24 +58,6 @@
         public event EventHandler SelectedIndexChanged;
         public event DrawItemEventHandler DrawItem;
 
-        public Color BorderColor
-        {
-            get { return borderColor; }
-            set
-            {
-                borderColor = value;
-                UpdateBorderPen();
-            }
-        }
-        public Color BorderSelectColor
-        {
-            get { return borderSelectColor; }
-            set
-            {
-                borderSelectColor = value;
-                UpdateBorderPen();
-            }
-        }
         public BorderStyle BorderStyle
         {
             get { return borderStyle; }
@@ -86,9 +68,8 @@
                 UpdateBorder();
             }
         }
-        public Color DisabledColor { get; set; }
         public virtual DrawMode DrawMode { get; set; }
-        public Color HoverColor { get; set; }
+        [Obsolete("Use with caution, 'Anchor' property can resize this control unexpectedly")]
         public bool IntegralHeight
         {
             get { return integralHeight; }
@@ -161,40 +142,53 @@
                     }
             }
         }
-        public Color SelectionBackColor { get; set; }
-        public Color SelectionDisabledColor { get; set; }
-        public Color SelectionForeColor { get; set; }
-        public bool WrapText { get; set; }
-
-        internal int ScrollIndex
+        
+        internal Color uwfBorderColor
+        {
+            get { return borderColor; }
+            set
+            {
+                borderColor = value;
+                UpdateBorderPen();
+            }
+        }
+        internal Color uwfBorderSelectColor
+        {
+            get { return borderSelectColor; }
+            set
+            {
+                borderSelectColor = value;
+                UpdateBorderPen();
+            }
+        }
+        internal Color uwfItemDisabledColor { get; set; }
+        internal Color uwfItemHoverColor { get; set; }
+        internal Color uwfSelectionBackColor { get; set; }
+        internal Color uwfSelectionDisabledColor { get; set; }
+        internal Color uwfSelectionForeColor { get; set; }
+        internal int uwfScrollIndex
         {
             get { return vScroll.Value / ItemHeight; }
             set { vScroll.Value = value * ItemHeight; }
         }
-
+        internal bool uwfWrapText { get; set; }
+        
         protected override Size DefaultSize
         {
             get { return new Size(120, 96); }
         }
 
-        public void AdjustHeight()
+        internal void EnsureVisible()
         {
-            integralHeightAdjust = false;
-            Height = (int)(Math.Ceiling((float)Height / ItemHeight) * ItemHeight) + borderOffset * 2;
-            integralHeightAdjust = true;
+            if (SelectedIndex < uwfScrollIndex)
+                uwfScrollIndex = SelectedIndex;
+
+            if (SelectedIndex > uwfScrollIndex + visibleItemsCount - 1)
+                uwfScrollIndex = SelectedIndex - visibleItemsCount + 1;
+
+            if (uwfScrollIndex < 0)
+                uwfScrollIndex = 0;
         }
-        public void EnsureVisible()
-        {
-            if (SelectedIndex < ScrollIndex)
-                ScrollIndex = SelectedIndex;
-
-            if (SelectedIndex > ScrollIndex + visibleItemsCount - 1)
-                ScrollIndex = SelectedIndex - visibleItemsCount + 1;
-
-            if (ScrollIndex < 0)
-                ScrollIndex = 0;
-        }
-
         internal int FindItemIndex(Predicate<object> match)
         {
             for (int i = 0; i < Items.Count; i++)
@@ -212,7 +206,7 @@
         }
         internal int IndexAt(Point mclient)
         {
-            return ScrollIndex + (int)((mclient.Y - borderOffset) / ItemHeight);
+            return uwfScrollIndex + (int)((mclient.Y - borderOffset) / ItemHeight);
         }
         internal void SelectItem(int index)
         {
@@ -258,11 +252,11 @@
         }
         internal void UpdateBorderPen()
         {
-            borderCurrentColor = BorderColor;
+            var nextColor = uwfBorderColor;
             if (Focused || uwfContext)
-                borderCurrentColor = BorderSelectColor;
+                nextColor = uwfBorderSelectColor;
 
-            borderPen.Color = borderCurrentColor;
+            borderPen.Color = nextColor;
         }
 
         protected internal override void uwfOnLatePaint(PaintEventArgs e)
@@ -374,32 +368,32 @@
 
             // Paint list.
             g.uwfFillRectangle(BackColor, 0, 0, Width, Height);
-            for (int i = 0; i < visibleItemsCount && i + ScrollIndex < Items.Count; i++)
+            for (int i = 0; i < visibleItemsCount && i + uwfScrollIndex < Items.Count; i++)
             {
-                var itemIndex = i + ScrollIndex;
+                var itemIndex = i + uwfScrollIndex;
                 if (itemIndex < 0) continue;
 
                 var item = Items[itemIndex];
                 var itemY = borderOffset + i * ItemHeight;
-                var itemW = WrapText ? Width : Width * 5;
+                var itemW = uwfWrapText ? Width : Width * 5;
                 bool itemDisabled = Items.IsDisabled(itemIndex);
                 bool itemSelected = itemIndex == SelectedIndex;
                 bool itemHovered = itemIndex == hoveredItem;
                 var itemForeColor = ForeColor;
 
                 if (itemDisabled)
-                    itemForeColor = DisabledColor;
+                    itemForeColor = uwfItemDisabledColor;
                 else if (itemSelected)
-                    itemForeColor = SelectionForeColor;
+                    itemForeColor = uwfSelectionForeColor;
 
                 var itemBackColor = Color.Transparent;
                 if (itemSelected || itemHovered)
                 {
-                    itemBackColor = HoverColor;
+                    itemBackColor = uwfItemHoverColor;
                     if (itemDisabled)
-                        itemBackColor = SelectionDisabledColor;
+                        itemBackColor = uwfSelectionDisabledColor;
                     else if (itemSelected)
-                        itemBackColor = SelectionBackColor;
+                        itemBackColor = uwfSelectionBackColor;
                 }
 
                 var fillWidth = Width;
@@ -434,6 +428,7 @@
                     if (itemSelected)
                         state = DrawItemState.Selected;
                     var args = new DrawItemEventArgs(g, Font, itemRect, itemIndex, state, itemForeColor, itemBackColor);
+                    
                     OnDrawItem(args);
                 }
             }
@@ -454,6 +449,13 @@
                 selectedIndexChanged(this, e);
         }
 
+        private void AdjustHeight()
+        {
+            // TODO: precise losing in long term.
+            integralHeightAdjust = false;
+            Height = (int)(Math.Ceiling((float)Height / ItemHeight) * ItemHeight) + borderOffset * 2;
+            integralHeightAdjust = true;
+        }
         private void InternalDrawItem(object sender, DrawItemEventArgs e)
         {
             var item = Items[e.Index];
@@ -537,7 +539,7 @@
             {
                 disabledItems.Clear();
                 items.Clear();
-                owner.ScrollIndex = 0;
+                owner.uwfScrollIndex = 0;
                 owner.selectedIndex = -1;
             }
             public bool Contains(object value)

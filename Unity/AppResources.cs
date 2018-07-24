@@ -60,7 +60,12 @@ public class AppResources
         [Tooltip("ToolStripDropDown")]
         public Image DropDownRightArrow;
 
-        [Tooltip("Form")]
+        public Image FileDialogBack;
+        public Image FileDialogFile;
+        public Image FileDialogFolder;
+        public Image FileDialogRefresh;
+        public Image FileDialogUp;
+        
         public Image FormResize;
 
         [Tooltip("NumericUpDown")]

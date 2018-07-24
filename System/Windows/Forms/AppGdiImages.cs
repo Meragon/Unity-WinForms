@@ -18,6 +18,11 @@
         public Bitmap CurvedArrowUp;
         public Bitmap DateTimePicker;
         public Bitmap DropDownRightArrow;
+        public Bitmap FileDialogBack;
+        public Bitmap FileDialogFile;
+        public Bitmap FileDialogFolder;
+        public Bitmap FileDialogRefresh;
+        public Bitmap FileDialogUp;
         public Bitmap FormResize;
         public Bitmap NumericDown;
         public Bitmap NumericUp;

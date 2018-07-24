@@ -75,6 +75,11 @@
             GdiImages.CurvedArrowUp = gResources.Images.CurvedArrowUp.ToBitmap();
             GdiImages.DateTimePicker = gResources.Images.DateTimePicker.ToBitmap();
             GdiImages.DropDownRightArrow = gResources.Images.DropDownRightArrow.ToBitmap();
+            GdiImages.FileDialogBack = gResources.Images.FileDialogBack.ToBitmap();
+            GdiImages.FileDialogFile = gResources.Images.FileDialogFile.ToBitmap();
+            GdiImages.FileDialogFolder = gResources.Images.FileDialogFolder.ToBitmap();
+            GdiImages.FileDialogRefresh = gResources.Images.FileDialogRefresh.ToBitmap();
+            GdiImages.FileDialogUp = gResources.Images.FileDialogUp.ToBitmap();
             GdiImages.FormResize = gResources.Images.FormResize.ToBitmap();
             GdiImages.NumericDown = gResources.Images.NumericDown.ToBitmap();
             GdiImages.NumericUp = gResources.Images.NumericUp.ToBitmap();
