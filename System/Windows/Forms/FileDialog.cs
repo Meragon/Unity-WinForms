@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Drawing;
+    using System.Globalization;
     using System.Linq;
 
     public abstract class FileDialog : Form
@@ -21,7 +22,8 @@
         
         private readonly bool handleFormSize;
         private readonly Pen splitterPen = new Pen(Color.FromArgb(232, 232, 232));
-
+        private string initialDir;
+        
         internal FileDialog()
         {
 #if !UNITY_STANDALONE && !UNITY_ANDROID
@@ -61,7 +63,7 @@
             var buttonBackTooltip = new ToolTip();
             buttonBackTooltip.SetToolTip(buttonBack, "Back (ALT + Left Arrow)");
             
-            #region Button Up.
+            // Button Up.
             buttonUp = new Button();
             buttonUp.BackgroundImageLayout = ImageLayout.Center;
             buttonUp.Font = new Drawing.Font("Arial", 16, FontStyle.Bold);
@@ -74,11 +76,10 @@
             buttonUp.Click += (sender, args) => ButtonUp();
             Controls.Add(buttonUp);
 
-            ToolTip buttonUpTooltip = new ToolTip();
+            var buttonUpTooltip = new ToolTip();
             buttonUpTooltip.SetToolTip(buttonUp, "Up (ALT + Up Arrow)");
-            #endregion
-
-            #region Button Refresh.
+            
+            // Button Refresh.
             buttonRefresh = new Button();
             buttonRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             buttonRefresh.BackColor = Color.Transparent;
@@ -93,20 +94,18 @@
             if (buttonRefresh.Image == null) buttonRefresh.Text = "R";
             Controls.Add(buttonRefresh);
 
-            ToolTip buttonRefreshTooltip = new ToolTip();
+            var buttonRefreshTooltip = new ToolTip();
             buttonRefreshTooltip.SetToolTip(buttonRefresh, "Refresh (F5)");
-            #endregion
-
-            #region Textbox Path.
+            
+            // Textbox Path.
             textBoxPath = new PathTextBox(this);
             textBoxPath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             textBoxPath.Font = new Drawing.Font("Arial", 12);
             textBoxPath.Location = new Point(buttonUp.Location.X + buttonUp.Width + 8, buttonUp.Location.Y);
             textBoxPath.Size = new Drawing.Size(Width - textBoxPath.Location.X - Padding.Right - buttonRefresh.Width + 1, buttonBack.Height);
             Controls.Add(textBoxPath);
-            #endregion
-
-            #region Button Cancel.
+            
+            // Button Cancel.
             buttonCancel = new Button();
             buttonCancel.Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
             buttonCancel.Location = new Point(Width - Padding.Right - buttonCancel.Width, Height - Padding.Bottom - buttonCancel.Height);
@@ -117,18 +116,16 @@
                 Close();
             };
             Controls.Add(buttonCancel);
-            #endregion
-
-            #region Button Ok.
+            
+            // Button Ok.
             buttonOk = new Button();
             buttonOk.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             buttonOk.Location = new Point(buttonCancel.Location.X - buttonOk.Width - 8, buttonCancel.Location.Y);
             buttonOk.Text = "Ok";
             buttonOk.Click += (sender, args) => { OpenFile(); };
             Controls.Add(buttonOk);
-            #endregion
-
-            #region Label Filename.
+            
+            // Label Filename.
             labelFilename = new Label();
             labelFilename.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             labelFilename.Location = new Point(8, buttonOk.Location.Y - 30);
@@ -136,62 +133,61 @@
             labelFilename.Text = "File: ";
             labelFilename.TextAlign = ContentAlignment.MiddleRight;
             Controls.Add(labelFilename);
-            #endregion
-
-            #region Textbox Filename.
+            
+            // Textbox Filename.
             textBoxFilename = new TextBox();
             textBoxFilename.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             textBoxFilename.Location = new Point(labelFilename.Location.X + labelFilename.Width, labelFilename.Location.Y);
             textBoxFilename.Size = new Drawing.Size(Width - 32 - (buttonOk.Width + 8 + buttonCancel.Width) - labelFilename.Width, 22);
             Controls.Add(textBoxFilename);
-            #endregion
-
-            #region Combobox Filter.
+            
+            // Combobox Filter.
             comboFilter = new ComboBox();
             comboFilter.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             comboFilter.DropDownStyle = ComboBoxStyle.DropDownList;
             comboFilter.Size = new Drawing.Size(buttonOk.Width + 8 + buttonCancel.Width, 22);
             comboFilter.Location = new Point(Width - Padding.Right - comboFilter.Width, textBoxFilename.Location.Y);
             Controls.Add(comboFilter);
-            #endregion
-
-            #region File Render.
+            
+            // File Render.
             fileRenderer = new FileRenderer(this);
             fileRenderer.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
             fileRenderer.Location = new Point(Padding.Left, buttonBack.Location.Y + buttonBack.Height + 8);
             fileRenderer.Name = "fileRenderer";
             fileRenderer.Size = new Drawing.Size(Width - Padding.Left - Padding.Right, textBoxFilename.Location.Y - buttonBack.Location.Y - buttonBack.Height - 16);
-            fileRenderer.OnDirectoryChanged += () =>
+            fileRenderer.DirectoryChanged += () =>
             {
                 if (fileRenderer.prevPathes.Count > 0)
                     buttonBack.Enabled = true;
                 textBoxPath.Text = fileRenderer.currentPath;
+                textBoxPath.Refresh();
             };
-            fileRenderer.OnSelectedFileChanged += (file) =>
-            {
-                textBoxFilename.Text = file.ToString();
-            };
-            fileRenderer.OnFileOpen += (file) =>
-            {
-                OpenFile();
-            };
+            fileRenderer.SelectedFileChanged += (file) => textBoxFilename.Text = file.ToString();
+            fileRenderer.FileOpened += (file) => OpenFile();
             Controls.Add(fileRenderer);
-            #endregion
-
+            
             textBoxPath.Text = fileRenderer.currentPath;
-            textBoxPath.TextChanged += (sender, args) =>
+            textBoxPath.Refresh();
+            textBoxPath.KeyDown += (sender, args) =>
             {
-                fileRenderer.SetDirectory(textBoxPath.Text);
+                if (args.KeyCode == Keys.Enter)
+                    fileRenderer.SetDirectory(textBoxPath.Text);
             };
 
             fileRenderer.filesTree.NodeMouseClick += filesTree_NodeMouseClick;
 
-            AcceptButton = buttonOk;
+            //AcceptButton = buttonOk;
+            InitialDirectory = UnityEngine.Application.dataPath;
             Shown += FileDialog_Shown;
         }
 
         public string FileName { get; set; }
         public string Filter { get; set; }
+        public string InitialDirectory
+        {
+            get { return initialDir; }
+            set { initialDir = value; }
+        }
 
         internal string currentFilter
         {
@@ -239,14 +235,21 @@
         protected override void OnKeyPress(KeyPressEventArgs e)
         {
             base.OnKeyPress(e);
+            
             if (e.uwfKeyArgs.KeyCode == Keys.Escape)
             {
+                if (textBoxPath.Focused)
+                {
+                    Focus();
+                    return;
+                }
+                
                 DialogResult = DialogResult.Cancel;
                 Close();
             }
 
             // Next folder.
-            if (e.uwfKeyArgs.KeyCode == Keys.Return)
+            if (e.uwfKeyArgs.KeyCode == Keys.Return && textBoxPath.Focused == false)
                 fileRenderer.Next();
 
             // Refresh directory.
@@ -313,7 +316,7 @@
                 }
             }
 
-            fileRenderer.SetDirectory(fileRenderer.currentPath);
+            fileRenderer.SetDirectory(InitialDirectory);
             fileRenderer.filesTree.Focus();
         }
 
@@ -347,16 +350,14 @@
                 filesTree.ImageList = new ImageList();
                 filesTree.ImageList.Images.Add(ApplicationResources.Items.FileDialogFolder);
                 filesTree.ImageList.Images.Add(ApplicationResources.Items.FileDialogFile);
-
-                currentPath = UnityEngine.Application.dataPath;
             }
 
             public delegate void DirectoryChangedHandler();
             public delegate void FileHandler(FileInfo file);
 
-            public event DirectoryChangedHandler OnDirectoryChanged = delegate { };
-            public event FileHandler OnFileOpen = delegate { };
-            public event FileHandler OnSelectedFileChanged = delegate { };
+            public event DirectoryChangedHandler DirectoryChanged;
+            public event FileHandler FileOpened;
+            public event FileHandler SelectedFileChanged;
 
             public bool Back()
             {
@@ -377,11 +378,14 @@
                     prevPathes.Add(currentPath);
                     currentPath += fInfo.Name;
                     SetDirectory(currentPath);
-                    OnDirectoryChanged();
+                    
+                    if (DirectoryChanged != null)
+                        DirectoryChanged();
                 }
                 else
                 {
-                    OnFileOpen(fInfo);
+                    if (FileOpened != null)
+                        FileOpened(fInfo);
                 }
             }
             public void SetDirectory(string path, bool addPrevPath = false)
@@ -440,7 +444,8 @@
                 }
                 filesTree.ExpandAll();
 
-                OnDirectoryChanged();
+                if (DirectoryChanged != null)
+                    DirectoryChanged();
 
                 fromFolder = null;
 #endif
@@ -448,9 +453,16 @@
             public void Up()
             {
 #if UNITY_STANDALONE
-                var parent = System.IO.Directory.GetParent(currentPath);
-                if (parent.Exists == false) return;
-
+                System.IO.DirectoryInfo parent;
+                try
+                {
+                    // Can throw NullReferenceExepcetion for path like 'C:\'.
+                    parent = System.IO.Directory.GetParent(currentPath);
+                }
+                catch (Exception e) { return; }
+                
+                if (parent == null || parent.Exists == false) return;
+                
                 prevPathes.Add(currentPath);
                 fromFolder = System.IO.Path.GetFileName(currentPath);
                 SetDirectory(parent.FullName);
@@ -459,8 +471,8 @@
 
             private void filesTree_SelectedNodeChanged(object sender, TreeViewEventArgs e)
             {
-                if (e.Node != null)
-                    OnSelectedFileChanged((FileInfo)e.Node.Tag);
+                if (e.Node != null && SelectedFileChanged != null)
+                    SelectedFileChanged((FileInfo)e.Node.Tag);
             }
             private void filesTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
             {
@@ -508,6 +520,7 @@
                     
                     base.OnDrawNode(e);
 
+#if UNITY_STANDALONE
                     var info = e.Node.Tag as FileInfo;
                     if (info == null)
                         return;
@@ -520,13 +533,13 @@
                         fInfo.LastWriteTime.ToString("dd.MM.yyyy HH:mm"), 
                         Font, 
                         e.Node.ForeColor, 
-                        selectionBounds.X + 460,
+                        selectionBounds.X + 440,
                         selectionBounds.Y,
                         200,
                         selectionBounds.Height);
                     
                     e.Graphics.uwfDrawString(
-                        HumanizeBytes(fInfo.Length), 
+                        info.sizeStr, 
                         Font, 
                         e.Node.ForeColor, 
                         selectionBounds.X + 400,
@@ -534,14 +547,10 @@
                         selectionBounds.Width - 412,
                         selectionBounds.Height,
                         ContentAlignment.MiddleRight);
+#endif
                 }
                 
-                private static string HumanizeBytes(long bytes)
-                {
-                    if (bytes < 1024) return " 1 KB";
-
-                    return bytes / 1024 + " KB";
-                }
+                
             }
         }
 
@@ -555,23 +564,40 @@
                 {
                     if (IsDirectory)
                         return null;
-                    
+
                     if (info == null && System.IO.File.Exists(CurrentPath + Name))
+                    {
                         info = new System.IO.FileInfo(CurrentPath + Name);
+                        sizeStr = HumanizeBytes(info.Length);
+                    }
                     
                     return info;
                 }
             }
+
+            public string sizeStr;
 #endif
 
             public string CurrentPath;
             public bool IsDirectory;
             public string Name;
 
+            private static readonly NumberFormatInfo numberFormatInfo = new NumberFormatInfo()
+            {
+                NumberGroupSeparator = " "
+            };
+            
             public override string ToString()
             {
                 //if (IsDirectory) return "/ " + Name;
                 return Name.Replace("\\", "");
+            }
+            
+            private static string HumanizeBytes(long bytes)
+            {
+                if (bytes < 1024) return " 1 KB";
+
+                return (bytes / 1024).ToString("N0", numberFormatInfo) + " KB";
             }
         }
 
@@ -635,17 +661,15 @@
                 get { return text; }
                 set
                 {
-                    var changed = text != value;
+                    if (text == value)
+                        return;
+                    
+                    // TODO: reset text when directory not found or Escape button was pressed.
                     text = value;
                     if (text == null)
                         text = "";
 
-                    if (changed)
-                    {
-                        DisposeButtons();
-                        CreateButtons();
-                        OnTextChanged(EventArgs.Empty);
-                    }
+                    OnTextChanged(EventArgs.Empty);
                 }
             }
 
@@ -657,7 +681,15 @@
             protected override void OnLostFocus(EventArgs e)
             {
                 base.OnLostFocus(e);
-                CreateButtons();
+                
+                Refresh();
+            }
+            protected override void OnKeyDown(KeyEventArgs e)
+            {
+                base.OnKeyDown(e);
+
+                if (e.KeyCode == Keys.Enter)
+                    Parent.Focus();
             }
             protected override void OnPaint(PaintEventArgs e)
             {
@@ -686,12 +718,21 @@
                 if (Focused == false)
                     text = temp; // Restore buffered text if needed.
             }
+            public override void Refresh()
+            {
+                base.Refresh();
+                
+                UpdateButtons();
+            }
 
             private void CreateButtons()
             {
 #if UNITY_STANDALONE
-                var directories = new List<IO.DirectoryInfo>();
                 var currentPath = text;
+                if (string.IsNullOrEmpty(currentPath))
+                    return;
+                
+                var directories = new List<IO.DirectoryInfo>();
                 var cdir = new IO.DirectoryInfo(currentPath);
                 directories.Add(cdir);
 
@@ -750,6 +791,11 @@
                     pb.Dispose(); // TODO: cache + visible.
                     i--;
                 }
+            }
+            private void UpdateButtons()
+            {
+                DisposeButtons();
+                CreateButtons();
             }
 
             private class pathButton : Button

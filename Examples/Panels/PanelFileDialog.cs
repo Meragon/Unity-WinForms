@@ -19,6 +19,7 @@
             {
                 var ofd = new OpenFileDialog();
                 ofd.Filter = textFilter.Text;
+                ofd.InitialDirectory = "C:\\";
                 ofd.ShowDialog(
                     (form, result) =>
                     {

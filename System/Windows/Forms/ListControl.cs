@@ -2,7 +2,7 @@
 {
     public abstract class ListControl : Control
     {
-        public event EventHandler SelectedValueChanged = delegate { };
+        public event EventHandler SelectedValueChanged;
 
         public abstract int SelectedIndex { get; set; }
         public object SelectedValue { get; set; }
@@ -13,7 +13,9 @@
         }
         protected virtual void OnSelectedValueChanged(EventArgs e)
         {
-            SelectedValueChanged(this, EventArgs.Empty);
+            var handler = SelectedValueChanged;
+            if (handler != null)
+                handler(this, e);
         }
     }
 }
