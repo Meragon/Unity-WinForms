@@ -428,6 +428,8 @@
                 for (int i = 0; i < currentFiles.Length; i++)
                 {
                     var file = currentFiles[i];
+                    file.CurrentPath = currentPath;
+                    
                     var fileNode = new TreeNode(file.ToString());
                     fileNode.Tag = file;
                     fileNode.ImageIndex = file.IsDirectory ? 0 : 1;
@@ -515,6 +517,15 @@
                         return;
                     
                     e.Graphics.uwfDrawString(
+                        fInfo.LastWriteTime.ToString("dd.MM.yyyy HH:mm"), 
+                        Font, 
+                        e.Node.ForeColor, 
+                        selectionBounds.X + 460,
+                        selectionBounds.Y,
+                        200,
+                        selectionBounds.Height);
+                    
+                    e.Graphics.uwfDrawString(
                         HumanizeBytes(fInfo.Length), 
                         Font, 
                         e.Node.ForeColor, 
@@ -527,12 +538,9 @@
                 
                 private static string HumanizeBytes(long bytes)
                 {
-                    if (bytes < 1024)
-                        return " 1KB";
-                    if (bytes < 1024 * 1024)
-                        return (bytes / 1024) + " KB";
+                    if (bytes < 1024) return " 1 KB";
 
-                    return "WE";
+                    return bytes / 1024 + " KB";
                 }
             }
         }
@@ -545,16 +553,20 @@
             {
                 get
                 {
-                    if (info == null)
-                        info = new System.IO.FileInfo(Name);
+                    if (IsDirectory)
+                        return null;
+                    
+                    if (info == null && System.IO.File.Exists(CurrentPath + Name))
+                        info = new System.IO.FileInfo(CurrentPath + Name);
                     
                     return info;
                 }
             }
 #endif
-            
-            public bool IsDirectory { get; set; }
-            public string Name { get; set; }
+
+            public string CurrentPath;
+            public bool IsDirectory;
+            public string Name;
 
             public override string ToString()
             {
