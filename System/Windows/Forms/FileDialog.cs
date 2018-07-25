@@ -531,7 +531,7 @@
                         e.Node.ForeColor, 
                         selectionBounds.X + 400,
                         selectionBounds.Y,
-                        selectionBounds.Width - 400,
+                        selectionBounds.Width - 412,
                         selectionBounds.Height,
                         ContentAlignment.MiddleRight);
                 }
