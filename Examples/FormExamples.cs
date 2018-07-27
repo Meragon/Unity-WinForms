@@ -50,6 +50,7 @@
             AddNode(nodeControls, "ComboBox", typeof(PanelComboBox));
             AddNode(nodeControls, "DateTimePicker", typeof(PanelDateTimePicker));
             AddNode(nodeControls, "FileDialog", typeof(PanelFileDialog));
+            AddNode(nodeControls, "FontDialog", typeof(PanelFontDialog));
             AddNode(nodeControls, "Form", typeof(PanelForm));
             AddNode(nodeControls, "GroupBox", typeof(PanelGroupBox));
             AddNode(nodeControls, "Label", typeof(PanelLabel));
@@ -67,6 +68,7 @@
             treeView.Nodes.Add(nodeControls);
 
             var nodeOtherControls = new TreeNode("Other");
+            AddNode(nodeOtherControls, "Chart", typeof(PanelChart));
             AddNode(nodeOtherControls, "ColorPicker", typeof(PanelColorPicker));
             AddNode(nodeOtherControls, "TableView", typeof(PanelTableView));
             

@@ -70,7 +70,7 @@ namespace System.Windows.Forms
                 graphics.uwfFillRectangle(hoverColor, checkedRect);
                 graphics.DrawRectangle(selectPen, checkedRect);
 
-                var checkedImage = ApplicationResources.Items.Checked;
+                var checkedImage = ApplicationResources.Images.Checked;
                 if (checkedImage != null)
                 {
                     var checkedImageRect = new Rectangle( // Draw without streching (override this if u need).

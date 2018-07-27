@@ -14,7 +14,7 @@ namespace System.Windows.Forms
             dropDownItems = new ToolStripItemCollection(Parent, null);
 
             ArrowColor = Color.Black;
-            ArrowImage = ApplicationResources.Items.DropDownRightArrow;
+            ArrowImage = ApplicationResources.Images.DropDownRightArrow;
         }
 
         public ToolStripDropDown DropDown
@@ -72,7 +72,7 @@ namespace System.Windows.Forms
                 var dropDownItem = item as ToolStripDropDownItem;
                 if (dropDownItem == null) continue;
 
-                dropDownItem.ArrowImage = ApplicationResources.Items.DropDownRightArrow;
+                dropDownItem.ArrowImage = ApplicationResources.Images.DropDownRightArrow;
                 dropDownItem.ArrowColor = Color.Black;
             }
 

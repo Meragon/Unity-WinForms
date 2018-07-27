@@ -7,6 +7,7 @@ This is WinForms wrapper (including System.Drawing). Here you can create base co
 - CheckBox;
 - ComboBox;
 - DateTimePicker;
+- FontDialog;
 - Form;
 - GroupBox;
 - HScrollBar;
@@ -33,6 +34,7 @@ This is WinForms wrapper (including System.Drawing). Here you can create base co
 Other controls: 
 - BitmapLabel;
 - ColorPicker;
+- Highchart;
 - RepeatButton;
 - TableView;
 

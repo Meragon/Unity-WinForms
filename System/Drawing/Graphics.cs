@@ -120,7 +120,7 @@
         }
         public void FillEllipse(SolidBrush brush, float x, float y, float width, float height)
         {
-            uwfDrawImage(ApplicationResources.Items.Circle, brush.Color, x, y, width, height);
+            uwfDrawImage(ApplicationResources.Images.Circle, brush.Color, x, y, width, height);
         }
         public void FillRectangle(Brush brush, Rectangle rect)
         {

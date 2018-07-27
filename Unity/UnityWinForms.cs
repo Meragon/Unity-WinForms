@@ -101,9 +101,19 @@
             GdiImages.Cursors.SizeWE = gResources.Images.Cursors.SizeWE.ToBitmap();
             GdiImages.Cursors.VSplit = gResources.Images.Cursors.VSplit.ToBitmap();
 
-            ApplicationResources.Items = GdiImages;
+            ApplicationResources.Images = GdiImages;
+            ApplicationResources.Fonts = new List<string>();
+            
+            if (Resources != null && Resources.Fonts != null)
+                for (int i = 0; i < Resources.Fonts.Count; i++)
+                {
+                    var font = Resources.Fonts[i];
+                    if (font != null)
+                        ApplicationResources.Fonts.Add(font.fontNames[0]);
+                }
+            
             Cursors.images = GdiImages.Cursors;
-
+            
             lastWidth = UE.Screen.width;
             lastHeight = UE.Screen.height;
 

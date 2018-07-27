@@ -47,7 +47,7 @@
             buttonBack.BackgroundImageLayout = ImageLayout.Center;
             buttonBack.Enabled = false;
             buttonBack.Font = new Drawing.Font("Arial", 16, FontStyle.Bold);
-            buttonBack.Image = ApplicationResources.Items.FileDialogBack;
+            buttonBack.Image = ApplicationResources.Images.FileDialogBack;
             buttonBack.Location = new Point(Padding.Left, uwfHeaderHeight + Padding.Top);
             buttonBack.BackColor = Color.Transparent;
             buttonBack.uwfBorderColor = Color.Transparent;
@@ -67,7 +67,7 @@
             buttonUp = new Button();
             buttonUp.BackgroundImageLayout = ImageLayout.Center;
             buttonUp.Font = new Drawing.Font("Arial", 16, FontStyle.Bold);
-            buttonUp.Image = ApplicationResources.Items.FileDialogUp;
+            buttonUp.Image = ApplicationResources.Images.FileDialogUp;
             buttonUp.Location = new Point(buttonBack.Location.X + buttonBack.Width + 8, buttonBack.Location.Y);
             buttonUp.BackColor = Color.Transparent;
             buttonUp.uwfBorderColor = Color.Transparent;
@@ -83,7 +83,7 @@
             buttonRefresh = new Button();
             buttonRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             buttonRefresh.BackColor = Color.Transparent;
-            buttonRefresh.Image = ApplicationResources.Items.FileDialogRefresh;
+            buttonRefresh.Image = ApplicationResources.Images.FileDialogRefresh;
             buttonRefresh.Size = new Size(22, 22);
             buttonRefresh.Location = new Point(Width - Padding.Right - buttonRefresh.Width, buttonUp.Location.Y);
             //buttonRefresh.uwfImageColor = Color.FromArgb(64, 64, 64);
@@ -348,8 +348,8 @@
                 Controls.Add(filesTree);
 
                 filesTree.ImageList = new ImageList();
-                filesTree.ImageList.Images.Add(ApplicationResources.Items.FileDialogFolder);
-                filesTree.ImageList.Images.Add(ApplicationResources.Items.FileDialogFile);
+                filesTree.ImageList.Images.Add(ApplicationResources.Images.FileDialogFolder);
+                filesTree.ImageList.Images.Add(ApplicationResources.Images.FileDialogFile);
             }
 
             public delegate void DirectoryChangedHandler();
@@ -487,6 +487,7 @@
                 {
                     uwfSelectionColor = Color.Transparent;
                     uwfSelectionHoverColor = Color.Transparent;
+                    uwfSelectionUnfocusedColor = Color.Transparent;
                 }
                 
                 protected override void OnDrawNode(DrawTreeNodeEventArgs e)
@@ -820,7 +821,7 @@
                     arrowButton.Height = Height;
                     arrowButton.Location = new Point(Width - arrowButton.Width, 0);
                     arrowButton.Text = "";
-                    arrowButton.Image = ApplicationResources.Items.ArrowRight;
+                    arrowButton.Image = ApplicationResources.Images.ArrowRight;
                     arrowButton.uwfImageColor = Color.Gray;
                     arrowButton.uwfImageHoverColor = Color.Gray;
 

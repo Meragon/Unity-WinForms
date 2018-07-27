@@ -14,7 +14,7 @@
         internal float uwfScrollSpeed = 2;
         internal Color uwfSelectionColor = Color.FromArgb(187, 222, 251);
         internal Color uwfSelectionHoverColor = Color.FromArgb(221, 238, 253);
-        internal Color uwfSelectionUnfocusedColor = Color.Transparent;
+        internal Color uwfSelectionUnfocusedColor = Color.FromArgb(187, 222, 251);
         internal bool  uwfSmoothScrolling = true;
         internal bool  uwfUseNodeBoundsForSelection;
         internal bool  uwfWrapText;
