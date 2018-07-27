@@ -244,9 +244,9 @@ namespace System.Windows.Forms
         private void UpdateSplitter()
         {
             if (Orientation == Orientation.Vertical)
-                splitterDistance = MathHelper.Clamp(splitterDistance, panel1MinSize, Width - panel2MinSize);
+                splitterDistance = MathHelper.Clamp(splitterDistance, panel1MinSize, Width - panel2MinSize - splitterWidth);
             else if (Orientation == Orientation.Horizontal)
-                splitterDistance = MathHelper.Clamp(splitterDistance, panel1MinSize, Height - panel2MinSize);
+                splitterDistance = MathHelper.Clamp(splitterDistance, panel1MinSize, Height - panel2MinSize - splitterWidth);
             
             panel1.SuspendLayout();
             panel2.SuspendLayout();

@@ -336,8 +336,7 @@
         {
             base.OnResize(e);
 
-            UpdateScrollList();
-            UpdateScrollBar();
+            Refresh();
         }
         
         private void AdjustScrollIndexToNode(TreeNode node)

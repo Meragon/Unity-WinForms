@@ -65,6 +65,7 @@
             AddNode(nodeControls, "ScrollBar", typeof(PanelScrollBar));
             AddNode(nodeControls, "SplitContainer", typeof(PanelSplitContainer));
             AddNode(nodeControls, "TabControl", typeof(PanelTabControl));
+            AddNode(nodeControls, "TreeView", typeof(PanelTreeView));
             
             treeView.Nodes.Add(nodeControls);
 
