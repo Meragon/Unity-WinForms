@@ -391,26 +391,44 @@
             public void SetDirectory(string path, bool addPrevPath = false)
             {
 #if UNITY_STANDALONE
-                if (addPrevPath)
-                    prevPathes.Add(currentPath);
-
                 if (path.Length <= 2) return;
                 if (System.IO.Directory.Exists(path) == false) return;
 
+                if (addPrevPath)
+                    prevPathes.Add(currentPath);
+                
                 currentPath = path.Replace("\\", "/");
                 var filter = owner.currentFilter;
                 
                 string[] files;
-                if (filter == "*" || filter == "*.*")
-                    files = System.IO.Directory.GetFiles(currentPath, "*.*")
-                        .Select(f => f.Substring(currentPath.Length))
-                        .ToArray();
-                else
-                    files = System.IO.Directory.GetFiles(currentPath, "*.*")
-                        .Where(f => filter.Contains(System.IO.Path.GetExtension(f).ToLower()))
-                        .Select(f => f.Substring(currentPath.Length))
-                        .ToArray();
-                
+                try
+                {
+                    if (filter == "*" || filter == "*.*")
+                        files = System.IO.Directory.GetFiles(currentPath, "*.*")
+                            .Select(f => f.Substring(currentPath.Length))
+                            .ToArray();
+                    else
+                        files = System.IO.Directory.GetFiles(currentPath, "*.*")
+                            .Where(f => filter.Contains(System.IO.Path.GetExtension(f).ToLower()))
+                            .Select(f => f.Substring(currentPath.Length))
+                            .ToArray();
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    // Restore previous path.
+                    if (prevPathes.Count > 0)
+                    {
+                        var prevPath = prevPathes[prevPathes.Count - 1];
+                        prevPathes.RemoveAt(prevPathes.Count - 1);
+                        
+                        if (prevPath != currentPath) // Or we can get stack overflow.
+                            SetDirectory(prevPath);
+                    }
+                    
+                    MessageBox.Show(ex.Message, "Error");
+                    return;
+                }
+
                 var dirs = System.IO.Directory.GetDirectories(currentPath)
                     .Select(f => f.Substring(currentPath.Length))
                     .ToArray();

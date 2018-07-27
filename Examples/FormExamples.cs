@@ -63,6 +63,7 @@
             AddNode(nodeControls, "ProgressBar", typeof(PanelProgressBar));
             AddNode(nodeControls, "RadioButton", typeof(PanelRadioButton));
             AddNode(nodeControls, "ScrollBar", typeof(PanelScrollBar));
+            AddNode(nodeControls, "SplitContainer", typeof(PanelSplitContainer));
             AddNode(nodeControls, "TabControl", typeof(PanelTabControl));
             
             treeView.Nodes.Add(nodeControls);

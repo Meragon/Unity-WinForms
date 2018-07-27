@@ -316,11 +316,13 @@
 
                             case ControlResizeTypes.Down:
                             case ControlResizeTypes.Up:
+                            case ControlResizeTypes.DownUp:
                                 Cursor.CurrentSystem = Cursors.SizeNS;
                                 break;
 
                             case ControlResizeTypes.Left:
                             case ControlResizeTypes.Right:
+                            case ControlResizeTypes.LeftRight:
                                 Cursor.CurrentSystem = Cursors.SizeWE;
                                 break;
 
