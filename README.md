@@ -33,10 +33,10 @@ This is WinForms wrapper (including System.Drawing). Here you can create base co
 
 Other controls: 
 - BitmapLabel;
-- ColorPicker;
-- Highchart;
+- ColorPicker (replacement for ColorDialog);
+- Highchart (replacement for Chart);
 - RepeatButton;
-- TableView;
+- TableView (replacement for DataGridView);
 
 ### Usage
 
