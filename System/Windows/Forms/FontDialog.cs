@@ -51,12 +51,14 @@
             textFontName = new TextBox();
             textFontName.Location = new Point(11, 50);
             textFontName.Size = new Size(146, 20);
+            textFontName.TabIndex = 0;
             
             listFontName = new ListBox();
             listFontName.Location = new Point(textFontName.Location.X, textFontName.Location.Y + textFontName.Height);
             listFontName.IntegralHeight = false;
             listFontName.Height = 99;
             listFontName.Width = textFontName.Width;
+            listFontName.TabIndex = 3;
             listFontName.SelectedIndexChanged += ListFontNameOnSelectedIndexChanged;
             
             if (ApplicationResources.Fonts != null)
@@ -71,6 +73,7 @@
             textFontStyle = new TextBox();
             textFontStyle.Location = new Point(165, 50);
             textFontStyle.Size = new Size(111, 20);
+            textFontStyle.TabIndex = 1;
             
             listFontStyle = new ListBox();
             listFontStyle.Location = new Point(textFontStyle.Location.X, textFontStyle.Location.Y + textFontStyle.Height);
@@ -79,6 +82,7 @@
             listFontStyle.Width = textFontStyle.Width;
             listFontStyle.Items.AddRange(locFontStyles);
             listFontStyle.SelectedIndex = 0;
+            listFontStyle.TabIndex = 4;
             listFontStyle.SelectedIndexChanged += ListFontStyleOnSelectedIndexChanged;
             
             // Font size.
@@ -89,12 +93,14 @@
             textFontSize = new TextBox();
             textFontSize.Location = new Point(285, 50);
             textFontSize.Size = new Size(54, 20);
+            textFontSize.TabIndex = 2;
             
             listFontSize = new ListBox();
             listFontSize.Location = new Point(textFontSize.Location.X, textFontSize.Location.Y + textFontSize.Height);
             listFontSize.IntegralHeight = false;
             listFontSize.Height = 95;
             listFontSize.Width = textFontSize.Width;
+            listFontSize.TabIndex = 5;
             listFontSize.Items.AddRange(new object[] { 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72 });
             listFontSize.SelectedIndexChanged += ListFontSizeOnSelectedIndexChanged;
             
@@ -102,6 +108,7 @@
             buttonOk = new Button();
             buttonOk.Location = new Point(348, 51);
             buttonOk.Size = new Size(66, 21);
+            buttonOk.TabIndex = 9;
             buttonOk.Text = locOk;
             buttonOk.Click += (sender, args) =>
             {
@@ -112,6 +119,7 @@
             buttonCancel = new Button();
             buttonCancel.Location = new Point(348, 77);
             buttonCancel.Size = new Size(66, 21);
+            buttonCancel.TabIndex = 10;
             buttonCancel.Text = locCancel;
             buttonCancel.Click += (sender, args) =>
             {
@@ -128,11 +136,13 @@
             checkStrikeout = new CheckBox();
             checkStrikeout.Enabled = false;
             checkStrikeout.Location = new Point(10, 20);
+            checkStrikeout.TabIndex = 6;
             checkStrikeout.Text = locFontEffectStrikeout;
             
             checkUnderline = new CheckBox();
             checkUnderline.Enabled = false;
             checkUnderline.Location = new Point(10, 41);
+            checkUnderline.TabIndex = 7;
             checkUnderline.Text = locFontEffectUnderline;
             
             groupEffects.Controls.Add(checkStrikeout);
@@ -166,6 +176,7 @@
             comboScript.Size = new Size(174, 20);
             comboScript.Items.AddRange(locFontScripts);
             comboScript.SelectedIndex = 0;
+            comboScript.TabIndex = 8;
             
             Controls.Add(labelFontName);
             Controls.Add(textFontName);

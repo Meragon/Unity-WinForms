@@ -1,4 +1,6 @@
-﻿namespace System.Windows.Forms
+﻿using System.Drawing.Drawing2D;
+
+namespace System.Windows.Forms
 {
     using System.Drawing;
 
@@ -10,6 +12,8 @@
 
         private readonly Pen borderPen = new Pen(Color.Transparent);
         private CheckState checkState;
+        private bool measureText;
+        private SizeF textSize;
 
         public CheckBox()
         {
@@ -86,6 +90,20 @@
                 g.DrawImage(uwfAppOwner.Resources.Checked, checkRectX, checkRectY, checkRectWH, checkRectWH);
 
             g.uwfDrawString(Text, Font, ForeColor, checkRectX + checkRectWH + 4, Padding.Top + 0, Width - 20, Height, TextAlign);
+
+            if (uwfCanDrawTabDots && uwfDrawTabDots && Focused && string.IsNullOrEmpty(Text) == false)
+            {
+                if (measureText)
+                    textSize = g.MeasureString(Text, Font);
+                    
+                g.DrawRectangle( uwfTabPen, checkRectX + checkRectWH + 2, (Height - textSize.Height) / 2 + 2, textSize.Width + 4, textSize.Height - 4);
+            }
+        }
+        protected override void OnTextChanged(EventArgs e)
+        {
+            base.OnTextChanged(e);
+
+            measureText = true;
         }
 
         private void CheckBox_Click(object sender, EventArgs e)

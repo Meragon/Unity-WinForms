@@ -8,7 +8,7 @@
     {
         internal ScrollBar vScrollBar;
         internal int       arrowSize = 16;
-        internal TreeNode hoveredNode;
+        internal TreeNode  hoveredNode;
         internal TreeNode  root;
         
         internal float uwfScrollSpeed = 2;
@@ -32,6 +32,7 @@
         
         private ToolTip   nodeToolTip;
         private TreeNode  nodeToolTipLast;
+        private TreeNode  selectedNode;
         private float     resetFilterTime;
 
         public TreeView()
@@ -66,7 +67,23 @@
         }
         public int ItemHeight { get; set; }
         public TreeNodeCollection Nodes { get; private set; }
-        public TreeNode SelectedNode { get; set; }
+        public TreeNode SelectedNode
+        {
+            get { return selectedNode;}
+            set
+            {
+                if (selectedNode == value)
+                    return;
+
+                selectedNode = value;
+
+                if (value != null)
+                {
+                    EnsureVisible(value);
+                    OnAfterSelect(new TreeViewEventArgs(value));
+                }
+            }
+        }
         public bool ShowNodeToolTips { get; set; }
 
         protected override Size DefaultSize
@@ -74,6 +91,10 @@
             get { return new Size(121, 97); }
         }
 
+        private int nodesOnScreen
+        {
+            get { return Height / ItemHeight; } 
+        }
         private float scrollIndex
         {
             get
@@ -134,6 +155,9 @@
 
         internal void EnsureVisible(TreeNode node)
         {
+            if (node == null)
+                return;
+            
             var nodeIsInScrollList = scrollNodeList.Find(x => x == node);
             if (nodeIsInScrollList != null) return;
 
@@ -175,11 +199,9 @@
         {
             if (onDrawNode != null) onDrawNode(this, e);
         }
-        protected override void OnKeyPress(KeyPressEventArgs args)
+        protected override void OnKeyDown(KeyEventArgs e)
         {
-            base.OnKeyPress(args);
-
-            var e = args.uwfKeyArgs;
+            base.OnKeyDown(e);
 
             if (e.Modifiers == Keys.None)
             {
@@ -205,8 +227,54 @@
                     case Keys.Up:
                         SelectPrevious();
                         break;
+
+                    case Keys.PageDown:
+                        if (nodeList.Count > 0)
+                        {
+                            var lNodesOnScreen = nodesOnScreen;
+                            var nextIndex = 0;
+                            if (SelectedNode != null)
+                                nextIndex = nodeList.IndexOf(SelectedNode);
+                            nextIndex = MathHelper.Clamp(nextIndex + lNodesOnScreen, 0, nodeList.Count - 1);
+                            SelectedNode = nodeList[nextIndex];
+                        }
+                        break;
+                    case Keys.PageUp:
+                        if (nodeList.Count > 0)
+                        {
+                            var lNodesOnScreen = nodesOnScreen;
+                            var nextIndex = 0;
+                            if (SelectedNode != null)
+                                nextIndex = nodeList.IndexOf(SelectedNode);
+                            nextIndex = MathHelper.Clamp(nextIndex - lNodesOnScreen, 0, nodeList.Count - 1);
+                            SelectedNode = nodeList[nextIndex];
+                        }
+                        break;
+                    case Keys.End:
+                        if (nodeList.Count > 0)
+                            SelectedNode = nodeList[nodeList.Count - 1];
+                        break;
+                    case Keys.Home:
+                        if (nodeList.Count > 0)
+                            SelectedNode = nodeList[0];
+                        break;
                 }
             }
+            else if (e.Control)
+            {
+                switch (e.KeyCode)
+                {
+                    case Keys.Down:
+                        if (vScrollBar != null)
+                            vScrollBar.DoScroll(ScrollEventType.SmallIncrement);
+                        break;
+                    case Keys.Up:
+                        if (vScrollBar != null)
+                            vScrollBar.DoScroll(ScrollEventType.SmallDecrement);
+                        break;
+                }
+            }
+            
 
             char c = KeyHelper.GetLastInputChar();
             if (char.IsLetterOrDigit(c) || char.IsPunctuation(c))
@@ -488,12 +556,6 @@
 
             return true;
         }
-        private void SelectNode(TreeNode node)
-        {
-            SelectedNode = node;
-
-            OnAfterSelect(new TreeViewEventArgs(node));
-        }
         private void SelectNodeWText(string text, bool caseSencitive = false)
         {
             string lowerText = text;
@@ -513,8 +575,7 @@
 
                 if (clippedNodeText == lowerText)
                 {
-                    EnsureVisible(node);
-                    SelectNode(node);
+                    SelectedNode = node;
                     break;
                 }
             }
@@ -607,10 +668,10 @@
 
             int startNode = (int)(scrollIndex / ItemHeight) - 1;
             if (startNode < 0) startNode = 0;
-            int nodesOnScreen = Height / ItemHeight + 3; // Magic number.
+            int lNodesOnScreen = nodesOnScreen + 3;
 
             var nodeListCount = nodeList.Count;
-            for (int i = startNode; i < startNode + nodesOnScreen && i < nodeListCount; i++)
+            for (int i = startNode; i < startNode + lNodesOnScreen && i < nodeListCount; i++)
             {
                 var node = nodeList[i];
                 var nodeBounds = node.Bounds;

@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Drawing;
+    using System.Drawing.Drawing2D;
 
     public class Control : Component, IDropTarget
     {
@@ -18,6 +19,9 @@
 
         internal Application uwfAppOwner;
         internal bool uwfAutoGroup; // Used by GUI.BeginGroup & GUI.EndGroup. Allows to paint controls using their relevant position Rect(0, 0, Width, Height).
+        internal bool uwfCanDrawTabDots = true; // Means that Control will draw dots on Tab focus if possible.
+        internal bool uwfDrawTabDots; // If 'Tab' key was pressed on any form, Control should be marked to draw dots. Work in progress.
+        internal readonly Pen uwfTabPen = new Pen(Color.Black) { DashStyle = DashStyle.Dot };
         internal bool uwfShadowBox;
         internal DrawHandler uwfShadowHandler;
         internal Point uwfOffset; // Position for scrolling. Affects rendering.
@@ -553,10 +557,7 @@
         }
         internal virtual void RaiseOnKeyPress(KeyPressEventArgs e)
         {
-            OnKeyPress(e); // TODO: KeyPressEventArgs?
-
-            if (uwfKeyPress != null)
-                uwfKeyPress(this, e.uwfKeyArgs);
+            OnKeyPress(e);
         }
         internal virtual void RaiseOnKeyUp(KeyEventArgs e)
         {

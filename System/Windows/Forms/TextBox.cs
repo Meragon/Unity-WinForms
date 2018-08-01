@@ -62,6 +62,21 @@
             get { return new Size(100, 24); }
         }
 
+        public override string ToString()
+        {
+            // In future: move to TextBoxBase.
+            var bs = base.ToString();
+            var txt = Text;
+
+            if (txt == null)
+                txt = "";
+
+            if (txt.Length > 40)
+                txt = txt.Substring(0, 40) + "...";
+
+            return bs + ", Text: " + txt;
+        }
+
         protected override void OnMouseEnter(EventArgs e)
         {
             base.OnMouseEnter(e);

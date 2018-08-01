@@ -86,6 +86,46 @@
             set { SetScrollState(ScrollStateVScrollVisible, value); }
         }
 
+        internal void EnsureVisible(Control control)
+        {
+            if (control == null || control.Parent == null)
+                return;
+
+            var scrollable = control.Parent as ScrollableControl;
+            if (scrollable == null)
+            {
+                EnsureVisible(control.Parent);
+                return;
+            }
+            
+            // TODO: check later, some bugs here.
+            
+            // Vertical.
+            if (scrollable.vscroll != null)
+            {
+                var controlY = control.Location.Y;
+                var goDown = controlY + control.Height > scrollable.vscroll.Value + scrollable.vscroll.LargeChange;
+                var goUp = controlY < scrollable.vscroll.Value;
+
+                if (goDown) 
+                    scrollable.vscroll.Value = MathHelper.Clamp(controlY + control.Height + 4, 0, scrollable.vscroll.Maximum);
+                else if (goUp)
+                    scrollable.vscroll.Value = MathHelper.Clamp(controlY - 4, 0, scrollable.vscroll.Maximum);
+            }
+
+            // Horizontal.
+            if (scrollable.hscroll != null)
+            {
+                var controlX = control.Location.X;
+                var goLeft = controlX < scrollable.hscroll.Value;
+                var goRight = controlX + control.Width > scrollable.hscroll.Value + scrollable.hscroll.LargeChange;
+
+                if (goRight)
+                    scrollable.hscroll.Value = MathHelper.Clamp(controlX + control.Width + 4, 0, scrollable.hscroll.Maximum);
+                else if (goLeft)
+                    scrollable.hscroll.Value = MathHelper.Clamp(controlX - 4, 0, scrollable.hscroll.Maximum);
+            }
+        }
         internal void Native_EnableScrollBar(bool enable, int orientation)
         {
             var oriV = orientation == NativeMethods.SB_VERT;

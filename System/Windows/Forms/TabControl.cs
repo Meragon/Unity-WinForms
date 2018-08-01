@@ -497,36 +497,20 @@
 
             bool IList.IsFixedSize
             {
-                get
-                {
-                    throw new NotImplementedException();
-                }
+                get { return false; }
             }
             bool ICollection.IsSynchronized
             {
-                get
-                {
-                    throw new NotImplementedException();
-                }
+                get { return false; }
             }
             object ICollection.SyncRoot
             {
-                get
-                {
-                    throw new NotImplementedException();
-                }
+                get { return this; }
             }
             object IList.this[int index]
             {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-
-                set
-                {
-                    throw new NotImplementedException();
-                }
+                get { return this[index]; }
+                set { throw new NotImplementedException(); }
             }
 
             public virtual TabPage this[int index]

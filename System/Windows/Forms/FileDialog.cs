@@ -232,11 +232,11 @@
                 contextMenu.Show(null, MousePosition);
             }
         }
-        protected override void OnKeyPress(KeyPressEventArgs e)
+        protected override void OnKeyDown(KeyEventArgs e)
         {
-            base.OnKeyPress(e);
+            base.OnKeyDown(e);
             
-            if (e.uwfKeyArgs.KeyCode == Keys.Escape)
+            if (e.KeyCode == Keys.Escape)
             {
                 if (textBoxPath.Focused)
                 {
@@ -249,16 +249,16 @@
             }
 
             // Next folder.
-            if (e.uwfKeyArgs.KeyCode == Keys.Return && textBoxPath.Focused == false)
+            if (e.KeyCode == Keys.Return && textBoxPath.Focused == false)
                 fileRenderer.Next();
 
             // Refresh directory.
-            if (e.uwfKeyArgs.KeyCode == Keys.F5)
+            if (e.KeyCode == Keys.F5)
                 ButtonRefresh();
 
-            if (e.uwfKeyArgs.Alt)
+            if (e.Alt)
             {
-                switch (e.uwfKeyArgs.KeyCode)
+                switch (e.KeyCode)
                 {
                     case Keys.Left: ButtonBack(); break;
                     case Keys.Up: ButtonUp(); break;

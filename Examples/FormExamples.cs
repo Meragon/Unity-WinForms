@@ -27,6 +27,7 @@
             treeView.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom;
             treeView.Location = new Point(0, uwfHeaderHeight - 1); // All controls should be placed with Form header offset.
             treeView.Height = Height - uwfHeaderHeight + 1;
+            treeView.TabStop = false;
             treeView.Width = 220;
             treeView.NodeMouseClick += TreeViewOnNodeMouseClick;
 

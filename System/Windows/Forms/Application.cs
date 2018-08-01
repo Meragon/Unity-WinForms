@@ -21,7 +21,6 @@
 
         private static DragDropEffects dragControlEffects;
         private static DragDropRenderHandler dragRender;
-        private static Keys currentKeyDown = Keys.None;
         private static MouseEvents mouseEvent = 0;
         private static MouseButtons mouseButton = 0;
         private static Control mouseLastClickControl;
@@ -136,9 +135,6 @@
 
                 RaiseKeyEvent(args, keyEventType, keyControl);
             }
-
-            if (keyEventType == KeyEvents.Down)
-                currentKeyDown = args.KeyCode;
         }
         public void ProccessMouse(MouseEvents mE, float mX, float mY, MouseButtons mButton, int clicks, int delta)
         {
@@ -431,18 +427,6 @@
 
             return currentControl;
         }
-        internal static void _FillListWithVisibleControls(Control control, List<Control> list)
-        {
-            for (int i = 0; i < control.Controls.Count; i++)
-            {
-                var c = control.Controls[i];
-                if (c.Visible)
-                {
-                    list.Add(c);
-                    _FillListWithVisibleControls(c, list);
-                }
-            }
-        }
         private static Control _ParentContains(Control control, PointF mousePosition, Control currentControl, ref bool ok)
         {
             //Application.Log(control.Name);
@@ -532,16 +516,14 @@
             switch (keyEventType)
             {
                 case KeyEvents.Down:
-                    if (currentKeyDown == Keys.None || currentKeyDown != args.KeyCode)
-                        keyControl.RaiseOnKeyDown(args);
+                    keyControl.RaiseOnKeyDown(args);
 
-                    var pressArgs = new KeyPressEventArgs(KeyHelper.GetLastInputChar());
-                    pressArgs.uwfKeyArgs = args;
+                    var lastChar = KeyHelper.GetLastInputChar();
+                    if (args.KeyCode == Keys.Space || args.KeyCode == Keys.Back || char.IsControl(lastChar) == false)
+                        keyControl.RaiseOnKeyPress(new KeyPressEventArgs(lastChar));
 
-                    keyControl.RaiseOnKeyPress(pressArgs);
                     break;
                 case KeyEvents.Up:
-                    currentKeyDown = Keys.None;
                     keyControl.RaiseOnKeyUp(args);
                     break;
             }

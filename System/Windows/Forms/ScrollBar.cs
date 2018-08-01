@@ -34,6 +34,7 @@
         protected ScrollBar()
         {
             BackColor = Color.FromArgb(240, 240, 240);
+            TabStop = false;
             
             scrollCurrentColor = uwfScrollColor;
             scrollCurrentColorA = scrollCurrentColor.A;

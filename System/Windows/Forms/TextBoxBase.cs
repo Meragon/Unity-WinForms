@@ -108,13 +108,13 @@
 
             UpdateScrolls();
         }
-        protected override void OnKeyPress(KeyPressEventArgs e)
+        protected override void OnKeyDown(KeyEventArgs e)
         {
-            base.OnKeyPress(e);
+            base.OnKeyDown(e);
 
-            var keyCode = e.uwfKeyArgs.KeyCode;
-            var ctrlMod = e.uwfKeyArgs.Control;
-            var shiftMod = e.uwfKeyArgs.Shift;
+            var keyCode = e.KeyCode;
+            var ctrlMod = e.Control;
+            var shiftMod = e.Shift;
             switch (keyCode)
             {
                 // Basic navigation.

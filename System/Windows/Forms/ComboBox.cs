@@ -125,11 +125,9 @@
             if (handler != null)
                 handler(this, e);
         }
-        protected override void OnKeyPress(KeyPressEventArgs args)
+        protected override void OnKeyDown(KeyEventArgs e)
         {
-            base.OnKeyPress(args);
-
-            var e = args.uwfKeyArgs;
+            base.OnKeyDown(e);
 
             switch (e.KeyCode)
             {

@@ -11,6 +11,7 @@ namespace Unity.API
 
     public class UnityGdi : IApiGraphics
     {
+        public static UE.Color cursorSelectionColor = Color.FromArgb(128, SystemColors.Highlight).ToUnityColor();
         public static UE.Texture2D defaultTexture = UnityWinForms.DefaultSprite;
         public static bool GL_LINES;
 
@@ -25,6 +26,7 @@ namespace Unity.API
         public void Clear(Color color)
         {
             UE.GUI.color = color.ToUnityColor();
+            UE.GUI.skin.settings.selectionColor = cursorSelectionColor;
         }
         public ITexture CreateTexture(int width, int height)
         {
@@ -243,6 +245,7 @@ namespace Unity.API
                         UE.GUI.DrawTexture(new UE.Rect(x, y + penWidth, penWidth, height - penWidth * 2), defaultTexture, scaleMode, blendMode, aspect);
 
                     break;
+                
                 case System.Drawing.Drawing2D.DashStyle.Dash:
                     float dash_step = penWidth * 6;
                     for (float i = 0; i < width; i += dash_step)
@@ -262,6 +265,20 @@ namespace Unity.API
                         UE.GUI.DrawTexture(new UE.Rect(x + width - penWidth, y + i, penWidth, dash_height), defaultTexture, scaleMode, blendMode, aspect); // Right.
                         UE.GUI.DrawTexture(new UE.Rect(x, y + i, penWidth, dash_height), defaultTexture, scaleMode, blendMode, aspect); // Left.
                     }
+                    break;
+                
+                case DashStyle.Dot:
+                    for (float i = 0; i < height; i += 2)
+                    {
+                        UE.GUI.DrawTexture(new UE.Rect(x + width - 1, y + i, 1, 1), defaultTexture, scaleMode, blendMode, aspect); // Right.
+                        UE.GUI.DrawTexture(new UE.Rect(x, y + i, 1, 1), defaultTexture, scaleMode, blendMode, aspect); // Left.
+                    }
+                    for (float i = 0; i < width; i += 2)
+                    {
+                        UE.GUI.DrawTexture(new UE.Rect(x + i, y, 1, 1), defaultTexture, scaleMode, blendMode, aspect); // Top.
+                        UE.GUI.DrawTexture(new UE.Rect(x + i, y + height - 1, 1, 1), defaultTexture, scaleMode, blendMode, aspect); // Bottom.
+                    }
+                    
                     break;
             }
         }
@@ -433,7 +450,7 @@ namespace Unity.API
             UE.GUI.skin.textField.active.background = null;
             UE.GUI.skin.textField.focused.background = null;
             UE.GUI.skin.textField.normal.background = null;
-
+            
             return UE.GUI.TextField(new UE.Rect(x, y, width, height), s);
         }
         

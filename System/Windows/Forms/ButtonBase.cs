@@ -85,6 +85,11 @@
                 base.RaiseOnMouseClick(e);
         }
 
+        protected internal virtual void DrawTabDots(PaintEventArgs e)
+        {
+            e.Graphics.DrawRectangle(uwfTabPen, 2, 2, Width - 4, Height - 4);
+        }
+        
         protected override void OnKeyUp(KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Space || e.KeyCode == Keys.Return)
@@ -147,6 +152,9 @@
             borderPen.Color = borderColorToDraw;
 
             g.DrawRectangle(borderPen, 0, 0, width, height);
+            
+            if (uwfCanDrawTabDots && uwfDrawTabDots && Focused)
+                DrawTabDots(e);
         }
         protected override void OnPaintBackground(PaintEventArgs pevent)
         {

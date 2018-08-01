@@ -30,46 +30,20 @@
             return true;
         }
 
-        private static void NextTabControl(Control control)
+        // TODO: far from perfect. Need to remember current focused control and it's tab index.
+        internal static void FillListWithPossibleControls(Control control, List<Control> list)
         {
-            var controlForm = Application.GetRootControl(control) as Form;
-            if (controlForm == null || controlForm.Controls.Count <= 0) return;
-
-            var formControls = new List<Control>();
-            Application._FillListWithVisibleControls(controlForm, formControls);
-
-            var possibleControls = formControls.FindAll(x => x.IsDisposed == false && x.CanSelect && x.TabStop);
-            if (possibleControls.Count == 0) return;
-
-            possibleControls.Sort(TabComparison);
-
-            int controlIndex = possibleControls.FindIndex(x => x == control);
-
-            var nextControlIndex = controlIndex + 1;
-            if (nextControlIndex >= possibleControls.Count)
-                nextControlIndex = 0;
-            possibleControls[nextControlIndex].Focus();
+            for (int i = 0; i < control.Controls.Count; i++)
+            {
+                var c = control.Controls[i];
+                if (c.Visible == false || c.Enabled == false || c.TabStop == false || c.IsDisposed) 
+                    continue;
+                
+                list.Add(c);
+                FillListWithPossibleControls(c, list);
+            }
         }
-        private static void PrevTabControl(Control control)
-        {
-            var controlForm = Application.GetRootControl(control) as Form;
-            if (controlForm == null || controlForm.Controls.Count <= 0) return;
-
-            var formControls = new List<Control>();
-            Application._FillListWithVisibleControls(controlForm, formControls);
-
-            var possibleControls = formControls.FindAll(x => x.Visible && x.IsDisposed == false && x.CanSelect && x.TabStop);
-            if (possibleControls.Count == 0) return;
-
-            possibleControls.Sort(TabComparison);
-
-            int controlIndex = possibleControls.FindIndex(x => x == control);
-
-            var nextControlIndex = controlIndex - 1;
-            if (nextControlIndex < 0)
-                nextControlIndex = possibleControls.Count - 1;
-            possibleControls[nextControlIndex].Focus();
-        }
+        
         private static int TabComparison(Control c1, Control c2)
         {
             if (c1.TabIndex >= 0 || c2.TabIndex >= 0)
@@ -84,6 +58,62 @@
                 return 0;
 
             return c1Location.X.CompareTo(c2Location.X);
+        }
+        private void NextTabControl(Control control)
+        {
+            var controlForm = Application.GetRootControl(control) as Form;
+            if (controlForm == null || controlForm.Controls.Count <= 0) return;
+
+            var formControls = new List<Control>();
+            
+            FillListWithPossibleControls(controlForm, formControls);
+
+            var possibleControls = formControls.FindAll(x => x.CanSelect);
+            if (possibleControls.Count == 0) return;
+
+            for (int i = 0; i < possibleControls.Count; i++)
+                possibleControls[i].uwfDrawTabDots = true;
+
+            possibleControls.Sort(TabComparison);
+
+            int controlIndex = possibleControls.FindIndex(x => x == control);
+
+            var nextControlIndex = controlIndex + 1;
+            if (nextControlIndex >= possibleControls.Count)
+                nextControlIndex = 0;
+
+            var nextControl = possibleControls[nextControlIndex];
+            nextControl.Focus();
+            
+            EnsureVisible(nextControl);
+        }
+        private void PrevTabControl(Control control)
+        {
+            var controlForm = Application.GetRootControl(control) as Form;
+            if (controlForm == null || controlForm.Controls.Count <= 0) return;
+
+            var formControls = new List<Control>();
+            
+            FillListWithPossibleControls(controlForm, formControls);
+
+            var possibleControls = formControls.FindAll(x => x.CanSelect);
+            if (possibleControls.Count == 0) return;
+            
+            for (int i = 0; i < possibleControls.Count; i++)
+                possibleControls[i].uwfDrawTabDots = true;
+
+            possibleControls.Sort(TabComparison);
+
+            int controlIndex = possibleControls.FindIndex(x => x == control);
+
+            var nextControlIndex = controlIndex - 1;
+            if (nextControlIndex < 0)
+                nextControlIndex = possibleControls.Count - 1;
+
+            var nextControl = possibleControls[nextControlIndex];
+            nextControl.Focus();
+            
+            EnsureVisible(nextControl);
         }
     }
 }

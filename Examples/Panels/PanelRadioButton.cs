@@ -12,9 +12,14 @@
             
             var groupBox = this.Create<GroupBox>();
 
-            groupBox.Create<RadioButton>("First");
-            groupBox.Create<RadioButton>("Second");
-            groupBox.Create<RadioButton>("Third");
+            var r1 = groupBox.Create<RadioButton>("First");
+            var r2 = groupBox.Create<RadioButton>("Second");
+            var r3 = groupBox.Create<RadioButton>("Third");
+
+            // hack: to make sure tabulation will work fine.
+            r1.TabIndex = 1;
+            r2.TabIndex = 2;
+            r3.TabIndex = 3;
         }
     }
 }

@@ -271,9 +271,11 @@
             if (DrawItem != null)
                 DrawItem(this, e);
         }
-        protected override void OnKeyPress(KeyPressEventArgs e)
+        protected override void OnKeyDown(KeyEventArgs e)
         {
-            switch (e.uwfKeyArgs.KeyCode)
+            base.OnKeyDown(e);
+            
+            switch (e.KeyCode)
             {
                 case Keys.Down:
                 case Keys.Right:
@@ -511,7 +513,7 @@
             }
             public object SyncRoot
             {
-                get { return false; }
+                get { return this; }
             }
 
             public virtual object this[int index]
