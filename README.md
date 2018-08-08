@@ -29,6 +29,7 @@ This is WinForms wrapper (including System.Drawing). Here you can create base co
 - Timer;
 - ToolStrip;
 - ToolTip;
+- TrackBar;
 - TreeView;
 - VScrollBar;
 

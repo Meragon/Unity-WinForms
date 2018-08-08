@@ -37,7 +37,7 @@
             labelNote.Font = new Font("Arial", 14, FontStyle.Bold);
             labelNote.Location = new Point(treeView.Location.X + treeView.Width + 16, treeView.Location.Y);
             labelNote.Text = 
-                "This is not completed overview of UWF controls.\r\n" + 
+                "This is not completed overview of the UWF controls.\r\n" + 
                 "Work in progress.\r\n\r\n" +
                 "Do not forget that you can still modify controls\r\n" + 
                 "with 'SWF Inspector' which is located in drop down\r\n" + 
@@ -66,6 +66,7 @@
             AddNode(nodeControls, "ScrollBar", typeof(PanelScrollBar));
             AddNode(nodeControls, "SplitContainer", typeof(PanelSplitContainer));
             AddNode(nodeControls, "TabControl", typeof(PanelTabControl));
+            AddNode(nodeControls, "TrackBar", typeof(PanelTrackBar));
             AddNode(nodeControls, "TreeView", typeof(PanelTreeView));
             
             treeView.Nodes.Add(nodeControls);

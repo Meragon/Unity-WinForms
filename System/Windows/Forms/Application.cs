@@ -473,7 +473,7 @@
                 switch (mouseEvent)
                 {
                     case MouseEvents.Down:
-                        var md_args = new MouseEventArgs(mouseButton, 1, (int)client_mpos.X, (int)client_mpos.Y, 0);
+                        var md_args = new MouseEventArgs(mouseButton, 1, client_mpos.X, client_mpos.Y, 0);
                         control.RaiseOnMouseDown(md_args);
                         mouseLastClickControl = control;
                         return true;
@@ -483,14 +483,14 @@
                             if (control.AllowDrop)
                             {
                                 DataObject dnd_data = new DataObject(dragData);
-                                DragEventArgs dnd_args = new DragEventArgs(dnd_data, 0, (int)client_mpos.X, (int)client_mpos.Y, DragDropEffects.None, dragControlEffects);
+                                DragEventArgs dnd_args = new DragEventArgs(dnd_data, 0, client_mpos.X, client_mpos.Y, DragDropEffects.None, dragControlEffects);
                                 control.RaiseOnDragDrop(dnd_args);
                             }
                             dragData = null;
                             dragndrop = false;
                             return true;
                         }
-                        var mu_args = new MouseEventArgs(mouseButton, 1, (int)client_mpos.X, (int)client_mpos.Y, 0);
+                        var mu_args = new MouseEventArgs(mouseButton, 1, client_mpos.X, client_mpos.Y, 0);
                         control.RaiseOnMouseUp(mu_args);
                         if (mouseLastClickControl == control)
                             control.RaiseOnMouseClick(mu_args);
@@ -498,11 +498,11 @@
                             mouseLastClickControl.RaiseOnMouseUp(mu_args);
                         return true;
                     case MouseEvents.DoubleClick:
-                        var mdc_args = new MouseEventArgs(mouseButton, 2, (int)client_mpos.X, (int)client_mpos.Y, 0);
+                        var mdc_args = new MouseEventArgs(mouseButton, 2, client_mpos.X, client_mpos.Y, 0);
                         control.RaiseOnMouseDoubleClick(mdc_args);
                         return true;
                     case MouseEvents.Wheel:
-                        var mw_args = new MouseEventArgs(MouseButtons.Middle, 0, (int)client_mpos.X, (int)client_mpos.Y, (int)(-mouseWheelDelta * 4));
+                        var mw_args = new MouseEventArgs(MouseButtons.None, 0, client_mpos.X, client_mpos.Y, (int)(-mouseWheelDelta * 4));
                         control.RaiseOnMouseWheel(mw_args);
                         return true;
                 }

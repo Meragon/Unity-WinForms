@@ -97,33 +97,49 @@
                 EnsureVisible(control.Parent);
                 return;
             }
-            
-            // TODO: check later, some bugs here.
-            
+
             // Vertical.
             if (scrollable.vscroll != null)
             {
                 var controlY = control.Location.Y;
-                var goDown = controlY + control.Height > scrollable.vscroll.Value + scrollable.vscroll.LargeChange;
+                var hScrollHeight = 0;
+                if (scrollable.hscroll != null)
+                    hScrollHeight = scrollable.hscroll.Height;
+                
+                var goDown = controlY + control.Height > scrollable.vscroll.Value + scrollable.vscroll.LargeChange - hScrollHeight;
                 var goUp = controlY < scrollable.vscroll.Value;
+                
+                var newValue = 0;
 
-                if (goDown) 
-                    scrollable.vscroll.Value = MathHelper.Clamp(controlY + control.Height + 4, 0, scrollable.vscroll.Maximum);
+                if (goDown)
+                    newValue = controlY + control.Height + hScrollHeight + 4 - scrollable.vscroll.LargeChange;
                 else if (goUp)
-                    scrollable.vscroll.Value = MathHelper.Clamp(controlY - 4, 0, scrollable.vscroll.Maximum);
+                    newValue = controlY - 4;
+                
+                if (goDown || goUp)
+                    scrollable.vscroll.Value = MathHelper.Clamp(newValue, 0, scrollable.vscroll.Maximum);
             }
 
             // Horizontal.
             if (scrollable.hscroll != null)
             {
                 var controlX = control.Location.X;
+                var vScrollWidth = 0;
+                if (scrollable.vscroll != null)
+                    vScrollWidth = scrollable.vscroll.Width;
+                
                 var goLeft = controlX < scrollable.hscroll.Value;
-                var goRight = controlX + control.Width > scrollable.hscroll.Value + scrollable.hscroll.LargeChange;
+                var goRight = controlX + control.Width > scrollable.hscroll.Value + scrollable.hscroll.LargeChange - vScrollWidth;
+                
+                var newValue = 0;
 
                 if (goRight)
-                    scrollable.hscroll.Value = MathHelper.Clamp(controlX + control.Width + 4, 0, scrollable.hscroll.Maximum);
+                    newValue = controlX + control.Width + vScrollWidth + 4 - scrollable.hscroll.LargeChange;
                 else if (goLeft)
-                    scrollable.hscroll.Value = MathHelper.Clamp(controlX - 4, 0, scrollable.hscroll.Maximum);
+                    newValue = controlX - 4;    
+                
+                if (goRight || goLeft)
+                    scrollable.hscroll.Value = MathHelper.Clamp(newValue, 0, scrollable.hscroll.Maximum);
             }
         }
         internal void Native_EnableScrollBar(bool enable, int orientation)

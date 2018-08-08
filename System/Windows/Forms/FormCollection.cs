@@ -3,7 +3,7 @@
     using System.Collections;
     using System.Collections.Generic;
 
-    internal sealed class FormCollection : ICollection
+    public class FormCollection : ICollection
     {
         private readonly List<Form> items = new List<Form>();
         private object syncRoot;
@@ -21,6 +21,10 @@
             }
         }
 
+        public Form this[string name]
+        {
+            get { return items.Find(f => f.Name == name); }
+        }
         public Form this[int index]
         {
             get { return items[index]; }

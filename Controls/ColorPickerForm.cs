@@ -151,13 +151,16 @@ namespace System.Windows.Forms
             Controls.Add(aNumeric);
         }
 
-        public event EventHandler ColorChanged = delegate { };
+        public event EventHandler ColorChanged;
 
         public Color Color
         {
             get { return color; }
             set
             {
+                if (color == value)
+                    return;
+                
                 color = value;
 
                 rNumeric.ValueChanged -= rNumeric_ValueChanged;
@@ -175,9 +178,17 @@ namespace System.Windows.Forms
                 alphaPicker.Alpha = (float)color.A / 255;
 
                 UpdateControlsFromRGB();
+                
+                OnColorChanged(EventArgs.Empty);
             }
         }
 
+        protected virtual void OnColorChanged(EventArgs e)
+        {
+            var handler = ColorChanged;
+            if (handler != null)
+                handler(this, e);
+        }
         protected override void OnKeyUp(KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Escape || (e.KeyCode == Keys.W && e.Control))
@@ -209,7 +220,8 @@ namespace System.Windows.Forms
             bNumeric.ValueChanged += bNumeric_ValueChanged;
 
             color = Color.FromArgb((int)(alphaPicker.Alpha * 255), rgbColor);
-            ColorChanged(this, EventArgs.Empty);
+            
+            OnColorChanged(EventArgs.Empty);
         }
         private void VsPickerSaturationChanged(object sender, EventArgs e)
         {
@@ -230,7 +242,8 @@ namespace System.Windows.Forms
             bNumeric.ValueChanged += bNumeric_ValueChanged;
 
             color = Color.FromArgb((int)(alphaPicker.Alpha * 255), rgbColor);
-            ColorChanged(this, EventArgs.Empty);
+            
+            OnColorChanged(EventArgs.Empty);
         }
         private void huePicker_HueChanged(object sender, EventArgs e)
         {
@@ -253,7 +266,8 @@ namespace System.Windows.Forms
             bNumeric.ValueChanged += bNumeric_ValueChanged;
 
             color = Color.FromArgb((int)(alphaPicker.Alpha * 255), rgbColor);
-            ColorChanged(this, EventArgs.Empty);
+            
+            OnColorChanged(EventArgs.Empty);
         }
         private void HueNumericValueChanged(object sender, EventArgs e)
         {
@@ -286,7 +300,8 @@ namespace System.Windows.Forms
             aNumeric.ValueChanged += aNumeric_ValueChanged;
 
             color = Color.FromArgb((int)(alphaPicker.Alpha * 255), Color);
-            ColorChanged(this, EventArgs.Empty);
+            
+            OnColorChanged(EventArgs.Empty);
         }
         private void aNumeric_ValueChanged(object sender, EventArgs e)
         {
@@ -295,7 +310,8 @@ namespace System.Windows.Forms
             alphaPicker.AlphaChanged += alphaPicker_AlphaChanged;
 
             color = Color.FromArgb((int)(alphaPicker.Alpha * 255), Color);
-            ColorChanged(this, EventArgs.Empty);
+            
+            OnColorChanged(EventArgs.Empty);
         }
         private void UpdateControlsFromRGB()
         {
@@ -340,7 +356,8 @@ namespace System.Windows.Forms
             bNumeric.ValueChanged += bNumeric_ValueChanged;
 
             color = Color.FromArgb((int)(alphaPicker.Alpha * 255), rgbColor);
-            ColorChanged(this, EventArgs.Empty);
+            
+            OnColorChanged(EventArgs.Empty);
         }
 
         private class ValueSaturationPicker : Button
