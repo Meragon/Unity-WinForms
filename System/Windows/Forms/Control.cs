@@ -104,8 +104,6 @@
         public event EventHandler TextChanged;
         public event EventHandler VisibleChanged;
 
-        internal event KeyEventHandler uwfKeyPress;
-
         public static Color DefaultBackColor
         {
             get { return SystemColors.Control; }

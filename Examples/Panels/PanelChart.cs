@@ -66,7 +66,8 @@
                     seriesX.data.RemoveAt(0);
                 }
                 
-                chart.RecalcCategoriesAndData();
+                chart.RecalcCategories();
+                chart.UpdatePlot();
 
                 // Update X.
                 x += xStep;

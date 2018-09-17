@@ -35,21 +35,24 @@
         private int   mouseY;
         private int   nextColorIndex;
         private int   plotRight = 8;
-        
-        private string[] cachedCategories;
-        private float    cachedCategoriesStep;
-        private int      cachedGridLines = 6;
-        private int      cachedGridLinesStep;
-        private string[] cachedGridValues;
-        private int      cachedPlotTop;
-        private int      cachedPlotBottom;
-        private int      cachedPlotLeft = 48;
-        private int      cachedPlotRight;
-        private int      cachedPlotHeight;
-        private int      cachedPlotWidth;
-        private double   cachedPlotMin;
-        private double   cachedPlotMax;
-        private int      cachedSubtitleY;
+
+        private string[]     cachedCategories;
+        private float        cachedCategoriesStep;
+        private List<string> cachedCategoriesFiltered;
+        private int          cachedGridLines = 6;
+        private int          cachedGridLinesStep;
+        private double       cachedGridMaxValue;
+        private double       cachedGridMinValue;
+        private string[]     cachedGridValues;
+        private int          cachedPlotTop;
+        private int          cachedPlotBottom;
+        private int          cachedPlotLeft = 48;
+        private int          cachedPlotRight;
+        private int          cachedPlotHeight;
+        private int          cachedPlotWidth;
+        private double       cachedPlotMin;
+        private double       cachedPlotMax;
+        private int          cachedSubtitleY;
 
         private LegendButton[] legendButtons;
 
@@ -86,43 +89,22 @@
         public Axis xAxis { get; private set; }
         public List<Axis> yAxis { get; private set; }
 
+        internal string[] Categories
+        {
+            get { return cachedCategories; }
+        }
+        
         public static SizeF MeasureStringSimple(Font font, string text)
         {
             return new SizeF() { Width = text.Length * 8, Height = font.Size }; // fast, but not accurate.
         }
 
-        public void RecalcCategoriesAndData()
+        public void RecalcCategories()
         {
             #region Grid.
-            if (cachedPlotHeight > 0)
-            {
-                cachedGridLinesStep = cachedPlotHeight / cachedGridLines;
-                cachedGridValues = new string[cachedGridLines + 1]; // + bottom line.
-
-                const string valFormat = "0.00";
-                double valMax = GetSeriesMaximum();
-                double valMin = GetSeriesMinimum();
-
-                if (valMax <= valMin)
-                    valMax = valMin + 1;
-                
-                double valRange = valMax - valMin;
-                double valStep = valRange / (cachedGridValues.Length - 1);
-
-                int valIndex = 0;
-                for (double i = valMax; i > valMin; i -= valStep)
-                {
-                    cachedGridValues[valIndex] = i.ToString(valFormat);
-                    valIndex++;
-                }
-                cachedGridValues[cachedGridValues.Length - 1] = valMin.ToString(valFormat);
-
-                cachedPlotMin = valMin;
-                cachedPlotMax = valMax;
-            }
+            
             #endregion
 
-            #region Categories.
             if (cachedPlotWidth > 0)
             {
                 int maxDataAmount = GetSeriesMaximumDataAmount();
@@ -161,15 +143,12 @@
                         cachedCategoriesStep = categoriesMinStep;
 
                         // Filter categories.
-                        var filteredCategories = new List<string>();
+                        cachedCategoriesFiltered = new List<string>();
                         for (float i = 0; i < cachedCategories.Length; i += skipFactor)
-                            filteredCategories.Add(cachedCategories[(int)i]);
-
-                        cachedCategories = filteredCategories.ToArray();
+                            cachedCategoriesFiltered.Add(cachedCategories[(int)i]);
                     }
                 }
             }
-            #endregion
         }
         public void ResetColorIndex()
         {
@@ -180,6 +159,41 @@
             base.Refresh();
 
             Recalc();
+        }
+        public void UpdatePlot()
+        {
+            if (cachedPlotHeight <= 0) 
+                return;
+            
+            cachedGridMaxValue = GetSeriesMaximum();
+            cachedGridMinValue = GetSeriesMinimum();
+
+            if (cachedPlotMax != 0 && cachedPlotMin != 0)
+                if (cachedGridMaxValue == cachedPlotMax &&
+                    cachedGridMinValue == cachedPlotMin)
+                    return;
+            
+            cachedGridLinesStep = cachedPlotHeight / cachedGridLines;
+            cachedGridValues = new string[cachedGridLines + 1]; // + bottom line.
+
+            const string valFormat = "0.00";
+            
+            if (cachedGridMaxValue <= cachedGridMinValue)
+                cachedGridMaxValue = cachedGridMinValue + 1;
+                
+            double valRange = cachedGridMaxValue - cachedGridMinValue;
+            double valStep = valRange / (cachedGridValues.Length - 1);
+
+            int valIndex = 0;
+            for (double i = cachedGridMaxValue; i > cachedGridMinValue; i -= valStep)
+            {
+                cachedGridValues[valIndex] = i.ToString(valFormat);
+                valIndex++;
+            }
+            cachedGridValues[cachedGridValues.Length - 1] = cachedGridMinValue.ToString(valFormat);
+
+            cachedPlotMin = cachedGridMinValue;
+            cachedPlotMax = cachedGridMaxValue;
         }
 
         internal Color GetNextColor()
@@ -310,8 +324,8 @@
                 float currentValueX = cachedPlotLeft + xStep * categoriesIndex;
                 float currentValueY = cachedPlotTop + cachedPlotHeight - cachedPlotHeight * currentValueYCoef;
 
-                if (currentValueX + xStep > cachedPlotRight)
-                    currentValueX = cachedPlotRight - xStep;
+                if (currentValueX > cachedPlotRight)
+                    currentValueX = cachedPlotRight;
                 
                 bool clipHorizontal = false;
                 if (parentWidth != 0 && parentHeight != 0)
@@ -475,16 +489,16 @@
         }
         private void DrawXAxis(Graphics g)
         {
-            if (cachedCategories == null) return;
+            if (cachedCategoriesFiltered == null) return;
 
             // Categories.
-            var cachedCategoriesLength = cachedCategories.Length;
+            var cachedCategoriesLength = cachedCategoriesFiltered.Count;
             for (int i = 0; i < cachedCategoriesLength; i++)
             {
                 float categoryX = cachedPlotLeft + i * cachedCategoriesStep;
                 g.DrawLine(xAxis.tickPen, categoryX, cachedPlotBottom, categoryX, cachedPlotBottom + xAxis.tickLength);
                 g.uwfDrawString(
-                    cachedCategories[i],
+                    cachedCategoriesFiltered[i],
                     categoriesFont,
                     categoriesColor,
                     categoryX - cachedCategoriesStep / 2,
@@ -658,7 +672,8 @@
             cachedPlotWidth = cachedPlotRight - cachedPlotLeft;
 
             // Other stuff.
-            RecalcCategoriesAndData();
+            RecalcCategories();
+            UpdatePlot();
         }
         private int UpdateLegendLocation()
         {

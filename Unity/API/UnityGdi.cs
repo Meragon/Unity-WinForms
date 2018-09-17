@@ -1,11 +1,10 @@
-﻿using System.Windows.Forms;
-
-namespace Unity.API
+﻿namespace Unity.API
 {
     using System;
     using System.Drawing;
     using System.Drawing.API;
     using System.Drawing.Drawing2D;
+    using System.Windows.Forms;
 
     using UE = UnityEngine;
 
@@ -16,8 +15,8 @@ namespace Unity.API
         public static bool GL_LINES;
 
         private static readonly UE.GUIContent textContent = new UE.GUIContent(""); // GUIContent.Temp(text) replacement.
-
-        private readonly PointF defaultPivot = PointF.Empty;
+        private static readonly UE.Rect sourceRect = new UE.Rect(0f, 0f, 1f, 1f);
+        private static readonly UE.Material blendMaterial = new UE.Material(UE.Shader.Find("Hidden/Internal-GUITextureClip"));
         
         public void BeginGroup(float x, float y, float width, float height)
         {
@@ -110,35 +109,45 @@ namespace Unity.API
             var penWidth = pen.Width;
 
             if (penColor.A <= 0 || penWidth <= 0) return;
+            if (UE.Event.current.type != UE.EventType.repaint)
+                return;
+            
+            var unityColor = penColor.ToUnityColor();
+            
+            // Diagonal lines.
+            // Slower, dash not supported, more precise.
+            if (x1 != x2 && y1 != y2)
+            {
+                float dx = x2 - x1;
+                float dy = y2 - y1;
+                float length = UE.Mathf.Sqrt(dx * dx + dy * dy);
 
+                if (length < 0.001f)
+                    return;
+
+                float wdx = penWidth * dy / length;
+                float wdy = penWidth * dx / length;
+         
+                var matrix = UE.Matrix4x4.identity;
+                matrix.m00 = dx;
+                matrix.m01 = -wdx;
+                matrix.m03 = x1 + 0.5f * wdx;
+                matrix.m10 = dy;
+                matrix.m11 = wdy;
+                matrix.m13 = y1 - 0.5f * wdy;
+         
+                UE.GL.PushMatrix();
+                UE.GL.MultMatrix(matrix);
+                UE.Graphics.DrawTexture(sourceRect, defaultTexture, sourceRect, 0, 0, 0, 0, unityColor, blendMaterial);
+                UE.GL.PopMatrix();
+                
+                return;
+            }
+            
             float x = 0;
             float y = 0;
             float width = 0;
             float height = 0;
-
-            if (x1 != x2 && y1 != y2)
-            {
-                if (GL_LINES)
-                {
-                    UE.GL.Begin(UE.GL.LINES);
-                    UE.GL.Color(pen.Color.ToUnityColor());
-                    UE.GL.Vertex3(x1, y1, 0);
-                    UE.GL.Vertex3(x2, y2, 0);
-                    UE.GL.End();
-                    return;
-                }
-
-                float xDiff = x2 - x1;
-                float yDiff = y2 - y1;
-
-                var angle = Math.Atan2(yDiff, xDiff) * 180.0 / Math.PI;
-                var pivot = defaultPivot;
-                if (penWidth > 2)
-                    pivot = new PointF(0, penWidth / 2f);
-
-                uwfDrawTexture(defaultTexture, x1, y1, (float)Math.Sqrt(xDiff * xDiff + yDiff * yDiff), penWidth, penColor, (float)angle, pivot);
-                return;
-            }
 
             if (x1 == x2)
             {
@@ -172,35 +181,36 @@ namespace Unity.API
                     width = x1 - x2;
                 }
             }
-
-            UE.GUI.color = penColor.ToUnityColor();
-
+                    
             var penDash = pen.DashStyle;
+            
             switch (penDash)
             {
                 case DashStyle.Solid:
-                    UE.GUI.DrawTexture(new UE.Rect(x, y, width, height), defaultTexture);
+                    UE.Graphics.DrawTexture(new UE.Rect(x, y, width, height), defaultTexture, sourceRect, 0, 0, 0, 0, unityColor, blendMaterial);
                     break;
                 case DashStyle.Dash:
-                    float dash_step = penWidth * 6;
-                    if (y1 == y2)
-                        for (float i = 0; i < width; i += dash_step)
+                    float dashStep = penWidth * 6;
+                    const float dashSpacing = 2;
+                    
+                    if (y1 == y2) // Horizontal.
+                        for (float i = 0; i < width; i += dashStep)
                         {
-                            float dash_width = dash_step - 2;
-                            if (i + dash_width > width)
-                                dash_width = width - i;
+                            float dashWidth = dashStep - dashSpacing;
+                            if (i + dashWidth > width)
+                                dashWidth = width - i;
 
-                            UE.GUI.DrawTexture(new UE.Rect(x + i, y, dash_width, penWidth), defaultTexture);
+                            UE.Graphics.DrawTexture(new UE.Rect(x + i, y, dashWidth, penWidth), defaultTexture, sourceRect, 0, 0, 0, 0, unityColor, blendMaterial);
                         }
 
-                    if (x1 == x2)
-                        for (float i = 0; i < height; i += dash_step)
+                    if (x1 == x2) // Vertical.
+                        for (float i = 0; i < height; i += dashStep)
                         {
-                            float dash_height = dash_step - 2;
-                            if (i + dash_height > height)
-                                dash_height = height - i;
+                            float dashHeight = dashStep - dashSpacing;
+                            if (i + dashHeight > height)
+                                dashHeight = height - i;
 
-                            UE.GUI.DrawTexture(new UE.Rect(x + width - penWidth, y + i, penWidth, dash_height), defaultTexture);
+                            UE.Graphics.DrawTexture(new UE.Rect(x + width - penWidth, y + i, penWidth, dashHeight), defaultTexture, sourceRect, 0, 0, 0, 0, unityColor, blendMaterial);
                         }
                     break;
             }
@@ -226,23 +236,23 @@ namespace Unity.API
             var penWidth = pen.Width;
 
             if (penColor.A <= 0 || penWidth <= 0) return;
-            UE.GUI.color = penColor.ToUnityColor();
-
-            var blendMode = pen.Color.A > 0;
-            var scaleMode = UE.ScaleMode.StretchToFill;
-            var aspect = 0f;
-
+            if (UE.Event.current.type != UE.EventType.repaint)
+                return;
+            
+            var color = penColor.ToUnityColor();
             var penDash = pen.DashStyle;
+            
             switch (penDash)
             {
                 case System.Drawing.Drawing2D.DashStyle.Solid:
-                    UE.GUI.DrawTexture(new UE.Rect(x, y, width, penWidth), defaultTexture, scaleMode, blendMode, aspect);
-                    UE.GUI.DrawTexture(new UE.Rect(x + width - penWidth, y + penWidth, penWidth, height - penWidth * 2), defaultTexture, scaleMode, blendMode, aspect);
+                    UE.Graphics.DrawTexture(new UE.Rect(x, y, width, penWidth), defaultTexture, sourceRect, 0, 0, 0, 0, color, blendMaterial);
+                    UE.Graphics.DrawTexture(new UE.Rect(x + width - penWidth, y + penWidth, penWidth, height - penWidth * 2), defaultTexture, sourceRect, 0, 0, 0, 0, color, blendMaterial);
+                    
                     if (height > 1)
-                        UE.GUI.DrawTexture(new UE.Rect(x, y + height - penWidth, width, penWidth), defaultTexture, scaleMode, blendMode, aspect);
+                        UE.Graphics.DrawTexture(new UE.Rect(x, y + height - penWidth, width, penWidth), defaultTexture, sourceRect, 0, 0, 0, 0, color, blendMaterial);
 
                     if (width > 1)
-                        UE.GUI.DrawTexture(new UE.Rect(x, y + penWidth, penWidth, height - penWidth * 2), defaultTexture, scaleMode, blendMode, aspect);
+                        UE.Graphics.DrawTexture(new UE.Rect(x, y + penWidth, penWidth, height - penWidth * 2), defaultTexture, sourceRect, 0, 0, 0, 0, color, blendMaterial);
 
                     break;
                 
@@ -254,29 +264,30 @@ namespace Unity.API
                         if (i + dash_width > width)
                             dash_width = width - i;
 
-                        UE.GUI.DrawTexture(new UE.Rect(x + i, y, dash_width, penWidth), defaultTexture, scaleMode, blendMode, aspect); // Top.
-                        UE.GUI.DrawTexture(new UE.Rect(x + i, y + height - penWidth, dash_width, penWidth), defaultTexture, scaleMode, blendMode, aspect); // Bottom.
+                        UE.Graphics.DrawTexture(new UE.Rect(x + i, y, dash_width, penWidth), defaultTexture, sourceRect, 0, 0, 0, 0, color, blendMaterial); // Top.
+                        UE.Graphics.DrawTexture(new UE.Rect(x + i, y + height - penWidth, dash_width, penWidth), defaultTexture, sourceRect, 0, 0, 0, 0, color, blendMaterial); // Bottom.
                     }
                     for (float i = 0; i < height; i += dash_step)
                     {
                         float dash_height = dash_step - 2;
                         if (i + dash_height > height)
                             dash_height = height - i;
-                        UE.GUI.DrawTexture(new UE.Rect(x + width - penWidth, y + i, penWidth, dash_height), defaultTexture, scaleMode, blendMode, aspect); // Right.
-                        UE.GUI.DrawTexture(new UE.Rect(x, y + i, penWidth, dash_height), defaultTexture, scaleMode, blendMode, aspect); // Left.
+                        
+                        UE.Graphics.DrawTexture(new UE.Rect(x + width - penWidth, y + i, penWidth, dash_height), defaultTexture, sourceRect, 0, 0, 0, 0, color, blendMaterial); // Right.
+                        UE.Graphics.DrawTexture(new UE.Rect(x, y + i, penWidth, dash_height), defaultTexture, sourceRect, 0, 0, 0, 0, blendMaterial); // Left.
                     }
                     break;
                 
                 case DashStyle.Dot:
                     for (float i = 0; i < height; i += 2)
                     {
-                        UE.GUI.DrawTexture(new UE.Rect(x + width - 1, y + i, 1, 1), defaultTexture, scaleMode, blendMode, aspect); // Right.
-                        UE.GUI.DrawTexture(new UE.Rect(x, y + i, 1, 1), defaultTexture, scaleMode, blendMode, aspect); // Left.
+                        UE.Graphics.DrawTexture(new UE.Rect(x + width - 1, y + i, 1, 1), defaultTexture, sourceRect, 0, 0, 0, 0, color, blendMaterial); // Right.
+                        UE.Graphics.DrawTexture(new UE.Rect(x, y + i, 1, 1), defaultTexture, sourceRect, 0, 0, 0, 0, color, blendMaterial); // Left.
                     }
                     for (float i = 0; i < width; i += 2)
                     {
-                        UE.GUI.DrawTexture(new UE.Rect(x + i, y, 1, 1), defaultTexture, scaleMode, blendMode, aspect); // Top.
-                        UE.GUI.DrawTexture(new UE.Rect(x + i, y + height - 1, 1, 1), defaultTexture, scaleMode, blendMode, aspect); // Bottom.
+                        UE.Graphics.DrawTexture(new UE.Rect(x + i, y, 1, 1), defaultTexture, sourceRect, 0, 0, 0, 0, color, blendMaterial); // Top.
+                        UE.Graphics.DrawTexture(new UE.Rect(x + i, y + height - 1, 1, 1), defaultTexture, sourceRect, 0, 0, 0, 0, color, blendMaterial); // Bottom.
                     }
                     
                     break;
@@ -346,18 +357,23 @@ namespace Unity.API
         }
         public void FillRectangle(Color color, float x, float y, float width, float height, object material = null)
         {
+            if (color.A <= 0)
+                return;
+            
+            if (UE.Event.current.type != UE.EventType.repaint)
+                return;
+            
             var rect = new UE.Rect(x, y, width, height);
 
             if (material == null || material is UE.Material == false)
             {
-                UE.GUI.color = color.ToUnityColor();
-                UE.GUI.DrawTexture(rect, defaultTexture);
+                UE.Graphics.DrawTexture(rect, defaultTexture, sourceRect, 0, 0, 0, 0, color.ToUnityColor(), blendMaterial);
                 return;
             }
 
             var umat = (UE.Material)material;
             umat.color = color.ToUnityColor();
-            UE.Graphics.DrawTexture(rect, defaultTexture, umat);
+            UE.Graphics.DrawTexture(rect, defaultTexture, sourceRect, 0, 0, 0, 0, umat);
         }
         public void Focus()
         {
@@ -510,22 +526,6 @@ namespace Unity.API
                 }
             }
             return guiSkinFontSizeBuffer;
-        }
-        private void uwfDrawTexture(UE.Texture texture, float x, float y, float width, float height, Color color, float angle, PointF pivot)
-        {
-            if (texture == null) return;
-
-            UE.GUI.color = color.ToUnityColor();
-
-            if (angle != 0)
-            {
-                UE.Matrix4x4 matrixBackup = UE.GUI.matrix;
-                UE.GUIUtility.RotateAroundPivot(angle, new UE.Vector2(x + pivot.X, y + pivot.Y));
-                UE.GUI.DrawTexture(new UE.Rect(x, y, width, height), texture);
-                UE.GUI.matrix = matrixBackup;
-            }
-            else
-                UE.GUI.DrawTexture(new UE.Rect(x, y, width, height), texture);
         }
     }
 }

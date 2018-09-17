@@ -43,6 +43,7 @@
         private Point resizePosition;
         private Point resizeDelta;
         private SizeGripStyle sizeGripStyle;
+        private Pen shadowPen;
         private FormStartPosition startPosition = FormStartPosition.WindowsDefaultLocation;
         private bool topMost;
 
@@ -557,9 +558,34 @@
             var height = Height;
             var g = e.Graphics;
 
-            g.uwfFillRectangle(defaultFormShadowColor, locX - 3, locY, width + 6, height + 3);
-            g.uwfFillRectangle(defaultFormShadowColor, locX - 2, locY, width + 4, height + 2);
-            g.uwfFillRectangle(defaultFormShadowColor, locX - 1, locY - 1, width + 2, height + 2);
+            if (BackColor.A < 255)
+            {
+                g.uwfFillRectangle(defaultFormShadowColor, locX - 3, locY, width + 6, height + 3);
+                g.uwfFillRectangle(defaultFormShadowColor, locX - 2, locY, width + 4, height + 2);
+                g.uwfFillRectangle(defaultFormShadowColor, locX - 1, locY - 1, width + 2, height + 2);
+            }
+            else
+            {
+                // Reducing fill rate when the background color don't have opacity.
+                if (shadowPen == null)
+                    shadowPen = new Pen(defaultFormShadowColor);
+
+                shadowPen.Color = defaultFormShadowColor;
+                var shadowAlphaOffset = shadowPen.Color.A;
+                var shadowAlpha = shadowAlphaOffset;
+                
+                g.DrawRectangle(shadowPen, locX - 3, locY + 1, width + 6, height + 2);
+
+                shadowAlpha += shadowAlphaOffset;
+                shadowPen.Color = Color.FromArgb(shadowAlpha, shadowPen.Color);
+                
+                g.DrawRectangle(shadowPen, locX - 2, locY + 1, width + 4, height + 1);
+                
+                shadowAlpha += shadowAlphaOffset;
+                shadowPen.Color = Color.FromArgb(shadowAlpha, shadowPen.Color);
+                
+                g.DrawRectangle(shadowPen, locX - 1, locY, width + 2, height + 1);
+            }
         }
         private void _MakeButtonClose()
         {

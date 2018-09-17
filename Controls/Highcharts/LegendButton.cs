@@ -32,7 +32,7 @@
                     seriesEnabled = !seriesEnabled;
 
                     Series.visible = seriesEnabled;
-                    if (Parent != null) ((Highchart)Parent).RecalcCategoriesAndData();
+                    if (Parent != null) ((Highchart)Parent).RecalcCategories();
                     break;
                 case MouseButtons.Right:
                     
