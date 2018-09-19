@@ -109,6 +109,8 @@
             var penWidth = pen.Width;
 
             if (penColor.A <= 0 || penWidth <= 0) return;
+            if (UE.Event.current.type != UE.EventType.repaint)
+                return;
             
             var unityColor = penColor.ToUnityColor();
             
@@ -234,6 +236,8 @@
             var penWidth = pen.Width;
 
             if (penColor.A <= 0 || penWidth <= 0) return;
+            if (UE.Event.current.type != UE.EventType.repaint)
+                return;
             
             var color = penColor.ToUnityColor();
             var penDash = pen.DashStyle;
@@ -293,6 +297,9 @@
         {
             if (text == null || font == null) return;
 
+            if (UE.Event.current.type != UE.EventType.repaint)
+                return;
+            
             // TODO: material not supported.
 
             // Set align.
@@ -354,6 +361,9 @@
         public void FillRectangle(Color color, float x, float y, float width, float height, object material = null)
         {
             if (color.A <= 0)
+                return;
+            
+            if (UE.Event.current.type != UE.EventType.repaint)
                 return;
             
             var rect = new UE.Rect(x, y, width, height);

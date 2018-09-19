@@ -282,8 +282,7 @@
                     UE.Quaternion.AngleAxis(0, UE.Vector3.up),
                     new UE.Vector3(scaleX, scaleY, 1));
 
-            if (UE.Event.current.type == UE.EventType.repaint)
-                controller.Redraw();
+            controller.Redraw();
         }
     }
 }
