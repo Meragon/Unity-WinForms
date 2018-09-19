@@ -101,13 +101,11 @@
 
         public void RecalcCategories()
         {
-            #region Grid.
-            
-            #endregion
-
             if (cachedPlotWidth > 0)
             {
                 int maxDataAmount = GetSeriesMaximumDataAmount();
+                if (maxDataAmount == -1)
+                    return;
 
                 if (maxDataAmount == 1)
                     cachedCategoriesStep = cachedPlotWidth;
