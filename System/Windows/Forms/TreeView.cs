@@ -199,6 +199,12 @@
         {
             if (onDrawNode != null) onDrawNode(this, e);
         }
+        protected virtual void OnItemDrag(ItemDragEventArgs e)
+        {
+            var handler = ItemDrag;
+            if (handler != null)
+                handler(this, e);
+        }
         protected override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
@@ -338,17 +344,15 @@
         }
         protected override void OnMouseMove(MouseEventArgs e)
         {
-            if (drag)
-            {
-                if (dragPosition.Distance(e.Location) > 4)
-                {
-                    var itemDrag = ItemDrag;
-                    if (itemDrag != null)
-                        itemDrag(this, new ItemDragEventArgs(e.Button, dragNode));
-                    dragPosition = Point.Empty;
-                    drag = false;
-                }
-            }
+            base.OnMouseMove(e);
+
+            if (drag == false) return;
+            if (dragPosition.Distance(e.Location) < 4) return;
+            
+            OnItemDrag(new ItemDragEventArgs(e.Button, dragNode));
+                    
+            dragPosition = Point.Empty;
+            drag = false;
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {

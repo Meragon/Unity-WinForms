@@ -391,7 +391,9 @@
             var labelSkin = UE.GUI.skin.label;
             int guiSkinFontSizeBuffer = GUI_SetFont(labelSkin, font);
 
-            var size = labelSkin.CalcSize(new UE.GUIContent(text));
+            textContent.text = text;
+            
+            var size = labelSkin.CalcSize(textContent);
 
             labelSkin.fontSize = guiSkinFontSizeBuffer;
 

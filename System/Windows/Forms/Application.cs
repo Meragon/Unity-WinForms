@@ -23,6 +23,7 @@
         private static DragDropRenderHandler dragRender;
         private static MouseEvents mouseEvent = 0;
         private static MouseButtons mouseButton = 0;
+        private static MouseButtons mouseButtonLastPressed;
         private static Control mouseLastClickControl;
         private static float mouseWheelDelta;
         private static bool mousePositionChanged;
@@ -154,12 +155,24 @@
 
             mousePositionX = mX;
             mousePositionY = mY;
-            
-            //if (_mouseLastClickControl != null && _mouseEvent == MouseEvents.None && _mouseMovePosition != mousePosition)
-            //    _ProcessControl(mousePosition, _mouseLastClickControl, true);
 
-            if (mE == MouseEvents.None && !mousePositionChanged) 
-                return;
+            switch (mE)
+            {
+                case MouseEvents.None:
+                    if (mousePositionChanged == false)
+                        return;
+                    break;
+                
+                case MouseEvents.Down:
+                    mouseButtonLastPressed = mButton;
+                    break;
+                
+                case MouseEvents.Up:
+                    if (mouseButtonLastPressed == mButton)
+                        mouseButtonLastPressed = MouseButtons.None;
+                    break;
+            }
+
 
             // Dispose context first.
             for (int i = Contexts.Count - 1; i >= 0; i--) // We want to dispose child context first.
@@ -250,10 +263,10 @@
         public void Update()
         {
             // Update hovered control.
-            if (hoveredControl != null && dragndrop == false)
+            if (hoveredControl != null/* && dragndrop == false*/)
             {
                 var mclient = hoveredControl.PointToClient(Control.MousePosition);
-                var hargs = new MouseEventArgs(MouseButtons.None, 0, mclient.X, mclient.Y, 0);
+                var hargs = new MouseEventArgs(mouseButtonLastPressed, 0, mclient.X, mclient.Y, 0);
                 hoveredControl.RaiseOnMouseHover(hargs);
                 if (updateHoveredControl)
                     hoveredControl.RaiseOnMouseMove(hargs);
@@ -266,7 +279,7 @@
                 {
                     hoveredControl.hovered = false;
                     hoveredControl.mouseEntered = false;
-                    hoveredControl.RaiseOnMouseLeave(new MouseEventArgs(MouseButtons.None, 0, 0, 0, 0));
+                    hoveredControl.RaiseOnMouseLeave(new MouseEventArgs(mouseButtonLastPressed, 0, 0, 0, 0));
                     if (dragndrop)
                         hoveredControl.RaiseOnDragLeave(EventArgs.Empty);
                 }
@@ -281,7 +294,7 @@
 
                         controlAtMouse.hovered = true;
                         controlAtMouse.mouseEntered = true;
-                        controlAtMouse.RaiseOnMouseEnter(new MouseEventArgs(MouseButtons.None, 0, mclient.X, mclient.Y, 0));
+                        controlAtMouse.RaiseOnMouseEnter(new MouseEventArgs(mouseButtonLastPressed, 0, mclient.X, mclient.Y, 0));
                         if (dragndrop)
                             controlAtMouse.RaiseOnDragEnter(new DragEventArgs(new DataObject(dragData), 0, mclient.X, mclient.Y, DragDropEffects.None, dragControlEffects));
                     }

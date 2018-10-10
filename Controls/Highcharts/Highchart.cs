@@ -293,13 +293,16 @@
             var sdataCount = s.data.Count;
             if (sdataCount == 0) return;
 
-            int categoriesIndex = 0;
-            double prevValue = 0;
+            var categoriesIndex = 0;
+            var prevValue = 0D;
             var areaColor = Color.FromArgb(255 / series.Count, s.color);
-            double valueRange = cachedPlotMax - cachedPlotMin;
+            var valueRange = cachedPlotMax - cachedPlotMin;
 
-            float pointInterval = s.pointInterval;
-            float xStep = cachedCategoriesStep;
+            var pointInterval = s.pointInterval;
+            if (pointInterval <= 0)
+                return;
+            
+            var xStep = cachedCategoriesStep;
             if (sdataCount > 1)
                 xStep = (float)cachedPlotWidth / (sdataCount - 1);
             xStep *= pointInterval;
