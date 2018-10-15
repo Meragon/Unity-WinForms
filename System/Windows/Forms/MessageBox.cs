@@ -71,6 +71,7 @@
             form.AcceptButton = buttonOk;
             form.Controls.Add(buttonOk);
             form.ShowDialog();
+            form.Focus(); // Disable button focus to prevent invoking Click event from the OnKeyDown event.
 
             Last = form;
 

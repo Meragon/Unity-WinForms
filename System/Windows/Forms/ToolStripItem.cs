@@ -399,6 +399,10 @@
         }
         protected internal virtual int GetEstimatedWidth(Graphics graphics) // OnPaint only.
         {
+            // ToolStripSeparator?
+            if (string.IsNullOrEmpty(Text))
+                return 0; 
+            
             return (int)graphics.MeasureString(Text, Font).Width;
         }
         protected internal virtual void SetBounds(Rectangle nbounds)
@@ -483,7 +487,10 @@
                 leftOffset = Owner.Padding.Left;
 
             // Paint back + backImage.
-            ControlPaint.DrawBackgroundImage(graphics, BackgroundImage, localBackColor, BackgroundImageLayout, rect, rect);
+            if (BackgroundImage != null)
+                ControlPaint.DrawBackgroundImage(graphics, BackgroundImage, localBackColor, BackgroundImageLayout, rect, rect);
+            else
+                e.Graphics.uwfFillRectangle(localBackColor, rect);
 
             // Draw border for selected state.
             if (stateSelected && Enabled)

@@ -113,17 +113,6 @@
 
             return null;
         }
-        internal void MakeShadow()
-        {
-            uwfShadowHandler = (g) =>
-            {
-                var loc = PointToScreen(Point.Empty);
-                var color = Color.FromArgb(12, 64, 64, 64);
-                g.Graphics.uwfFillRectangle(color, loc.X - 3, loc.Y, Width + 6, Height + 3);
-                g.Graphics.uwfFillRectangle(color, loc.X - 2, loc.Y, Width + 4, Height + 2);
-                g.Graphics.uwfFillRectangle(color, loc.X - 1, loc.Y, Width + 2, Height + 1);
-            };
-        }
         internal void NotifySelectionChange(ToolStripItem item)
         {
             throw new NotImplementedException();
@@ -348,11 +337,16 @@
                 if (item.AutoSize && item.boundsChanged) // Check if item size need to be updated.
                 {
                     var itemTextWidth = item.GetEstimatedWidth(graphics);
-                    var itemWidth = itemTextWidth + item.Padding.Horizontal + 4;
-                    if (orientation == Orientation.Horizontal)
-                        item.Width = itemWidth;
+                    if (itemTextWidth > 0)
+                    {
+                        var itemWidth = itemTextWidth + item.Padding.Horizontal + 4;
+                        if (orientation == Orientation.Horizontal)
+                            item.Width = itemWidth;
+                        
+                        maxWidth = Math.Max(maxWidth, itemWidth);
+                    }
+
                     item.boundsChanged = false;
-                    maxWidth = Math.Max(maxWidth, itemWidth);
                 }
 
                 totalWidth += item.Width;

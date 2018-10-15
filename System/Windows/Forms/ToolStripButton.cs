@@ -2,10 +2,12 @@ namespace System.Windows.Forms
 {
     using System.Drawing;
 
+    //// Default size is 23, 22.
     public class ToolStripButton : ToolStripItem
     {
-        //// Default size is 23, 22.
-
+        private CheckState checkState = CheckState.Unchecked;
+        private bool checkOnClick;
+        
         public ToolStripButton()
         {
         }
@@ -25,9 +27,40 @@ namespace System.Windows.Forms
         {
         }
 
+        public event EventHandler CheckedChanged;
+        public event EventHandler CheckStateChanged;
+
         public override bool CanSelect
         {
             get { return true; }
+        }
+        public bool Checked
+        {
+            get { return checkState != CheckState.Unchecked; }
+            set
+            {
+                if (value == Checked)
+                    return;
+
+                CheckState = value ? CheckState.Checked : CheckState.Unchecked;
+            }
+        }
+        public CheckState CheckState
+        {
+            get { return checkState; }
+            set
+            {
+                if (value == checkState)
+                    return;
+
+                checkState = value;
+                OnCheckedChanged(EventArgs.Empty);
+                OnCheckStateChanged(EventArgs.Empty);
+            }
+        }
+        public bool CheckOnClick {
+            get { return checkOnClick; }
+            set { checkOnClick = value; }
         }
 
         protected internal override void SetBounds(Rectangle nbounds)
@@ -36,6 +69,32 @@ namespace System.Windows.Forms
                 nbounds = new Rectangle(nbounds.X, nbounds.Y, 23, nbounds.Height);
 
             base.SetBounds(nbounds);
+        }
+
+        protected override void OnClick(EventArgs e)
+        {
+            if (checkOnClick)
+                Checked = !Checked;
+            
+            base.OnClick(e);
+        }
+        protected virtual void OnCheckedChanged(EventArgs e) {
+            var handler = CheckedChanged;
+            if (handler != null) 
+                handler(this,e);
+        }
+        protected virtual void OnCheckStateChanged(EventArgs e)
+        {
+            var handler = CheckStateChanged;
+            if (handler != null) 
+                handler(this,e);
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            
+            if (Checked)
+                e.Graphics.DrawRectangle(selectPen, Bounds);
         }
     }
 }

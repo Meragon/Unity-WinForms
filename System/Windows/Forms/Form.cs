@@ -29,6 +29,8 @@
         private static readonly Padding defaultFormPadding = new Padding(32, 0, 32, 0);
         private static readonly Color defaultFormShadowColor = Color.FromArgb(12, 64, 64, 64);
         private static Point nextLocation = new Point(156, 156);
+        private static Form lastAcceptForm;
+        private static Timer lastAcceptFormTimer;
 
         private Color backColor = SystemColors.Control;
         private formSystemButton closeButton;
@@ -490,10 +492,31 @@
         {
             base.OnKeyDown(e);
 
-            if (e.KeyCode == Keys.Enter && AcceptButton != null)
+            if (e.KeyCode == Keys.Enter && AcceptButton != null && lastAcceptForm == null)
+            {
+                lastAcceptForm = this;
+                
+                // Start timer that will reset the last form with the accept button.
+                if (lastAcceptFormTimer != null)
+                    lastAcceptFormTimer.Dispose();
+                
+                lastAcceptFormTimer = new Timer();
+                lastAcceptFormTimer.Interval = 1000; // Interval between the accepting forms.
+                lastAcceptFormTimer.Tick += (sender, args) =>
+                {
+                    lastAcceptForm = null;
+                    lastAcceptFormTimer.Dispose();
+                    lastAcceptFormTimer = null;
+                };
+                lastAcceptFormTimer.Start();
+
                 AcceptButton.PerformClick();
+            }
+
             if (e.KeyCode == Keys.Escape && CancelButton != null)
+            {
                 CancelButton.PerformClick();
+            }
         }
         protected override void OnMouseDown(MouseEventArgs e)
         {

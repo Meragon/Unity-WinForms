@@ -208,9 +208,6 @@
         }
         internal void Remove(bool notify)
         {
-            for (int i = 0; i < Nodes.Count; i++)
-                Nodes[i].Remove(false);
-
             if (parent != null)
             {
                 parent.Nodes.RemoveAt(index);
