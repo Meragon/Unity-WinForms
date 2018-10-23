@@ -4,7 +4,7 @@
     using System.Collections;
     using System.Collections.Generic;
 
-    public class SeriesCollection : IEnumerable, IDisposable
+    public class SeriesCollection : IList<Series>, IDisposable
     {
         private readonly List<Series> items = new List<Series>();
         private readonly Highchart owner;
@@ -15,8 +15,13 @@
         }
 
         public int Count { get { return items.Count; } }
+        public bool IsReadOnly { get; private set; }
 
-        public Series this[int index] { get { return items[index]; } }
+        public Series this[int index]
+        {
+            get { return items[index]; }
+            set { throw new NotImplementedException(); }
+        }
         public Series this[string name] { get { return items.Find(x => x.name == name); } }
 
         public Series Add(string name)
@@ -53,11 +58,58 @@
             owner.ResetColorIndex();
             owner.UpdateLegend();
         }
+        public bool Contains(Series item)
+        {
+            return items.Contains(item);
+        }
+        public void CopyTo(Series[] array, int arrayIndex)
+        {
+            items.CopyTo(array, arrayIndex);
+        }
+        public Series Find(Predicate<Series> predicate)
+        {
+            return items.Find(predicate);
+        }
+        IEnumerator<Series> IEnumerable<Series>.GetEnumerator()
+        {
+            return items.GetEnumerator();
+        }
         public IEnumerator GetEnumerator()
         {
             return items.GetEnumerator();
         }
+        public int IndexOf(Series item)
+        {
+            return items.IndexOf(item);
+        }
+        public void Insert(int index, Series item)
+        {
+            if (item == null)
+                throw new ArgumentNullException("item");
+            
+            items.Insert(index, item);
+            
+            item.NameChanged += Series_OnNameChanged;
+            item.NameChanged -= Series_OnNameChanged;
+            
+            owner.UpdateLegend();
+        }
+        public bool Remove(Series item)
+        {
+            if (item == null)
+                throw new ArgumentNullException("item");
 
+            var removeResult = items.Remove(item);
+            item.NameChanged -= Series_OnNameChanged;
+            owner.UpdateLegend();
+
+            return removeResult;
+        }
+        public void RemoveAt(int index)
+        {
+            Remove(items[index]);
+        }
+        
         public void Dispose()
         {
             UnsubscribeSeries();

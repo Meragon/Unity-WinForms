@@ -3,8 +3,6 @@
     using System.Drawing;
     using System.Windows.Forms;
 
-    using DiaSimu;
-
     public class HightchartSubtitle
     {
         public HightchartSubtitle()

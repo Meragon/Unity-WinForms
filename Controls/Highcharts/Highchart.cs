@@ -1,4 +1,6 @@
-﻿namespace Highcharts
+﻿using System.Linq;
+
+namespace Highcharts
 {
     using System;
     using System.Collections.Generic;
@@ -135,7 +137,7 @@
                         cachedCategoriesStep = cachedPlotWidth;
                     else
                         cachedCategoriesStep = (float)cachedPlotWidth / (cachedCategories.Length - 1);
-                    
+
                     if (cachedCategoriesStep < categoriesMinStep)
                     {
                         cachedCategoriesStep = categoriesMinStep;
@@ -143,8 +145,10 @@
                         // Filter categories.
                         cachedCategoriesFiltered = new List<string>();
                         for (float i = 0; i < cachedCategories.Length; i += skipFactor)
-                            cachedCategoriesFiltered.Add(cachedCategories[(int)i]);
+                            cachedCategoriesFiltered.Add(cachedCategories[(int) i]);
                     }
+                    else
+                        cachedCategoriesFiltered = cachedCategories.ToList();
                 }
             }
         }
@@ -321,6 +325,7 @@
             {
                 double currentValue = s.data[(int) i];
 
+                bool last = i + pointInterval >= sdataCount;
                 float currentValueYCoef = (float) ((currentValue - cachedPlotMin) / valueRange);
                 float currentValueX = cachedPlotLeft + xStep * categoriesIndex;
                 float currentValueY = cachedPlotTop + cachedPlotHeight - cachedPlotHeight * currentValueYCoef;
@@ -333,7 +338,7 @@
                 {
                     if (locationX + currentValueX < -uwfOffset.X) // Left side.
                         clipHorizontal = true;
-                    if (locationX + currentValueX + xStep + uwfOffset.X > parentWidth) // Right side.
+                    if (locationX + currentValueX + uwfOffset.X > parentWidth) // Right side.
                         clipHorizontal = true;
                 }
 
@@ -344,8 +349,6 @@
                         {
                             if (i > 0)
                             {
-                                bool last = i + pointInterval >= sdataCount;
-    
                                 float prevValueYCoef = (float) ((prevValue - cachedPlotMin) / valueRange);
                                 float prevValueX = cachedPlotLeft + (categoriesIndex - 1) * xStep;
                                 float prevValueY = cachedPlotTop + cachedPlotHeight - cachedPlotHeight * prevValueYCoef;
@@ -366,8 +369,6 @@
                                 float prevValueX = cachedPlotLeft + (categoriesIndex - 1) * xStep;
                                 float prevValueY = cachedPlotTop + cachedPlotHeight - cachedPlotHeight * prevValueYCoef;
                                 
-                                bool last = i + pointInterval >= sdataCount;
-
                                 if (s.linearGradient == false)
                                 {
                                     g.uwfFillRectangle(areaColor, prevValueX, prevValueY, currentValueX - prevValueX,
@@ -408,10 +409,13 @@
                             break;
                         case SeriesTypes.line:
                         {
-                            float prevValueYCoef = (float) ((prevValue - cachedPlotMin) / valueRange);
-                            float prevValueX = cachedPlotLeft + (categoriesIndex - 1) * xStep;
-                            float prevValueY = cachedPlotTop + cachedPlotHeight - cachedPlotHeight * prevValueYCoef;
-                            g.DrawLine(s.pen, prevValueX, prevValueY, currentValueX + 1, currentValueY);
+                            if (i > 0)
+                            {
+                                float prevValueYCoef = (float) ((prevValue - cachedPlotMin) / valueRange);
+                                float prevValueX = cachedPlotLeft + (categoriesIndex - 1) * xStep;
+                                float prevValueY = cachedPlotTop + cachedPlotHeight - cachedPlotHeight * prevValueYCoef;
+                                g.DrawLine(s.pen, prevValueX, prevValueY, currentValueX + 1, currentValueY);
+                            }
                         }
                             break;
                         case SeriesTypes.lineSolid:
@@ -723,17 +727,12 @@
             var sdataCount = s.data.Count;
             if (sdataCount == 0) return 0;
 
-            float pointInterval = s.pointInterval;
-            float xStep = cachedCategoriesStep;
-            if (sdataCount > 1)
-                xStep = (float)cachedPlotWidth / (sdataCount - 1);
-            xStep *= pointInterval;
-
-            var categoriesIndex = (int)((x - cachedPlotLeft) / xStep);
-            if (categoriesIndex < 0 || categoriesIndex >= sdataCount)
+            var xCoef = (float)(x - cachedPlotLeft) / cachedPlotWidth;
+            var dataIndex = (int)(xCoef * sdataCount);
+            if (dataIndex > sdataCount)
                 return 0;
 
-            return s.data[categoriesIndex];
+            return s.data[dataIndex];
         }
     }
 }

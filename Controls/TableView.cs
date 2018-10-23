@@ -34,11 +34,13 @@
 
             Columns = new TableColumnCollection(this);
             Rows = new TableRowCollection(this);
+            
+            MouseHook.MouseUp += MouseHookOnMouseUp;
         }
+        
+        public delegate void RowClickHandler(object sender, TableRow row, MouseEventArgs mArgs);
 
-        public delegate void RowClickContext(TableRow row, MouseEventArgs mArgs);
-
-        public event RowClickContext OnRowClick = delegate { };
+        public event RowClickHandler RowClick;
 
         public Color BorderColor
         {
@@ -188,8 +190,103 @@
                 lastSortedColumn.control.Padding = new Padding(8, 0, 8, 0);
             lastSortedColumn = column;
             lastSortedColumn.control.Padding = new Padding(24, 0, 8, 0);
+            
+            if (SkipControlsInitializations)
+                TryInitializeDefferedControls();
         }
+        public void TryInitializeDefferedControls()
+        {
+            var controlAdded = false;
+            var offsetX = 0;
+            var offsetY = 0;
 
+            if (hScroll != null) offsetX = -(int) (maxScrollWidth * hScroll.Value / hScroll.Maximum);
+            if (vScroll != null) offsetY = -(int) (maxScrollHeight * vScroll.Value / vScroll.Maximum);
+
+            // Prepare columns X and Width.
+            var columnsCount = ColumnCount;
+            var columnsX = new int[columnsCount];
+            var columnsWidth = new int[columnsCount];
+            
+            for (int columnIndex = 0; columnIndex < columnsCount; columnIndex++)
+            {
+                var column = Columns[columnIndex];
+
+                columnsX[columnIndex] = column.control.Location.X;
+                columnsWidth[columnIndex] = column.Width;
+            }
+
+            // Prepare scrolls values.
+            var hScrollMin = 0;
+            var hScrollMax = Width;
+            var vScrollMin = 0;
+            var vScrollMax = Height;
+            
+            if (hScroll != null && hScroll.Visible)
+            {
+                hScrollMin = hScroll.Value;
+                hScrollMax = hScroll.Height + hScroll.Value + hScroll.LargeChange;
+            }
+
+            if (vScroll != null && vScroll.Visible)
+            {
+                vScrollMin = vScroll.Value;
+                vScrollMax = vScroll.Width + vScroll.Value + vScroll.LargeChange;
+            }
+            
+            // Update controls.
+            for (int rowIndex = 0; rowIndex < Rows.Count; rowIndex++)
+            {
+                var row = Rows[rowIndex];
+                var rowY = row.control.Location.Y;
+                var rowHeight = row.control.Height;
+                
+                for (int columnIndex = 0; columnIndex < columnsCount; columnIndex++)
+                {
+                    var cellRect = new Rectangle(columnsX[columnIndex], rowY, columnsWidth[columnIndex], rowHeight);
+                    var cellRectX = cellRect.X;
+                    var cellRectY = cellRect.Y;
+                    var cellIsVisible = 
+                            cellRectX + cellRect.Width > hScrollMin && cellRectX < hScrollMax &&
+                            cellRectY + cellRect.Height > vScrollMin && cellRectY < vScrollMax;
+
+                    var rowControls = row.ItemsControls;
+                    if (rowControls.CreateControlOnCellVisible != null)
+                    {
+                        var cellControl = rowControls[columnIndex];
+                        if (cellIsVisible)
+                        {
+                            if (cellControl == null)
+                            {
+                                var newCellControl = rowControls.CreateControlOnCellVisible(columnIndex, rowIndex);
+                                newCellControl.Location = cellRect.Location;
+                                newCellControl.Size = cellRect.Size;
+                                newCellControl.uwfOffset = new Point(offsetX, offsetY);
+
+                                rowControls[columnIndex] = newCellControl;
+                                controlAdded = true;
+                            }
+                        }
+                        else
+                        {
+                            if (cellControl != null)
+                            {
+                                rowControls[columnIndex] = null;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (controlAdded)
+            {
+                if (vScroll != null)
+                    vScroll.BringToFront();
+                if (hScroll != null)
+                    hScroll.BringToFront();
+            }
+        }
+        
         internal void AlignColumns()
         {
             int cX = Padding.Left;
@@ -202,7 +299,7 @@
             {
                 var column = Columns[i];
                 column.control.Location = new Point(cX, Padding.Top);
-                cX += column.control.Width + CellPadding;
+                cX += column.Width + CellPadding;
             }
 
             UpdateScrolls();
@@ -215,23 +312,26 @@
                 topLeftButton.Location = new Point(Padding.Left, Padding.Top);
                 cY = topLeftButton.Location.Y + topLeftButton.Height + CellPadding;
             }
+            
             for (int i = 0, cellIndex = 1; i < Rows.Count; i++)
             {
                 int cX = Padding.Left;
 
                 var row = Rows[i];
-
+                var rowControls = row.ItemsControls;
+                
                 row.control.Location = new Point(cX, cY);
                 row.UpdateHeaderText();
+                
                 if (topLeftButton != null)
                     row.control.Width = topLeftButton.Width;
 
                 if (rowHeadersHidden == false)
                     cX += row.control.Width + CellPadding;
-
-                for (int k = 0; k < row.ItemsControls.Length; k++)
+                
+                for (int k = 0; k < rowControls.Length; k++)
                 {
-                    var rowIC = row.ItemsControls[k];
+                    var rowIC = rowControls[k];
                     if (rowIC == null) continue;
 
                     rowIC.Location = new Point(cX, cY);
@@ -335,7 +435,6 @@
 
                     row.ItemsControls[i] = itemControl;
                 }
-
         }
         internal void UpdateRows()
         {
@@ -355,6 +454,12 @@
             EnsureVisibleChild(child);
         }
 
+        protected override void Dispose(bool release_all)
+        {
+            base.Dispose(release_all);
+            
+            MouseHook.MouseUp -= MouseHookOnMouseUp;
+        }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             base.OnMouseWheel(e);
@@ -371,8 +476,17 @@
             base.OnResize(e);
 
             UpdateScrolls();
+            
+            if (SkipControlsInitializations)
+                TryInitializeDefferedControls();
         }
-
+        protected virtual void OnRowClick(TableRow row, MouseEventArgs e)
+        {
+            var handler = RowClick;
+            if (handler != null)
+                handler(this, row, e);
+        }
+        
         private void CreateTopLeftButton()
         {
             if (rowHeadersHidden)
@@ -431,6 +545,46 @@
                 vScroll.Value = (int)((float)vRange * estimatedPos / maxScrollHeight);
             }
         }
+        private Rectangle GetCellRectangle(int rowIndex, int columnIndex)
+        {
+            if (rowIndex > Rows.Count || columnIndex > ColumnCount)
+                return Rectangle.Empty;
+            
+            var column = Columns[columnIndex];
+            var row = Rows[rowIndex];
+            var x = column.control.Location.X;
+            var y = row.control.Location.Y;
+            var width = column.Width;
+            var height = row.control.Height;
+            
+            return new Rectangle(x, y, width, height);
+        }
+        private bool IsRectIsVisible(Rectangle rect)
+        {
+            return IsRectIsVisible(rect.X, rect.Y, rect.Width, rect.Height);
+        }
+        private bool IsRectIsVisible(int x, int y, int width, int height)
+        {
+            if (hScroll != null && hScroll.Visible)
+            {
+                if (x + width < hScroll.Value)
+                    return false;
+
+                if (x > hScroll.Height + hScroll.Value + hScroll.LargeChange)
+                    return false;
+            }
+
+            if (vScroll != null && vScroll.Visible)
+            {
+                if (y + height < vScroll.Value)
+                    return false;
+
+                if (y > vScroll.Width + vScroll.Value + vScroll.LargeChange)
+                    return false;
+            }
+            
+            return true;
+        }
         private void HScroll_ValueChanged(object sender, EventArgs e)
         {
             int offsetX = -(int)(maxScrollWidth * hScroll.Value / hScroll.Maximum);
@@ -438,10 +592,23 @@
             for (int i = 0; i < controlsCount; i++)
             {
                 var c = Controls[i];
-                if (c is ScrollBar) continue;
+                if (c == null || c is ScrollBar) continue;
 
-                var offset = c.uwfOffset;
-                c.uwfOffset = new Point(offsetX, offset.Y);
+                c.uwfOffset = new Point(offsetX, c.uwfOffset.Y);
+            }
+            
+            if (SkipControlsInitializations)
+                TryInitializeDefferedControls();
+        }
+        private void MouseHookOnMouseUp(object sender, MouseEventArgs e)
+        {
+            for (int i = 0; i < ColumnCount; i++)
+            {
+                var columnButton = Columns[i].control;
+                
+                // Reset resize.
+                columnButton.resizing = false;
+                columnButton.resizeType = TableColumnButton.resizeTypes.None;
             }
         }
         private void ResetHOffset()
@@ -464,16 +631,18 @@
         }
         private void VScroll_ValueChanged(object sender, EventArgs e)
         {
-            int offseY = -(int)(maxScrollHeight * vScroll.Value / vScroll.Maximum);
+            int offsetY = -(int)(maxScrollHeight * vScroll.Value / vScroll.Maximum);
             var controlsCount = Controls.Count;
             for (int i = 0; i < controlsCount; i++)
             {
                 var c = Controls[i];
-                if (c is ScrollBar) continue;
+                if (c == null || c is ScrollBar) continue;
 
-                var co = c.uwfOffset;
-                c.uwfOffset = new Point(co.X, offseY);
+                c.uwfOffset = new Point(c.uwfOffset.X, offsetY);
             }
+            
+            if (SkipControlsInitializations)
+                TryInitializeDefferedControls();
         }
         private void UpdateScrolls()
         {
@@ -566,9 +735,10 @@
             internal ListSortDirection lastSortDirection;
             internal TableView table;
 
+            internal resizeTypes resizeType = resizeTypes.None;
+            internal bool        resizing   = false;
+            
             private Control prevButton;
-            private resizeTypes resizeType = resizeTypes.None;
-            private bool resizing = false;
             private Point resizeStartMouseLocation;
             private Point resizeStartLocation;
             private int resizeStartWidth;
@@ -585,11 +755,9 @@
                 Size = new Size(t.ColumnsDefaultWidth, 20);
                 TabStop = false;
                 TextAlign = ContentAlignment.MiddleLeft;
-
-                MouseHook.MouseUp += Owner_UpClick;
             }
 
-            private enum resizeTypes
+            internal enum resizeTypes
             {
                 None,
                 Down,
@@ -614,12 +782,6 @@
                 return ControlResizeTypes.None;
             }
 
-            protected override void Dispose(bool release_all)
-            {
-                base.Dispose(release_all);
-
-                MouseHook.MouseUp -= Owner_UpClick;
-            }
             protected override void OnMouseDown(MouseEventArgs e)
             {
                 base.OnMouseDown(e);
@@ -758,11 +920,6 @@
                     return ListSortDirection.Descending;
                 return ListSortDirection.Ascending;
             }
-            private void Owner_UpClick(object sender, MouseEventArgs e)
-            {
-                resizing = false;
-                resizeType = resizeTypes.None;
-            }
         }
         internal class TableRowButton : Button
         {
@@ -793,14 +950,13 @@
         }
     }
 
-    #region Other
     public class TableRow
     {
         internal Button control;
-        internal TableRowCollection owner;
+        internal TableRowCollection rowCollection;
 
         public string CustomHeaderText { get; set; }
-        public int Index { get { return owner.FindIndex(this); } }
+        public int Index { get { return rowCollection.FindIndex(this); } }
         public object[] Items { get; internal set; }
         public TableRowControlsCollection ItemsControls { get; internal set; }
         public int Height { get; set; }
@@ -811,9 +967,9 @@
             set { Items[column] = value; }
         }
 
-        public TableRow(TableRowCollection o)
+        public TableRow(TableRowCollection owner)
         {
-            owner = o;
+            rowCollection = owner;
 
             ItemsControls = new TableRowControlsCollection(this, 0);
             Height = 22;
@@ -848,9 +1004,15 @@
 
         public class TableRowControlsCollection
         {
-            private TableRow owner;
+            private readonly TableRow row;
             internal Control[] items;
 
+            public delegate Control GetControl(int columnIndex, int rowIndex);
+            
+            /// <summary>
+            /// Sets control when it's became visible.
+            /// </summary>
+            public GetControl CreateControlOnCellVisible { get; set; }
             public int Length { get { return items.Length; } }
 
             public Control this[int index]
@@ -864,27 +1026,28 @@
                     if (items[index] != null && items[index].Disposing == false)
                         items[index].Dispose();
                     items[index] = value;
-                    owner.owner.owner.Controls.Add(value);
-                    owner.owner.owner.UpdateRow(owner);
+                    
+                    row.rowCollection.table.Controls.Add(value);
+                    row.rowCollection.table.UpdateRow(row);
                 }
             }
 
             public TableRowControlsCollection(TableRow row, int count)
             {
-                owner = row;
+                this.row = row;
                 items = new Control[count];
             }
         }
     }
     public class TableRowCollection
     {
-        internal TableView owner;
+        internal TableView table;
 
         private readonly List<TableRow> items = new List<TableRow>();
 
         public TableRowCollection(TableView table)
         {
-            owner = table;
+            this.table = table;
         }
 
         public int Count { get { return items.Count; } }
@@ -897,13 +1060,13 @@
         public virtual int Add()
         {
             TableRow row = new TableRow(this);
-            row.Items = new object[owner.Columns.Count];
+            row.Items = new object[table.Columns.Count];
             return Add(row);
         }
         public virtual int Add(TableRow row)
         {
             items.Add(row);
-            owner.UpdateRow(row);
+            table.UpdateRow(row);
             return items.Count - 1;
         }
         public virtual int Add(int count)
@@ -921,7 +1084,9 @@
         public void Clear()
         {
             for (; items.Count > 0;)
-                Remove(items[0]);
+                RemoveInternal(items[0]);
+            
+            table.UpdateRows();
         }
         public int FindIndex(TableRow row)
         {
@@ -933,7 +1098,7 @@
             row.Items = values;
 
             items.Insert(rowIndex, row);
-            owner.UpdateRow(row);
+            table.UpdateRow(row);
             return rowIndex;
         }
         public TableRow Last()
@@ -942,8 +1107,20 @@
         }
         public void Remove(TableRow row)
         {
+            RemoveInternal(row);
+            table.UpdateRows();
+        }
+
+        internal void ClearList()
+        {
+            items.Clear();
+        }
+        
+        private void RemoveInternal(TableRow row)
+        {
             if (row.control != null)
                 row.control.Dispose();
+            
             if (row.ItemsControls != null)
                 for (int i = 0; i < row.ItemsControls.Length; i++)
                 {
@@ -952,13 +1129,6 @@
                 }
 
             items.Remove(row);
-
-            owner.UpdateRows();
-        }
-
-        internal void ClearList()
-        {
-            items.Clear();
         }
     }
     public class TableColumn
@@ -1025,7 +1195,9 @@
         public void Clear()
         {
             for (; items.Count > 0;)
-                Remove(items[0]);
+                RemoveInternal(items[0]);
+            
+            owner.UpdateColumns();
         }
         public int FindIndex(TableColumn column)
         {
@@ -1037,11 +1209,16 @@
         }
         public void Remove(TableColumn column)
         {
+            RemoveInternal(column);
+
+            owner.UpdateColumns();
+        }
+
+        private void RemoveInternal(TableColumn column)
+        {
             if (column.control != null)
                 column.control.Dispose();
             items.Remove(column);
-
-            owner.UpdateColumns();
         }
     }
     public class TableButtonStyle
@@ -1061,5 +1238,4 @@
             HoverColor = Color.FromArgb(243, 248, 254);
         }
     }
-    #endregion
 }

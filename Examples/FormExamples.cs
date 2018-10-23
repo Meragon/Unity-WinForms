@@ -75,6 +75,7 @@
             AddNode(nodeOtherControls, "Chart", typeof(PanelChart));
             AddNode(nodeOtherControls, "ColorPicker", typeof(PanelColorPicker));
             AddNode(nodeOtherControls, "TableView", typeof(PanelTableView));
+            AddNode(nodeOtherControls, "TableViewLazy", typeof(PanelTableViewLazy));
             
             treeView.Nodes.Add(nodeOtherControls);
 
