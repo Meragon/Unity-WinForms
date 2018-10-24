@@ -729,7 +729,7 @@ namespace Highcharts
 
             var xCoef = (float)(x - cachedPlotLeft) / cachedPlotWidth;
             var dataIndex = (int)(xCoef * sdataCount);
-            if (dataIndex > sdataCount)
+            if (dataIndex >= sdataCount || dataIndex < 0)
                 return 0;
 
             return s.data[dataIndex];
