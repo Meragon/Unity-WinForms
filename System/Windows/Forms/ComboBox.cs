@@ -329,7 +329,7 @@
                     }
                     break;
                 case ComboBoxStyle.DropDownList:
-                    g.uwfDrawString(Text, Font, ForeColor, 5, 0, textWidth, height);
+                    g.uwfDrawString(Text, Font, ForeColor, 5, -2, textWidth, height + 4);
                     break;
             }
 

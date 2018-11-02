@@ -349,6 +349,7 @@
             MathHelper.ColorLerp(scrollDestinationColor, 4, ref scrollCurrentColorA, ref scrollCurrentColorR, ref scrollCurrentColorG, ref scrollCurrentColorB);
             scrollCurrentColor = Color.FromArgb((int)scrollCurrentColorA, (int)scrollCurrentColorR, (int)scrollCurrentColorR, (int)scrollCurrentColorB);
 
+
             if (scrollOrientation == ScrollOrientation.HorizontalScroll)
             {
                 int backX = subtractButton.Location.X + subtractButton.Width;
@@ -359,7 +360,9 @@
                 int backY = subtractButton.Location.Y + subtractButton.Height;
                 e.Graphics.uwfFillRectangle(BackColor, 0, backY, Width, addButton.Location.Y - backY);
             }
-            e.Graphics.uwfFillRectangle(scrollCurrentColor, scrollRect.X, scrollRect.Y, scrollRect.Width, scrollRect.Height);
+            
+            if (Enabled)
+                e.Graphics.uwfFillRectangle(scrollCurrentColor, scrollRect.X, scrollRect.Y, scrollRect.Width, scrollRect.Height);
         }
         protected override void OnResize(EventArgs e)
         {

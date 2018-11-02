@@ -6,7 +6,8 @@ namespace System.Windows.Forms
     {
         private readonly SplitterPanel panel1;
         private readonly SplitterPanel panel2;
-        
+
+        private bool cursorWasSet;
         private BorderStyle borderStyle = BorderStyle.None;
         private Orientation orientation = Orientation.Vertical;
         private int panel1MinSize = 25;
@@ -178,11 +179,13 @@ namespace System.Windows.Forms
                     {
                         splitterMovingOffset = e.X - splitterDistance;
                         Cursor.Current = Cursors.VSplit;
+                        cursorWasSet = true;
                     }
                     else
                     {
                         splitterMovingOffset = e.Y - splitterDistance;
                         Cursor.Current = Cursors.HSplit;
+                        cursorWasSet = true;
                     }
                 }
             }
@@ -208,20 +211,39 @@ namespace System.Windows.Forms
             }
             else if (ClientRectangle.Contains(mclient))
             {
-                Cursor.Current = null;
-                
                 if (Orientation == Orientation.Vertical)
                 {
                     if (mclient.X >= splitterDistance &&
-                        mclient.X <= splitterDistance + splitterWidth)
+                        mclient.X <= splitterDistance + splitterWidth && hovered)
+                    {
                         Cursor.Current = Cursors.VSplit;
+                        cursorWasSet = true;
+                    }
+                    else
+                    {
+                        Cursor.Current = null;
+                        cursorWasSet = false;
+                    }
                 }
-                else 
+                else
                 {
                     if (mclient.Y >= splitterDistance &&
-                        mclient.Y <= splitterDistance + splitterWidth)
+                        mclient.Y <= splitterDistance + splitterWidth && hovered)
+                    {
                         Cursor.Current = Cursors.HSplit;
+                        cursorWasSet = true;
+                    }
+                    else
+                    {
+                        Cursor.Current = null;
+                        cursorWasSet = false;
+                    }
                 }
+            }
+            else if (cursorWasSet)
+            {
+                Cursor.Current = null;
+                cursorWasSet = false;
             }
         }
         private void CollapsePanel(SplitterPanel p, bool collapsing) 
@@ -238,6 +260,7 @@ namespace System.Windows.Forms
                 panel1.Enabled = panel1WasEnabled;
                 panel2.Enabled = panel2WasEnabled;
                 splitterMoving = false;
+                cursorWasSet = false;
                 Cursor.Current = null;
             }            
         }

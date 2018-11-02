@@ -25,6 +25,8 @@ namespace Highcharts
         public double? fixedMax;
         public double? fixedMin;
 
+        internal int defaultPlotLeft = 48;
+
         private readonly Color categoriesColor  = Color.Gray;
         private readonly Font  categoriesFont   = DefaultFont10;
         private readonly Color gridTextColor    = Color.Gray;
@@ -42,13 +44,13 @@ namespace Highcharts
         private float        cachedCategoriesStep;
         private List<string> cachedCategoriesFiltered;
         private int          cachedGridLines = 6;
-        private int          cachedGridLinesStep;
+        private double       cachedGridLinesStep;
         private double       cachedGridMaxValue;
         private double       cachedGridMinValue;
         private string[]     cachedGridValues;
         private int          cachedPlotTop;
         private int          cachedPlotBottom;
-        private int          cachedPlotLeft = 48;
+        internal int         cachedPlotLeft;
         private int          cachedPlotRight;
         private int          cachedPlotHeight;
         private int          cachedPlotWidth;
@@ -74,10 +76,12 @@ namespace Highcharts
             subtitle = new HightchartSubtitle();
             title = new HighchartTitle();
             xAxis = new XAxis();
-            yAxis = new List<Axis>();
+            yAxis = new AxisCollection(this);
 
             yAxis.Add(new YAxis());
 
+            cachedPlotLeft = defaultPlotLeft;
+            
             Recalc();
         }
 
@@ -89,8 +93,8 @@ namespace Highcharts
         public HightchartSubtitle subtitle { get; private set; }
         public HighchartTitle title { get; private set; }
         public Axis xAxis { get; private set; }
-        public List<Axis> yAxis { get; private set; }
-
+        public AxisCollection yAxis { get; private set; }
+        
         internal string[] Categories
         {
             get { return cachedCategories; }
@@ -169,13 +173,13 @@ namespace Highcharts
             
             cachedGridMaxValue = GetSeriesMaximum();
             cachedGridMinValue = GetSeriesMinimum();
-
+            
             if (cachedPlotMax != 0 && cachedPlotMin != 0)
                 if (cachedGridMaxValue == cachedPlotMax &&
                     cachedGridMinValue == cachedPlotMin)
                     return;
             
-            cachedGridLinesStep = cachedPlotHeight / cachedGridLines;
+            cachedGridLinesStep = (double)cachedPlotHeight / cachedGridLines;
             cachedGridValues = new string[cachedGridLines + 1]; // + bottom line.
 
             const string valFormat = "0.00";
@@ -259,8 +263,8 @@ namespace Highcharts
             if (cachedPlotHeight > 0)
             {
                 DrawPlotBack(g);
-                DrawXAxis(g);
                 DrawYAxes(g);
+                DrawXAxis(g);
                 
                 for (int i = 0; i < series.Count; i++)
                 {
@@ -494,48 +498,60 @@ namespace Highcharts
         }
         private void DrawXAxis(Graphics g)
         {
-            if (cachedCategoriesFiltered == null) return;
-
-            // Categories.
-            var cachedCategoriesLength = cachedCategoriesFiltered.Count;
-            for (int i = 0; i < cachedCategoriesLength; i++)
+            if (xAxis.visible == false)
+                return;
+            
+            if (cachedCategoriesFiltered != null)
             {
-                float categoryX = cachedPlotLeft + i * cachedCategoriesStep;
-                g.DrawLine(xAxis.tickPen, categoryX, cachedPlotBottom, categoryX, cachedPlotBottom + xAxis.tickLength);
-                g.uwfDrawString(
-                    cachedCategoriesFiltered[i],
-                    categoriesFont,
-                    categoriesColor,
-                    categoryX - cachedCategoriesStep / 2,
-                    cachedPlotBottom,
-                    cachedCategoriesStep,
-                    32,
-                    ContentAlignment.MiddleCenter);
+                // Categories.
+                var cachedCategoriesLength = cachedCategoriesFiltered.Count;
+                for (int i = 0; i < cachedCategoriesLength; i++)
+                {
+                    float categoryX = cachedPlotLeft + i * cachedCategoriesStep;
+                    g.DrawLine(xAxis.tickPen, categoryX, cachedPlotBottom + xAxis.offset, categoryX, cachedPlotBottom + xAxis.tickLength + xAxis.offset);
+                    g.uwfDrawString(
+                        cachedCategoriesFiltered[i],
+                        categoriesFont,
+                        categoriesColor,
+                        categoryX - cachedCategoriesStep / 2,
+                        cachedPlotBottom + xAxis.offset,
+                        cachedCategoriesStep,
+                        32,
+                        ContentAlignment.MiddleCenter);
+                }
+
+                if (cachedCategoriesStep == categoriesMinStep) // Draw last tick if needed.
+                    g.DrawLine(xAxis.tickPen, cachedPlotRight, cachedPlotBottom + xAxis.offset, cachedPlotRight, cachedPlotBottom + xAxis.tickLength + xAxis.offset);
             }
-            if (cachedCategoriesStep == categoriesMinStep) // Draw last tick if needed.
-                g.DrawLine(xAxis.tickPen, cachedPlotRight, cachedPlotBottom, cachedPlotRight, cachedPlotBottom + xAxis.tickLength);
+            
+            // Axis line.
+            if (xAxis.lineWidth > 0)
+                g.DrawLine(xAxis.linePen, cachedPlotLeft, cachedPlotBottom + xAxis.offset, cachedPlotRight, cachedPlotBottom + xAxis.offset);
         }
         private void DrawYAxes(Graphics g)
         {
             for (int i = 0; i < yAxis.Count; i++)
             {
                 var ya = yAxis[i];
+                if (ya.visible == false)
+                    continue;
 
                 // Grid.
                 if (ya.gridLineWidth > 0)
                 {
-                    for (int k = 0; k < cachedGridLines; k++)
+                    for (int k = 0; k <= cachedGridLines; k++)
                     {
-                        int gridY = cachedPlotTop + k * cachedGridLinesStep;
+                        var gridY = (int)(cachedPlotTop + k * cachedGridLinesStep);
+
                         g.DrawLine(ya.gridPen, cachedPlotLeft, gridY, cachedPlotRight, gridY);
-                        g.uwfDrawString(cachedGridValues[k], ya.gridFont, gridTextColor, 0, gridY + gridTextYOffet, cachedPlotLeft + gridTextXOffset, 20, HorizontalAlignment.Right);
+                        g.uwfDrawString(cachedGridValues[k], ya.gridFont, gridTextColor, 0, gridY + gridTextYOffet,
+                            cachedPlotLeft - ya.offset + gridTextXOffset, 20, HorizontalAlignment.Right);
                     }
-                    g.uwfDrawString(cachedGridValues[cachedGridLines], ya.gridFont, gridTextColor, 0, cachedPlotBottom + gridTextYOffet, cachedPlotLeft + gridTextXOffset, 20, HorizontalAlignment.Right);
                 }
 
-                // Bottom line.
-                xAxis.gridPen.Width = ya.gridLineWidth;
-                g.DrawLine(xAxis.gridPen, cachedPlotLeft, cachedPlotBottom, cachedPlotRight, cachedPlotBottom);
+                // Draw axis line.
+                if (ya.lineWidth > 0)
+                    g.DrawLine(ya.linePen, cachedPlotLeft - ya.offset, cachedPlotTop, cachedPlotLeft - ya.offset, cachedPlotBottom);
             }
         }
         private double GetSeriesMaximum()

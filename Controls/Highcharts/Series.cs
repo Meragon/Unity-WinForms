@@ -63,6 +63,7 @@
         public object tag { get; set; }
         public SeriesTypes type { get; set; }
         public bool visible { get; set; }
+        public int yAxis { get; set; }
 
         public void Dispose()
         {
