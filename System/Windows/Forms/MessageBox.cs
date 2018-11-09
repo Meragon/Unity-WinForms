@@ -29,6 +29,7 @@
         {
             var form = new Form();
             form.FormBorderStyle = FormBorderStyle.FixedSingle;
+            form.MaximizeBox = false;
             form.MinimumSize = new Size(154, 140);
             form.Size = form.MinimumSize;
             form.SizeGripStyle = SizeGripStyle.Hide;

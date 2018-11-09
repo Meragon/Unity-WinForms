@@ -447,6 +447,9 @@
         }
         internal void SetWindowState(FormWindowState state)
         {
+            if (formState == FormWindowState.Minimized && state != FormWindowState.Minimized)
+                Visible = true;
+            
             formState = state;
             
             switch (state)
