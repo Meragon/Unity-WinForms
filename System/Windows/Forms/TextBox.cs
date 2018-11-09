@@ -4,24 +4,31 @@
 
     public class TextBox : Control
     {
-        private static readonly Color defaultTextboxBackColor = Color.FromArgb(250, 250, 250);
-
+        private bool customBackColor;
+        private bool customForeColor;
+        
+        private Color backColor;
+        private Color foreColor;
+        
         private readonly Pen borderPen = new Pen(Color.White);
         private char passwordChar = (char)0;
         private string passwordText;
         private string text;
+        private bool styleInitialized;
         
         public TextBox()
         {
             text = string.Empty;
-
-            BackColor = defaultTextboxBackColor;
+            
+            BackColor = SystemColors.Window;
             Padding = new Padding(2, 0, 2, 0);
             TextAlign = HorizontalAlignment.Left;
             
             uwfBorderColor = SystemColors.ActiveBorder;
             uwfBorderFocusedColor = Color.FromArgb(86, 157, 229);
             uwfBorderHoverColor = Color.FromArgb(126, 180, 234);
+
+            styleInitialized = true;
         }
 
         public bool Multiline { get; set; }
@@ -77,6 +84,31 @@
             return bs + ", Text: " + txt;
         }
 
+        protected override void OnBackColorChanged(EventArgs e)
+        {
+            base.OnBackColorChanged(e);
+
+            if (styleInitialized)
+                customBackColor = true;
+            
+            backColor = BackColor;
+        }
+        protected override void OnEnabledChanged(EventArgs e)
+        {
+            base.OnEnabledChanged(e);
+
+            backColor = customBackColor == false && Enabled == false ? SystemColors.Control : BackColor;
+            foreColor = customForeColor == false && Enabled == false ? SystemColors.GrayText : ForeColor;
+        }
+        protected override void OnForeColorChanged(EventArgs e)
+        {
+            base.OnForeColorChanged(e);
+
+            if (styleInitialized)
+                customForeColor = true;
+
+            foreColor = ForeColor;
+        }
         protected override void OnMouseEnter(EventArgs e)
         {
             base.OnMouseEnter(e);
@@ -102,7 +134,9 @@
             var textW = Width - Padding.Horizontal;
             var textH = Height - Padding.Vertical;
 
-            g.uwfFillRectangle(BackColor, 0, 0, Width, Height);
+            // NOTE: There is also should be 1px rectangle with SystemColors.Window color between background color and border.
+            // And it will affect performance a little. 
+            g.uwfFillRectangle(backColor, 0, 0, Width, Height);
 
             if (Enabled && Focused)
             {
@@ -114,12 +148,12 @@
                 if (passwordChar == 0)
                 {
                     if (Multiline == false)
-                        tempText = g.uwfDrawTextField(Text, Font, ForeColor, textX, textY, textW, textH, TextAlign);
+                        tempText = g.uwfDrawTextField(Text, Font, foreColor, textX, textY, textW, textH, TextAlign);
                     else
-                        tempText = g.uwfDrawTextArea(Text, Font, ForeColor, textX, textY, textW, textH);
+                        tempText = g.uwfDrawTextArea(Text, Font, foreColor, textX, textY, textW, textH);
                 }
                 else
-                    tempText = g.uwfDrawPasswordField(Text, Font, ForeColor, textX, textY, textW, textH, TextAlign);
+                    tempText = g.uwfDrawPasswordField(Text, Font, foreColor, textX, textY, textW, textH, TextAlign);
 
                 if (shouldFocus)
                 {
@@ -135,12 +169,12 @@
                 if (passwordChar == 0)
                 {
                     if (Multiline)
-                        g.uwfDrawString(Text, Font, ForeColor, textX, textY, textW, textH, ContentAlignment.TopLeft);
+                        g.uwfDrawString(Text, Font, foreColor, textX, textY, textW, textH, ContentAlignment.TopLeft);
                     else
-                        g.uwfDrawString(Text, Font, ForeColor, textX, textY, textW, textH, TextAlign);
+                        g.uwfDrawString(Text, Font, foreColor, textX, textY, textW, textH, TextAlign);
                 }
                 else
-                    g.uwfDrawString(passwordText, Font, ForeColor, textX, textY, textW, textH, TextAlign);
+                    g.uwfDrawString(passwordText, Font, foreColor, textX, textY, textW, textH, TextAlign);
             }
 
             g.DrawRectangle(borderPen, 0, 0, Width, Height);

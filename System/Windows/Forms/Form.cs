@@ -2,7 +2,6 @@
 {
     using System.Drawing;
 
-    [Serializable]
     public class Form : ContainerControl, IResizableControl
     {
         internal readonly Pen borderPen = new Pen(defaultFormBorderColor);
@@ -35,9 +34,15 @@
         private Color backColor = SystemColors.Control;
         private formSystemButton closeButton;
         private Action<Form, DialogResult> dialogCallback;
+        private FormWindowState formState;
         private MenuStrip mainMenuStrip;
+        private bool maximizeBox = true;
         private MdiClient mdiClient;
         private Form mdiParent;
+        private FormBorderStyle minimizedBorderStyle;
+        private Point minimizedLocation;
+        private Size minimizedSize;
+        private bool minimizedMovable;
         private Point windowMove_StartPosition;
         private Form owner;
         private ControlResizeTypes resizeType;
@@ -139,6 +144,11 @@
         public FormBorderStyle FormBorderStyle { get; set; }
         public bool KeyPreview { get; set; }
         public MenuStrip MainMenuStrip { get { return mainMenuStrip; } set { mainMenuStrip = value; } }
+        public bool MaximizeBox
+        {
+            get { return maximizeBox; }
+            set { maximizeBox = value; }
+        }
         public Form MdiParent
         {
             get { return mdiParent; }
@@ -196,7 +206,18 @@
                 uwfAppOwner.Forms.Sort();
             }
         }
+        public FormWindowState WindowState
+        {
+            get { return formState; }
+            set
+            {
+                if (formState == value)
+                    return;
 
+                SetWindowState(value);
+            }
+        }
+        
         internal MdiClient MdiClient
         {
             get { return mdiClient; }
@@ -424,6 +445,41 @@
 
             uwfSizeGripRenderer.Location = new Point(Width - 12, Height - 12); // TODO: img error: Internal_GetWidth.
         }
+        internal void SetWindowState(FormWindowState state)
+        {
+            formState = state;
+            
+            switch (state)
+            {
+                case FormWindowState.Normal:
+                    FormBorderStyle = minimizedBorderStyle;
+                    uwfMovable = minimizedMovable;
+
+                    SetBounds(minimizedLocation.X, minimizedLocation.Y, minimizedSize.Width, minimizedSize.Height);
+                    break;
+                    
+                case FormWindowState.Maximized:
+                    minimizedBorderStyle = FormBorderStyle;
+                    minimizedLocation = Location;
+                    minimizedMovable = uwfMovable;
+                    minimizedSize = Size;
+            
+                    FormBorderStyle = FormBorderStyle.FixedSingle;
+                    uwfMovable = false;
+
+                    var nx = 0;
+                    var ny = 0;
+                    var nw = Screen.width;
+                    var nh = Screen.height;
+
+                    SetBounds(nx, ny, nw, nh);
+                    break;
+                    
+                case FormWindowState.Minimized:
+                    Visible = false; // ?
+                    break;
+            }
+        }
 
         protected internal override void uwfOnLatePaint(PaintEventArgs e)
         {
@@ -516,6 +572,18 @@
             if (e.KeyCode == Keys.Escape && CancelButton != null)
             {
                 CancelButton.PerformClick();
+            }
+        }
+        protected override void OnMouseDoubleClick(MouseEventArgs e)
+        {
+            base.OnMouseDoubleClick(e);
+            
+            if (e.Location.Y < uwfHeaderHeight && maximizeBox)
+            {
+                if (WindowState == FormWindowState.Maximized)
+                    SetWindowState(FormWindowState.Normal);
+                else if (WindowState == FormWindowState.Normal)
+                    SetWindowState(FormWindowState.Maximized);
             }
         }
         protected override void OnMouseDown(MouseEventArgs e)

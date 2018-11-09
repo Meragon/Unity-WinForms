@@ -75,6 +75,7 @@
         public delegate void ResizeHandler(Point delta);
 
         public event EventHandler AutoSizeChanged;
+        public event EventHandler BackColorChanged;
         public event EventHandler Click;
         public event EventHandler ClientSizeChanged;
         public event ControlEventHandler ControlAdded;
@@ -84,6 +85,7 @@
         public event DragEventHandler DragEnter;
         public event EventHandler DragLeave;
         public event EventHandler EnabledChanged;
+        public event EventHandler ForeColorChanged;
         public event EventHandler GotFocus;
         public event KeyEventHandler KeyDown;
         public event KeyPressEventHandler KeyPress;
@@ -124,7 +126,14 @@
         public virtual Color BackColor
         {
             get { return backColor; }
-            set { backColor = value; }
+            set
+            {
+                if (backColor == value)
+                    return;
+                
+                backColor = value;
+                OnBackColorChanged(EventArgs.Empty);
+            }
         }
         public virtual Image BackgroundImage { get; set; }
         public virtual ImageLayout BackgroundImageLayout { get; set; }
@@ -181,7 +190,14 @@
         public virtual Color ForeColor
         {
             get { return foreColor; }
-            set { foreColor = value; }
+            set
+            {
+                if (foreColor == value)
+                    return;
+                
+                foreColor = value;
+                OnForeColorChanged(EventArgs.Empty);
+            }
         }
         public int Height
         {
@@ -682,6 +698,12 @@
             if (autoSizeChanged != null)
                 autoSizeChanged(this, e);
         }
+        protected virtual void OnBackColorChanged(EventArgs e)
+        {
+            var handler = BackColorChanged;
+            if (handler != null)
+                handler(this, e);
+        }
         protected virtual void OnClick(EventArgs e)
         {
             var click = Click;
@@ -737,6 +759,12 @@
         protected virtual void OnEnabledChanged(EventArgs e)
         {
             var handler = EnabledChanged;
+            if (handler != null)
+                handler(this, e);
+        }
+        protected virtual void OnForeColorChanged(EventArgs e)
+        {
+            var handler = ForeColorChanged;
             if (handler != null)
                 handler(this, e);
         }
