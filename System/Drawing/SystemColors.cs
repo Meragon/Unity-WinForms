@@ -2,39 +2,38 @@
 {
     public static class SystemColors
     {
-        // fields have faster access.
-        public static readonly Color ActiveBorder = Color.FromArgb(180, 180, 180);
-        public static readonly Color ActiveCaption = Color.FromArgb(153, 180, 209);
-        public static readonly Color ActiveCaptionText = Color.FromArgb(0, 0, 0);
-        public static readonly Color AppWorkspace = Color.FromArgb(171, 171, 171);
-        public static readonly Color ButtonFace = Color.FromArgb(240, 240, 240);
-        public static readonly Color ButtonHighlight = Color.FromArgb(255, 255, 255);
-        public static readonly Color ButtonShadow = Color.FromArgb(160, 160, 160);
-        public static readonly Color Control = Color.FromArgb(240, 240, 240);
-        public static readonly Color ControlDark = Color.FromArgb(160, 160, 160);
-        public static readonly Color ControlDarkDark = Color.FromArgb(105, 105, 105);
-        public static readonly Color ControlLight = Color.FromArgb(227, 227, 227);
-        public static readonly Color ControlLightLight = Color.FromArgb(255, 255, 255);
-        public static readonly Color ControlText = Color.FromArgb(0, 0, 0);
-        public static readonly Color Desktop = Color.FromArgb(0, 0, 0);
-        public static readonly Color GradientActiveCaption = Color.FromArgb(185, 209, 234);
-        public static readonly Color GradientInactiveCaption = Color.FromArgb(215, 228, 242);
-        public static readonly Color GrayText = Color.FromArgb(109, 109, 109);
-        public static readonly Color Highlight = Color.FromArgb(51, 153, 255);
-        public static readonly Color HighlightText = Color.FromArgb(255, 255, 255);
-        public static readonly Color HotTrack = Color.FromArgb(0, 102, 204);
-        public static readonly Color InactiveBorder = Color.FromArgb(244, 247, 252);
-        public static readonly Color InactiveCaption = Color.FromArgb(191, 205, 219);
-        public static readonly Color InactiveCaptionText = Color.FromArgb(0, 0, 0);
-        public static readonly Color Info = Color.FromArgb(255, 255, 255);
-        public static readonly Color InfoText = Color.FromArgb(0, 0, 0);
-        public static readonly Color Menu = Color.FromArgb(240, 240, 240);
-        public static readonly Color MenuBar = Color.FromArgb(240, 240, 240);
-        public static readonly Color MenuHighlight = Color.FromArgb(51, 153, 255);
-        public static readonly Color MenuText = Color.FromArgb(0, 0, 0);
-        public static readonly Color ScrollBar = Color.FromArgb(200, 200, 200);
-        public static readonly Color Window = Color.FromArgb(255, 255, 255);
-        public static readonly Color WindowFrame = Color.FromArgb(100, 100, 100);
-        public static readonly Color WindowText = Color.FromArgb(0, 0, 0);
+        public static readonly Color ActiveBorder = new Color(KnownColor.ActiveBorder, 0xFFB4B4B4);
+        public static readonly Color ActiveCaption = new Color(KnownColor.ActiveCaption, 0xFF99B4D1);
+        public static readonly Color ActiveCaptionText = new Color(KnownColor.ActiveCaptionText, 0xFF000000);
+        public static readonly Color AppWorkspace = new Color(KnownColor.AppWorkspace, 0xFFABABAB);
+        public static readonly Color ButtonFace = new Color(KnownColor.ButtonFace, 0xFFF0F0F0);
+        public static readonly Color ButtonHighlight = new Color(KnownColor.ButtonHighlight, 0xFFFFFFFF);
+        public static readonly Color ButtonShadow = new Color(KnownColor.ButtonShadow, 0xFFA0A0A0);
+        public static readonly Color Control = new Color(KnownColor.Control, 0xFFF0F0F0);
+        public static readonly Color ControlDark = new Color(KnownColor.ControlDark, 0xFFA0A0A0);
+        public static readonly Color ControlDarkDark = new Color(KnownColor.ControlDarkDark, 0xFF696969);
+        public static readonly Color ControlLight = new Color(KnownColor.ControlLight, 0xFFE3E3E3);
+        public static readonly Color ControlLightLight = new Color(KnownColor.ControlLightLight, 0xFFFFFFFF);
+        public static readonly Color ControlText = new Color(KnownColor.ControlText, 0xFF000000);
+        public static readonly Color Desktop = new Color(KnownColor.Desktop, 0xFF000000);
+        public static readonly Color GradientActiveCaption = new Color(KnownColor.GradientActiveCaption, 0xFFB9D1EA);
+        public static readonly Color GradientInactiveCaption = new Color(KnownColor.GradientInactiveCaption, 0xFFD7E4F2);
+        public static readonly Color GrayText = new Color(KnownColor.GrayText, 0xFF6D6D6D);
+        public static readonly Color Highlight = new Color(KnownColor.Highlight, 0xFF3399FF);
+        public static readonly Color HighlightText = new Color(KnownColor.HighlightText, 0xFFFFFFFF);
+        public static readonly Color HotTrack = new Color(KnownColor.HotTrack, 0xFF0066CC);
+        public static readonly Color InactiveBorder = new Color(KnownColor.InactiveBorder, 0xFFF4F7FC);
+        public static readonly Color InactiveCaption = new Color(KnownColor.InactiveCaption, 0xFFBFCDDB);
+        public static readonly Color InactiveCaptionText = new Color(KnownColor.InactiveCaptionText, 0xFF000000);
+        public static readonly Color Info = new Color(KnownColor.Info, 0xFFFFFFFF);
+        public static readonly Color InfoText = new Color(KnownColor.InfoText, 0xFF000000);
+        public static readonly Color Menu = new Color(KnownColor.Menu, 0xFFF0F0F0);
+        public static readonly Color MenuBar = new Color(KnownColor.MenuBar, 0xFFF0F0F0);
+        public static readonly Color MenuHighlight = new Color(KnownColor.MenuHighlight, 0xFF3399FF);
+        public static readonly Color MenuText = new Color(KnownColor.MenuText, 0xFF000000);
+        public static readonly Color ScrollBar = new Color(KnownColor.ScrollBar, 0xFFC8C8C8);
+        public static readonly Color Window = new Color(KnownColor.Window, 0xFFFFFFFF);
+        public static readonly Color WindowFrame = new Color(KnownColor.WindowFrame, 0xFF646464);
+        public static readonly Color WindowText = new Color(KnownColor.WindowText, 0xFF000000);
     }
 }
