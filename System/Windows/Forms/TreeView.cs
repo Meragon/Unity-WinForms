@@ -6,7 +6,6 @@
 
     public class TreeView : Control
     {
-        internal ScrollBar vScrollBar;
         internal int       arrowSize = 16;
         internal TreeNode  hoveredNode;
         internal TreeNode  root;
@@ -29,11 +28,11 @@
         private Point     dragPosition;
         private string    filter;
         private ImageList imageList;
-        
         private ToolTip   nodeToolTip;
         private TreeNode  nodeToolTipLast;
         private TreeNode  selectedNode;
         private float     resetFilterTime;
+        private ScrollBar vScrollBar;
 
         public TreeView()
         {
@@ -86,6 +85,32 @@
         }
         public bool ShowNodeToolTips { get; set; }
 
+        internal ScrollBar uwfVScrollBar
+        {
+            get
+            {
+                if (vScrollBar == null)
+                    uwfVScrollBar = new VScrollBar();
+
+                return vScrollBar;
+            }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException("value");
+                
+                if (vScrollBar != null)
+                    vScrollBar.Dispose();
+                
+                vScrollBar = value;
+                vScrollBar.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
+                vScrollBar.Location = new Point(Width - vScrollBar.Width, 0);
+                vScrollBar.Height = Height;
+                vScrollBar.ValueChanged += VScrollBarOnValueChanged;
+                Controls.Add(vScrollBar);
+            }
+        }
+
         protected override Size DefaultSize
         {
             get { return new Size(121, 97); }
@@ -99,15 +124,15 @@
         {
             get
             {
-                if (vScrollBar == null)
+                if (uwfVScrollBar.Visible == false)
                     return 0;
                 
-                return vScrollBar.Value;
+                return uwfVScrollBar.Value;
             }
             set
             {
-                if (vScrollBar != null)
-                    vScrollBar.Value = (int)value;
+                if (uwfVScrollBar.Visible)
+                    uwfVScrollBar.Value = (int)value;
             }
         }
         
@@ -271,12 +296,12 @@
                 switch (e.KeyCode)
                 {
                     case Keys.Down:
-                        if (vScrollBar != null)
-                            vScrollBar.DoScroll(ScrollEventType.SmallIncrement);
+                        if (uwfVScrollBar.Visible)
+                            uwfVScrollBar.DoScroll(ScrollEventType.SmallIncrement);
                         break;
                     case Keys.Up:
-                        if (vScrollBar != null)
-                            vScrollBar.DoScroll(ScrollEventType.SmallDecrement);
+                        if (uwfVScrollBar.Visible)
+                            uwfVScrollBar.DoScroll(ScrollEventType.SmallDecrement);
                         break;
                 }
             }
@@ -356,7 +381,7 @@
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            if (vScrollBar != null && vScrollBar.Visible)
+            if (uwfVScrollBar.Visible)
                 scrollIndex -= e.Delta * uwfScrollSpeed;
         }
         protected virtual void OnNodeMouseClick(TreeNodeMouseClickEventArgs e)
@@ -628,31 +653,21 @@
 
             if (scrollVisible)
             {
-                if (vScrollBar == null)
-                {
-                    vScrollBar = new VScrollBar();
-                    vScrollBar.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
-                    vScrollBar.Location = new Point(Width - vScrollBar.Width, 0);
-                    vScrollBar.Height = Height;
-                    vScrollBar.ValueChanged += VScrollBarOnValueChanged;
-                    Controls.Add(vScrollBar);
-                }
-
-                vScrollBar.ValueChanged -= VScrollBarOnValueChanged;
-                vScrollBar.Maximum = scrollMaximum;
-                vScrollBar.SmallChange = ItemHeight;
-                vScrollBar.LargeChange = Height;
-                vScrollBar.Visible = true;
-                vScrollBar.ValueChanged += VScrollBarOnValueChanged;
+                uwfVScrollBar.ValueChanged -= VScrollBarOnValueChanged;
+                uwfVScrollBar.Maximum = scrollMaximum;
+                uwfVScrollBar.SmallChange = ItemHeight;
+                uwfVScrollBar.LargeChange = Height;
+                uwfVScrollBar.Visible = true;
+                uwfVScrollBar.ValueChanged += VScrollBarOnValueChanged;
             }
             else
             {
-                if (vScrollBar != null)
+                if (uwfVScrollBar.Visible)
                 {
-                    vScrollBar.Visible = false; // we can dispose scrollbar, but I think it's not effective.
-                    vScrollBar.ValueChanged -= VScrollBarOnValueChanged;
-                    vScrollBar.Value = 0;
-                    vScrollBar.ValueChanged += VScrollBarOnValueChanged;
+                    uwfVScrollBar.Visible = false; // we can dispose scrollbar, but I think it's not effective.
+                    uwfVScrollBar.ValueChanged -= VScrollBarOnValueChanged;
+                    uwfVScrollBar.Value = 0;
+                    uwfVScrollBar.ValueChanged += VScrollBarOnValueChanged;
                 }
             }
         }
@@ -661,11 +676,11 @@
             scrollNodeList.Clear();
 
             // Update maximum before calculations.
-            if (vScrollBar != null)
+            if (uwfVScrollBar.Visible)
             {
-                vScrollBar.ValueChanged -= VScrollBarOnValueChanged;
-                vScrollBar.Maximum = ItemHeight * nodeList.Count - 1 + Padding.Vertical;
-                vScrollBar.ValueChanged += VScrollBarOnValueChanged;
+                uwfVScrollBar.ValueChanged -= VScrollBarOnValueChanged;
+                uwfVScrollBar.Maximum = ItemHeight * nodeList.Count - 1 + Padding.Vertical;
+                uwfVScrollBar.ValueChanged += VScrollBarOnValueChanged;
             }
 
             UpdateScrollBar();

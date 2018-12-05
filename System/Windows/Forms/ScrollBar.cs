@@ -434,7 +434,7 @@
             else
                 scrollLength = addButton.Location.Y - subtractButton.Location.Y - subtractButton.Height;
 
-            int valueRange = (maximum - minimum);
+            int valueRange = maximum - minimum;
             float barSize = minScrollSize;
             if (largeChange > 0)
                 barSize = (float)scrollLength / ((float)valueRange / largeChange);
@@ -444,14 +444,18 @@
                 barSize = minScrollSize;
 
             scrollLength -= barSize; // Adjusted range for scroll bar, depending on size.
-            var valueDl = (int)scrollLength + minimum;
-            if (valueDl == 0) return;
 
+            if (scrollLength <= 0) return;
+
+            long currentLength;
             if (scrollOrientation == ScrollOrientation.HorizontalScroll)
-                value = (int)(((valueRange - largeChange + 1) * (long)(scrollRect.X - subtractButton.Location.X - subtractButton.Width)) / valueDl);
+                currentLength = scrollRect.X - subtractButton.Location.X - subtractButton.Width;
             else
-                value = (int)(((valueRange - largeChange + 1) * (long)(scrollRect.Y - subtractButton.Location.Y - subtractButton.Height)) / valueDl);
-            value = MathHelper.Clamp(value, minimum, maximum);
+                currentLength = scrollRect.Y - subtractButton.Location.Y - subtractButton.Height;
+
+            value = (int)((valueRange - largeChange + 1) * currentLength / scrollLength);
+            value = MathHelper.Clamp(minimum + value, minimum, maximum);
+            
             OnValueChanged(EventArgs.Empty);
         }
     }
