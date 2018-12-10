@@ -198,7 +198,71 @@
 
             return null;
         }
+        internal void UpdateControlsOffsets()
+        {
+            var hValue = 0;
+            var vValue = 0;
 
+            if (hscroll != null)
+                hValue = hscroll.Value;
+
+            if (vscroll != null)
+                vValue = vscroll.Value;
+
+            for (int i = 0; i < Controls.Count; i++)
+            {
+                var item = Controls[i];
+                if (item.uwfSystem)
+                    continue;
+
+                item.uwfOffset = new Point(-hValue, -vValue);
+            }
+        }
+        internal void UpdateScrolls()
+        {
+            var autoScroll = (scrollState & ScrollStateAutoScrolling) != 0;
+            if (autoScroll == false)
+            {
+                Native_EnableScrollBar(false, NativeMethods.SB_VERT);
+                Native_EnableScrollBar(false, NativeMethods.SB_HORZ);
+                return;
+            }
+
+            var controlRect = GetControlsRect();
+            var bottom = controlRect.Height;
+            var left = controlRect.X;
+            var right = controlRect.Width;
+            var top = controlRect.Y;
+            
+            var enableHScroll = left < 0 || right > Width;
+            var enableVScroll = top < 0 || bottom > Height;
+
+            Native_EnableScrollBar(enableHScroll, NativeMethods.SB_HORZ);
+            Native_EnableScrollBar(enableVScroll, NativeMethods.SB_VERT);
+
+            var hMaximum = right > Width ? right : Width;
+            var vMaximum = bottom > Height ? bottom : Height;
+
+            if (vscroll != null) hMaximum += vscroll.Width + 2;
+            if (hscroll != null) vMaximum += hscroll.Height + 2;
+
+            if (vscroll != null)
+            {
+                vscroll.Maximum = vMaximum;
+                vscroll.Minimum = top < 0 ? top : 0;
+                vscroll.LargeChange = Height; 
+            }
+
+            if (hscroll != null)
+            {
+                hscroll.Maximum = hMaximum;
+                hscroll.Minimum = left < 0 ? left : 0;
+                hscroll.LargeChange = Width; 
+            }
+
+            UpdateScrollRects();
+        }
+        
         protected internal override void uwfOnLatePaint(PaintEventArgs e)
         {
             if (this is Form)
@@ -257,7 +321,7 @@
                 if (item.uwfSystem)
                     continue;
 
-                var itemBottom = item.Location.Y + item.Height + 1;
+                var itemBottom = item.Location.Y + item.Height;
                 if (itemBottom > bottom)
                     bottom = itemBottom;
 
@@ -265,7 +329,7 @@
                 if (itemLeft < left)
                     left = itemLeft;
                 
-                var itemRight = item.Location.X + item.Width + 1;
+                var itemRight = item.Location.X + item.Width;
                 if (itemRight > right)
                     right = itemRight;
 
@@ -278,67 +342,7 @@
         }
         private void Scroll_ValueChanged(object sender, EventArgs e)
         {
-            var hValue = 0;
-            var vValue = 0;
-
-            if (hscroll != null)
-                hValue = hscroll.Value;
-
-            if (vscroll != null)
-                vValue = vscroll.Value;
-
-            for (int i = 0; i < Controls.Count; i++)
-            {
-                var item = Controls[i];
-                if (item.uwfSystem)
-                    continue;
-
-                item.uwfOffset = new Point(-hValue, -vValue);
-            }
-        }
-        internal void UpdateScrolls()
-        {
-            var autoScroll = (scrollState & ScrollStateAutoScrolling) != 0;
-            if (autoScroll == false)
-            {
-                Native_EnableScrollBar(false, NativeMethods.SB_VERT);
-                Native_EnableScrollBar(false, NativeMethods.SB_HORZ);
-                return;
-            }
-
-            var controlRect = GetControlsRect();
-            var bottom = controlRect.Height;
-            var left = controlRect.X;
-            var right = controlRect.Width;
-            var top = controlRect.Y;
-            
-            var enableHScroll = -left + right > Width;
-            var enableVScroll = -top + bottom > Height;
-
-            Native_EnableScrollBar(enableHScroll, NativeMethods.SB_HORZ);
-            Native_EnableScrollBar(enableVScroll, NativeMethods.SB_VERT);
-
-            var hMaximum = right;
-            var vMaximum = bottom;
-
-            if (vscroll != null) hMaximum += vscroll.Width + 2;
-            if (hscroll != null) vMaximum += hscroll.Height + 2;
-
-            if (vscroll != null)
-            {
-                vscroll.Maximum = vMaximum;
-                vscroll.Minimum = top;
-                vscroll.LargeChange = Height; // - hscroll.Height
-            }
-
-            if (hscroll != null)
-            {
-                hscroll.Maximum = hMaximum;
-                hscroll.Minimum = left;
-                hscroll.LargeChange = Width; // - vscroll.Width
-            }
-
-            UpdateScrollRects();
+            UpdateControlsOffsets();
         }
         private void UpdateScrollRects()
         {

@@ -806,6 +806,10 @@
             var locationChanged = LocationChanged;
             if (locationChanged != null)
                 locationChanged(this, EventArgs.Empty);
+            
+            var scrollableParent = parent as ScrollableControl;
+            if (scrollableParent != null)
+                scrollableParent.UpdateScrolls();
         }
         protected virtual void OnLostFocus(EventArgs e)
         {
@@ -896,6 +900,10 @@
         protected virtual void OnSizeChanged(EventArgs e)
         {
             OnResize(EventArgs.Empty);
+
+            var scrollableParent = parent as ScrollableControl;
+            if (scrollableParent != null)
+                scrollableParent.UpdateScrolls();
 
             var sizeChanged = SizeChanged;
             if (sizeChanged != null)
