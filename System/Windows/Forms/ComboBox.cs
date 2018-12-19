@@ -296,13 +296,10 @@
                         var filterBuffer = g.uwfDrawTextField(filter, Font, ForeColor, 2, 0, textWidth, height, HorizontalAlignment.Left);
                         if (filterBuffer != filter)
                         {
-                            if (listBox != null && !listBox.IsDisposed && !listBox.Disposing)
-                            {
-                                listBox.Dispose();
-                                listBox = null;
-                                listBoxOpened = false;
-                            }
-                            CreateListBox(filterBuffer);
+                            if (listBox == null || listBox.IsDisposed || listBox.Disposing)
+                                CreateListBox(filterBuffer);
+                            else
+                                UpdateListBoxItems(filterBuffer);
                         }
                         filter = filterBuffer;
                     }
@@ -393,33 +390,7 @@
                 listBox.uwfBorderColor = listBox.uwfBorderSelectColor;
                 if (listBox.Height < listBox.ItemHeight) listBox.Height = listBox.ItemHeight;
 
-                bool selectedIndexChanged = false;
-                for (int i = 0; i < Items.Count; i++)
-                {
-                    var item = Items[i];
-                    if (DropDownStyle == ComboBoxStyle.DropDownList || String.IsNullOrEmpty(listFilter))
-                        listBox.Items.Add(item);
-                    else
-                    {
-                        var itemString = item.ToString();
-                        if (!itemString.ToLower().Contains(listFilter.ToLower())) continue;
-
-                        listBox.Items.Add(item);
-                        if (itemString != listFilter) continue;
-
-                        listBox.SelectedIndex = i;
-                        selectedIndexChanged = true;
-                    }
-                }
-                for (int i = 0; i < Items.Count; i++)
-                    if (Items.IsDisabled(i))
-                        listBox.Items.Disable(i);
-
-                if (selectedIndexChanged == false)
-                {
-                    listBox.SelectedIndex = SelectedIndex;
-                    listBox.EnsureVisible();
-                }
+                UpdateListBoxItems(listFilter);
 
                 var gpoint = PointToScreen(Point.Empty);
                 listBox.Location = new Point(gpoint.X, gpoint.Y + Height);
@@ -473,6 +444,41 @@
                     break;
                 case ComboBoxStyle.DropDownList:
                     break;
+            }
+        }
+        private void UpdateListBoxItems(string listFilter)
+        {
+            if (listBox == null)
+                return;
+            
+            listBox.Items.Clear();
+            
+            bool selectedIndexChanged = false;
+            for (int i = 0; i < Items.Count; i++)
+            {
+                var item = Items[i];
+                if (DropDownStyle == ComboBoxStyle.DropDownList || String.IsNullOrEmpty(listFilter))
+                    listBox.Items.Add(item);
+                else
+                {
+                    var itemString = item.ToString();
+                    if (!itemString.ToLower().Contains(listFilter.ToLower())) continue;
+
+                    listBox.Items.Add(item);
+                    if (itemString != listFilter) continue;
+
+                    listBox.SelectedIndex = i;
+                    selectedIndexChanged = true;
+                }
+            }
+            for (int i = 0; i < Items.Count; i++)
+                if (Items.IsDisabled(i))
+                    listBox.Items.Disable(i);
+
+            if (selectedIndexChanged == false)
+            {
+                listBox.SelectedIndex = SelectedIndex;
+                listBox.EnsureVisible();
             }
         }
         private void UpdateText()
