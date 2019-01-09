@@ -107,7 +107,7 @@ namespace System.Windows.Forms
             dropDownToolStrip.Disposed -= DropDownToolStrip_Disposed;
             dropDownToolStrip = null;
 
-            Owner.Focus();
+            //Owner.Focus();
         }
         internal override void Unselect()
         {

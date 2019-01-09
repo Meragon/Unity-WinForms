@@ -1,10 +1,9 @@
-﻿using System.Linq;
-
-namespace Highcharts
+﻿namespace Highcharts
 {
     using System;
     using System.Collections.Generic;
     using System.Drawing;
+    using System.Linq;
     using System.Windows.Forms;
 
     // Based on https://www.highcharts.com/
@@ -25,38 +24,35 @@ namespace Highcharts
         public double? fixedMax;
         public double? fixedMin;
 
-        internal int defaultPlotLeft = 48;
+        internal readonly Color categoriesColor  = Color.Gray;
+        internal readonly Font  categoriesFont   = DefaultFont10;
+        internal readonly Color gridTextColor    = Color.Gray;
+        internal readonly Pen   mousePositionPen = new Pen(Color.Gray);
 
-        private readonly Color categoriesColor  = Color.Gray;
-        private readonly Font  categoriesFont   = DefaultFont10;
-        private readonly Color gridTextColor    = Color.Gray;
-        private readonly Pen   mousePositionPen = new Pen(Color.Gray);
+        internal float circleRadius    = 2;
+        internal int   gridTextYOffet  = -10;
+        internal int   gridTextXOffset = -2;
+        internal int   mouseX;
+        internal int   mouseY;
+        internal int   nextColorIndex;
 
-        private float circleRadius    = 2;
-        private int   gridTextYOffet  = -10;
-        private int   gridTextXOffset = -2;
-        private int   mouseX;
-        private int   mouseY;
-        private int   nextColorIndex;
-        private int   plotRight = 8;
-
-        private string[]     cachedCategories;
-        private float        cachedCategoriesStep;
-        private List<string> cachedCategoriesFiltered;
-        private int          cachedGridLines = 6;
-        private double       cachedGridLinesStep;
-        private double       cachedGridMaxValue;
-        private double       cachedGridMinValue;
-        private string[]     cachedGridValues;
-        private int          cachedPlotTop;
-        private int          cachedPlotBottom;
-        internal int         cachedPlotLeft;
-        private int          cachedPlotRight;
-        private int          cachedPlotHeight;
-        private int          cachedPlotWidth;
-        private double       cachedPlotMin;
-        private double       cachedPlotMax;
-        private int          cachedSubtitleY;
+        internal string[]     cachedCategories;
+        internal float        cachedCategoriesStep;
+        internal List<string> cachedCategoriesFiltered;
+        internal int          cachedGridLines = 6;
+        internal double       cachedGridLinesStep;
+        internal double       cachedGridMaxValue;
+        internal double       cachedGridMinValue;
+        internal string[]     cachedGridValues;
+        internal int          cachedPlotTop;
+        internal int          cachedPlotBottom;
+        internal int          cachedPlotLeft;
+        internal int          cachedPlotRight;
+        internal int          cachedPlotHeight;
+        internal int          cachedPlotWidth;
+        internal double       cachedPlotMin;
+        internal double       cachedPlotMax;
+        internal int          cachedSubtitleY;
 
         private LegendButton[] legendButtons;
 
@@ -79,8 +75,8 @@ namespace Highcharts
             yAxis = new AxisCollection(this);
 
             yAxis.Add(new YAxis());
-
-            cachedPlotLeft = defaultPlotLeft;
+            
+            cachedPlotLeft = chart.spacingLeft + 38;
             
             Recalc();
         }
@@ -88,7 +84,7 @@ namespace Highcharts
         public Chart chart { get; private set; }
         public Color[] colors { get; private set; }
         public Legend legend { get; private set; }
-        public object linearGradientMaterial { get; set; } // Gradint material for areaSolidOutline series type.
+        public object linearGradientMaterial { get; set; } // Gradient material for areaSolidOutline series type.
         public SeriesCollection series { get; private set; }
         public HightchartSubtitle subtitle { get; private set; }
         public HighchartTitle title { get; private set; }
@@ -166,7 +162,7 @@ namespace Highcharts
 
             Recalc();
         }
-        public void UpdatePlot()
+        public void UpdatePlot(bool force = false)
         {
             if (cachedPlotHeight <= 0) 
                 return;
@@ -174,10 +170,11 @@ namespace Highcharts
             cachedGridMaxValue = GetSeriesMaximum();
             cachedGridMinValue = GetSeriesMinimum();
             
-            if (cachedPlotMax != 0 && cachedPlotMin != 0)
-                if (cachedGridMaxValue == cachedPlotMax &&
-                    cachedGridMinValue == cachedPlotMin)
-                    return;
+            if (force == false)
+                if (cachedPlotMax != 0 && cachedPlotMin != 0)
+                    if (cachedGridMaxValue == cachedPlotMax &&
+                        cachedGridMinValue == cachedPlotMin)
+                        return;
             
             cachedGridLinesStep = (double)cachedPlotHeight / cachedGridLines;
             cachedGridValues = new string[cachedGridLines + 1]; // + bottom line.
@@ -254,6 +251,9 @@ namespace Highcharts
         }
         protected override void OnPaint(PaintEventArgs e)
         {
+            if (UnityEngine.Event.current.type != UnityEngine.EventType.repaint)
+                return;
+            
             var g = e.Graphics;
             
             g.uwfFillRectangle(chart.backgroundColor, 0, 0, Width, Height);
@@ -295,20 +295,22 @@ namespace Highcharts
 
             Refresh();
         }
-
-        private void DrawSeries(Graphics g, Series s)
+        protected virtual void DrawSeries(Graphics g, Series s)
         {
             var sdataCount = s.data.Count;
             if (sdataCount == 0) return;
 
             var categoriesIndex = 0;
             var prevValue = 0D;
-            var areaColor = Color.FromArgb(255 / series.Count, s.color);
+            var areaColor = s.color;
             var valueRange = cachedPlotMax - cachedPlotMin;
 
             var pointInterval = s.pointInterval;
             if (pointInterval <= 0)
                 return;
+            
+            if (series.Count > 1)
+                areaColor = Color.FromArgb(255 / series.Count, s.color);
             
             var xStep = cachedCategoriesStep;
             if (sdataCount > 1)
@@ -449,12 +451,12 @@ namespace Highcharts
                 categoriesIndex++;
             }
         }
-        private void DrawTitle(Graphics g)
+        protected virtual void DrawTitle(Graphics g)
         {
             if (title.text != null) g.uwfDrawString(title.text, title.font, title.color, title.x, title.y, Width - title.x, title.font.Size + 6, title.align);
             if (subtitle.text != null) g.uwfDrawString(subtitle.text, subtitle.font, subtitle.color, subtitle.x, cachedSubtitleY, Width - subtitle.x, subtitle.font.Size + 6, subtitle.align);
         }
-        private void DrawTooltip(Graphics g)
+        protected virtual void DrawTooltip(Graphics g)
         {
             if (hovered == false)
                 return;
@@ -472,7 +474,7 @@ namespace Highcharts
                 if (s.visible == false || s.data.Count == 0)
                     continue;
 
-                var val = ValueAtX(s, mouseX);
+                var val = GetValueAtX(s, mouseX);
 
                 g.uwfDrawString(
                     "v: " + val,
@@ -487,16 +489,16 @@ namespace Highcharts
                 index++;
             }
         }
-        private void DrawPlotBack(Graphics g)
+        protected virtual void DrawPlotBack(Graphics g)
         {
             g.uwfFillRectangle(chart.plotBackgroundColor, cachedPlotLeft, cachedPlotTop, cachedPlotRight - cachedPlotLeft, cachedPlotBottom - cachedPlotTop);
         }
-        private void DrawPlotBorder(Graphics g)
+        protected virtual void DrawPlotBorder(Graphics g)
         {
             if (chart.plotBorderPen.Width != 0)
                 g.DrawRectangle(chart.plotBorderPen, cachedPlotLeft, cachedPlotTop, cachedPlotRight - cachedPlotLeft, cachedPlotBottom - cachedPlotTop);
         }
-        private void DrawXAxis(Graphics g)
+        protected virtual void DrawXAxis(Graphics g)
         {
             if (xAxis.visible == false)
                 return;
@@ -528,7 +530,7 @@ namespace Highcharts
             if (xAxis.lineWidth > 0)
                 g.DrawLine(xAxis.linePen, cachedPlotLeft, cachedPlotBottom + xAxis.offset, cachedPlotRight, cachedPlotBottom + xAxis.offset);
         }
-        private void DrawYAxes(Graphics g)
+        protected virtual void DrawYAxes(Graphics g)
         {
             for (int i = 0; i < yAxis.Count; i++)
             {
@@ -554,7 +556,22 @@ namespace Highcharts
                     g.DrawLine(ya.linePen, cachedPlotLeft - ya.offset, cachedPlotTop, cachedPlotLeft - ya.offset, cachedPlotBottom);
             }
         }
-        private double GetSeriesMaximum()
+
+        internal string GetCategoryAtAx(int x)
+        {
+            var categories = xAxis.categories;
+            if (categories == null || categories.Count == 0)
+                return null;
+
+            var categoriesCount = categories.Count;
+            var xCoef = (float)(x - cachedPlotLeft) / cachedPlotWidth;
+            var dataIndex = (int)(xCoef * categoriesCount);
+            if (dataIndex >= categoriesCount || dataIndex < 0)
+                return null;
+
+            return categories[dataIndex];
+        }
+        internal double GetSeriesMaximum()
         {
             double? max = fixedMax;
             var seriesCount = series.Count;
@@ -574,7 +591,7 @@ namespace Highcharts
             
             return max.Value;
         }
-        private double GetSeriesMinimum()
+        internal double GetSeriesMinimum()
         {
             double? min = fixedMin;
             var seriesCount = series.Count;
@@ -594,7 +611,7 @@ namespace Highcharts
 
             return min.Value;
         }
-        private int GetSeriesMaximumDataAmount()
+        internal int GetSeriesMaximumDataAmount()
         {
             var seriesCount = series.Count;
             if (seriesCount == 0)
@@ -622,7 +639,7 @@ namespace Highcharts
             if (a == null) return -1;
             return a.Value;
         }
-        private int GetSeriesMinimumDataAmount()
+        internal int GetSeriesMinimumDataAmount()
         {
             if (series.Count == 0)
                 return -1;
@@ -646,16 +663,42 @@ namespace Highcharts
             if (a == null) return -1;
             return a.Value;
         }
-        private void Recalc()
+        internal double GetValueAtX(Series s, int x)
         {
-            cachedPlotBottom = Height;
-            cachedPlotRight = Width - plotRight;
-            cachedPlotTop = 12;
+            if (s == null)
+                return 0;
+
+            var sdataCount = s.data.Count;
+            if (sdataCount == 0) return 0;
+
+            var xCoef = (float)(x - cachedPlotLeft) / cachedPlotWidth;
+            var dataIndex = (int)(xCoef * sdataCount);
+            if (dataIndex >= sdataCount || dataIndex < 0)
+                return 0;
+
+            return s.data[dataIndex];
+        }
+        internal void Recalc()
+        {
+            var marginBottom = chart.spacingBottom;
+            var marginLeft = chart.spacingLeft + 38;
+            var marginRight = chart.spacingRight;
+            var marginTop = chart.spacingTop;
+
+            if (chart.marginBottom != null) marginBottom = chart.marginBottom.Value;
+            if (chart.marginLeft != null) marginLeft = chart.marginLeft.Value;
+            if (chart.marginRight != null) marginRight = chart.marginRight.Value;
+            if (chart.marginTop != null) marginTop = chart.marginTop.Value;
+            
+            cachedPlotBottom = Height - marginBottom;
+            cachedPlotLeft = marginLeft;
+            cachedPlotRight = Width - marginRight;
+            cachedPlotTop = marginTop;
             cachedSubtitleY = subtitle.y;
 
             // Calc stuff that can change plot size first.
 
-            #region Check title & subtitle.
+            // Check title & subtitle.
             if (title.text != null)
             {
                 cachedPlotTop = (int)title.font.Size;
@@ -664,31 +707,27 @@ namespace Highcharts
                 if (title.floating == false)
                     cachedPlotTop += title.margin;
             }
+            
             if (subtitle.text != null && subtitle.floating == false)
                 cachedPlotTop += (int)subtitle.font.Size;
-            #endregion
-
-            #region Check legend.
+            
+            // Check legend.
             if (legend.enabled && legend.floating == false)
             {
                 if (legend.layout == LegendLayouts.horizontal)
                 {
                     var lbHeight = UpdateLegendLocation();
 
-                    cachedPlotBottom = Height - lbHeight + legend.margin;
+                    cachedPlotBottom -= lbHeight + legend.margin + 12; // + categories text height?
                 }
                 else
                 {
                     // vertical
                 }
             }
-            #endregion
-
+            
             // Time to find out the plot size.
-
             cachedPlotBottom -= xAxis.tickLength;
-            cachedPlotBottom -= 24; // Text.
-
             cachedPlotHeight = cachedPlotBottom - cachedPlotTop;
             cachedPlotWidth = cachedPlotRight - cachedPlotLeft;
 
@@ -696,7 +735,7 @@ namespace Highcharts
             RecalcCategories();
             UpdatePlot();
         }
-        private int UpdateLegendLocation()
+        internal int UpdateLegendLocation()
         {
             if (legendButtons == null) return 0;
 
@@ -713,7 +752,7 @@ namespace Highcharts
                 for (int i = 0, cw = 0; i < legendButtons.Length; i++)
                 {
                     var lb = legendButtons[i];
-                    lb.Location = new Point(leftPos + cw, Height - lb.Height);
+                    lb.Location = new Point(leftPos + cw, Height - lb.Height - chart.spacingBottom);
 
                     cw += lb.Width + legend.itemDistance;
                     lbHeight = lb.Height;
@@ -728,27 +767,12 @@ namespace Highcharts
                 for (int i = 0; i < legendButtons.Length; i++)
                 {
                     var lb = legendButtons[i];
-                    lb.Location = new Point(plotCenterX - lb.Width / 2, Height - lb.Height * (i + 1));
+                    lb.Location = new Point(plotCenterX - lb.Width / 2, Height - lb.Height * (i + 1) - chart.spacingBottom);
                     lbHeight += lb.Height;
                 }
 
                 return lbHeight;
             }
-        }
-        private double ValueAtX(Series s, int x)
-        {
-            if (s == null)
-                return 0;
-
-            var sdataCount = s.data.Count;
-            if (sdataCount == 0) return 0;
-
-            var xCoef = (float)(x - cachedPlotLeft) / cachedPlotWidth;
-            var dataIndex = (int)(xCoef * sdataCount);
-            if (dataIndex >= sdataCount || dataIndex < 0)
-                return 0;
-
-            return s.data[dataIndex];
         }
     }
 }

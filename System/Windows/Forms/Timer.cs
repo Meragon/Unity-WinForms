@@ -83,6 +83,8 @@
 
         private void Application_UpdateEvent()
         {
+            if (Enabled)
+            
             currentTime += swfHelper.GetDeltaTime();
             if (!(currentTime > interval / 1000f)) return;
 
@@ -101,6 +103,7 @@
         }
         private void StopTimer()
         {
+            currentTime = 0;
             Application.UpdateEvent -= Application_UpdateEvent;
         }
     }

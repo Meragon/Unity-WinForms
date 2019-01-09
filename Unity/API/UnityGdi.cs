@@ -120,7 +120,7 @@
             {
                 float dx = x2 - x1;
                 float dy = y2 - y1;
-                float length = UE.Mathf.Sqrt(dx * dx + dy * dy);
+                float length = (float) System.Math.Sqrt(dx * dx + dy * dy);
 
                 if (length < 0.001f)
                     return;

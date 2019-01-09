@@ -5,13 +5,15 @@ namespace System.Windows.Forms
 
     public class ToolStripMenuItem : ToolStripDropDownItem
     {
+        internal int shortcutMarginLeft  = 14; // Space between item text and shortcut text.
+        internal int shortcutMarginRight = 32;
+        
         private static Dictionary<int, string> cachedKeysValues;
-        private ContentAlignment shortcutKeysFormat = ContentAlignment.MiddleLeft;
+        private ContentAlignment shortcutKeysFormat = ContentAlignment.MiddleRight;
 
         private Keys shortcutKeys;
         private string shortcutKeysString;
-        private int shortcutKeysMaxPaintWidth = 64;
-
+        
         public ToolStripMenuItem()
         {
         }
@@ -53,7 +55,7 @@ namespace System.Windows.Forms
         {
             var baseWidth = base.GetEstimatedWidth(graphics);
             if (Owner != null && Owner.IsDropDown)
-                baseWidth += OwnerShortcutKeysWidth(graphics) + shortcutKeysMaxPaintWidth; // not efficient.
+                baseWidth += OwnerShortcutKeysWidth(graphics) + shortcutMarginLeft + shortcutMarginRight; // not efficient.
             return baseWidth;
         }
         protected override void OnPaint(PaintEventArgs e)
@@ -89,9 +91,9 @@ namespace System.Windows.Forms
                         shortcutKeysString,
                         Font,
                         Enabled ? ForeColor : SystemColors.InactiveCaption,
-                        rect.X + rect.Width - shortcutKeysMaxPaintWidth,
+                        rect.X,
                         rect.Y,
-                        shortcutKeysMaxPaintWidth,
+                        rect.Width - shortcutMarginRight,
                         rect.Height,
                         shortcutKeysFormat);
             }
@@ -99,6 +101,13 @@ namespace System.Windows.Forms
 
         private static string GetCachedString(Keys key)
         {
+            switch (key)
+            {
+                case Keys.Control: return "Ctrl";
+                case Keys.Delete: return "Del";
+                case Keys.Return: return "Enter";
+            }
+            
             if (cachedKeysValues == null)
             {
                 // Fill cache.
@@ -155,9 +164,9 @@ namespace System.Windows.Forms
             var keyMods = key & Keys.Modifiers;
             var skeyMods = "";
             if (keyMods != Keys.None)
-                skeyMods = GetCachedString(keyMods).Replace("Control", "Ctrl") + " + ";
+                skeyMods = GetCachedString(keyMods) + "+";
 
-            var str = skeyMods + GetCachedString(keyCode).Replace("Delete", "Del");
+            var str = skeyMods + GetCachedString(keyCode);
             return str;
         }
 

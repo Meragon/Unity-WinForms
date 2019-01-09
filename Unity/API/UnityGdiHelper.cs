@@ -36,5 +36,9 @@
         {
             return new UnityEngine.Color((float)color.R / 255, (float)color.G / 255, (float)color.B / 255, (float)color.A / 255);
         }
+        public static UE.Color32 ToUnityColor32(this Color color)
+        {
+            return new UE.Color32(color.R, color.G, color.B, color.A);
+        }
     }
 }

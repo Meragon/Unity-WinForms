@@ -99,6 +99,7 @@
         public event EventHandler MouseEnter;
         public event EventHandler MouseHover;
         public event EventHandler MouseLeave;
+        public event MouseEventHandler MouseMove;
         public event MouseEventHandler MouseUp;
         public event EventHandler ParentChanged;
         public event EventHandler Resize;
@@ -862,6 +863,8 @@
         }
         protected virtual void OnMouseMove(MouseEventArgs e)
         {
+            var handler = MouseMove;
+            if (handler != null) handler(this, e);
         }
         protected virtual void OnMouseUp(MouseEventArgs e)
         {

@@ -110,14 +110,18 @@
         {
             // Adjust plot left position.
             // TODO: adjust plot bottom position.
-            var nextLeft = owner.defaultPlotLeft;
+            var marginLeftValue = owner.chart.spacingLeft + 38;
+            if (owner.chart.marginLeft != null)
+                marginLeftValue = owner.chart.marginLeft.Value;
+
+            var nextLeft = marginLeftValue;
             for (int i = 0; i < items.Count; i++)
             {
                 var item = items[i] as YAxis;
                 if (item == null)
                     continue;
                 
-                nextLeft = owner.defaultPlotLeft + item.offset;
+                nextLeft = marginLeftValue + item.offset;
             }
 
             if (nextLeft < 8) // Add minimum padding to show left category.

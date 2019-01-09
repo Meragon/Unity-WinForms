@@ -16,9 +16,14 @@
 
     public class Series : IDisposable
     {
-        internal Pen pen = new Pen(Color.Transparent);
-
-        private string v_name;
+        internal readonly Pen pen = new Pen(Color.Transparent);
+        internal bool _needRedraw = true;
+        
+        private string      _name;
+        private bool        _linearGradient;
+        private float       _pointInterval;
+        private SeriesTypes _type;
+        private bool        _visible;
 
         internal Series()
         {
@@ -41,16 +46,27 @@
             set { pen.Color = value; }
         }
         public DataCollection data { get; private set; }
-        public bool linearGradient { get; set; }
-        public string name
+        public bool linearGradient
         {
-            get { return v_name; }
+            get { return _linearGradient; }
             set
             {
-                if (v_name == value)
+                if (_linearGradient == value)
+                    return;
+                
+                _linearGradient = value;
+                _needRedraw = true;
+            }
+        }
+        public string name
+        {
+            get { return _name; }
+            set
+            {
+                if (_name == value)
                     return;
 
-                v_name = value;
+                _name = value;
                 OnNameChanged(EventArgs.Empty);
             }
         }
@@ -59,10 +75,43 @@
         /// For example, if a series contains one value every decade starting from year 0, set pointInterval to 10.
         /// Defaults to 1.
         /// </summary>
-        public float pointInterval { get; set; }
+        public float pointInterval
+        {
+            get { return _pointInterval; }
+            set
+            {
+                if (_pointInterval == value)
+                    return;
+
+                _pointInterval = value;
+                _needRedraw = true;
+            }
+        }
         public object tag { get; set; }
-        public SeriesTypes type { get; set; }
-        public bool visible { get; set; }
+        public SeriesTypes type
+        {
+            get { return _type; }
+            set
+            {
+                if (_type == value)
+                    return;
+
+                _type = value;
+                _needRedraw = true;
+            }
+        }
+        public bool visible
+        {
+            get { return _visible; }
+            set
+            {
+                if (_visible == value)
+                    return;
+                
+                _visible = value;
+                _needRedraw = true;
+            }
+        }
         public int yAxis { get; set; }
 
         public void Dispose()
