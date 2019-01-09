@@ -162,12 +162,20 @@ namespace System.Windows.Forms
             // TODO: move to KeysConverter.ConvertTo(object).
             var keyCode = GetKeyCode(key);
             var keyMods = key & Keys.Modifiers;
-            var skeyMods = "";
+            var result = "";
             if (keyMods != Keys.None)
-                skeyMods = GetCachedString(keyMods) + "+";
+            {
+                if ((keyMods & Keys.Control) != 0)
+                    result += GetCachedString(Keys.Control) + "+";
 
-            var str = skeyMods + GetCachedString(keyCode);
-            return str;
+                if ((keyMods & Keys.Alt) != 0)
+                    result += GetCachedString(Keys.Alt) + "+";
+
+                if ((keyMods & Keys.Shift) != 0)
+                    result += GetCachedString(Keys.Shift) + "+";
+            }
+
+            return result + GetCachedString(keyCode);
         }
 
         private int OwnerShortcutKeysWidth(Graphics graphics)
