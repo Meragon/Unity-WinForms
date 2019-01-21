@@ -6,6 +6,7 @@
     {
         internal ToolStripDropDownDirection direction;
         internal readonly Pen borderPen = new Pen(Color.FromArgb(128, 128, 128));
+        internal Color uwfColumnBackColor = SystemColors.Control; // ?
         
         private ToolStripItem ownerItem;
 
@@ -99,7 +100,7 @@
         {
             var graphics = e.Graphics;
 
-            graphics.uwfFillRectangle(BackColor, 0, 0, 24, Height);
+            graphics.uwfFillRectangle(uwfColumnBackColor, 0, 0, 24, Height);
 
             base.OnPaint(e);
 
