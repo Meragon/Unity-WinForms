@@ -6,9 +6,10 @@
 
     public class SeriesCollection : IList<Series>, IDisposable
     {
+        internal readonly Highchart owner;
+        
         private readonly List<Series> items = new List<Series>();
-        private readonly Highchart owner;
-
+        
         public SeriesCollection(Highchart o)
         {
             owner = o;
@@ -26,7 +27,8 @@
 
         public Series Add(string name)
         {
-            Series s = new Series();
+            var s = new Series();
+            s.owner = this;
             s.name = name;
 
             Add(s);
@@ -34,7 +36,8 @@
         }
         public Series Add(string name, SeriesTypes type)
         {
-            Series s = new Series(name);
+            var s = new Series(name);
+            s.owner = this;
             s.type = type;
 
             Add(s);

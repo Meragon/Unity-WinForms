@@ -11,9 +11,9 @@
         internal TreeNode  root;
         
         internal float uwfScrollSpeed = 2;
-        internal Color uwfSelectionColor = Color.FromArgb(187, 222, 251);
-        internal Color uwfSelectionHoverColor = Color.FromArgb(221, 238, 253);
-        internal Color uwfSelectionUnfocusedColor = Color.FromArgb(187, 222, 251);
+        internal Color uwfItemHoveredColor = Color.FromArgb(221, 238, 253);
+        internal Color uwfItemSelectedColor = Color.FromArgb(187, 222, 251);
+        internal Color uwfItemSelectedUnfocusedColor = Color.FromArgb(187, 222, 251);
         internal bool  uwfSmoothScrolling = true;
         internal bool  uwfUseNodeBoundsForSelection;
         internal bool  uwfWrapText;
@@ -480,9 +480,9 @@
             graphics.uwfFillRectangle(node.BackColor, nodeBounds.X, nodeY, nodeBounds.Width, nodeBounds.Height);
             if (node.IsSelected || node == hoveredNode)
             {
-                var nodeFillColor = node.IsSelected ? uwfSelectionColor : uwfSelectionHoverColor;
+                var nodeFillColor = node.IsSelected ? uwfItemSelectedColor : uwfItemHoveredColor;
                 if (node.IsSelected && Focused == false) 
-                    nodeFillColor = uwfSelectionUnfocusedColor;
+                    nodeFillColor = uwfItemSelectedUnfocusedColor;
                 
                 graphics.uwfFillRectangle(nodeFillColor, uwfUseNodeBoundsForSelection ? nodeBounds.X : 0, nodeY, Width, ItemHeight);
             }

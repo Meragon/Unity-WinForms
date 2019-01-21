@@ -17,6 +17,9 @@ namespace System.Windows.Forms
             ArrowImage = ApplicationResources.Images.DropDownRightArrow;
         }
 
+        internal delegate void uwfDropDownHandler(ToolStripDropDown dropDown);
+        internal event uwfDropDownHandler uwfDropDownCreated; // Workaround to not implement ToolStripRenderer.
+        
         public ToolStripDropDown DropDown
         {
             get { return dropDownToolStrip; }
@@ -89,6 +92,9 @@ namespace System.Windows.Forms
             dropDownToolStrip.Location = DropDownDirectionToDropDownBounds(direction, dropDownBounds).Location;
             dropDownToolStrip.Disposed += DropDownToolStrip_Disposed;
             ((ToolStripDropDownMenu)dropDownToolStrip).Show(dropDownToolStrip.Location);
+
+            if (uwfDropDownCreated != null)
+                uwfDropDownCreated(dropDownToolStrip);
 
             pressed = true;
         }

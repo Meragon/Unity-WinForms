@@ -5,8 +5,8 @@
     public class ToolStripDropDown : ToolStrip
     {
         internal ToolStripDropDownDirection direction;
-
-        private readonly Pen borderPen = new Pen(Color.FromArgb(128, 128, 128));
+        internal readonly Pen borderPen = new Pen(Color.FromArgb(128, 128, 128));
+        
         private ToolStripItem ownerItem;
 
         public ToolStripDropDown()
@@ -99,7 +99,7 @@
         {
             var graphics = e.Graphics;
 
-            graphics.uwfFillRectangle(SystemColors.Control, 0, 0, 24, Height);
+            graphics.uwfFillRectangle(BackColor, 0, 0, 24, Height);
 
             base.OnPaint(e);
 

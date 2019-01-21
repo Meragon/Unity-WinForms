@@ -1,6 +1,4 @@
-﻿using System.Drawing.Drawing2D;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
     using System.Drawing;
 
@@ -9,6 +7,8 @@ namespace System.Windows.Forms
         internal Color uwfBoxBackColor = Color.White;
         internal Color uwfBoxBackHoverColor = Color.FromArgb(243, 249, 255);
         internal Color uwfBoxBackDisableColor = Color.FromArgb(230, 230, 230);
+        internal Color uwfMarkColor = Color.FromArgb(15, 15, 15);
+        internal Color uwfMarkHoverColor = Color.FromArgb(15, 15, 15);
 
         private readonly Pen borderPen = new Pen(Color.Transparent);
         private CheckState checkState;
@@ -65,6 +65,7 @@ namespace System.Windows.Forms
             var g = e.Graphics;
 
             var boxBackColor = uwfBoxBackDisableColor;
+            var markColor = uwfMarkColor;
             borderPen.Color = uwfBorderDisableColor;
             if (Enabled)
             {
@@ -72,6 +73,7 @@ namespace System.Windows.Forms
                 {
                     boxBackColor = uwfBoxBackHoverColor;
                     borderPen.Color = uwfBorderHoverColor;
+                    markColor = uwfMarkHoverColor;
                 }
                 else
                 {
@@ -87,7 +89,7 @@ namespace System.Windows.Forms
             g.uwfFillRectangle(boxBackColor, checkRectX, checkRectY, checkRectWH, checkRectWH);
             g.DrawRectangle(borderPen, checkRectX, checkRectY, checkRectWH, checkRectWH);
             if (Checked)
-                g.DrawImage(uwfAppOwner.Resources.Checked, checkRectX, checkRectY, checkRectWH, checkRectWH);
+                g.uwfDrawImage(uwfAppOwner.Resources.Checked, markColor, checkRectX, checkRectY, checkRectWH, checkRectWH);
 
             g.uwfDrawString(Text, Font, ForeColor, checkRectX + checkRectWH + 4, Padding.Top + 0, Width - 20, Height, TextAlign);
 

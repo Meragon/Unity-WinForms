@@ -170,11 +170,13 @@
             cachedGridMaxValue = GetSeriesMaximum();
             cachedGridMinValue = GetSeriesMinimum();
             
-            if (force == false)
+            if (force == false && fixedMin == null && fixedMax == null)
+            {
                 if (cachedPlotMax != 0 && cachedPlotMin != 0)
                     if (cachedGridMaxValue == cachedPlotMax &&
                         cachedGridMinValue == cachedPlotMin)
                         return;
+            }
             
             cachedGridLinesStep = (double)cachedPlotHeight / cachedGridLines;
             cachedGridValues = new string[cachedGridLines + 1]; // + bottom line.
@@ -573,8 +575,12 @@
         }
         internal double GetSeriesMaximum()
         {
-            double? max = fixedMax;
+            if (fixedMax != null)
+                return fixedMax.Value;
+            
+            var max = 1d;
             var seriesCount = series.Count;
+            
             for (int i = 0; i < seriesCount; i++)
             {
                 var s = series[i];
@@ -582,19 +588,20 @@
                     continue;
                 
                 var sMax = s.data.GetMax();
-                if (max == null || sMax > max)
+                if (sMax > max)
                     max = sMax;
             }
-
-            if (max == null)
-                max = 1d;
             
-            return max.Value;
+            return max;
         }
         internal double GetSeriesMinimum()
         {
-            double? min = fixedMin;
+            if (fixedMin != null)
+                return fixedMin.Value;
+            
+            var min = 0d;
             var seriesCount = series.Count;
+            
             for (int i = 0; i < seriesCount; i++)
             {
                 var s = series[i];
@@ -602,14 +609,11 @@
                     continue;
 
                 var sMin = s.data.GetMin();
-                if (min == null || sMin < min)
+                if (sMin < min)
                     min = sMin;
             }
 
-            if (min == null)
-                min = 0d;
-
-            return min.Value;
+            return min;
         }
         internal int GetSeriesMaximumDataAmount()
         {

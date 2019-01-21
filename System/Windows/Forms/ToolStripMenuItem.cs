@@ -80,7 +80,13 @@ namespace System.Windows.Forms
                         checkedRect.Y + checkedRect.Height / 2 - checkedImage.Height / 2,
                         checkedImage.Width,
                         checkedImage.Height);
-                    graphics.DrawImage(checkedImage, checkedImageRect);
+                    graphics.uwfDrawImage(
+                        checkedImage,
+                        Color.FromArgb(64, 64,64),
+                        checkedImageRect.X,
+                        checkedImageRect.Y,
+                        checkedImageRect.Width,
+                        checkedImageRect.Height);
                 }
             }
 

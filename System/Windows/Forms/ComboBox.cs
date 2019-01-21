@@ -13,6 +13,9 @@
         internal Color uwfDisabledColor = SystemColors.Control;
         internal Color uwfHoverColor = Color.White;
         internal Color uwfHoverColorDropDownList = Color.FromArgb(227, 240, 252);
+        internal Color uwfListItemHoverColor = Color.FromArgb(221, 238, 253);
+        internal Color uwfListItemSelectedBackgroundColor = SystemColors.Highlight;
+        internal Color uwfListItemSelectedForeColor = SystemColors.HighlightText;
         internal bool  uwfWrapText;
         
         private const int DOWN_BUTTON_WIDTH = 17;
@@ -380,14 +383,22 @@
             if (!listBoxOpened)
             {
                 listBox = new ListBox();
+                listBox.BackColor = BackColor;
                 listBox.Font = Font;
-                listBox.uwfContext = true;
+                listBox.ForeColor = ForeColor;
                 listBox.Width = Width;
                 listBox.ItemHeight = ItemHeight;
                 listBox.Height = listBox.ItemHeight * (Items.Count > MaxDropDownItems ? MaxDropDownItems : Items.Count);
+                
+                listBox.uwfContext = true;
                 listBox.uwfWrapText = false;
                 listBox.uwfShadowBox = true;
-                listBox.uwfBorderColor = listBox.uwfBorderSelectColor;
+                listBox.uwfBorderColor = uwfBorderColor;
+                listBox.uwfBorderSelectColor = uwfBorderColorHovered;
+                listBox.uwfItemHoverColor = uwfListItemHoverColor;
+                listBox.uwfSelectionBackColor = uwfListItemSelectedBackgroundColor;
+                listBox.uwfSelectionForeColor = uwfListItemSelectedForeColor;
+                
                 if (listBox.Height < listBox.ItemHeight) listBox.Height = listBox.ItemHeight;
 
                 UpdateListBoxItems(listFilter);

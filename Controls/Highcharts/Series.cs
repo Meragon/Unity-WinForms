@@ -16,6 +16,7 @@
 
     public class Series : IDisposable
     {
+        internal SeriesCollection owner;
         internal readonly Pen pen = new Pen(Color.Transparent);
         internal bool _needRedraw = true;
         

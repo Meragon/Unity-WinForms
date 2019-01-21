@@ -8,7 +8,12 @@
         internal Pen borderPen = new Pen(Color.Transparent);
         internal Button uwfButtonDecrease;
         internal Button uwfButtonIncrease;
-        internal Color uwfDisabledColor;
+        internal Color uwfBorderColor;
+        internal Color uwfBorderDisabledColor;
+        internal Color uwfBorderFocusedColor;
+        internal Color uwfBorderHoverColor;
+        internal Color uwfDisabledBackColor;
+        internal Color uwfDisabledForeColor;
 
         protected decimal value;
         protected string valueText = "0";
@@ -30,18 +35,26 @@
             TextAlign = HorizontalAlignment.Left;
 
             uwfBorderColor = SystemColors.ActiveBorder;
-            uwfDisabledColor = SystemColors.Control;
+            uwfBorderDisabledColor = Color.FromArgb(0xAB, 0xAD, 0xB3);
+            uwfBorderHoverColor = SystemColors.ActiveBorder;
+            uwfBorderFocusedColor = SystemColors.ActiveBorder;
+            uwfDisabledBackColor = SystemColors.Control;
+            uwfDisabledForeColor = SystemColors.ActiveBorder;
 
             if (initButtons)
             {
                 uwfButtonIncrease = new UpDownButton(this, true);
                 uwfButtonIncrease.Location = new Point(Width - 16, Height / 2 - 8);
                 uwfButtonIncrease.Image = uwfAppOwner.Resources.NumericUp;
-
+                uwfButtonIncrease.uwfImageColor = Color.FromArgb(0x40, 0x40, 0x40);
+                uwfButtonIncrease.uwfImageHoverColor = uwfButtonIncrease.uwfImageColor; 
+                
                 uwfButtonDecrease = new UpDownButton(this, false);
                 uwfButtonDecrease.Location = new Point(Width - 16, Height / 2);
                 uwfButtonDecrease.Image = uwfAppOwner.Resources.NumericDown;
-
+                uwfButtonDecrease.uwfImageColor = Color.FromArgb(0x40, 0x40, 0x40);
+                uwfButtonDecrease.uwfImageHoverColor = uwfButtonDecrease.uwfImageColor;
+                
                 Controls.Add(uwfButtonIncrease);
                 Controls.Add(uwfButtonDecrease);
             }
@@ -88,12 +101,6 @@
             }
         }
 
-        internal Color uwfBorderColor
-        {
-            get { return borderPen.Color; }
-            set { borderPen.Color = value; }
-        }
-
         protected override Size DefaultSize
         {
             get { return new Size(120, 20); }
@@ -112,6 +119,14 @@
         {
             base.uwfOnLatePaint(e);
 
+            borderPen.Color = uwfBorderColor;
+            if (Enabled == false)
+                borderPen.Color = uwfBorderDisabledColor;
+            else if (Focused)
+                borderPen.Color = uwfBorderFocusedColor;
+            else if (hovered)
+                borderPen.Color = uwfBorderHoverColor;
+            
             e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
         }
 
@@ -166,8 +181,8 @@
             if (uwfButtonIncrease != null && uwfButtonIncrease.Visible)
                 textPaddingRight = -16;
 
-            var backColor = Enabled ? BackColor : uwfDisabledColor;
-            var foreColor = Enabled ? ForeColor : SystemColors.ActiveBorder;
+            var backColor = Enabled ? BackColor : uwfDisabledBackColor;
+            var foreColor = Enabled ? ForeColor : uwfDisabledForeColor;
 
             g.uwfFillRectangle(backColor, 0, 0, Width, Height);
 

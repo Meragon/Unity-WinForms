@@ -7,6 +7,7 @@
     {
         internal bool boundsChanged;
         internal bool locationChanged;
+        internal Color disabledForeColor = SystemColors.InactiveCaption;
         internal Color hoverColor = Color.FromArgb(196, 225, 255);
         internal Pen selectPen = new Pen(Color.FromArgb(51, 153, 255));
 
@@ -184,6 +185,7 @@
                 SetBounds(currentBounds);
             }
         }
+        public object Tag { get; set; }
         public virtual string Text
         {
             get { return text; }
@@ -479,7 +481,7 @@
             var localBackColor = stateSelected && Enabled ? hoverColor : BackColor;
             var rect = Bounds;
             var graphics = e.Graphics;
-            var textColor = Enabled ? ForeColor : SystemColors.InactiveCaption;
+            var textColor = Enabled ? ForeColor : disabledForeColor;
 
             // Text left offset for vertical ToolStrip.
             var leftOffset = 0;

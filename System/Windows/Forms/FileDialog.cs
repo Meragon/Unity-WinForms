@@ -503,9 +503,9 @@
 
                 public FileTreeView()
                 {
-                    uwfSelectionColor = Color.Transparent;
-                    uwfSelectionHoverColor = Color.Transparent;
-                    uwfSelectionUnfocusedColor = Color.Transparent;
+                    uwfItemSelectedColor = Color.Transparent;
+                    uwfItemHoveredColor = Color.Transparent;
+                    uwfItemSelectedUnfocusedColor = Color.Transparent;
                 }
                 
                 protected override void OnDrawNode(DrawTreeNodeEventArgs e)

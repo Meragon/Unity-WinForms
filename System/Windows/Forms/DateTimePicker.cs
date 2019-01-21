@@ -115,7 +115,7 @@
                 g.DrawImage(buttonImage, width - uwfButtonWidth + 5, 3, buttonImage.Width, buttonImage.Height);
 
             if (arrowImage != null)
-                g.DrawImage(arrowImage, width - uwfButtonWidth + 20, 6, arrowImage.Width, arrowImage.Height);
+                g.uwfDrawImage(arrowImage, Color.FromArgb(0x40, 0x40, 0x40), width - uwfButtonWidth + 20, 6, arrowImage.Width, arrowImage.Height);
         }
         protected override void OnPaintBackground(PaintEventArgs pevent)
         {
