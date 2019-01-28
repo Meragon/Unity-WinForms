@@ -23,6 +23,7 @@
         private readonly bool handleFormSize;
         private readonly Pen splitterPen = new Pen(Color.FromArgb(232, 232, 232));
         private string initialDir;
+        private string filename;
         
         internal FileDialog()
         {
@@ -181,7 +182,15 @@
             Shown += FileDialog_Shown;
         }
 
-        public string FileName { get; set; }
+        public string FileName
+        {
+            get { return filename; }
+            set
+            {
+                filename = value;
+                textBoxFilename.Text = value;
+            }
+        }
         public string Filter { get; set; }
         public string InitialDirectory
         {
@@ -285,7 +294,7 @@
         }
         protected internal void OpenFile()
         {
-            FileName = fileRenderer.currentPath + "/" + textBoxFilename.Text;
+            filename = fileRenderer.currentPath + "/" + textBoxFilename.Text;
             DialogResult = DialogResult.OK;
             Close();
         }

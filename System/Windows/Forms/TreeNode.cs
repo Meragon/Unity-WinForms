@@ -7,6 +7,7 @@
         public static readonly Color DEFAULT_FORE_COLOR = Color.FromArgb(42, 42, 42);
 
         internal int index;
+        internal int indexY;
         internal TreeNode parent;
         internal TreeView treeView;
         internal TreeNodeCollection nodes;

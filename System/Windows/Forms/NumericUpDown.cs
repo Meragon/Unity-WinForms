@@ -19,6 +19,7 @@
         protected string valueText = "0";
 
         private static readonly Padding defaultPadding = new Padding(4, 0, 4, 0);
+        private bool hexadecimal;
         private decimal minimum;
         private decimal maximum;
 
@@ -63,6 +64,15 @@
         public event EventHandler ValueChanged = delegate { };
 
         public decimal Increment { get; set; }
+        public bool Hexadecimal
+        {
+            get { return hexadecimal; }
+            set
+            {
+                hexadecimal = value;
+                UpdateEditText();
+            }
+        }
         public decimal Maximum
         {
             get { return maximum; }
@@ -95,7 +105,7 @@
                     return;
 
                 this.value = Constrain(value);
-                valueText = this.value.ToString(Application.currentCulture);
+                UpdateEditText();
 
                 OnValueChanged(EventArgs.Empty);
             }
@@ -132,9 +142,13 @@
 
         protected void ConfirmValue()
         {
-            decimal local;
-            if (decimal.TryParse(valueText, NumberStyles.Any, Application.currentCulture, out local))
-                Value = local;
+            if (string.IsNullOrEmpty(valueText))
+                return;
+            
+            if (Hexadecimal)
+                Value = Constrain(Convert.ToDecimal(Convert.ToInt32(valueText, 16)));
+            else
+                Value = Constrain(decimal.Parse(valueText, CultureInfo.CurrentCulture));
         }
         protected override void OnLostFocus(EventArgs e)
         {
@@ -221,6 +235,10 @@
                 uwfButtonIncrease.Location = new Point(width - 16, height / 2 - 8);
             if (uwfButtonDecrease != null)
                 uwfButtonDecrease.Location = new Point(width - 16, height / 2);
+        }
+        private void UpdateEditText()
+        {
+            valueText = Hexadecimal ? Convert.ToInt64(value).ToString("X") : value.ToString(Application.currentCulture);
         }
 
         internal class UpDownButton : RepeatButton

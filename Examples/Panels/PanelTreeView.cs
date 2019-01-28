@@ -1,14 +1,15 @@
-﻿using System.Drawing;
-
-namespace UnityWinForms.Examples.Panels
+﻿namespace UnityWinForms.Examples.Panels
 {
+    using System.Drawing;
     using System.Windows.Forms;
     
     public class PanelTreeView : BaseExamplePanel
     {
         public override void Initialize()
         {
-            var nodesCount = 100000;
+            // Only affects the speed of refreshing the tree.
+            // It's also possible to fill the tree smoothly every frame.
+            var nodesCount = 500000; 
 
             var label = this.Create<Label>();
             var tree = this.Create<TreeView>(); 

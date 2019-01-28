@@ -172,9 +172,8 @@
         public override void Refresh()
         {
             nodeList.Clear();
-            scrollNodeList.Clear();
-
-            UpdateNodesBounds(root);
+            
+            UpdateNodeList(root);
             UpdateScrollList();
         }
 
@@ -185,9 +184,6 @@
             
             var nodeIsInScrollList = scrollNodeList.Find(x => x == node);
             if (nodeIsInScrollList != null) return;
-
-            var nodeIndex = nodeList.FindIndex(x => x == node);
-            if (nodeIndex == -1) return; // Is not exist in tree.
 
             AdjustScrollIndexToNode(node);
 
@@ -317,6 +313,8 @@
         }
         protected override void OnMouseDoubleClick(MouseEventArgs e)
         {
+            base.OnMouseDoubleClick(e);
+            
             var sNode = SelectAtPosition(e);
             if (sNode != null)
             {
@@ -339,6 +337,8 @@
         }
         protected override void OnMouseHover(EventArgs e)
         {
+            base.OnMouseHover(e);
+            
             var mclient = PointToClient(MousePosition);
 
             hoveredNode = GetNodeAt(mclient);
@@ -381,6 +381,8 @@
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
+            base.OnMouseWheel(e);
+            
             if (uwfVScrollBar.Visible)
                 scrollIndex -= e.Delta * uwfScrollSpeed;
         }
@@ -440,6 +442,8 @@
         {
             if (node == null) return;
 
+            UpdateNodesBounds(node);
+            
             var nodeY = node.Bounds.Y + scrollIndex;
 
             if (scrollIndex > nodeY)
@@ -456,15 +460,13 @@
         }
         private Rectangle GetNodeBounds(TreeNode node)
         {
-            nodeList.Add(node);
-
             int x = Padding.Left + 2;
             int y = Padding.Top - (int)scrollIndex;
             int width = Width;
             int height = ItemHeight;
 
             x += (node.GetXIndex() - 1) * 8;
-            y += (nodeList.Count - 1) * ItemHeight;
+            y += node.indexY * ItemHeight;
 
             return new Rectangle(x, y, width, height);
         }
@@ -585,10 +587,10 @@
 
             return true;
         }
-        private void SelectNodeWText(string text, bool caseSencitive = false)
+        private void SelectNodeWText(string text, bool caseSensitive = false)
         {
             string lowerText = text;
-            if (caseSencitive == false) lowerText = text.ToLower();
+            if (caseSensitive == false) lowerText = text.ToLower();
 
             for (int i = 0; i < nodeList.Count; i++)
             {
@@ -600,7 +602,7 @@
                 if (nodeText == null || nodeText.Length < text.Length) continue;
 
                 string clippedNodeText = nodeText.Substring(0, text.Length);
-                if (caseSencitive == false) clippedNodeText = clippedNodeText.ToLower();
+                if (caseSensitive == false) clippedNodeText = clippedNodeText.ToLower();
 
                 if (clippedNodeText == lowerText)
                 {
@@ -632,19 +634,27 @@
 
             return true;
         }
+        private void UpdateNodeList(TreeNode node)
+        {
+            if (node.IsVisible == false)
+                return;
+
+            if (node != root)
+            {
+                node.indexY = nodeList.Count;
+                nodeList.Add(node);
+            }
+            
+            if (node.IsExpanded)
+                for (int i = 0; i < node.Nodes.Count; i++)
+                    UpdateNodeList(node.Nodes[i]);
+        }
         private void UpdateNodesBounds(TreeNode node)
         {
             if (node.IsVisible == false) return;
-
-            if (node != root) node.Bounds = GetNodeBounds(node);
-
-            if (node.IsExpanded)
-            {
-                var nodeNodes = node.Nodes;
-                var nodeNodesCount = nodeNodes.Count;
-                for (int i = 0; i < nodeNodesCount; i++)
-                    UpdateNodesBounds(nodeNodes[i]);
-            }
+            
+            if (node != root) 
+                node.Bounds = GetNodeBounds(node);
         }
         private void UpdateScrollBar()
         {
@@ -693,6 +703,9 @@
             for (int i = startNode; i < startNode + lNodesOnScreen && i < nodeListCount; i++)
             {
                 var node = nodeList[i];
+                
+                UpdateNodesBounds(node);
+                
                 var nodeBounds = node.Bounds;
                 if (nodeBounds.Y + nodeBounds.Height > 0 && nodeBounds.Y - (int)scrollIndex < Height)
                     scrollNodeList.Add(node);
@@ -703,7 +716,7 @@
         }
         private void VScrollBarOnValueChanged(object sender, EventArgs eventArgs)
         {
-            Refresh();
+            UpdateScrollList();
         }
     }
 }

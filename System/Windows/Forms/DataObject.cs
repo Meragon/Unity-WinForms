@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
     public class DataObject : IDataObject
     {
@@ -28,9 +23,7 @@ namespace System.Windows.Forms
         public virtual bool GetDataPresent(string format) { return false; }
         public virtual bool GetDataPresent(Type format)
         {
-            if (format.IsAssignableFrom(_data.GetType()))
-                return true;
-            return false;
+            return format.IsInstanceOfType(_data);
         }
         public virtual bool GetDataPresent(string format, bool autoConvert) { return false; }
         //public virtual StringCollection GetFileDropList();

@@ -31,6 +31,7 @@
         private bool listBoxOpened;
         private int maxDropDownItems = 8;
         private int selectedIndex = -1;
+        private bool selectTextOnFocus;
 
         public ComboBox()
         {
@@ -109,6 +110,9 @@
 
         internal override bool FocusInternal()
         {
+            if (Enabled && DropDownStyle == ComboBoxStyle.DropDown && Focused == false)
+                selectTextOnFocus = true;
+            
             var res = base.FocusInternal();
 
             filter = Text;
@@ -200,7 +204,9 @@
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
+            
             Focus();
+            
             if (DropDownStyle == ComboBoxStyle.DropDownList || e.X >= Width - 16)
             {
                 keyFlag = true;
@@ -248,11 +254,12 @@
             base.OnPaint(e);
 
             var g = e.Graphics;
-
-            #region get colors.
+            
+            // Colors.
             var backColor = BackColor;
             var borderColor = uwfBorderColor;
             var arrowColor = Color.FromArgb(96, 96, 96);
+            
             if (Enabled)
             {
                 switch (DropDownStyle)
@@ -264,6 +271,7 @@
                             borderColor = uwfBorderColorHovered;
                         }
                         break;
+                    
                     case ComboBoxStyle.DropDownList:
                         backColor = Focused || uwfHovered ? uwfHoverColorDropDownList : uwfBackColorDropDownList;
                         break;
@@ -280,22 +288,26 @@
 
             borderPen.Color = borderColor;
 
-            #endregion
-
             var height = Height;
             var width = Width;
             var textWidth = width - DOWN_BUTTON_WIDTH;
             if (uwfWrapText == false)
                 textWidth *= 2;
 
+            // Back.
             g.uwfFillRectangle(backColor, 0, 0, width, height);
 
+            // Style.
             switch (DropDownStyle)
             {
                 case ComboBoxStyle.DropDown:
 
                     if (Focused && Enabled)
                     {
+                        // Select text.
+                        if (selectTextOnFocus)
+                            g.uwfFocusNext();
+
                         var filterBuffer = g.uwfDrawTextField(filter, Font, ForeColor, 2, 0, textWidth, height, HorizontalAlignment.Left);
                         if (filterBuffer != filter)
                         {
@@ -305,6 +317,16 @@
                                 UpdateListBoxItems(filterBuffer);
                         }
                         filter = filterBuffer;
+
+                        if (selectTextOnFocus)
+                        {
+                            var te = UnityEngine.GUIUtility.GetStateObject(typeof(UnityEngine.TextEditor),
+                                UnityEngine.GUIUtility.keyboardControl) as UnityEngine.TextEditor;
+                            if (te != null)
+                                te.SelectAll();
+
+                            selectTextOnFocus = false;
+                        }
                     }
                     else
                         g.uwfDrawString(Text, Font, ForeColor, 5, 0, textWidth, height);
