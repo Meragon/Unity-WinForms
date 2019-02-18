@@ -10,30 +10,18 @@ namespace Unity.Views
 
     public class ControlInspector : EditorWindow
     {
-        private static ControlInspector _self;
-        public static ControlInspector Self
-        {
-            get
-            {
-                if (_self == null)
-                {
-                    _self = (ControlInspector)EditorMenu.ShowInspector();
-                }
-                return _self;
-            }
-        }
-
         private IObjectDesigner designer;
         private float repaintWait;
         private Vector2 scrollPosition;
 
-        internal object DesignerObject;
-
+        internal static object DesignerObject;
+        
         void Awake()
         {
             var iDisposable = DesignerObject as IDisposable;
             if (iDisposable != null)
                 iDisposable.Dispose();
+            
             DesignerObject = null;
         }
         void Update()

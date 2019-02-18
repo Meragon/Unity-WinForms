@@ -2,24 +2,31 @@
 {
     public static class ColorTranslatorEx
     {
-        public static Color FromHsb(byte hue, byte saturation, byte brigthness)
+        public static Color Clamp(Color value, Color min, Color max)
+        {
+            value = Min(value, min);
+            value = Max(value, max);
+
+            return value;
+        }
+        public static Color FromHsb(byte hue, byte saturation, byte brightness)
         {
             double dh = (double)hue / 255;
             double ds = (double)saturation / 255;
-            double db = (double)brigthness / 255;
+            double db = (double)brightness / 255;
             return FromHsb(dh, ds, db);
         }
-        public static Color FromHsb(double hue, double saturation, double brigthness)
+        public static Color FromHsb(double hue, double saturation, double brightness)
         {
             double r = 0, g = 0, b = 0;
-            if (brigthness != 0)
+            if (brightness != 0)
             {
                 if (saturation == 0)
-                    r = g = b = brigthness;
+                    r = g = b = brightness;
                 else
                 {
-                    double temp2 = _GetTemp2(hue, saturation, brigthness);
-                    double temp1 = 2.0f * brigthness - temp2;
+                    double temp2 = _GetTemp2(hue, saturation, brightness);
+                    double temp1 = 2.0f * brightness - temp2;
 
                     r = _GetColorComponent(temp1, temp2, hue + 1.0f / 3.0f);
                     g = _GetColorComponent(temp1, temp2, hue);
@@ -51,6 +58,44 @@
                 return Color.FromArgb(255, t, p, v);
 
             return Color.FromArgb(255, v, p, q);
+        }
+        public static Color Max(this Color value, Color maxValue)
+        {
+            var a = value.A;
+            var r = value.R;
+            var g = value.G;
+            var b = value.B;
+
+            var ma = maxValue.A;
+            var mr = maxValue.R;
+            var mg = maxValue.G;
+            var mb = maxValue.B;
+
+            if (a > ma) a = ma;
+            if (r > mr) r = mr;
+            if (g > mg) g = mg;
+            if (b > mb) b = mb;
+
+            return Color.FromArgb(a, r, g, b);
+        }
+        public static Color Min(this Color value, Color minValue)
+        {
+            var a = value.A;
+            var r = value.R;
+            var g = value.G;
+            var b = value.B;
+
+            var ma = minValue.A;
+            var mr = minValue.R;
+            var mg = minValue.G;
+            var mb = minValue.B;
+
+            if (a < ma) a = ma;
+            if (r < mr) r = mr;
+            if (g < mg) g = mg;
+            if (b < mb) b = mb;
+
+            return Color.FromArgb(a, r, g, b);
         }
         public static string ToHexString(this Color c)
         {

@@ -17,7 +17,7 @@
 
         protected decimal value;
         protected string valueText = "0";
-
+        
         private static readonly Padding defaultPadding = new Padding(4, 0, 4, 0);
         private bool hexadecimal;
         private decimal minimum;
@@ -30,6 +30,7 @@
         {
             BackColor = SystemColors.Window;
             Increment = 1;
+            InterceptArrowKeys = true;
             Maximum = 100;
             Minimum = 0;
             Padding = defaultPadding;
@@ -61,9 +62,10 @@
             }
         }
 
-        public event EventHandler ValueChanged = delegate { };
+        public event EventHandler ValueChanged;
 
         public decimal Increment { get; set; }
+        public bool InterceptArrowKeys { get; set; }
         public bool Hexadecimal
         {
             get { return hexadecimal; }
@@ -144,11 +146,18 @@
         {
             if (string.IsNullOrEmpty(valueText))
                 return;
-            
-            if (Hexadecimal)
-                Value = Constrain(Convert.ToDecimal(Convert.ToInt32(valueText, 16)));
-            else
-                Value = Constrain(decimal.Parse(valueText, CultureInfo.CurrentCulture));
+
+            try
+            {
+                if (Hexadecimal)
+                    Value = Constrain(Convert.ToDecimal(Convert.ToInt32(valueText, 16)));
+                else
+                    Value = Constrain(decimal.Parse(valueText, Application.currentCulture));
+            }
+            catch
+            {
+                UpdateEditText();
+            }
         }
         protected override void OnLostFocus(EventArgs e)
         {
@@ -158,6 +167,14 @@
         }
         protected override void OnKeyDown(KeyEventArgs e)
         {
+            if (InterceptArrowKeys)
+            {
+                if (e.KeyCode == Keys.Up)
+                    UpButton();
+                else if (e.KeyCode == Keys.Down)
+                    DownButton();
+            }
+            
             base.OnKeyDown(e);
 
             if (e.KeyCode == Keys.Return)
@@ -213,8 +230,8 @@
         }
         protected virtual void OnValueChanged(EventArgs e)
         {
-            if (ValueChanged != null)
-                ValueChanged(this, e);
+            var handler = ValueChanged;
+            if (handler != null) handler(this, e);
         }
 
         private decimal Constrain(decimal avalue)

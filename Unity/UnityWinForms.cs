@@ -43,8 +43,7 @@
             if (obj == null)
                 return;
 #if UNITY_EDITOR
-            if (Views.ControlInspector.Self != null)
-                Views.ControlInspector.Self.DesignerObject = obj;
+            Views.ControlInspector.DesignerObject = obj;
 #endif
         }
 

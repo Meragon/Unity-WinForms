@@ -55,8 +55,8 @@ namespace Unity.Views
                 GUILayout.BeginHorizontal(GUILayout.Width(width));
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
-                    var w = EditorMenu.ShowInspector();
-                    (w as ControlInspector).DesignerObject = SWF.Control.uwfDefaultController.ModalForms[i];
+                    EditorMenu.ShowInspector();
+                    ControlInspector.DesignerObject = SWF.Control.uwfDefaultController.ModalForms[i];
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));
@@ -78,8 +78,8 @@ namespace Unity.Views
                 GUILayout.BeginHorizontal(GUILayout.Width(width));
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
-                    var w = EditorMenu.ShowInspector();
-                    (w as ControlInspector).DesignerObject = SWF.Control.uwfDefaultController.Forms[i];
+                    EditorMenu.ShowInspector();
+                    ControlInspector.DesignerObject = SWF.Control.uwfDefaultController.Forms[i];
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));
@@ -101,8 +101,8 @@ namespace Unity.Views
                 GUILayout.BeginHorizontal(GUILayout.Width(width));
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
-                    var w = EditorMenu.ShowInspector();
-                    (w as ControlInspector).DesignerObject = SWF.Control.uwfDefaultController.Contexts[i];
+                    EditorMenu.ShowInspector();
+                    ControlInspector.DesignerObject = SWF.Control.uwfDefaultController.Contexts[i];
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));
@@ -121,8 +121,8 @@ namespace Unity.Views
                 GUILayout.BeginHorizontal(GUILayout.Width(width));
                 if (GUILayout.Button("...", GUILayout.Width(24)))
                 {
-                    var w = EditorMenu.ShowInspector();
-                    (w as ControlInspector).DesignerObject = hoveredControl;
+                    EditorMenu.ShowInspector();
+                    ControlInspector.DesignerObject = hoveredControl;
                 }
                 GUILayout.Label(c_type, GUILayout.Width(160));
                 GUILayout.Label(c_name, GUILayout.Width(220));
