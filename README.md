@@ -61,10 +61,9 @@ public class GameGuiController : MonoBehaviour
 ```
 
 ### Screenshots
-![scr1](http://i.imgur.com/LCQsFgv.png)
+![scr1](https://i.imgur.com/z7ol9jq.png)
+![scr1](https://i.imgur.com/oifeDMo.png) 
 
 ### From other projects using Unity-WinForms
-![scr1](http://i.imgur.com/njQZbCP.png)
-![scr1](http://i.imgur.com/I9H0AWt.png)
+![scr1](https://i.imgur.com/xUmAIR8.png)
 ![scr1](http://i.imgur.com/nZUFZCe.png)
-![scr1](http://i.imgur.com/GpiWviP.png)
