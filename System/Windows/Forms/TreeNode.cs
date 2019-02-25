@@ -11,6 +11,8 @@
         internal TreeNode parent;
         internal TreeView treeView;
         internal TreeNodeCollection nodes;
+        internal int textWidth;
+        internal string tagString;
 
         private Color backColor = Color.Transparent;
         private bool enabled = true;
@@ -135,7 +137,11 @@
         public string Text
         {
             get { return text; }
-            set { text = value; }
+            set
+            {
+                text = value;
+                textWidth = 0;
+            }
         }
         public string ToolTipText { get; set; }
         public TreeView TreeView

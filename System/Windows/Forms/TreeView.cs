@@ -11,12 +11,11 @@
         internal TreeNode  root;
         
         internal float uwfScrollSpeed = 2;
+        internal Color uwfArrowImageColor = Color.FromArgb(0x26, 0x26, 0x26);
+        internal Color uwfArrowImageHoveredColor = Color.FromArgb(0x27, 0xC7, 0xF7);
         internal Color uwfItemHoveredColor = Color.FromArgb(221, 238, 253);
         internal Color uwfItemSelectedColor = Color.FromArgb(187, 222, 251);
         internal Color uwfItemSelectedUnfocusedColor = Color.FromArgb(187, 222, 251);
-        internal bool  uwfSmoothScrolling = true;
-        internal bool  uwfUseNodeBoundsForSelection;
-        internal bool  uwfWrapText;
 
         private readonly DrawTreeNodeEventArgs nodeArgs = new DrawTreeNodeEventArgs(null, null, Rectangle.Empty, TreeNodeStates.Default);
         private readonly List<TreeNode> nodeList = new List<TreeNode>();
@@ -28,6 +27,7 @@
         private Point     dragPosition;
         private string    filter;
         private ImageList imageList;
+        private TreeNode  mouseDownAtNode;
         private ToolTip   nodeToolTip;
         private TreeNode  nodeToolTipLast;
         private TreeNode  selectedNode;
@@ -59,6 +59,7 @@
         public event TreeNodeMouseHoverEventHandler NodeMouseHover;
 
         public BorderStyle BorderStyle { get; set; }
+        public bool FullRowSelect { get; set; }
         public ImageList ImageList
         {
             get { return imageList; }
@@ -326,13 +327,22 @@
         {
             base.OnMouseDown(e);
 
-            if (SelectAtPosition(e) == null)
+            mouseDownAtNode = GetNodeAt(e.Location);
+            if (mouseDownAtNode == null)
                 return;
 
-            OnNodeMouseClick(new TreeNodeMouseClickEventArgs(SelectedNode, e.Button, e.Clicks, e.X, e.Y));
-
-            dragNode = SelectedNode;
+            // Try to toggle node with mouse.
+            if (mouseDownAtNode.Nodes.Count > 0 && 
+                e.X >= mouseDownAtNode.Bounds.X && 
+                e.X <= mouseDownAtNode.Bounds.X + arrowSize)
+            {
+                mouseDownAtNode.Toggle();
+                mouseDownAtNode = null; // Prevent node from being selected.
+                return;
+            }
+            
             drag = true;
+            dragNode = mouseDownAtNode;
             dragPosition = e.Location;
         }
         protected override void OnMouseHover(EventArgs e)
@@ -385,6 +395,19 @@
             
             if (uwfVScrollBar.Visible)
                 scrollIndex -= e.Delta * uwfScrollSpeed;
+        }
+        protected override void OnMouseUp(MouseEventArgs e)
+        {
+            base.OnMouseUp(e);
+
+            var mouseUpAtNode = GetNodeAt(e.Location);
+            if (mouseUpAtNode != mouseDownAtNode)
+                return;
+            
+            if (SelectAtPosition(e) == null)
+                return;
+
+            OnNodeMouseClick(new TreeNodeMouseClickEventArgs(SelectedNode, e.Button, e.Clicks, e.X, e.Y));
         }
         protected virtual void OnNodeMouseClick(TreeNodeMouseClickEventArgs e)
         {
@@ -472,29 +495,58 @@
         }
         private void DrawNodeDefault(object sender, DrawTreeNodeEventArgs e)
         {
+            const int TEXT_SELECTION_MARGIN_LEFT = 4;
+            const int TEXT_SELECTION_MARGIN_RIGHT = 4;
+            const int TEXT_SELECTION_HMARGIN = TEXT_SELECTION_MARGIN_LEFT + TEXT_SELECTION_MARGIN_RIGHT;
+            const int TEXT_MARGIN_TOP = 2;
+            const int TEXT_MARGIN_BOTTOM = 2;
+            
             var node = e.Node;
             var nodeBounds = node.Bounds;
+            var nodeX = nodeBounds.X;
             var nodeY = nodeBounds.Y;
-
+            var nodeWidth = nodeBounds.Width;
+            var nodeContainsArrow = node.Nodes.Count > 0;
+            var nodeContainsImage = node.ImageIndex > -1 && imageList != null;
+            
             var graphics = e.Graphics;
 
             // Node drawing.
-            graphics.uwfFillRectangle(node.BackColor, nodeBounds.X, nodeY, nodeBounds.Width, nodeBounds.Height);
+            graphics.uwfFillRectangle(node.BackColor, nodeBounds.X, nodeY, nodeWidth, nodeBounds.Height);
+            
+            // Draw selection.
             if (node.IsSelected || node == hoveredNode)
             {
                 var nodeFillColor = node.IsSelected ? uwfItemSelectedColor : uwfItemHoveredColor;
                 if (node.IsSelected && Focused == false) 
                     nodeFillColor = uwfItemSelectedUnfocusedColor;
-                
-                graphics.uwfFillRectangle(nodeFillColor, uwfUseNodeBoundsForSelection ? nodeBounds.X : 0, nodeY, Width, ItemHeight);
-            }
 
+                var selectX = 0;
+                var selectY = nodeY;
+                var selectWidth = Width;
+                var selectHeight = ItemHeight;
+
+                if (FullRowSelect == false)
+                {
+                    selectX = nodeX + arrowSize;
+                    selectWidth = node.textWidth;
+
+                    if (nodeContainsImage)
+                        selectWidth += nodeBounds.Height - TEXT_SELECTION_MARGIN_LEFT;
+                    else
+                        selectX -= TEXT_SELECTION_MARGIN_LEFT;
+                }
+
+                graphics.uwfFillRectangle(nodeFillColor, selectX, selectY, selectWidth, selectHeight);
+            }
+            
             int xOffset = nodeBounds.X;
 
             // Draw collapsed/expanded arrow.
-            if (node.Nodes.Count > 0)
+            if (nodeContainsArrow)
             {
-                Bitmap arrowTexture = null;
+                var arrowTexture = (Bitmap) null;
+                
                 if (node.IsExpanded)
                 {
                     if (node.ImageIndex_Expanded > -1 && imageList != null)
@@ -520,32 +572,61 @@
 
                 if (arrowTexture != null)
                 {
+                    var mouseClient = PointToClient(MousePosition);
                     var arrowWidth = arrowSize;
                     var arrowHeight = arrowSize;
-                    graphics.DrawImage(arrowTexture, xOffset, nodeY + nodeBounds.Height / 2f - arrowHeight / 2f, arrowWidth, arrowHeight);
+                    var arrowX = xOffset;
+                    var arrowY = nodeY + nodeBounds.Height / 2f - arrowHeight / 2f;
+                    var arrowColor = uwfArrowImageColor;
+
+                    // Check if arrow is hovered.
+                    if (nodeBounds.Contains(mouseClient) && mouseClient.X <= arrowX + arrowWidth)
+                        arrowColor = uwfArrowImageHoveredColor;
+                    
+                    graphics.uwfDrawImage(arrowTexture, arrowColor, arrowX, arrowY, arrowWidth, arrowHeight);
                 }
             }
 
             xOffset += arrowSize;
-
+            
             // Draw image.
-            if (node.ImageIndex > -1 && imageList != null)
+            if (nodeContainsImage)
             {
                 var image = imageList.Images[node.ImageIndex];
                 if (image != null && image.uTexture != null)
                 {
-                    var imageSize = nodeBounds.Height - 2;
-                    if (image.Height < imageSize)
-                        imageSize = image.Height;
-                    graphics.uwfDrawImage(image, node.ImageColor, xOffset + (nodeBounds.Height - imageSize) / 2f, nodeY + (nodeBounds.Height - imageSize) / 2f, imageSize, imageSize);
+                    var imageSize = Math.Min(nodeBounds.Height - 2, image.Height);
+                    var imageX = xOffset + (nodeBounds.Height - imageSize) / 2f;
+                    var imageY = nodeY + (nodeBounds.Height - imageSize) / 2f;
+                    
+                    graphics.uwfDrawImage(image, node.ImageColor, imageX, imageY, imageSize, imageSize);
+                    
                     xOffset += nodeBounds.Height;
                 }
             }
 
             // Draw text.
-            string stringToDraw = node.Text;
-            if (stringToDraw == null && node.Tag != null) stringToDraw = node.Tag.ToString();
-            graphics.uwfDrawString(stringToDraw, Font, node.ForeColor, xOffset, nodeY - 2, (uwfWrapText ? Width : Width * 16), e.Bounds.Height + 4, ContentAlignment.MiddleLeft);
+            var nodeText = node.Text;
+            if (nodeText == null && node.Tag != null)
+            {
+                nodeText = node.Tag.ToString();
+                if (nodeText != node.tagString)
+                {
+                    node.textWidth = 0;
+                    node.tagString = nodeText;
+                }
+            }
+
+            if (node.textWidth == 0)
+                node.textWidth = (int) graphics.MeasureString(nodeText, Font).Width + TEXT_SELECTION_HMARGIN;
+
+            var nodeTextX = xOffset;
+            var nodeTextY = nodeY - TEXT_MARGIN_TOP;
+            var nodeTextWidth = node.textWidth;
+            var nodeTextHeight = e.Bounds.Height + TEXT_MARGIN_TOP + TEXT_MARGIN_BOTTOM;
+            
+            graphics.uwfDrawString(nodeText, Font, node.ForeColor, nodeTextX, nodeTextY, nodeTextWidth, nodeTextHeight, ContentAlignment.MiddleLeft);
+            
             // End of drawing.
 
             // TODO: raise when DrawNodeMode is Normal.

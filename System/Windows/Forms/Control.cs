@@ -69,6 +69,8 @@
             var defaultSize = DefaultSize;
             width = defaultSize.Width;
             height = defaultSize.Height;
+            clientWidth = width;
+            clientHeight = height;
         }
 
         public delegate void DrawHandler(PaintEventArgs e);
