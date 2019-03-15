@@ -12,8 +12,6 @@
         private readonly ObjectCollection items;
         private readonly VScrollBar vScroll;
 
-        private Color borderColor;
-        private Color borderSelectColor;
         private int borderOffset = 2;
         private BorderStyle borderStyle = BorderStyle.Fixed3D;
         private int hoveredItem = -1;
@@ -36,8 +34,6 @@
             DrawItem = InternalDrawItem;
             uwfWrapText = true;
 
-            uwfBorderColor = Color.FromArgb(130, 135, 144);
-            uwfBorderSelectColor = Color.FromArgb(126, 180, 234);
             uwfItemDisabledColor = Color.Gray;
             uwfItemHoverColor = Color.FromArgb(221, 238, 253);
             uwfSelectionBackColor = SystemColors.Highlight;
@@ -52,7 +48,6 @@
             Controls.Add(vScroll);
 
             UpdateBorder();
-            UpdateBorderPen();
         }
 
         public event EventHandler SelectedIndexChanged;
@@ -143,24 +138,6 @@
             }
         }
         
-        internal Color uwfBorderColor
-        {
-            get { return borderColor; }
-            set
-            {
-                borderColor = value;
-                UpdateBorderPen();
-            }
-        }
-        internal Color uwfBorderSelectColor
-        {
-            get { return borderSelectColor; }
-            set
-            {
-                borderSelectColor = value;
-                UpdateBorderPen();
-            }
-        }
         internal Color uwfItemDisabledColor { get; set; }
         internal Color uwfItemHoverColor { get; set; }
         internal Color uwfSelectionBackColor { get; set; }
@@ -197,12 +174,6 @@
                 if (match(item)) return i;
             }
             return -1;
-        }
-        internal override bool FocusInternal()
-        {
-            var result = base.FocusInternal();
-            UpdateBorderPen();
-            return result;
         }
         internal int IndexAt(Point mclient)
         {
@@ -250,20 +221,13 @@
                     break;
             }
         }
-        internal void UpdateBorderPen()
-        {
-            var nextColor = uwfBorderColor;
-            if (Focused || uwfContext)
-                nextColor = uwfBorderSelectColor;
-
-            borderPen.Color = nextColor;
-        }
+        
 
         protected internal override void uwfOnLatePaint(PaintEventArgs e)
         {
             base.uwfOnLatePaint(e);
 
-            e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
+            ControlPaint.PrintBorder(e.Graphics, ClientRectangle, BorderStyle, Border3DStyle.Flat);
         }
 
         protected virtual void OnDrawItem(DrawItemEventArgs e)
@@ -307,7 +271,15 @@
                     if (char.IsLetterOrDigit(c) || char.IsPunctuation(c))
                     {
                         keyFilter += char.ToLower(c);
-                        var itemIndex = FindItemIndex(x => x != null && x.ToString().ToLower().StartsWith(keyFilter));
+                        var itemIndex = FindItemIndex(x =>
+                        {
+                            if (x == null)
+                                return false;
+
+                            var xStr = x.ToString();
+                            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                            return xStr != null && xStr.ToLower().StartsWith(keyFilter);
+                        });
                         SelectItem(itemIndex);
 
                         if (keyTimer == null)
@@ -322,12 +294,6 @@
                     }
                     break;
             }
-        }
-        protected override void OnLostFocus(EventArgs e)
-        {
-            base.OnLostFocus(e);
-
-            UpdateBorderPen();
         }
         protected override void OnMouseHover(EventArgs e)
         {
@@ -370,6 +336,7 @@
 
             // Paint list.
             g.uwfFillRectangle(BackColor, 0, 0, Width, Height);
+            
             for (int i = 0; i < visibleItemsCount && i + uwfScrollIndex < Items.Count; i++)
             {
                 var itemIndex = i + uwfScrollIndex;
@@ -423,7 +390,7 @@
                 {
                     var itemRect = new Rectangle(
                         borderOffset + 2,
-                        itemY + itemTextVerticalPadding,
+                        itemY,
                         fillWidth,
                         ItemHeight);
                     var state = DrawItemState.Default;

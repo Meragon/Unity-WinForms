@@ -14,7 +14,7 @@
         internal Color uwfArrowImageColor = Color.FromArgb(0x26, 0x26, 0x26);
         internal Color uwfArrowImageHoveredColor = Color.FromArgb(0x27, 0xC7, 0xF7);
         internal Color uwfItemHoveredColor = Color.FromArgb(221, 238, 253);
-        internal Color uwfItemSelectedColor = Color.FromArgb(187, 222, 251);
+        internal Color uwfItemSelectedColor = Color.FromArgb(187, 222, 251); // Default is SystemColors.Highlight.
         internal Color uwfItemSelectedUnfocusedColor = Color.FromArgb(187, 222, 251);
 
         private readonly DrawTreeNodeEventArgs nodeArgs = new DrawTreeNodeEventArgs(null, null, Rectangle.Empty, TreeNodeStates.Default);
@@ -624,8 +624,9 @@
             var nodeTextY = nodeY - TEXT_MARGIN_TOP;
             var nodeTextWidth = node.textWidth;
             var nodeTextHeight = e.Bounds.Height + TEXT_MARGIN_TOP + TEXT_MARGIN_BOTTOM;
+            var nodeColor = node.ForeColor.IsEmpty ? node.TreeView.ForeColor : node.ForeColor;
             
-            graphics.uwfDrawString(nodeText, Font, node.ForeColor, nodeTextX, nodeTextY, nodeTextWidth, nodeTextHeight, ContentAlignment.MiddleLeft);
+            graphics.uwfDrawString(nodeText, Font, nodeColor, nodeTextX, nodeTextY, nodeTextWidth, nodeTextHeight, ContentAlignment.MiddleLeft);
             
             // End of drawing.
 

@@ -265,8 +265,6 @@
         
         protected internal override void uwfOnLatePaint(PaintEventArgs e)
         {
-            if (this is Form)
-                return;
             if (vscroll == null || hscroll == null)
                 return;
 

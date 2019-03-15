@@ -9,6 +9,7 @@
         
         private Color backColor;
         private Color foreColor;
+        private Color borderSingleColor = Color.FromArgb(100, 100, 100);
         
         private readonly Pen borderPen = new Pen(Color.White);
         private char passwordChar = (char)0;
@@ -21,6 +22,7 @@
             text = string.Empty;
             
             BackColor = SystemColors.Window;
+            BorderStyle = BorderStyle.Fixed3D;
             Padding = new Padding(2, 0, 2, 0);
             TextAlign = HorizontalAlignment.Left;
             
@@ -31,6 +33,7 @@
             styleInitialized = true;
         }
 
+        public BorderStyle BorderStyle { get; set; }
         public bool Multiline { get; set; }
         public char PasswordChar
         {
@@ -126,16 +129,12 @@
         {
             base.OnPaint(e);
             
-            borderPen.Color = Focused ? uwfBorderFocusedColor : uwfHovered ? uwfBorderHoverColor : uwfBorderColor;
-
             var g = e.Graphics;
             var textX = Padding.Left;
             var textY = Padding.Top;
             var textW = Width - Padding.Horizontal;
             var textH = Height - Padding.Vertical;
 
-            // NOTE: There is also should be 1px rectangle with SystemColors.Window color between background color and border.
-            // And it will affect performance a little. 
             g.uwfFillRectangle(backColor, 0, 0, Width, Height);
 
             if (Enabled && Focused)
@@ -166,18 +165,38 @@
             }
             else
             {
-                if (passwordChar == 0)
-                {
-                    if (Multiline)
-                        g.uwfDrawString(Text, Font, foreColor, textX, textY, textW, textH, ContentAlignment.TopLeft);
-                    else
-                        g.uwfDrawString(Text, Font, foreColor, textX, textY, textW, textH, TextAlign);
-                }
+                var paintText = Text;
+
+                if (passwordChar != 0)
+                    paintText = passwordText;
+
+                if (Multiline)
+                    g.uwfDrawString(paintText, Font, foreColor, textX, textY, textW, textH, ContentAlignment.TopLeft);
                 else
-                    g.uwfDrawString(passwordText, Font, foreColor, textX, textY, textW, textH, TextAlign);
+                    g.uwfDrawString(paintText, Font, foreColor, textX, textY, textW, textH, TextAlign);
             }
 
-            g.DrawRectangle(borderPen, 0, 0, Width, Height);
+            switch (BorderStyle)
+            {
+                case BorderStyle.None:
+                    break;
+                
+                case BorderStyle.FixedSingle:
+                    borderPen.Color = borderSingleColor;
+                    g.DrawRectangle(borderPen, 0, 0, Width, Height);
+                    break;
+                
+                case BorderStyle.Fixed3D:
+                    borderPen.Color = Color.White;
+                    g.DrawRectangle(borderPen, 1, 1, Width - 2, Height - 2);
+                    
+                    borderPen.Color = Focused ? uwfBorderFocusedColor : uwfHovered ? uwfBorderHoverColor : uwfBorderColor;
+                    g.DrawRectangle(borderPen, 0, 0, Width, Height);
+                    break;
+                
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         private static string GetPasswordString(string from)

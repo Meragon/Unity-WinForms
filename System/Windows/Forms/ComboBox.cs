@@ -27,7 +27,7 @@
         private bool keyFlag;
         private string filter = string.Empty;
         private int itemHeight = 15;
-        private ListBox listBox;
+        private ComboListBox listBox;
         private bool listBoxOpened;
         private int maxDropDownItems = 8;
         private int selectedIndex = -1;
@@ -404,8 +404,9 @@
 
             if (!listBoxOpened)
             {
-                listBox = new ListBox();
+                listBox = new ComboListBox();
                 listBox.BackColor = BackColor;
+                listBox.BorderColor = uwfBorderColorHovered;
                 listBox.Font = Font;
                 listBox.ForeColor = ForeColor;
                 listBox.Width = Width;
@@ -415,8 +416,6 @@
                 listBox.uwfContext = true;
                 listBox.uwfWrapText = false;
                 listBox.uwfShadowBox = true;
-                listBox.uwfBorderColor = uwfBorderColor;
-                listBox.uwfBorderSelectColor = uwfBorderColorHovered;
                 listBox.uwfItemHoverColor = uwfListItemHoverColor;
                 listBox.uwfSelectionBackColor = uwfListItemSelectedBackgroundColor;
                 listBox.uwfSelectionForeColor = uwfListItemSelectedForeColor;
@@ -632,6 +631,27 @@
             public void RemoveAt(int index)
             {
                 items.RemoveAt(index);
+            }
+        }
+
+        private class ComboListBox : ListBox
+        {
+            private readonly Pen borderPen = new Pen(Color.Gray);
+
+            public ComboListBox()
+            {
+                BorderStyle = BorderStyle.FixedSingle;
+            }
+
+            public Color BorderColor
+            {
+                get { return borderPen.Color; }
+                set { borderPen.Color = value; }
+            }
+
+            protected internal override void uwfOnLatePaint(PaintEventArgs e)
+            {
+                e.Graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
             }
         }
     }

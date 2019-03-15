@@ -486,8 +486,6 @@
 
         protected internal override void uwfOnLatePaint(PaintEventArgs e)
         {
-            base.uwfOnLatePaint(e);
-
             var g = e.Graphics;
             var headerHeight = uwfHeaderHeight;
             var headerPadding = uwfHeaderPadding;

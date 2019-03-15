@@ -4,7 +4,7 @@
 
     public class TreeNode
     {
-        public static readonly Color DEFAULT_FORE_COLOR = Color.FromArgb(42, 42, 42);
+        public static readonly Color DEFAULT_FORE_COLOR = Color.Empty;
 
         internal int index;
         internal int indexY;
