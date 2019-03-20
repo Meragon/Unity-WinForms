@@ -230,11 +230,11 @@
                 var mouseX = UE.Input.mousePosition.x;
                 var mouseY = UE.Screen.height - UE.Input.mousePosition.y;
 
-                controller.ProccessMouse(mouseEvent, mouseX, mouseY, mouseButton, currentClicks, (int) mouseWheelDelta);
+                controller.ProcessMouse(mouseEvent, mouseX, mouseY, mouseButton, currentClicks, (int) mouseWheelDelta);
 
                 // Keys.
 
-                // Manualy set event for 'shift' key.
+                // Manually set event for 'shift' key.
                 if (shiftPressed && currentKeyCode == UE.KeyCode.None)
                 {
                     if (shiftWait <= 0)
@@ -256,7 +256,7 @@
                 if (prevShift && shiftPressed == false && currentKeyCode == UE.KeyCode.LeftShift)
                     currentEventType = UE.EventType.KeyUp;*/
 
-                // Proccess.
+                // Process.
                 if (currentKeyCode != UE.KeyCode.None)
                 {
                     var keyData = UnityKeyTranslator.ToKeyData(currentKeyModifiers, currentKeyCode);
@@ -268,7 +268,7 @@
 
                     var keyEventType = (Application.KeyEvents) (currentType - 3);
                     if (keyEventType == Application.KeyEvents.Down || keyEventType == Application.KeyEvents.Up)
-                        controller.ProccessKeys(keyArgs, keyEventType);
+                        controller.ProcessKeys(keyArgs, keyEventType);
                 }
             }
 

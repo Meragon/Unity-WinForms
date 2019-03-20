@@ -114,7 +114,7 @@ namespace Unity.Views
             var hoveredControl = SWF.Control.uwfDefaultController.hoveredControl;
             if (hoveredControl != null)
             {
-                string c_type = hoveredControl.GetType().ToString().Replace("System.Windows.Forms", "SWF");
+                string c_type = hoveredControl.GetType().Name;
                 string c_name = hoveredControl.Name;
                 if (c_name == null) c_name = "";
 

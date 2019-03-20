@@ -1,4 +1,8 @@
-﻿namespace System.Windows.Forms
+﻿#if UNITY_STANDALONE || UNITY_ANDROID
+#define IO_SUPPORTED
+#endif
+
+namespace System.Windows.Forms
 {
     using System.Collections.Generic;
     using System.Drawing;
@@ -27,7 +31,7 @@
         
         internal FileDialog()
         {
-#if !UNITY_STANDALONE && !UNITY_ANDROID
+#if !IO_SUPPORTED
             throw new NotSupportedException();
 #endif
 
@@ -295,6 +299,20 @@
         protected internal void OpenFile()
         {
             filename = fileRenderer.currentPath + "/" + textBoxFilename.Text;
+
+#if IO_SUPPORTED
+            
+            // Add extension to the end of file if needed.
+            var hasExtension = System.IO.Path.HasExtension(filename);
+            if (!hasExtension)
+            {
+                var extension = currentFilter;
+                if (extension.Contains('.'))
+                    filename += extension.Substring(extension.IndexOf('.'));
+            }
+            
+#endif
+            
             DialogResult = DialogResult.OK;
             Close();
         }
@@ -399,7 +417,7 @@
             }
             public void SetDirectory(string path, bool addPrevPath = false)
             {
-#if UNITY_STANDALONE
+#if IO_SUPPORTED
                 if (path.Length <= 2) return;
                 if (System.IO.Directory.Exists(path) == false) return;
 
@@ -479,7 +497,7 @@
             }
             public void Up()
             {
-#if UNITY_STANDALONE
+#if IO_SUPPORTED
                 System.IO.DirectoryInfo parent;
                 try
                 {
@@ -548,7 +566,7 @@
                     
                     base.OnDrawNode(e);
 
-#if UNITY_STANDALONE
+#if IO_SUPPORTED
                     var info = e.Node.Tag as FileInfo;
                     if (info == null)
                         return;
@@ -584,7 +602,7 @@
 
         internal class FileInfo
         {
-#if UNITY_STANDALONE
+#if IO_SUPPORTED
             private System.IO.FileInfo info;
             public System.IO.FileInfo Info
             {
@@ -633,7 +651,7 @@
         {
             public FormFileInfo(string path)
             {
-#if UNITY_STANDALONE
+#if IO_SUPPORTED
                 Size = new Drawing.Size(320, 120);
                 Location = new Point(Screen.PrimaryScreen.WorkingArea.Width / 2 - Width / 2, Screen.PrimaryScreen.WorkingArea.Height / 2 - Height / 2);
                 FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -755,7 +773,7 @@
 
             private void CreateButtons()
             {
-#if UNITY_STANDALONE
+#if IO_SUPPORTED
                 var currentPath = text;
                 if (string.IsNullOrEmpty(currentPath))
                     return;

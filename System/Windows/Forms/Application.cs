@@ -66,7 +66,7 @@
             Up
         }
 
-        internal static bool IsDraging { get { return dragndrop; } }
+        internal static bool IsDragging { get { return dragndrop; } }
         internal static float ScaleX
         {
             get { return scaleX; }
@@ -89,7 +89,7 @@
         }
         internal bool TabSwitching { get; set; }
 
-        public void ProccessKeys(KeyEventArgs args, KeyEvents keyEventType)
+        public void ProcessKeys(KeyEventArgs args, KeyEvents keyEventType)
         {
             // Raise hook events.
             switch (keyEventType)
@@ -137,7 +137,7 @@
                 RaiseKeyEvent(args, keyEventType, keyControl);
             }
         }
-        public void ProccessMouse(MouseEvents mE, float mX, float mY, MouseButtons mButton, int clicks, int delta)
+        public void ProcessMouse(MouseEvents mE, float mX, float mY, MouseButtons mButton, int clicks, int delta)
         {
             if (scaleX != 1f || scaleY != 1f)
             {
@@ -194,7 +194,7 @@
             }
 
             if (hoveredControl != null)
-                _ProcessControl(new PointF(mX, mY), hoveredControl, false);
+                RaiseMouseEvents(new PointF(mX, mY), hoveredControl, false);
 
             if (mE == MouseEvents.Down)
             {
@@ -274,7 +274,7 @@
 
             if (updateHoveredControl)
             {
-                var controlAtMouse = _ControlAt(Control.MousePosition);
+                var controlAtMouse = ControlAt(Control.MousePosition);
                 if (hoveredControl != controlAtMouse && hoveredControl != null)
                 {
                     hoveredControl.hovered = false;
@@ -425,13 +425,50 @@
         }
         private static Control FindControlAt(Control currentControl, Point position)
         {
+            // Parent bounds.
+            var minX = 0;
+            var minY = 0;
+            var maxX = currentControl.Width;
+            var maxY = currentControl.Height;
+            
+            // Should fix clicking on forms header issue.
+            var currentForm = currentControl as Form;
+            if (currentForm != null)
+                minY = currentForm.uwfHeaderHeight;
+            
+            var mouseRelativePosition = currentControl.PointToClient(position);
+            
             for (int i = currentControl.Controls.Count - 1; i >= 0; i--)
             {
                 var child = currentControl.Controls[i];
                 if (child.Visible == false || child.Enabled == false) continue;
+            
+                // Base child bounds.
+                var childX1 = child.Location.X + child.uwfOffset.X;
+                var childX2 = childX1 + child.Width;
+                var childY1 = child.Location.Y + child.uwfOffset.Y;
+                var childY2 = childY1 + child.Height;
 
-                var childMClient = child.PointToClient(position);
-                if (child.DisplayRectangle.Contains(childMClient))
+                if (!child.uwfSystem)
+                {
+                    // Skip if out of bounds.
+                    if (childX1 > maxX ||
+                        childY1 > maxY ||
+                        childX2 < minX ||
+                        childY2 < minY) continue;
+
+                    // Fix.
+                    childX1 = Math.Max(minX, childX1);
+                    childX2 = Math.Min(maxX, childX2);
+                    childY1 = Math.Max(minY, childY1);
+                    childY2 = Math.Min(maxY, childY2);
+
+                    if (childX2 < childX1 ||
+                        childY2 < childY1) continue;
+                }
+                
+                var childRect = new Rectangle(childX1, childY1, childX2 - childX1, childY2 - childY1);
+                if (childRect.Contains(mouseRelativePosition))
                 {
                     currentControl = child;
                     return FindControlAt(currentControl, position);
@@ -440,89 +477,89 @@
 
             return currentControl;
         }
-        private static Control _ParentContains(Control control, PointF mousePosition, Control currentControl, ref bool ok)
+        private static void RaiseMouseEvents(PointF mousePosition, Control control, bool ignoreRect)
         {
-            //Application.Log(control.Name);
-            if (control == null || control.Parent == null) return currentControl;
+            var mousePositionInt = new Point((int) mousePosition.X, (int) mousePosition.Y);
+            var mouseRelativePosition = control.PointToClient(mousePositionInt);
+            var controlContainsMousePosition = control.ClientRectangle.Contains(mouseRelativePosition);
 
-            var parentLocation = control.Parent.PointToScreen(System.Drawing.Point.Empty);
-            var parentRect = new System.Drawing.RectangleF(parentLocation.X, parentLocation.Y, control.Parent.Width, control.Parent.Height);
-            if (parentRect.Contains(mousePosition) == true)
-                currentControl = control.Parent;
-            else
-                ok = false; // Control is not visible due to groups;
-
-            return _ParentContains(control.Parent, mousePosition, currentControl, ref ok);
-        }
-        private static bool _ProcessControl(PointF mousePosition, Control control, bool ignore_rect)
-        {
-            // ignore_rect will call mouse_up & mouse_move in any case.
-            var c_location = control.PointToScreen(System.Drawing.Point.Empty);
-            var clientRect = new System.Drawing.RectangleF(c_location.X, c_location.Y, control.Width, control.Height);
-            var contains = clientRect.Contains(mousePosition);
-
-            if (contains && (mouseEvent == MouseEvents.Down) || mouseEvent == MouseEvents.Up)
+            if (ignoreRect || controlContainsMousePosition)
             {
-                if (control.Parent != null)
-                {
-                    bool ok = true;
-                    var clickedControl = _ParentContains(control, mousePosition, control, ref ok);
-                    if (clickedControl != null && ok == false)
-                        control = clickedControl;
-                }
-            }
-
-            if (ignore_rect || contains)
-            {
-                var client_mpos = control.PointToClient(new Point((int)mousePosition.X, (int)mousePosition.Y));
                 if (mousePositionChanged)
                 {
                     if (dragData != null)
                         dragndrop = true;
                 }
-
-                if (!contains && mouseEvent != MouseEvents.Up)
-                    return true;
+                
+                if (!controlContainsMousePosition && mouseEvent != MouseEvents.Up)
+                    return;
+                
                 switch (mouseEvent)
                 {
                     case MouseEvents.Down:
-                        var md_args = new MouseEventArgs(mouseButton, 1, client_mpos.X, client_mpos.Y, 0);
-                        control.RaiseOnMouseDown(md_args);
+                    {
+                        var mouseEventArgs = new MouseEventArgs(mouseButton, 1, mouseRelativePosition.X, mouseRelativePosition.Y, 0);
+                        control.RaiseOnMouseDown(mouseEventArgs);
                         mouseLastClickControl = control;
-                        return true;
+                        return;
+                    }
+
                     case MouseEvents.Up:
+                    {
                         if (dragndrop)
                         {
                             if (control.AllowDrop)
                             {
-                                DataObject dnd_data = new DataObject(dragData);
-                                DragEventArgs dnd_args = new DragEventArgs(dnd_data, 0, client_mpos.X, client_mpos.Y, DragDropEffects.None, dragControlEffects);
-                                control.RaiseOnDragDrop(dnd_args);
+                                var dndData = new DataObject(dragData);
+                                var dndArgs = new DragEventArgs(dndData,
+                                    0,
+                                    mouseRelativePosition.X,
+                                    mouseRelativePosition.Y,
+                                    DragDropEffects.None,
+                                    dragControlEffects);
+                                control.RaiseOnDragDrop(dndArgs);
                             }
+
                             dragData = null;
                             dragndrop = false;
-                            return true;
+                            return;
                         }
-                        var mu_args = new MouseEventArgs(mouseButton, 1, client_mpos.X, client_mpos.Y, 0);
-                        control.RaiseOnMouseUp(mu_args);
+
+                        var mouseEventArgs = new MouseEventArgs(mouseButton, 1, mouseRelativePosition.X, mouseRelativePosition.Y, 0);
+                        control.RaiseOnMouseUp(mouseEventArgs);
+                        
                         if (mouseLastClickControl == control)
-                            control.RaiseOnMouseClick(mu_args);
+                            control.RaiseOnMouseClick(mouseEventArgs);
+                        
                         if (mouseLastClickControl != null && control != mouseLastClickControl)
-                            mouseLastClickControl.RaiseOnMouseUp(mu_args);
-                        return true;
+                            mouseLastClickControl.RaiseOnMouseUp(mouseEventArgs);
+                        return;
+                    }
+
                     case MouseEvents.DoubleClick:
-                        var mdc_args = new MouseEventArgs(mouseButton, 2, client_mpos.X, client_mpos.Y, 0);
-                        control.RaiseOnMouseDoubleClick(mdc_args);
-                        return true;
+                    {
+                        var mouseEventArgs = new MouseEventArgs(mouseButton, 2, mouseRelativePosition.X, mouseRelativePosition.Y, 0);
+                        control.RaiseOnMouseDoubleClick(mouseEventArgs);
+                        return;
+                    }
+
                     case MouseEvents.Wheel:
-                        var mw_args = new MouseEventArgs(MouseButtons.None, 0, client_mpos.X, client_mpos.Y, (int)(-mouseWheelDelta * 4));
+                    {
+                        var mouseWheelDeltaCorrected = (int) (-mouseWheelDelta * 4); 
+                        var mw_args = new MouseEventArgs(MouseButtons.None,
+                            0,
+                            mouseRelativePosition.X,
+                            mouseRelativePosition.Y,
+                            mouseWheelDeltaCorrected);
                         control.RaiseOnMouseWheel(mw_args);
-                        return true;
+                        updateHoveredControl = true;
+                        return;
+                    }
                 }
             }
-            if (!contains)
+            
+            if (!controlContainsMousePosition)
                 control.RaiseOnMouseLeave(null);
-            return false;
         }
         private static void RaiseKeyEvent(KeyEventArgs args, KeyEvents keyEventType, Control keyControl)
         {
@@ -541,7 +578,7 @@
                     break;
             }
         }
-        private Control _ControlAt(Point mousePosition)
+        private Control ControlAt(Point mousePosition)
         {
             Control control = null;
 
@@ -550,7 +587,7 @@
                 for (int i = 0; i < Contexts.Count; i++)
                 {
                     var contextControl = Contexts[i];
-                    var cRect = new System.Drawing.Rectangle(contextControl.Location.X, contextControl.Location.Y, contextControl.Width, contextControl.Height);
+                    var cRect = new Rectangle(contextControl.Location.X, contextControl.Location.Y, contextControl.Width, contextControl.Height);
                     if (cRect.Contains(mousePosition))
                     {
                         control = contextControl;
@@ -558,47 +595,47 @@
                     }
                 }
             }
+            
             if (ModalForms.Count > 0)
             {
                 if (control == null)
                 {
                     var lastModalForm = ModalForms.Last();
-                    var formRect = new System.Drawing.Rectangle(lastModalForm.Location.X, lastModalForm.Location.Y, lastModalForm.Width, lastModalForm.Height);
+                    var formRect = new Rectangle(lastModalForm.Location.X, lastModalForm.Location.Y, lastModalForm.Width, lastModalForm.Height);
                     if (formRect.Contains(mousePosition))
                         control = lastModalForm;
                 }
             }
             else
             {
-                if (control == null)
-                    for (int i = Forms.Count - 1; i >= 0; i--)
+                var FormAt = new Func<FormCollection, Predicate<Form>, Point, Form>((collection, match, position) =>
+                {
+                    for (int i = collection.Count - 1; i >= 0; i--)
                     {
-                        var form = Forms[i];
-                        if (form.TopMost && form.Visible && form.Enabled)
-                        {
-                            var formRect = new System.Drawing.Rectangle(form.Location.X, form.Location.Y, form.Width, form.Height);
-                            if (formRect.Contains(mousePosition))
-                            {
-                                control = form;
-                                break;
-                            }
-                        }
+                        var form = collection[i];
+                        if (!match(form)) continue;
+                
+                        var formRect = new Rectangle(form.Location.X, form.Location.Y, form.Width, form.Height);
+                        if (formRect.Contains(position))
+                            return form;
                     }
 
+                    return null;                    
+                });
+                
                 if (control == null)
-                    for (int i = Forms.Count - 1; i >= 0; i--)
-                    {
-                        var form = Forms[i];
-                        if (form.TopMost == false && form.Visible && form.Enabled)
-                        {
-                            var formRect = new System.Drawing.Rectangle(form.Location.X, form.Location.Y, form.Width, form.Height);
-                            if (formRect.Contains(mousePosition))
-                            {
-                                control = form;
-                                break;
-                            }
-                        }
-                    }
+                {
+                    var formAt = FormAt(Forms, form => form.TopMost && form.Visible && form.Enabled, mousePosition);
+                    if (formAt != null)
+                        control = formAt;
+                }
+
+                if (control == null)
+                {
+                    var formAt = FormAt(Forms, form => !form.TopMost && form.Visible && form.Enabled, mousePosition);
+                    if (formAt != null)
+                        control = formAt;
+                }
             }
 
             if (control != null)
