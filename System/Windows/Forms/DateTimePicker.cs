@@ -27,7 +27,7 @@
 
         public DateTimePicker()
         {
-            uwfCultureInfo = Application.currentCulture;
+            uwfCultureInfo = Application.CurrentCulture;
 
             BackColor = Color.White;
             Value = DateTime.Now;

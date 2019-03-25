@@ -20,8 +20,6 @@
         private Color foreColor = DEFAULT_FORE_COLOR;
         private Color imageColor = Color.White;
         private int imageIndex = -1;
-        private int imageIndex_collapsed = -1;
-        private int imageIndex_expanded = -1;
         private string text;
         private bool visible = true;
 
@@ -31,6 +29,8 @@
         }
         public TreeNode(string text, TreeNode[] children)
         {
+            ImageIndex_Expanded = -1;
+            ImageIndex_Collapsed = -1;
             this.text = text;
 
             if (children != null)
@@ -75,20 +75,21 @@
         {
             get
             {
+                var value = imageIndex;
                 if (expanded)
                 {
-                    if (imageIndex_expanded >= 0)
-                        return imageIndex_expanded;
+                    if (ImageIndex_Expanded >= 0)
+                        value = ImageIndex_Expanded;
                 }
-                else if (imageIndex_collapsed >= 0)
-                    return imageIndex_collapsed;
+                else if (ImageIndex_Collapsed >= 0)
+                    value = ImageIndex_Collapsed;
 
-                return imageIndex;
+                return value;
             }
             set { imageIndex = value; }
         }
-        public int ImageIndex_Collapsed { get { return imageIndex_collapsed; } set { imageIndex_collapsed = value; } }
-        public int ImageIndex_Expanded { get { return imageIndex_expanded; } set { imageIndex_expanded = value; } }
+        public int ImageIndex_Collapsed { get; set; }
+        public int ImageIndex_Expanded { get; set; }
         public int Index { get { return index; } }
         public bool IsExpanded { get { return expanded; } internal set { expanded = value; } }
         public bool IsSelected { get { return TreeView.SelectedNode == this; } }
@@ -148,8 +149,8 @@
         {
             get
             {
-                if (treeView == null)
-                    if (parent != null) treeView = parent.TreeView;
+                if (treeView == null && parent != null)
+                    treeView = parent.TreeView;
                 return treeView;
             }
         }

@@ -1,17 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-
-namespace System.Drawing
+﻿namespace System.Drawing
 {
+    using System.Globalization;
+    
     public struct SizeF : IEquatable<SizeF>
     {
-        private float width;
-        private float height;
-
         public static readonly SizeF Empty = new SizeF();
 
         public static explicit operator PointF(SizeF size)
@@ -36,40 +28,32 @@ namespace System.Drawing
             return !(sz1 == sz2);
         }
 
-        public float Height
-        {
-            get { return height; }
-            set { height = value; }
-        }
+        public float Height { get; set; }
         public bool IsEmpty
         {
-            get { return width == 0 && height == 0; }
+            get { return Width == 0 && Height == 0; }
         }
-        public float Width
-        {
-            get { return width; }
-            set { width = value; }
-        }
+        public float Width { get; set; }
 
-        public SizeF(SizeF size)
+        public SizeF(SizeF size) : this()
         {
-            width = size.width;
-            height = size.height;
+            Width = size.Width;
+            Height = size.Height;
         }
-        public SizeF(PointF pt)
+        public SizeF(PointF pt) : this()
         {
-            width = pt.X;
-            height = pt.Y;
+            Width = pt.X;
+            Height = pt.Y;
         }
-        public SizeF(float width, float height)
+        public SizeF(float width, float height) : this()
         {
-            this.width = width;
-            this.height = height;
+            this.Width = width;
+            this.Height = height;
         }
 
         public bool Equals(SizeF other)
         {
-            return width.Equals(other.width) && height.Equals(other.height);
+            return Width.Equals(other.Width) && Height.Equals(other.Height);
         }
         public override bool Equals(object obj)
         {
@@ -78,10 +62,7 @@ namespace System.Drawing
         }
         public override int GetHashCode()
         {
-            unchecked
-            {
-                return (width.GetHashCode() * 397) ^ height.GetHashCode();
-            }
+            return base.GetHashCode();
         }
         public PointF ToPointF()
         {
@@ -93,7 +74,7 @@ namespace System.Drawing
         }
         public override string ToString()
         {
-            return "{Width=" + width.ToString(CultureInfo.CurrentCulture) + ", Height=" + height.ToString(CultureInfo.CurrentCulture) + "}";
+            return "{Width=" + Width.ToString(CultureInfo.CurrentCulture) + ", Height=" + Height.ToString(CultureInfo.CurrentCulture) + "}";
         }
 
         public static SizeF Add(SizeF sz1, SizeF sz2)

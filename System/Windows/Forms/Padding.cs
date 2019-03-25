@@ -6,53 +6,48 @@
     {
         public static readonly Padding Empty = new Padding(0);
 
-        private int bottom;
-        private int left;
-        private int right;
-        private int top;
-
-        public Padding(int all)
+        public Padding(int all) : this()
         {
-            left = bottom = right = top = 0;
+            Left = Bottom = Right = Top = 0;
 
-            left = all;
-            bottom = all;
-            right = all;
-            top = all;
+            Left = all;
+            Bottom = all;
+            Right = all;
+            Top = all;
         }
-        public Padding(int left, int bottom, int right, int top)
+        public Padding(int left, int bottom, int right, int top) : this()
         {
-            this.left = this.bottom = this.right = this.top = 0;
+            this.Left = this.Bottom = this.Right = this.Top = 0;
 
-            this.left = left;
-            this.bottom = bottom;
-            this.right = right;
-            this.top = top;
+            this.Left = left;
+            this.Bottom = bottom;
+            this.Right = right;
+            this.Top = top;
         }
 
-        public int Bottom { get { return bottom; } set { bottom = value; } }
-        public int Left { get { return left; } set { left = value; } }
-        public int Horizontal { get { return left + right; } }
-        public int Right { get { return right; } set { right = value; } }
+        public int Bottom { get; set; }
+        public int Left { get; set; }
+        public int Horizontal { get { return Left + Right; } }
+        public int Right { get; set; }
         public Size Size
         {
             get { return new Size(Horizontal, Vertical); }
         }
-        public int Top { get { return top; } set { top = value; } }
-        public int Vertical { get { return top + bottom; } }
+        public int Top { get; set; }
+        public int Vertical { get { return Top + Bottom; } }
 
         public static Padding operator +(Padding p1, Padding p2)
         {
-            return new Padding(p1.left + p2.left, p1.top + p2.top, p1.right + p2.right, p1.bottom + p2.bottom);
+            return new Padding(p1.Left + p2.Left, p1.Top + p2.Top, p1.Right + p2.Right, p1.Bottom + p2.Bottom);
         }
         public static Padding operator -(Padding p1, Padding p2)
         {
-            return new Padding(p1.left - p2.left, p1.top - p2.top, p1.right - p2.right, p1.bottom - p2.bottom);
+            return new Padding(p1.Left - p2.Left, p1.Top - p2.Top, p1.Right - p2.Right, p1.Bottom - p2.Bottom);
         }
         public static bool operator ==(Padding p1, Padding p2)
         {
-            if (p1.left == p2.left && p1.top == p2.top && p1.right == p2.right)
-                return p1.bottom == p2.bottom;
+            if (p1.Left == p2.Left && p1.Top == p2.Top && p1.Right == p2.Right)
+                return p1.Bottom == p2.Bottom;
             return false;
         }
         public static bool operator !=(Padding p1, Padding p2)
@@ -62,28 +57,24 @@
 
         public bool Equals(Padding other)
         {
-            return bottom == other.bottom && left == other.left && right == other.right && top == other.top;
+            return Bottom == other.Bottom && Left == other.Left && Right == other.Right && Top == other.Top;
         }
-        public override bool Equals(object other)
+        public override bool Equals(object obj)
         {
-            if (other is Padding)
-                return (Padding)other == this;
+            if (obj is Padding)
+                return (Padding) obj == this;
             return false;
         }
         public override int GetHashCode()
         {
-            unchecked
-            {
-                var hashCode = bottom;
-                hashCode = (hashCode * 397) ^ left;
-                hashCode = (hashCode * 397) ^ right;
-                hashCode = (hashCode * 397) ^ top;
-                return hashCode;
-            }
+            return Left
+                   ^ WindowsFormsUtils.RotateLeft(Top, 8)
+                   ^ WindowsFormsUtils.RotateLeft(Right, 16)
+                   ^ WindowsFormsUtils.RotateLeft(Bottom, 24);
         }
         public override string ToString()
         {
-            return "{Left=" + left + ",Top=" + top + ",Right=" + right + ",Bottom=" + bottom + "}";
+            return "{Left=" + Left + ",Top=" + Top + ",Right=" + Right + ",Bottom=" + Bottom + "}";
         }
     }
 }

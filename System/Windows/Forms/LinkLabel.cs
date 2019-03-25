@@ -197,9 +197,6 @@
             internal LinkLabel owner;
             internal LinkState state = LinkState.Normal;
 
-            // original .NET suggest to use Region for GDI+, Rectangle otherwise. So, it's w/e.
-            internal Rectangle visualRect;
-
             private bool enabled = true;
             private string description;
             private object linkData;
@@ -534,21 +531,21 @@
 
                 throw new ArgumentException("value");
             }
-            bool IList.Contains(object link)
+            bool IList.Contains(object value)
             {
-                var l = link as Link;
+                var l = value as Link;
                 if (l != null)
                     return Contains(l);
 
                 return false;
             }
-            void ICollection.CopyTo(Array dest, int index)
+            void ICollection.CopyTo(Array array, int index)
             {
-                owner.links.CopyTo(dest, index);
+                owner.links.CopyTo(array, index);
             }
-            int IList.IndexOf(object link)
+            int IList.IndexOf(object value)
             {
-                var l = link as Link;
+                var l = value as Link;
                 if (l != null)
                     return IndexOf(l);
 
@@ -576,10 +573,10 @@
         }
         private class LinkComparer : IComparer
         {
-            int IComparer.Compare(object link1, object link2)
+            int IComparer.Compare(object x, object y)
             {
-                int pos1 = ((Link)link1).Start;
-                int pos2 = ((Link)link2).Start;
+                int pos1 = ((Link)x).Start;
+                int pos2 = ((Link)y).Start;
 
                 return pos1 - pos2;
             }

@@ -152,7 +152,7 @@
                 if (Hexadecimal)
                     Value = Constrain(Convert.ToDecimal(Convert.ToInt32(valueText, 16)));
                 else
-                    Value = Constrain(decimal.Parse(valueText, Application.currentCulture));
+                    Value = Constrain(decimal.Parse(valueText, Application.CurrentCulture));
             }
             catch
             {
@@ -255,7 +255,7 @@
         }
         private void UpdateEditText()
         {
-            valueText = Hexadecimal ? Convert.ToInt64(value).ToString("X") : value.ToString(Application.currentCulture);
+            valueText = Hexadecimal ? Convert.ToInt64(value).ToString("X") : value.ToString(Application.CurrentCulture);
         }
 
         internal class UpDownButton : RepeatButton

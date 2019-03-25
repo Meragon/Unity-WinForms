@@ -3,18 +3,12 @@
     [Serializable]
     public class Button : ButtonBase, IButtonControl
     {
-        private DialogResult dialogResult;
-
         public Button()
         {
             SetStyle(ControlStyles.StandardClick | ControlStyles.StandardDoubleClick, false);
         }
 
-        public virtual DialogResult DialogResult
-        {
-            get { return dialogResult; }
-            set { dialogResult = value; }
-        }
+        public virtual DialogResult DialogResult { get; set; }
 
         public void NotifyDefault(bool value)
         {
@@ -33,7 +27,7 @@
         {
             var form = FindFormInternal();
             if (form != null)
-                form.DialogResult = dialogResult;
+                form.DialogResult = DialogResult;
 
             base.OnClick(e);
         }

@@ -3,7 +3,7 @@
     [Serializable]
     public struct Color : IEquatable<Color>
     {
-        public static readonly Color Empty = new Color(0, 0, 0, 0) { isEmpty = true };
+        public static readonly Color Empty = new Color();
 
         public static readonly Color AliceBlue            = new Color(KnownColor.AliceBlue,            0xFFF0F8FF);
         public static readonly Color AntiqueWhite         = new Color(KnownColor.AntiqueWhite,         0xFFFAEBD7);
@@ -152,9 +152,12 @@
         private const int ARGBGreenShift = 8;
         private const int ARGBBlueShift  = 0;
         
+        private const short StateKnownColorValid = 0x0001;
+        private const short StateARGBValueValid  = 0x0002;
+        
         private readonly byte a, r, g, b;
         private readonly short knownColor;
-        private bool isEmpty;
+        private readonly short state;
 
         internal Color(byte a, byte r, byte g, byte b)
         {
@@ -162,7 +165,7 @@
             this.r = r;
             this.g = g;
             this.b = b;
-            this.isEmpty = false;
+            this.state = StateARGBValueValid;
             this.knownColor = 0;
         }
         internal Color(KnownColor knownColor, long value)
@@ -171,11 +174,11 @@
             this.r = (byte)((value >> ARGBRedShift) & 0xFF);
             this.g = (byte)((value >> ARGBGreenShift) & 0xFF);
             this.b = (byte)((value >> ARGBBlueShift) & 0xFF);
-            this.isEmpty = false;
+            this.state = StateKnownColorValid;
             this.knownColor = (short)knownColor;
         }
 
-        public bool IsEmpty { get { return isEmpty; } }
+        public bool IsEmpty { get { return state == 0; } }
         public bool IsKnownColor { get { return knownColor != 0; } }
         public bool IsSystemColor {
             get 
@@ -199,7 +202,7 @@
                 left.r == right.r && 
                 left.g == right.g && 
                 left.b == right.b && 
-                left.isEmpty == right.isEmpty)
+                left.state == right.state)
                 return true;
             return false;
         }
@@ -210,7 +213,7 @@
         }
         public static Color FromArgb(int alpha, Color baseColor)
         {
-            return Color.FromArgb(alpha, baseColor.R, baseColor.G, baseColor.B);
+            return FromArgb(alpha, baseColor.R, baseColor.G, baseColor.B);
         }
         public static Color FromArgb(int r, int g, int b)
         {
@@ -224,7 +227,7 @@
 
         public bool Equals(Color other)
         {
-            return isEmpty == other.isEmpty && a == other.a && r == other.r && g == other.g && b == other.b;
+            return state == other.state && a == other.a && r == other.r && g == other.g && b == other.b;
         }
         public override bool Equals(object obj)
         {
@@ -248,15 +251,12 @@
         }
         public override int GetHashCode()
         {
-            unchecked
-            {
-                var hashCode = isEmpty.GetHashCode();
-                hashCode = (hashCode * 397) ^ a.GetHashCode();
-                hashCode = (hashCode * 397) ^ r.GetHashCode();
-                hashCode = (hashCode * 397) ^ g.GetHashCode();
-                hashCode = (hashCode * 397) ^ b.GetHashCode();
-                return hashCode;
-            }
+            return r.GetHashCode() ^
+                   g.GetHashCode() ^
+                   b.GetHashCode() ^
+                   a.GetHashCode() ^
+                   state.GetHashCode() ^
+                   knownColor.GetHashCode();
         }
         public float GetHue()
         {
@@ -285,7 +285,7 @@
             {
                 hue = 2f + (fB - fR) / delta;
             }
-            else if (fB == max)
+            else
             {
                 hue = 4f + (fR - fG) / delta;
             }

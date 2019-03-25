@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-
-namespace System.Drawing
+﻿namespace System.Drawing
 {
+    using System.Collections.Generic;
+    
     public static class SystemBrushes
     {
         private static readonly Dictionary<Color, Brush> items = new Dictionary<Color, Brush>();
@@ -141,7 +141,7 @@ namespace System.Drawing
 
         public static Brush FromSystemColor(Color c)
         {
-            if (c.IsSystemColor == false)
+            if (!c.IsSystemColor)
                 throw new ArgumentException("Color is not system color.");
 
             if (items.ContainsKey(c))

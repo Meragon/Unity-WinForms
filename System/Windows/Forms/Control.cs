@@ -444,21 +444,21 @@
             // dunno.
         }
 
-        void IDropTarget.OnDragEnter(DragEventArgs drgEvent)
+        void IDropTarget.OnDragEnter(DragEventArgs e)
         {
-            OnDragEnter(drgEvent);
+            OnDragEnter(e);
         }
-        void IDropTarget.OnDragDrop(DragEventArgs drgEvent)
+        void IDropTarget.OnDragDrop(DragEventArgs e)
         {
-            OnDragDrop(drgEvent);
+            OnDragDrop(e);
         }
         void IDropTarget.OnDragLeave(EventArgs e)
         {
             OnDragLeave(e);
         }
-        void IDropTarget.OnDragOver(DragEventArgs drgEvent)
+        void IDropTarget.OnDragOver(DragEventArgs e)
         {
-            OnDragOver(drgEvent);
+            OnDragOver(e);
         }
 
         internal virtual void AssignParent(Control value)
@@ -664,7 +664,7 @@
 
             if (release_all && Controls.IsReadOnly == false)
             {
-                for (; Controls.Count > 0;)
+                while (Controls.Count > 0)
                     Controls[0].Dispose();
 
                 Controls.Clear();

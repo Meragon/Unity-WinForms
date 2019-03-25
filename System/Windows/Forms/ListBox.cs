@@ -436,10 +436,6 @@
             e.Graphics.uwfDrawString(itemText, e.Font, e.ForeColor, e.Bounds.X, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height, ContentAlignment.MiddleLeft);
             e.DrawFocusRectangle();
         }
-        private void ResetItemHeight()
-        {
-            itemHeight = DefaultItemHeight;
-        }
         private void ResetKeyFilter()
         {
             keyFilter = "";
@@ -545,9 +541,9 @@
             {
                 return items.IndexOf(value);
             }
-            public void Insert(int index, object item)
+            public void Insert(int index, object value)
             {
-                items.Insert(index, item);
+                items.Insert(index, value);
             }
             public bool IsDisabled(int itemIndex)
             {

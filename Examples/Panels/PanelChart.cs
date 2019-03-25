@@ -8,8 +8,8 @@
     
     public class PanelChart : BaseExamplePanel
     {
-        private static double x;
-        private static double xStep = .02d;
+        private double x;
+        private double xStep = .02d;
         
         private Timer timer;
         

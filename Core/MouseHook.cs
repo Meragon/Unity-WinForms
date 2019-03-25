@@ -5,10 +5,6 @@
     /// </summary>
     internal static class MouseHook
     {
-        // usable by childs, ex: ToolStripItem will invoke MouseUp then parent will invoke same event,
-        // which will prevent unity designer to paint child fields and properties.
-        public static bool preventNextMouseUpInvoke; 
-
         public static event MouseEventHandler MouseDown;
         [Obsolete("not supported yet")]
         public static event MouseEventHandler MouseMove;
@@ -40,14 +36,9 @@
         }
         public static void RaiseMouseUp(object sender, MouseEventArgs args)
         {
-            if (preventNextMouseUpInvoke == false)
-            {
-                var handler = MouseUp;
-                if (handler != null)
-                    handler(sender, args);
-            }
-            else
-                preventNextMouseUpInvoke = false;
+            var handler = MouseUp;
+            if (handler != null)
+                handler(sender, args);
         }
     }
 }

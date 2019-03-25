@@ -16,6 +16,10 @@
 
             return text.IndexOf('&', firstAmpersand + 1) == -1;
         }
+        public static int RotateLeft(int value, int nBits) {
+            nBits = nBits % 32;
+            return value << nBits | (value >> (32 - nBits));
+        }
         public static bool SafeCompareStrings(string string1, string string2, bool ignoreCase)
         {
             return string1 != null && string2 != null && string1.Length == string2.Length && string.Compare(string1, string2, ignoreCase) == 0;

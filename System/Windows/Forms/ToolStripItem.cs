@@ -321,11 +321,6 @@
         internal void RaiseOnMouseUp(MouseEventArgs e)
         {
             OnMouseUp(e);
-
-#if UNITY_EDITOR
-            MouseHook.RaiseMouseUp(this, e);
-            MouseHook.preventNextMouseUpInvoke = true;
-#endif
         }
         internal void RaiseOnPaint(PaintEventArgs e)
         {

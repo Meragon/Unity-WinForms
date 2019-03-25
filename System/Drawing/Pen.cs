@@ -15,6 +15,11 @@
             Width = width;
         }
 
+        ~Pen() 
+        {
+            Dispose(false);
+        }
+        
         public Color Color { get; set; }
         public DashStyle DashStyle { get; set; }
         public float Width { get; set; }
@@ -27,6 +32,12 @@
             return pen;
         }
         public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        void Dispose(bool disposing)
         {
         }
     }

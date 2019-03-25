@@ -4,7 +4,7 @@
     
     internal static class ApplicationResources
     {
-        public static AppGdiImages Images;
-        public static List<string> Fonts;
+        public static AppGdiImages Images { get; set; }
+        public static List<string> Fonts { get; set; }
     }
 }

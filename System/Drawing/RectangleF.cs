@@ -1,16 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-
-namespace System.Drawing
+﻿namespace System.Drawing
 {
+    using System.Globalization;
+    
     public struct RectangleF : IEquatable<RectangleF>
     {
         public static readonly RectangleF Empty = new RectangleF();
 
+        public RectangleF(float x, float y, float width, float height) : this()
+        {
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
+        }
+        public RectangleF(PointF location, SizeF size) : this()
+        {
+            X = location.X;
+            Y = location.Y;
+            Width = size.Width;
+            Height = size.Height;
+        }
+        
         public static implicit operator RectangleF(Rectangle r)
         {
             return new RectangleF(r.X, r.Y, r.Width, r.Height);
@@ -28,20 +38,11 @@ namespace System.Drawing
             return !(left == right);
         }
 
-        private float x;
-        private float y;
-        private float width;
-        private float height;
-
         public float Bottom
         {
             get { return Y + Height; }
         }
-        public float Height
-        {
-            get { return height; }
-            set { height = value; }
-        }
+        public float Height { get; set; }
         public bool IsEmpty
         {
             get { return Width <= 0 || Height <= 0; }
@@ -76,40 +77,48 @@ namespace System.Drawing
         {
             get { return Y; }
         }
-        public float Width
-        {
-            get { return width; }
-            set { width = value; }
-        }
-        public float X
-        {
-            get { return x; }
-            set { x = value; }
-        }
-        public float Y
-        {
-            get { return y; }
-            set { y = value; }
-        }
+        public float Width { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
 
-        public RectangleF(float x, float y, float width, float height)
+        public static RectangleF FromLTRB(float left, float top, float right, float bottom)
         {
-            this.x = x;
-            this.y = y;
-            this.width = width;
-            this.height = height;
+            return new RectangleF(left, top, right - left, bottom - top);
         }
-        public RectangleF(PointF location, SizeF size)
+        public static RectangleF Inflate(RectangleF rect, float x, float y)
         {
-            x = location.X;
-            y = location.Y;
-            width = size.Width;
-            height = size.Height;
+            RectangleF r = rect;
+            r.Inflate(x, y);
+            return r;
         }
+        public static RectangleF Intersect(RectangleF a, RectangleF b)
+        {
+            float x1 = Math.Max(a.X, b.X);
+            float x2 = Math.Min(a.X + a.Width, b.X + b.Width);
+            float y1 = Math.Max(a.Y, b.Y);
+            float y2 = Math.Min(a.Y + a.Height, b.Y + b.Height);
 
+            if (x2 >= x1
+                && y2 >= y1)
+            {
+
+                return new RectangleF(x1, y1, x2 - x1, y2 - y1);
+            }
+            return RectangleF.Empty;
+        }
+        public static RectangleF Union(RectangleF a, RectangleF b)
+        {
+            float x1 = Math.Min(a.X, b.X);
+            float x2 = Math.Max(a.X + a.Width, b.X + b.Width);
+            float y1 = Math.Min(a.Y, b.Y);
+            float y2 = Math.Max(a.Y + a.Height, b.Y + b.Height);
+
+            return new RectangleF(x1, y1, x2 - x1, y2 - y1);
+        }
+        
         public bool Equals(RectangleF other)
         {
-            return x.Equals(other.x) && y.Equals(other.y) && width.Equals(other.width) && height.Equals(other.height);
+            return X.Equals(other.X) && Y.Equals(other.Y) && Width.Equals(other.Width) && Height.Equals(other.Height);
         }
         public override bool Equals(object obj)
         {
@@ -136,14 +145,10 @@ namespace System.Drawing
         }
         public override int GetHashCode()
         {
-            unchecked
-            {
-                var hashCode = x.GetHashCode();
-                hashCode = (hashCode * 397) ^ y.GetHashCode();
-                hashCode = (hashCode * 397) ^ width.GetHashCode();
-                hashCode = (hashCode * 397) ^ height.GetHashCode();
-                return hashCode;
-            }
+            return unchecked((int) ((uint) X ^
+                                    (((uint) Y << 13) | ((uint) Y >> 19)) ^
+                                    (((uint) Width << 26) | ((uint) Width >> 6)) ^
+                                    (((uint) Height << 7) | ((uint) Height >> 25))));
         }
         public void Inflate(float x, float y)
         {
@@ -186,41 +191,6 @@ namespace System.Drawing
             return "{X=" + X.ToString(CultureInfo.CurrentCulture) + ",Y=" + Y.ToString(CultureInfo.CurrentCulture) +
             ",Width=" + Width.ToString(CultureInfo.CurrentCulture) +
             ",Height=" + Height.ToString(CultureInfo.CurrentCulture) + "}";
-        }
-
-        public static RectangleF FromLTRB(float left, float top, float right, float bottom)
-        {
-            return new RectangleF(left, top, right - left, bottom - top);
-        }
-        public static RectangleF Inflate(RectangleF rect, float x, float y)
-        {
-            RectangleF r = rect;
-            r.Inflate(x, y);
-            return r;
-        }
-        public static RectangleF Intersect(RectangleF a, RectangleF b)
-        {
-            float x1 = Math.Max(a.X, b.X);
-            float x2 = Math.Min(a.X + a.Width, b.X + b.Width);
-            float y1 = Math.Max(a.Y, b.Y);
-            float y2 = Math.Min(a.Y + a.Height, b.Y + b.Height);
-
-            if (x2 >= x1
-                && y2 >= y1)
-            {
-
-                return new RectangleF(x1, y1, x2 - x1, y2 - y1);
-            }
-            return RectangleF.Empty;
-        }
-        public static RectangleF Union(RectangleF a, RectangleF b)
-        {
-            float x1 = Math.Min(a.X, b.X);
-            float x2 = Math.Max(a.X + a.Width, b.X + b.Width);
-            float y1 = Math.Min(a.Y, b.Y);
-            float y2 = Math.Max(a.Y + a.Height, b.Y + b.Height);
-
-            return new RectangleF(x1, y1, x2 - x1, y2 - y1);
         }
     }
 }

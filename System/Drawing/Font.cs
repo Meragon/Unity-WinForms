@@ -1,6 +1,4 @@
-﻿using System.Drawing.API;
-
-namespace System.Drawing
+﻿namespace System.Drawing
 {
     [Flags]
     public enum FontStyle

@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Drawing;
     using System.Windows.Forms;
-    using Color = UnityEngine.Color;
+    
     using UE = UnityEngine;
     using SWF = System.Windows.Forms;
 
@@ -12,14 +12,22 @@
     {
         public AppResources Resources;
 
+        [UE.Tooltip("Delay between first KeyDown event and following ones")]
+        public float ShiftDownDelayTime = .8f;
+        
+        [UE.Tooltip("Delay between KeyDown events")]
+        public float ShiftDownTime = .05f;
+        
         private static UE.Texture2D defaultSprite;
 
         private Application controller;
-        private float       lastWidth;
-        private float       lastHeight;
-        private bool        shiftPressed;
-        private float       shiftWait; // Shift pressing is really fast.
-        private bool        paused;
+
+        private float lastWidth;
+        private float lastHeight;
+        private bool  shiftPressed;
+        private float shiftDownTimer;
+        private float shiftDownDelayTimer; // Shift pressing is really fast.
+        private bool  paused;
 
         internal static UE.Texture2D DefaultSprite
         {
@@ -27,10 +35,12 @@
             {
                 if (defaultSprite != null) return defaultSprite;
 
-                defaultSprite = new UE.Texture2D(32, 32);
-                for (int i = 0; i < defaultSprite.height; i++)
-                for (int k = 0; k < defaultSprite.width; k++)
-                    defaultSprite.SetPixel(k, i, Color.white);
+                defaultSprite = new UE.Texture2D(1, 1);
+                
+                for (int y = 0; y < defaultSprite.height; y++)
+                for (int x = 0; x < defaultSprite.width; x++)
+                    defaultSprite.SetPixel(x, y, UE.Color.white);
+                
                 defaultSprite.Apply();
                 return defaultSprite;
             }
@@ -134,25 +144,165 @@
             Screen.width = (int) (ueScreenWidth / Application.ScaleX);
             Screen.height = (int) (ueScreenHeight / Application.ScaleY);
 
-            if (controller != null)
+            if (controller == null) return;
+            
+            if (lastWidth != ueScreenWidth || lastHeight != ueScreenHeight)
             {
-                if (lastWidth != ueScreenWidth || lastHeight != ueScreenHeight)
-                {
-                    Size deltaSize = new Size(
-                        (int) (lastWidth - UE.Screen.width),
-                        (int) (lastHeight - UE.Screen.height));
-                    for (int i = 0; i < controller.ModalForms.Count; i++)
-                        controller.ModalForms[i].uwfAddjustSizeToScreen(deltaSize);
-                    for (int i = 0; i < controller.Forms.Count; i++)
-                        controller.Forms[i].uwfAddjustSizeToScreen(deltaSize);
-                    controller.UpdatePaintClipRect();
-                }
-
-                lastWidth = ueScreenWidth;
-                lastHeight = ueScreenHeight;
-
-                controller.Update();
+                var deltaWidth = (int) (lastWidth - UE.Screen.width);
+                var deltaHeight = (int) (lastHeight - UE.Screen.height);
+                var deltaSize = new Size(deltaWidth, deltaHeight);
+                    
+                for (int i = 0; i < controller.ModalForms.Count; i++)
+                    controller.ModalForms[i].uwfAddjustSizeToScreen(deltaSize);
+                    
+                for (int i = 0; i < controller.Forms.Count; i++)
+                    controller.Forms[i].uwfAddjustSizeToScreen(deltaSize);
+                    
+                controller.UpdatePaintClipRect();
             }
+
+            lastWidth = ueScreenWidth;
+            lastHeight = ueScreenHeight;
+
+            controller.Update();
+        }
+        private void UpdateKeys()
+        {
+            var currentEvent = UE.Event.current;
+            var currentKeyCode = currentEvent.keyCode;
+            var currentKeyModifiers = currentEvent.modifiers;
+            var currentType = currentEvent.type;
+
+            // Shift key is not have a KeyDown and KeyUp events, so we need to update them manually.
+            // There is also problem that if any key besides modifier keys were pressed along with Shift one
+            // Unity will alternately send KeyDown events with pressed key and Shift key.
+            
+            // Update shift press.
+            if (shiftPressed)
+            {
+                if (shiftDownDelayTimer <= 0)
+                {
+                    if (shiftDownTimer <= 0)
+                    {
+                        currentKeyModifiers = UE.EventModifiers.Shift;
+
+                        if (currentKeyCode == UE.KeyCode.None)
+                        {
+                            currentKeyCode = UE.KeyCode.LeftShift;
+                            currentType = UE.EventType.KeyDown;
+                        }
+
+                        shiftDownTimer = ShiftDownTime;
+                    }
+                    else
+                        shiftDownTimer -= swfHelper.GetDeltaTime();
+                }
+                else
+                    shiftDownDelayTimer -= swfHelper.GetDeltaTime();
+            }
+
+            var prevShift = shiftPressed;
+            shiftPressed = currentEvent.shift;
+
+            // Start shift key.
+            if (!prevShift && shiftPressed)
+            {
+                currentKeyModifiers = UE.EventModifiers.Shift;
+                currentKeyCode = UE.KeyCode.LeftShift;
+                currentType = UE.EventType.KeyDown;
+                shiftDownDelayTimer = ShiftDownDelayTime;
+            }
+
+            // Release shift key.
+            if (prevShift && !shiftPressed)
+            {
+                currentKeyModifiers = UE.EventModifiers.Shift;
+                currentKeyCode = UE.KeyCode.LeftShift;
+                currentType = UE.EventType.KeyUp;
+                shiftDownTimer = 0;
+            }
+
+            if (currentKeyCode == UE.KeyCode.None) return;
+            if (currentType != UE.EventType.KeyDown && currentType != UE.EventType.KeyUp) return;
+            
+            var keyData = UnityKeyTranslator.ToKeyData(currentKeyModifiers, currentKeyCode);
+            var keyArgs = new KeyEventArgs(keyData)
+            {
+                uwfKeyCode = currentKeyCode,
+                uwfModifiers = currentKeyModifiers
+            };
+
+            if ((keyArgs.uwfModifiers & UE.EventModifiers.FunctionKey) != 0)
+                keyArgs.uwfModifiers &= ~UE.EventModifiers.FunctionKey;
+
+            var keyEventType = (Application.KeyEvents) (currentType - 3);
+            if (keyEventType == Application.KeyEvents.Down || keyEventType == Application.KeyEvents.Up)
+                controller.ProcessKeys(keyArgs, keyEventType);
+        }
+        private void UpdateMouse()
+        {
+            var currentEvent = UE.Event.current;
+            var currentButton = currentEvent.button;
+            var currentClicks = currentEvent.clickCount;
+            var currentDelta = currentEvent.delta.y;
+            var currentType = currentEvent.type;
+
+            // Prepare mouse.
+            var mouseButton = MouseButtons.None;
+            var mouseEvent = Application.MouseEvents.None;
+            var mouseWheelDelta = 0f;
+
+            switch (currentType)
+            {
+                case UE.EventType.MouseDown:
+                    switch (currentButton)
+                    {
+                        case 0:
+                            mouseButton = MouseButtons.Left;
+                            mouseEvent = Application.MouseEvents.Down;
+                            if (currentClicks > 1)
+                                mouseEvent = Application.MouseEvents.DoubleClick;
+                            break;
+                        case 1:
+                            mouseButton = MouseButtons.Right;
+                            mouseEvent = Application.MouseEvents.Down;
+                            break;
+                        case 2:
+                            mouseButton = MouseButtons.Middle;
+                            mouseEvent = Application.MouseEvents.Down;
+                            break;
+                    }
+
+                    break;
+                case UE.EventType.MouseUp:
+                    switch (currentButton)
+                    {
+                        case 0:
+                            mouseButton = MouseButtons.Left;
+                            mouseEvent = Application.MouseEvents.Up;
+                            break;
+                        case 1:
+                            mouseButton = MouseButtons.Right;
+                            mouseEvent = Application.MouseEvents.Up;
+                            break;
+                        case 2:
+                            mouseButton = MouseButtons.Middle;
+                            mouseEvent = Application.MouseEvents.Up;
+                            break;
+                    }
+
+                    break;
+                case UE.EventType.ScrollWheel:
+                    mouseEvent = Application.MouseEvents.Wheel;
+                    mouseWheelDelta = currentDelta;
+                    break;
+            }
+
+            // Mouse.
+            var mouseX = UE.Input.mousePosition.x;
+            var mouseY = UE.Screen.height - UE.Input.mousePosition.y;
+
+            controller.ProcessMouse(mouseEvent, mouseX, mouseY, mouseButton, currentClicks, (int) mouseWheelDelta);
         }
         private void OnApplicationFocus(bool focusStatus)
         {
@@ -166,110 +316,8 @@
 
             if (paused == false)
             {
-                var currentEvent = UE.Event.current;
-
-                var currentButton = currentEvent.button;
-                var currentClicks = currentEvent.clickCount;
-                var currentDelta = currentEvent.delta.y;
-                var currentKeyCode = currentEvent.keyCode;
-                var currentKeyModifiers = currentEvent.modifiers;
-                var currentType = currentEvent.type;
-
-                // Prepare mouse.
-                var mouseButton = MouseButtons.None;
-                var mouseEvent = Application.MouseEvents.None;
-                var mouseWheelDelta = 0f;
-
-                switch (currentType)
-                {
-                    case UE.EventType.MouseDown:
-                        switch (currentButton)
-                        {
-                            case 0:
-                                mouseButton = MouseButtons.Left;
-                                mouseEvent = Application.MouseEvents.Down;
-                                if (currentClicks > 1)
-                                    mouseEvent = Application.MouseEvents.DoubleClick;
-                                break;
-                            case 1:
-                                mouseButton = MouseButtons.Right;
-                                mouseEvent = Application.MouseEvents.Down;
-                                break;
-                            case 2:
-                                mouseButton = MouseButtons.Middle;
-                                mouseEvent = Application.MouseEvents.Down;
-                                break;
-                        }
-
-                        break;
-                    case UE.EventType.MouseUp:
-                        switch (currentButton)
-                        {
-                            case 0:
-                                mouseButton = MouseButtons.Left;
-                                mouseEvent = Application.MouseEvents.Up;
-                                break;
-                            case 1:
-                                mouseButton = MouseButtons.Right;
-                                mouseEvent = Application.MouseEvents.Up;
-                                break;
-                            case 2:
-                                mouseButton = MouseButtons.Middle;
-                                mouseEvent = Application.MouseEvents.Up;
-                                break;
-                        }
-
-                        break;
-                    case UE.EventType.ScrollWheel:
-                        mouseEvent = Application.MouseEvents.Wheel;
-                        mouseWheelDelta = currentDelta;
-                        break;
-                }
-
-                // Mouse.
-                var mouseX = UE.Input.mousePosition.x;
-                var mouseY = UE.Screen.height - UE.Input.mousePosition.y;
-
-                controller.ProcessMouse(mouseEvent, mouseX, mouseY, mouseButton, currentClicks, (int) mouseWheelDelta);
-
-                // Keys.
-
-                // Manually set event for 'shift' key.
-                if (shiftPressed && currentKeyCode == UE.KeyCode.None)
-                {
-                    if (shiftWait <= 0)
-                    {
-                        currentKeyCode = UE.KeyCode.LeftShift;
-                        currentType = UE.EventType.KeyDown;
-
-                        shiftWait = .2f;
-                    }
-                    else
-                        shiftWait -= swfHelper.GetDeltaTime();
-                }
-
-                // Try release 'shift'. 
-                // Fix: it's presses additional time when using Shift + any key.
-                /*var prevShift = shiftPressed;
-                shiftPressed = currentEvent.shift;
-
-                if (prevShift && shiftPressed == false && currentKeyCode == UE.KeyCode.LeftShift)
-                    currentEventType = UE.EventType.KeyUp;*/
-
-                // Process.
-                if (currentKeyCode != UE.KeyCode.None)
-                {
-                    var keyData = UnityKeyTranslator.ToKeyData(currentKeyModifiers, currentKeyCode);
-                    var keyArgs = new KeyEventArgs(keyData);
-                    keyArgs.uwfKeyCode = currentKeyCode;
-                    keyArgs.uwfModifiers = currentKeyModifiers;
-                    if ((keyArgs.uwfModifiers & UE.EventModifiers.FunctionKey) != 0)
-                        keyArgs.uwfModifiers &= ~UE.EventModifiers.FunctionKey;
-
-                    var keyEventType = (Application.KeyEvents) (currentType - 3);
-                    if (keyEventType == Application.KeyEvents.Down || keyEventType == Application.KeyEvents.Up)
-                        controller.ProcessKeys(keyArgs, keyEventType);
-                }
+                UpdateMouse();
+                UpdateKeys();
             }
 
             // Scale if needed.

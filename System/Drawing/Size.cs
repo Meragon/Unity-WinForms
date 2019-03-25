@@ -1,20 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-
-namespace System.Drawing
+﻿namespace System.Drawing
 {
+    using System.Globalization;
+    
     [Serializable]
     public struct Size : IEquatable<Size>
     {
-        private int width;
-        private int height;
-
         public static readonly Size Empty = new Size();
 
+        public Size(Point pt) : this()
+        {
+            Width = pt.X;
+            Height = pt.Y;
+        }
+        public Size(int width, int height) : this()
+        {
+            Width = width;
+            Height = height;
+        }
+        
         public static implicit operator SizeF(Size p)
         {
             return new SizeF(p.Width, p.Height);
@@ -41,52 +44,12 @@ namespace System.Drawing
             return !(sz1 == sz2);
         }
 
-        public int Height
-        {
-            get { return height; }
-            set { height = value; }
-        }
+        public int Height { get; set; }
         public bool IsEmpty
         {
-            get { return width == 0 && height == 0; }
+            get { return Width == 0 && Height == 0; }
         }
-        public int Width
-        {
-            get { return width; }
-            set { width = value; }
-        }
-
-        public Size(Point pt)
-        {
-            width = pt.X;
-            height = pt.Y;
-        }
-        public Size(int width, int height)
-        {
-            this.width = width;
-            this.height = height;
-        }
-
-        public bool Equals(Size other)
-        {
-            return width == other.width && height == other.height;
-        }
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            return obj is Size && Equals((Size) obj);
-        }
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (width * 397) ^ height;
-            }
-        }
-        public override string ToString()
-        {
-            return "{Width=" + width.ToString(CultureInfo.CurrentCulture) + ", Height=" + height.ToString(CultureInfo.CurrentCulture) + "}";
-        }
+        public int Width { get; set; }
 
         public static Size Add(Size sz1, Size sz2)
         {
@@ -107,6 +70,24 @@ namespace System.Drawing
         public static Size Round(SizeF value)
         {
             return new Size((int)Math.Round(value.Width), (int)Math.Round(value.Height));
+        }
+        
+        public bool Equals(Size other)
+        {
+            return Width == other.Width && Height == other.Height;
+        }
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            return obj is Size && Equals((Size) obj);
+        }
+        public override int GetHashCode()
+        {
+            return Width ^ Height;
+        }
+        public override string ToString()
+        {
+            return "{Width=" + Width.ToString(CultureInfo.CurrentCulture) + ", Height=" + Height.ToString(CultureInfo.CurrentCulture) + "}";
         }
     }
 }

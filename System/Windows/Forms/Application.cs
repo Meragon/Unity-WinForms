@@ -10,9 +10,6 @@
     public class Application
     {
         internal static Control activeResizeControl;
-        internal static CultureInfo currentCulture = ApiHolder.System.CurrentCulture;
-        internal static bool dragndrop;
-        internal static object dragData;
         internal readonly List<Control> Contexts = new List<Control>();
         internal readonly FormCollection Forms = new FormCollection();
         internal readonly List<Form> ModalForms = new List<Form>();
@@ -21,18 +18,25 @@
 
         private static DragDropEffects dragControlEffects;
         private static DragDropRenderHandler dragRender;
-        private static MouseEvents mouseEvent = 0;
-        private static MouseButtons mouseButton = 0;
-        private static MouseButtons mouseButtonLastPressed;
-        private static Control mouseLastClickControl;
-        private static float mouseWheelDelta;
-        private static bool mousePositionChanged;
         private static float scaleX = 1f;
         private static float scaleY = 1f;
-        private static bool updateHoveredControl;
         private readonly PaintEventArgs paintEventArgs;
-        private float mousePositionX;
-        private float mousePositionY;
+
+        private MouseEvents  mouseEvent  = 0;
+        private MouseButtons mouseButton = 0;
+        private MouseButtons mouseButtonLastPressed;
+        private Control      mouseLastClickControl;
+        private float        mouseWheelDelta;
+        private bool         mousePositionChanged;
+        private float        mousePositionX;
+        private float        mousePositionY;
+        
+        private bool updateHoveredControl;
+
+        static Application()
+        {
+            CurrentCulture = ApiHolder.System.CurrentCulture;
+        }
         
         public Application()
         {
@@ -66,7 +70,9 @@
             Up
         }
 
-        internal static bool IsDragging { get { return dragndrop; } }
+        internal static CultureInfo CurrentCulture { get; set; }
+        internal static object DraggingData { get; private set; }
+        internal static bool IsDragging { get; private set; }
         internal static float ScaleX
         {
             get { return scaleX; }
@@ -156,10 +162,10 @@
             mousePositionX = mX;
             mousePositionY = mY;
 
-            switch (mE)
+            switch (mouseEvent)
             {
                 case MouseEvents.None:
-                    if (mousePositionChanged == false)
+                    if (!mousePositionChanged)
                         return;
                     break;
                 
@@ -181,28 +187,28 @@
                 if (!contextControl.uwfContext) continue;
 
                 if (Contains(contextControl, hoveredControl)) continue;
-                if (mE != MouseEvents.Down) continue;
+                if (mouseEvent != MouseEvents.Down) continue;
 
                 contextControl.Dispose();
             }
 
-            if (hoveredControl == null && mE == MouseEvents.Up)
+            if (hoveredControl == null && mouseEvent == MouseEvents.Up)
             {
-                dragndrop = false;
-                dragData = null;
+                IsDragging = false;
+                DraggingData = null;
                 dragRender = null;
             }
 
             if (hoveredControl != null)
                 RaiseMouseEvents(new PointF(mX, mY), hoveredControl, false);
 
-            if (mE == MouseEvents.Down)
+            if (mouseEvent == MouseEvents.Down)
             {
                 var downArgs = new MouseEventArgs(mouseButton, clicks, (int) mX, (int) mY, delta);
                 MouseHook.RaiseMouseDown(hoveredControl, downArgs);
             }
 
-            if (mE == MouseEvents.Up)
+            if (mouseEvent == MouseEvents.Up)
             {
                 var upArgs = new MouseEventArgs(mouseButton, clicks, (int) mX, (int) mY, delta);
                 MouseHook.RaiseMouseUp(hoveredControl, upArgs);
@@ -233,7 +239,7 @@
                 if (context.Visible) context.RaiseOnPaint(paintEventArgs);
             }
 
-            if (dragRender != null && dragndrop)
+            if (dragRender != null && IsDragging)
             {
                 var g = new Graphics();
                 var dragRenderControl = new Control();
@@ -258,104 +264,17 @@
         public void Run(Control control)
         {
             control.uwfAppOwner = this;
-            //this.Controls.Add(control);
         }
         public void Update()
         {
-            // Update hovered control.
-            if (hoveredControl != null/* && dragndrop == false*/)
-            {
-                var mclient = hoveredControl.PointToClient(Control.MousePosition);
-                var hargs = new MouseEventArgs(mouseButtonLastPressed, 0, mclient.X, mclient.Y, 0);
-                hoveredControl.RaiseOnMouseHover(hargs);
-                if (updateHoveredControl)
-                    hoveredControl.RaiseOnMouseMove(hargs);
-            }
-
-            if (updateHoveredControl)
-            {
-                var controlAtMouse = ControlAt(Control.MousePosition);
-                if (hoveredControl != controlAtMouse && hoveredControl != null)
-                {
-                    hoveredControl.hovered = false;
-                    hoveredControl.mouseEntered = false;
-                    hoveredControl.RaiseOnMouseLeave(new MouseEventArgs(mouseButtonLastPressed, 0, 0, 0, 0));
-                    if (dragndrop)
-                        hoveredControl.RaiseOnDragLeave(EventArgs.Empty);
-                }
-                if (controlAtMouse == null)
-                    hoveredControl = null;
-                else
-                {
-                    hoveredControl = controlAtMouse;
-                    if (controlAtMouse.mouseEntered == false)
-                    {
-                        var mclient = controlAtMouse.PointToClient(Control.MousePosition);
-
-                        controlAtMouse.hovered = true;
-                        controlAtMouse.mouseEntered = true;
-                        controlAtMouse.RaiseOnMouseEnter(new MouseEventArgs(mouseButtonLastPressed, 0, mclient.X, mclient.Y, 0));
-                        if (dragndrop)
-                            controlAtMouse.RaiseOnDragEnter(new DragEventArgs(new DataObject(dragData), 0, mclient.X, mclient.Y, DragDropEffects.None, dragControlEffects));
-                    }
-                }
-
-                updateHoveredControl = false;
-            }
-
-            // Update cursor for resize events.
-            if (activeResizeControl == null)
-            {
-                if (hoveredControl == null)
-                    Cursor.CurrentSystem = null;
-                else
-                {
-                    var iResizableControl = hoveredControl as IResizableControl;
-                    var resizableControl = iResizableControl as Control;
-                    if (iResizableControl != null && resizableControl != null)
-                    {
-                        var formClientPosition = resizableControl.PointToClient(Control.MousePosition);
-                        var hoveredFormResize = iResizableControl.GetResizeAt(formClientPosition);
-                        switch (hoveredFormResize)
-                        {
-                            default:
-                            case ControlResizeTypes.None:
-                                Cursor.CurrentSystem = null;
-                                break;
-
-                            case ControlResizeTypes.Down:
-                            case ControlResizeTypes.Up:
-                            case ControlResizeTypes.DownUp:
-                                Cursor.CurrentSystem = Cursors.SizeNS;
-                                break;
-
-                            case ControlResizeTypes.Left:
-                            case ControlResizeTypes.Right:
-                            case ControlResizeTypes.LeftRight:
-                                Cursor.CurrentSystem = Cursors.SizeWE;
-                                break;
-
-                            case ControlResizeTypes.LeftDown:
-                            case ControlResizeTypes.RightUp:
-                                Cursor.CurrentSystem = Cursors.SizeNESW;
-                                break;
-
-                            case ControlResizeTypes.LeftUp:
-                            case ControlResizeTypes.RightDown:
-                                Cursor.CurrentSystem = Cursors.SizeNWSE;
-                                break;
-                        }
-                    }
-                    else
-                        Cursor.CurrentSystem = null;
-                }
-            }
+            UpdateHoveredControl();
+            UpdateResizeCursor();
 
             var updateEventHandler = UpdateEvent;
             if (updateEventHandler != null)
                 updateEventHandler();
         }
-
+        
         internal static bool ControlIsVisible(Control control)
         {
             if (control.Visible == false) return false;
@@ -364,25 +283,25 @@
             var controlLocation = control.Location;
             var controlLocationX = controlLocation.X;
             var controlLocationY = controlLocation.Y;
-            var controluwfOffsetX = co.X;
-            var controluwfOffsetY = co.Y;
+            var controlOffsetX = co.X;
+            var controlOffsetY = co.Y;
             var controlWidth = control.Width;
             var controlHeight = control.Height;
 
-            if (controlLocationX + controluwfOffsetX + controlWidth < 0) return false;
-            if (controlLocationY + controluwfOffsetY + controlHeight < 0) return false;
+            if (controlLocationX + controlOffsetX + controlWidth < 0) return false;
+            if (controlLocationY + controlOffsetY + controlHeight < 0) return false;
 
             var controlParent = control.Parent;
             if (controlParent != null)
             {
-                if (controlLocationX + controluwfOffsetX > controlParent.Width) return false;
-                if (controlLocationY + controluwfOffsetY > controlParent.Height) return false;
+                if (controlLocationX + controlOffsetX > controlParent.Width) return false;
+                if (controlLocationY + controlOffsetY > controlParent.Height) return false;
             }
             return true;
         }
         internal static void DoDragDrop(object data, DragDropEffects effect, DragDropRenderHandler render = null)
         {
-            dragData = data;
+            DraggingData = data;
             dragControlEffects = effect;
             dragRender = render;
         }
@@ -444,9 +363,10 @@
                 if (child.Visible == false || child.Enabled == false) continue;
             
                 // Base child bounds.
-                var childX1 = child.Location.X + child.uwfOffset.X;
+                var childOffset = child.uwfOffset;
+                var childX1 = child.Location.X + childOffset.X;
                 var childX2 = childX1 + child.Width;
-                var childY1 = child.Location.Y + child.uwfOffset.Y;
+                var childY1 = child.Location.Y + childOffset.Y;
                 var childY2 = childY1 + child.Height;
 
                 if (!child.uwfSystem)
@@ -477,7 +397,7 @@
 
             return currentControl;
         }
-        private static void RaiseMouseEvents(PointF mousePosition, Control control, bool ignoreRect)
+        private void RaiseMouseEvents(PointF mousePosition, Control control, bool ignoreRect)
         {
             var mousePositionInt = new Point((int) mousePosition.X, (int) mousePosition.Y);
             var mouseRelativePosition = control.PointToClient(mousePositionInt);
@@ -487,8 +407,8 @@
             {
                 if (mousePositionChanged)
                 {
-                    if (dragData != null)
-                        dragndrop = true;
+                    if (DraggingData != null)
+                        IsDragging = true;
                 }
                 
                 if (!controlContainsMousePosition && mouseEvent != MouseEvents.Up)
@@ -506,11 +426,11 @@
 
                     case MouseEvents.Up:
                     {
-                        if (dragndrop)
+                        if (IsDragging)
                         {
                             if (control.AllowDrop)
                             {
-                                var dndData = new DataObject(dragData);
+                                var dndData = new DataObject(DraggingData);
                                 var dndArgs = new DragEventArgs(dndData,
                                     0,
                                     mouseRelativePosition.X,
@@ -520,8 +440,8 @@
                                 control.RaiseOnDragDrop(dndArgs);
                             }
 
-                            dragData = null;
-                            dragndrop = false;
+                            DraggingData = null;
+                            IsDragging = false;
                             return;
                         }
 
@@ -561,7 +481,7 @@
             if (!controlContainsMousePosition)
                 control.RaiseOnMouseLeave(null);
         }
-        private static void RaiseKeyEvent(KeyEventArgs args, KeyEvents keyEventType, Control keyControl)
+        private void RaiseKeyEvent(KeyEventArgs args, KeyEvents keyEventType, Control keyControl)
         {
             switch (keyEventType)
             {
@@ -642,6 +562,99 @@
                 control = FindControlAt(control, mousePosition);
 
             return control;
+        }
+        private void UpdateHoveredControl()
+        {
+            if (hoveredControl != null /* && dragndrop == false*/)
+            {
+                var mclient = hoveredControl.PointToClient(Control.MousePosition);
+                var hargs = new MouseEventArgs(mouseButtonLastPressed, 0, mclient.X, mclient.Y, 0);
+                hoveredControl.RaiseOnMouseHover(hargs);
+                if (updateHoveredControl)
+                    hoveredControl.RaiseOnMouseMove(hargs);
+            }
+
+            if (updateHoveredControl)
+            {
+                var controlAtMouse = ControlAt(Control.MousePosition);
+                if (hoveredControl != controlAtMouse && hoveredControl != null)
+                {
+                    hoveredControl.hovered = false;
+                    hoveredControl.mouseEntered = false;
+                    hoveredControl.RaiseOnMouseLeave(new MouseEventArgs(mouseButtonLastPressed, 0, 0, 0, 0));
+                    if (IsDragging)
+                        hoveredControl.RaiseOnDragLeave(EventArgs.Empty);
+                }
+
+                if (controlAtMouse == null)
+                    hoveredControl = null;
+                else
+                {
+                    hoveredControl = controlAtMouse;
+                    if (controlAtMouse.mouseEntered == false)
+                    {
+                        var mclient = controlAtMouse.PointToClient(Control.MousePosition);
+
+                        controlAtMouse.hovered = true;
+                        controlAtMouse.mouseEntered = true;
+                        controlAtMouse.RaiseOnMouseEnter(new MouseEventArgs(mouseButtonLastPressed, 0, mclient.X, mclient.Y, 0));
+                        if (IsDragging)
+                            controlAtMouse.RaiseOnDragEnter(new DragEventArgs(new DataObject(DraggingData), 0, mclient.X, mclient.Y,
+                                DragDropEffects.None, dragControlEffects));
+                    }
+                }
+
+                updateHoveredControl = false;
+            }
+        }
+        private void UpdateResizeCursor()
+        {
+            // Update cursor for resize events.
+            if (activeResizeControl == null)
+            {
+                if (hoveredControl == null)
+                    Cursor.CurrentSystem = null;
+                else
+                {
+                    var iResizableControl = hoveredControl as IResizableControl;
+                    var resizableControl = iResizableControl as Control;
+                    if (iResizableControl != null && resizableControl != null)
+                    {
+                        var formClientPosition = resizableControl.PointToClient(Control.MousePosition);
+                        var hoveredFormResize = iResizableControl.GetResizeAt(formClientPosition);
+                        switch (hoveredFormResize)
+                        {
+                            default:
+                                Cursor.CurrentSystem = null;
+                                break;
+
+                            case ControlResizeTypes.Down:
+                            case ControlResizeTypes.Up:
+                            case ControlResizeTypes.DownUp:
+                                Cursor.CurrentSystem = Cursors.SizeNS;
+                                break;
+
+                            case ControlResizeTypes.Left:
+                            case ControlResizeTypes.Right:
+                            case ControlResizeTypes.LeftRight:
+                                Cursor.CurrentSystem = Cursors.SizeWE;
+                                break;
+
+                            case ControlResizeTypes.LeftDown:
+                            case ControlResizeTypes.RightUp:
+                                Cursor.CurrentSystem = Cursors.SizeNESW;
+                                break;
+
+                            case ControlResizeTypes.LeftUp:
+                            case ControlResizeTypes.RightDown:
+                                Cursor.CurrentSystem = Cursors.SizeNWSE;
+                                break;
+                        }
+                    }
+                    else
+                        Cursor.CurrentSystem = null;
+                }
+            }
         }
     }
 }

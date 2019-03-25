@@ -6,7 +6,7 @@
 
     public class MonthCalendar : Control
     {
-        internal CultureInfo uwfCultureInfo = Application.currentCulture;
+        internal CultureInfo uwfCultureInfo = Application.CurrentCulture;
         internal Padding uwfInnerPadding = new Padding(1);
 
         private readonly Pen borderPen = new Pen(SystemColors.ControlDark);

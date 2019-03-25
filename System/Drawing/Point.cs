@@ -6,37 +6,32 @@
     {
         public static readonly Point Empty = new Point();
 
-        private int x, y;
-
-        public Point(int x, int y)
+        public Point(int x, int y) : this()
         {
-            this.x = 0;
-            this.y = 0;
-
             X = x;
             Y = y;
         }
-        public Point(Size sz)
+        public Point(Size sz) : this()
         {
-            x = sz.Width;
-            y = sz.Height;
+            X = sz.Width;
+            Y = sz.Height;
         }
-        public Point(int dw)
+        public Point(int dw) : this()
         {
             unchecked
             {
-                x = (short)LOWORD(dw);
-                y = (short)HIWORD(dw);
+                X = (short)LOWORD(dw);
+                Y = (short)HIWORD(dw);
             }
         }
 
         public bool IsEmpty
         {
-            get { return x == 0 && y == 0; }
+            get { return X == 0 && Y == 0; }
         }
-        public int X { get { return x; } set { x = value; } }
-        public int Y { get { return y; } set { y = value; } }
-        
+        public int X { get; set; }
+        public int Y { get; set; }
+
         public static implicit operator PointF(Point p)
         {
             return new PointF(p.X, p.Y);
@@ -86,7 +81,7 @@
 
         public bool Equals(Point other)
         {
-            return x == other.x && y == other.y;
+            return X == other.X && Y == other.Y;
         }
         public override bool Equals(object obj)
         {
@@ -95,20 +90,17 @@
         }
         public override int GetHashCode()
         {
-            unchecked
-            {
-                return (x * 397) ^ y;
-            }
+            return X ^ Y;
         }
         public void Offset(int dx, int dy)
         {
-            x += dx;
-            y += dy;
+            X += dx;
+            Y += dy;
         }
         public void Offset(Point point)
         {
-            x += point.X;
-            y += point.Y;
+            X += point.X;
+            Y += point.Y;
         }
         public override string ToString()
         {

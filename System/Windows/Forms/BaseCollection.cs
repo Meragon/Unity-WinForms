@@ -2,7 +2,7 @@
 {
     using System.Collections;
 
-    public class BaseCollection : IEnumerable, ICollection
+    public class BaseCollection : ICollection
     {
         private readonly ArrayList list;
 
@@ -18,9 +18,9 @@
 
         protected virtual ArrayList List { get { return list; } }
 
-        public void CopyTo(Array ar, int index)
+        public void CopyTo(Array array, int index)
         {
-            list.CopyTo(ar, index);
+            list.CopyTo(array, index);
         }
         public IEnumerator GetEnumerator()
         {
