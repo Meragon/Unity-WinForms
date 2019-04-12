@@ -338,6 +338,8 @@
             var form = this as Form ?? Application.GetRootControl(this) as Form;
             if (form != null)
             {
+                Form.ActiveForm = form;
+                
                 var forms = uwfAppOwner.Forms;
                 if (forms.Contains(form))
                 {
@@ -529,6 +531,10 @@
         internal virtual void RaiseOnDragLeave(EventArgs e)
         {
             OnDragLeave(e);
+        }
+        internal virtual void RaiseOnLostFocus(EventArgs e)
+        {
+            OnLostFocus(e);
         }
         internal virtual void RaiseOnMouseClick(MouseEventArgs e)
         {

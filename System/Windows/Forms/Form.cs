@@ -10,7 +10,7 @@
         internal bool formMoving;
         internal Color uwfHeaderColor = defaultFormHeaderColor;
         internal Font uwfHeaderFont;
-        internal int uwfHeaderHeight = 24;
+        internal int uwfHeaderHeight;
         internal Padding uwfHeaderPadding = defaultFormPadding;
         internal ContentAlignment uwfHeaderTextAlign;
         internal Color uwfHeaderTextColor = defaultFormHeaderTextColor;
@@ -64,18 +64,21 @@
             MinimumSize = new Size(128, 48);
             Visible = false;
 
+            uwfHeaderHeight = SystemInformation.CaptionHeight;
             uwfHeaderFont = Font;
             uwfHeaderTextAlign = ContentAlignment.MiddleLeft;
             uwfShadowBox = true;
             uwfShadowHandler = DrawShadow;
 
             Application.UpdateEvent += Application_UpdateEvent;
-            MouseHook.MouseUp += Application_UpClick;
+            MouseHook.MouseUp += MouseHook_MouseUp;
         }
 
         public event FormClosedEventHandler FormClosed;
         public event FormClosingEventHandler FormClosing;
         public event EventHandler Shown;
+
+        public static Form ActiveForm { get; internal set; }
 
         public IButtonControl AcceptButton { get; set; }
         public override Color BackColor
@@ -407,7 +410,7 @@
                 Size = new Size(estimatedWidth, estimatedHeight);
             }
         }
-        internal virtual void Application_UpClick(object sender, MouseEventArgs e)
+        internal virtual void MouseHook_MouseUp(object sender, MouseEventArgs e)
         {
             if (formMoving)
             {
@@ -521,7 +524,7 @@
         }
         protected override void Dispose(bool release_all)
         {
-            MouseHook.MouseUp -= Application_UpClick;
+            MouseHook.MouseUp -= MouseHook_MouseUp;
             Application.UpdateEvent -= Application_UpdateEvent;
 
             if (IsModal == false)

@@ -4,28 +4,26 @@
 
     public class HScrollBar : ScrollBar
     {
-        private readonly Size buttonSize = new Size(17, 15);
-
         public HScrollBar()
         {
             scrollOrientation = ScrollOrientation.HorizontalScroll;
 
             subtractButton.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom;
             subtractButton.Image = uwfAppOwner.Resources.CurvedArrowLeft;
+            subtractButton.Size = new Size(SystemInformation.HorizontalScrollBarArrowWidth, SystemInformation.HorizontalScrollBarHeight);
             subtractButton.Location = new Point(0, 0);
-            subtractButton.Size = buttonSize;
 
             addButton.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
             addButton.Image = uwfAppOwner.Resources.CurvedArrowRight;
-            addButton.Location = new Point(Width - buttonSize.Width, 0);
-            addButton.Size = buttonSize;
+            addButton.Size = new Size(SystemInformation.HorizontalScrollBarArrowWidth, SystemInformation.HorizontalScrollBarHeight);;
+            addButton.Location = new Point(Width - addButton.Width, 0);
 
             UpdateScrollRect();
         }
 
         protected override Size DefaultSize
         {
-            get { return new Size(80, 15); }
+            get { return new Size(80, SystemInformation.HorizontalScrollBarHeight); }
         }
     }
 }

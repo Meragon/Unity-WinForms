@@ -35,7 +35,8 @@
 
         static Application()
         {
-            CurrentCulture = ApiHolder.System.CurrentCulture;
+            if (ApiHolder.System != null)
+                CurrentCulture = ApiHolder.System.CurrentCulture;
         }
         
         public Application()
@@ -321,6 +322,11 @@
                 return GetRootControl(control.Parent);
 
             return control;
+        }
+        internal void LostFocus()
+        {
+            if (hoveredControl != null)
+                hoveredControl.RaiseOnLostFocus(EventArgs.Empty);
         }
         internal void UpdatePaintClipRect()
         {

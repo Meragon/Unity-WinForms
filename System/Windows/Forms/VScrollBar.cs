@@ -4,28 +4,26 @@
 
     public class VScrollBar : ScrollBar
     {
-        private readonly Size buttonSize = new Size(15, 17);
-
         public VScrollBar()
         {
             scrollOrientation = ScrollOrientation.VerticalScroll;
 
             subtractButton.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             subtractButton.Image = uwfAppOwner.Resources.CurvedArrowUp;
+            subtractButton.Size = new Size(SystemInformation.VerticalScrollBarWidth, SystemInformation.VerticalScrollBarArrowHeight);
             subtractButton.Location = new Point(0, 0);
-            subtractButton.Size = buttonSize;
 
             addButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             addButton.Image = uwfAppOwner.Resources.CurvedArrowDown;
-            addButton.Location = new Point(0, Height - buttonSize.Height);
-            addButton.Size = buttonSize;
+            addButton.Size = new Size(SystemInformation.VerticalScrollBarWidth, SystemInformation.VerticalScrollBarArrowHeight);
+            addButton.Location = new Point(0, Height - addButton.Height);
 
             UpdateScrollRect();
         }
 
         protected override Size DefaultSize
         {
-            get { return new Size(15, 80); }
+            get { return new Size(SystemInformation.VerticalScrollBarWidth, 80); }
         }
     }
 }
