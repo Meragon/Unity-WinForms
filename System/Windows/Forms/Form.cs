@@ -703,7 +703,6 @@
             closeButton.uwfHoverColor = Color.FromArgb(64, 252, 252, 252);
             closeButton.uwfImageColor = Color.FromArgb(64, 64, 64);
             closeButton.uwfImageHoverColor = Color.FromArgb(128, 128, 128);
-            closeButton.uwfSystem = true;
 
             closeButton.BringToFront();
             closeButton.Click += OnCloseButtonOnClick;
@@ -841,18 +840,20 @@
             }
         }
 
-        private class formSystemButton : Button
+        internal class formSystemButton : Button
         {
             internal bool formPainting;
 
             public formSystemButton()
             {
                 SetStyle(ControlStyles.Selectable, false);
+
+                uwfSystem = true;
             }
 
             protected override void OnPaint(PaintEventArgs e)
             {
-                if (formPainting)
+                if (formPainting && Visible)
                     base.OnPaint(e);
             }
         }

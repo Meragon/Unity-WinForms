@@ -305,7 +305,7 @@
                     if (Focused && Enabled)
                     {
                         // Select text.
-                        if (selectTextOnFocus)
+                        if (selectTextOnFocus || shouldFocus)
                             g.uwfFocusNext();
 
                         var filterBuffer = g.uwfDrawTextField(filter, Font, ForeColor, 2, 0, textWidth, height, HorizontalAlignment.Left);
@@ -318,6 +318,12 @@
                         }
                         filter = filterBuffer;
 
+                        if (shouldFocus)
+                        {
+                            e.Graphics.uwfFocus();
+                            shouldFocus = false;
+                        }
+                        
                         if (selectTextOnFocus)
                         {
                             var te = UnityEngine.GUIUtility.GetStateObject(typeof(UnityEngine.TextEditor),
