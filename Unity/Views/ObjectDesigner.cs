@@ -91,7 +91,7 @@
                 fields = objType.GetFields(BindingFlags.Public | BindingFlags.Instance).ToList();
                 fields.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal));
 
-                methods = objType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public).ToList();
+                methods = objType.GetMethods(BindingFlags.Instance | BindingFlags.Public).ToList();
                 methods.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal));
                 
                 for (int i = 0; i < methods.Count; i++)

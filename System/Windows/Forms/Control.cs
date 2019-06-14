@@ -363,6 +363,10 @@
         {
             return FocusInternal();
         }
+        public void Hide()
+        {
+            Visible = false;
+        }
         public virtual void Invalidate()
         {
         }
@@ -440,6 +444,10 @@
                 argHeight = height;
             if (x != argX || y != argY || (width != argWidth || height != argHeight))
                 SetBoundsCore(argX, argY, argWidth, argHeight, specified);
+        }
+        public void Show()
+        {
+            Visible = true;
         }
         public void SuspendLayout()
         {

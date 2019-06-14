@@ -143,7 +143,10 @@
                 }
             }
         }
-        public bool IsModal { get { return uwfAppOwner.ModalForms.Contains(this); } }
+        public bool IsModal
+        {
+            get { return dialog; }
+        }
         public FormBorderStyle FormBorderStyle { get; set; }
         public bool KeyPreview { get; set; }
         public MenuStrip MainMenuStrip { get { return mainMenuStrip; } set { mainMenuStrip = value; } }
@@ -273,10 +276,6 @@
 
             return r_type;
         }
-        public void Hide()
-        {
-            Visible = false;
-        }
         public void SetResize(ControlResizeTypes resize)
         {
             resizeType = resize;
@@ -295,23 +294,6 @@
                     break;
             }
         }
-        public void Show()
-        {
-            if (Visible)
-                return;
-
-            PlaceAtStartPosition(startPosition);
-
-            Visible = true;
-
-
-            if (MdiParent == null && uwfAppOwner.Forms.Contains(this) == false)
-                uwfAppOwner.Forms.Add(this);
-
-            TryFocus();
-
-            OnShown(EventArgs.Empty);
-        }
         public void Show(Form owner) // original: public void Show(IWin32Window owner)
         {
             this.owner = owner;
@@ -326,21 +308,11 @@
         {
             this.owner = owner;
 
-            PlaceAtStartPosition(startPosition);
-
             dialog = true;
             dialogCallback = onClosed;
 
             Visible = true;
-
-            int self = uwfAppOwner.ModalForms.FindIndex(x => x == this);
-            if (self == -1)
-                uwfAppOwner.ModalForms.Add(this);
-
-            TryFocus();
-
-            OnShown(EventArgs.Empty);
-
+            
             return DialogResult;
         }
 
@@ -527,10 +499,8 @@
             MouseHook.MouseUp -= MouseHook_MouseUp;
             Application.UpdateEvent -= Application_UpdateEvent;
 
-            if (IsModal == false)
-                uwfAppOwner.Forms.Remove(this);
-            else
-                uwfAppOwner.ModalForms.Remove(this);
+            RemoveFormFromCollection();
+            
             base.Dispose(release_all);
         }
         protected virtual void OnFormClosed(FormClosedEventArgs e)
@@ -638,6 +608,26 @@
             var shown = Shown;
             if (shown != null)
                 shown(this, e);
+        }
+        protected override void OnVisibleChanged(EventArgs e)
+        {
+            if (Visible)
+            {
+                PlaceAtStartPosition(startPosition);
+
+                if (MdiParent == null) 
+                    AddFormToCollection();
+
+                TryFocus();
+
+                OnShown(EventArgs.Empty);
+            }
+            else
+            {
+                RemoveFormFromCollection();
+            }
+
+            base.OnVisibleChanged(e);
         }
         protected override void SetBoundsCore(int x, int y, int width, int height, BoundsSpecified specified)
         {
@@ -811,6 +801,31 @@
             return false;
         }
 
+        private void AddFormToCollection()
+        {
+            if (dialog)
+            {
+                if (!uwfAppOwner.ModalForms.Contains(this))
+                    uwfAppOwner.ModalForms.Add(this);
+            }
+            else if (!uwfAppOwner.Forms.Contains(this))
+            {
+                uwfAppOwner.Forms.Add(this);   
+            }
+        }
+        private void RemoveFormFromCollection()
+        {
+            if (dialog)
+            {
+                if (uwfAppOwner.ModalForms.Contains(this))
+                    uwfAppOwner.ModalForms.Remove(this);
+            }
+            else if (uwfAppOwner.Forms.Contains(this))
+            {
+                uwfAppOwner.Forms.Remove(this);   
+            }
+        }
+        
         private new class ControlCollection : Control.ControlCollection
         {
             private readonly Form owner;
