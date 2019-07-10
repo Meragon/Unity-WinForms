@@ -574,11 +574,15 @@ namespace System.Windows.Forms
                     var fInfo = info.Info;
                     if (fInfo == null)
                         return;
+
+                    var foreColor = e.Node.ForeColor;
+                    if (foreColor.IsEmpty)
+                        foreColor = ForeColor;
                     
                     e.Graphics.uwfDrawString(
                         fInfo.LastWriteTime.ToString("dd.MM.yyyy HH:mm"), 
                         Font, 
-                        e.Node.ForeColor, 
+                        foreColor, 
                         selectionBounds.X + 440,
                         selectionBounds.Y,
                         200,
@@ -587,7 +591,7 @@ namespace System.Windows.Forms
                     e.Graphics.uwfDrawString(
                         info.sizeStr, 
                         Font, 
-                        e.Node.ForeColor, 
+                        foreColor, 
                         selectionBounds.X + 400,
                         selectionBounds.Y,
                         selectionBounds.Width - 412,

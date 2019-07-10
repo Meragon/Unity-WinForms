@@ -575,12 +575,8 @@
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            var g = e.Graphics;
-            var headerHeight = uwfHeaderHeight;
-            var width = Width;
-
             // Background color.
-            g.uwfFillRectangle(BackColor, 0, headerHeight, width, Height - headerHeight);
+            e.Graphics.uwfFillRectangle(BackColor, 0, uwfHeaderHeight, Width, Height - uwfHeaderHeight);
         }
         protected virtual void OnShown(EventArgs e)
         {
@@ -608,11 +604,7 @@
 
             base.OnVisibleChanged(e);
         }
-        protected override void SetBoundsCore(int newX, int newY, int newWidth, int newHeight, BoundsSpecified specified)
-        {
-            base.SetBoundsCore(newX, newY, newWidth, newHeight, specified);
-        }
-
+        
         private void DrawShadow(PaintEventArgs e)
         {
             var loc = uwfShadowPointToScreen(Location);

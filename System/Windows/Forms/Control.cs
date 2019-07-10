@@ -898,9 +898,9 @@
         protected virtual void OnPaint(PaintEventArgs e)
         {
         }
-        protected virtual void OnPaintBackground(PaintEventArgs pevent)
+        protected virtual void OnPaintBackground(PaintEventArgs e)
         {
-            PaintBackground(pevent, ClientRectangle);
+            PaintBackground(e, ClientRectangle);
         }
         protected virtual void OnParentChanged(EventArgs e)
         {
