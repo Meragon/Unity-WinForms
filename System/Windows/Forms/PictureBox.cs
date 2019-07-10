@@ -5,13 +5,12 @@
 
     public class PictureBox : Control, ISupportInitialize
     {
-        private BorderStyle borderStyle = BorderStyle.None;
-
-        public BorderStyle BorderStyle
+        public PictureBox()
         {
-            get { return borderStyle; }
-            set { borderStyle = value; }
+            BorderStyle = BorderStyle.None;
         }
+
+        public BorderStyle BorderStyle { get; set; }
         public Bitmap Image { get; set; }
 
         protected override Size DefaultSize
@@ -21,9 +20,11 @@
 
         public void BeginInit()
         {
+            // ImageLocation not supported yet.
         }
         public void EndInit()
         {
+            // ImageLocation not supported yet.
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -34,7 +35,7 @@
             if (image != null) // TODO: Animate image.
                 g.DrawImage(image, 0, 0, image.Width, image.Height);
 
-            ControlPaint.PrintBorder(g, ClientRectangle, borderStyle, Border3DStyle.Sunken);
+            ControlPaint.PrintBorder(g, ClientRectangle, BorderStyle, Border3DStyle.Sunken);
 
             base.OnPaint(e);
         }

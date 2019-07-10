@@ -66,7 +66,9 @@
 
             var boxBackColor = uwfBoxBackDisableColor;
             var markColor = uwfMarkColor;
+            
             borderPen.Color = uwfBorderDisableColor;
+            
             if (Enabled)
             {
                 if (uwfHovered)
@@ -93,7 +95,7 @@
 
             g.uwfDrawString(Text, Font, ForeColor, checkRectX + checkRectWH + 4, Padding.Top + 0, Width - 20, Height, TextAlign);
 
-            if (uwfCanDrawTabDots && uwfDrawTabDots && Focused && string.IsNullOrEmpty(Text) == false)
+            if (uwfCanDrawTabDots && uwfDrawTabDots && Focused && !string.IsNullOrEmpty(Text))
             {
                 if (measureText)
                     textSize = g.MeasureString(Text, Font);

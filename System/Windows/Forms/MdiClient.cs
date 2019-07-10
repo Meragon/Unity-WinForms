@@ -44,7 +44,7 @@
                     return;
 
                 var form = value as Form;
-                if (form == null || form.IsMdiChild == false)
+                if (form == null || !form.IsMdiChild)
                     throw new ArgumentException("form");
 
                 owner.items.Add(form);

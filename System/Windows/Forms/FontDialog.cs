@@ -1,4 +1,6 @@
-﻿namespace System.Windows.Forms
+﻿using System.Globalization;
+
+namespace System.Windows.Forms
 {
     using System.Drawing;
     
@@ -24,18 +26,18 @@
         private float     fontSize  = 12;
         private bool      initialized;
 
-        private Button   buttonCancel;
-        private Button   buttonOk;
-        private CheckBox checkStrikeout;
-        private CheckBox checkUnderline;
-        private ComboBox comboScript;
-        private Label    labelSample;
-        private ListBox  listFontName;
-        private ListBox  listFontSize;
-        private ListBox  listFontStyle;
-        private TextBox  textFontName;
-        private TextBox  textFontSize;
-        private TextBox  textFontStyle;
+        private readonly Button   buttonCancel;
+        private readonly Button   buttonOk;
+        private readonly CheckBox checkStrikeout;
+        private readonly CheckBox checkUnderline;
+        private readonly ComboBox comboScript;
+        private readonly Label    labelSample;
+        private readonly ListBox  listFontName;
+        private readonly ListBox  listFontSize;
+        private readonly ListBox  listFontStyle;
+        private readonly TextBox  textFontName;
+        private readonly TextBox  textFontSize;
+        private readonly TextBox  textFontStyle;
         
         public FontDialog()
         {
@@ -270,11 +272,11 @@
         }
         private void UpdateControls()
         {
-            if (initialized == false)
+            if (!initialized)
                 return;
             
             textFontName.Text = fontName;
-            textFontSize.Text = fontSize.ToString();
+            textFontSize.Text = fontSize.ToString(Application.CurrentCulture);
             textFontStyle.Text = listFontStyle.SelectedItem.ToString();
             labelSample.Font = Font;
             

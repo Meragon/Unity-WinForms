@@ -12,10 +12,11 @@
         private Color borderSingleColor = Color.FromArgb(100, 100, 100);
         
         private readonly Pen borderPen = new Pen(Color.White);
+        private readonly bool styleInitialized;
+        
         private char passwordChar = (char)0;
         private string passwordText;
         private string text;
-        private bool styleInitialized;
         
         public TextBox()
         {
@@ -100,8 +101,8 @@
         {
             base.OnEnabledChanged(e);
 
-            backColor = customBackColor == false && Enabled == false ? SystemColors.Control : BackColor;
-            foreColor = customForeColor == false && Enabled == false ? SystemColors.GrayText : ForeColor;
+            backColor = !customBackColor && !Enabled ? SystemColors.Control : BackColor;
+            foreColor = !customForeColor && !Enabled ? SystemColors.GrayText : ForeColor;
         }
         protected override void OnForeColorChanged(EventArgs e)
         {
@@ -116,7 +117,7 @@
         {
             base.OnMouseEnter(e);
 
-            if (Enabled && ReadOnly == false)
+            if (Enabled && !ReadOnly)
                 Cursor.Current = Cursors.IBeam;
         }
         protected override void OnMouseLeave(EventArgs e)
@@ -146,7 +147,7 @@
 
                 if (passwordChar == 0)
                 {
-                    if (Multiline == false)
+                    if (!Multiline)
                         tempText = g.uwfDrawTextField(Text, Font, foreColor, textX, textY, textW, textH, TextAlign);
                     else
                         tempText = g.uwfDrawTextArea(Text, Font, foreColor, textX, textY, textW, textH);
@@ -160,7 +161,7 @@
                     g.uwfFocus();
                 }
 
-                if (ReadOnly == false)
+                if (!ReadOnly)
                     Text = tempText;
             }
             else
@@ -201,8 +202,7 @@
 
         private static string GetPasswordString(string from)
         {
-            if (string.IsNullOrEmpty(from)) return string.Empty;
-            return new string('*', from.Length);
+            return string.IsNullOrEmpty(from) ? string.Empty : new string('*', from.Length);
         }
         private void UpdatePasswordText()
         {

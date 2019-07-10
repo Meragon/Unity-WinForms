@@ -7,7 +7,6 @@
         private readonly Keys keyData;
         private Keys keyCode;
         private bool keyCodeCached;
-        private bool handled;
         private bool suppressKeyPress;
 
         public KeyEventArgs(Keys keyData)
@@ -27,16 +26,12 @@
         {
             get { return (keyData & Keys.Control) == Keys.Control; }
         }
-        public bool Handled
-        {
-            get { return handled; }
-            set { handled = value; }
-        }
+        public bool Handled { get; set; }
         public Keys KeyCode
         {
             get
             {
-                if (keyCodeCached == false)
+                if (!keyCodeCached)
                 {
                     var keys = keyData & Keys.KeyCode;
                     keyCode = !IsKeyDefined(keys) ? Keys.None : keys;
@@ -68,12 +63,9 @@
             set
             {
                 suppressKeyPress = value;
-                handled = value;
+                Handled = value;
             }
         }
-
-        public UnityEngine.KeyCode uwfKeyCode { get; set; }
-        public UnityEngine.EventModifiers uwfModifiers { get; set; }
 
         // Less allocation, will only work with integer types, like typeof(Keys).
         internal static bool IsKeyDefined(Keys value)

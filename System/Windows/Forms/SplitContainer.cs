@@ -1,12 +1,9 @@
-﻿using System.Drawing;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
+    using System.Drawing;
+    
     public class SplitContainer : ContainerControl
     {
-        private readonly SplitterPanel panel1;
-        private readonly SplitterPanel panel2;
-
         private bool cursorWasSet;
         private BorderStyle borderStyle = BorderStyle.None;
         private Orientation orientation = Orientation.Vertical;
@@ -15,18 +12,17 @@ namespace System.Windows.Forms
         private bool panel1WasEnabled;
         private bool panel2WasEnabled;
         private int splitterDistance = 50;
-        private bool splitterFixed;
         private bool splitterMoving;
         private int splitterMovingOffset;
         private int splitterWidth = 4;
 
         public SplitContainer()
         {
-            panel1 = new SplitterPanel(this);
-            panel2 = new SplitterPanel(this);
+            Panel1 = new SplitterPanel(this);
+            Panel2 = new SplitterPanel(this);
             
-            Controls.Add(panel1);
-            Controls.Add(panel2);
+            Controls.Add(Panel1);
+            Controls.Add(Panel2);
             
             UpdateSplitter();
             
@@ -44,8 +40,8 @@ namespace System.Windows.Forms
 
                 borderStyle = value;
                 
-                panel1.BorderStyle = borderStyle;
-                panel2.BorderStyle = borderStyle;
+                Panel1.BorderStyle = borderStyle;
+                Panel2.BorderStyle = borderStyle;
             }
         }
         public Orientation Orientation
@@ -61,25 +57,18 @@ namespace System.Windows.Forms
                 UpdateSplitter();
             }
         }
-        public bool IsSplitterFixed 
-        {
-            get { return splitterFixed; }
-            set { splitterFixed = value; }
-        }
-        public SplitterPanel Panel1
-        {
-            get { return panel1; }
-        }
+        public bool IsSplitterFixed { get; set; }
+        public SplitterPanel Panel1 { get; private set; }
         public bool Panel1Collapsed {
-            get { return panel1.collapsed; }
+            get { return Panel1.collapsed; }
             set {
-                if (panel1.collapsed == value) 
+                if (Panel1.collapsed == value) 
                     return;
                 
-                if (panel2.collapsed && value)
-                    CollapsePanel(panel2, false);
+                if (Panel2.collapsed && value)
+                    CollapsePanel(Panel2, false);
                     
-                CollapsePanel(panel1, value);
+                CollapsePanel(Panel1, value);
             }
         }
         public int Panel1MinSize {
@@ -95,20 +84,17 @@ namespace System.Windows.Forms
                 panel1MinSize = value;
             }
         }
-        public SplitterPanel Panel2
-        {
-            get { return panel2; }
-        }
+        public SplitterPanel Panel2 { get; private set; }
         public bool Panel2Collapsed {
-            get { return panel2.collapsed; }
+            get { return Panel2.collapsed; }
             set {
-                if (panel2.collapsed == value) 
+                if (Panel2.collapsed == value) 
                     return;
 
-                if (panel1.collapsed && value)
-                    CollapsePanel(panel1, false);
+                if (Panel1.collapsed && value)
+                    CollapsePanel(Panel1, false);
                 
-                CollapsePanel(panel2, value);
+                CollapsePanel(Panel2, value);
             }
         }
         public int Panel2MinSize
@@ -166,14 +152,14 @@ namespace System.Windows.Forms
         {
             base.OnMouseDown(e);
 
-            if (splitterFixed == false)
+            if (!IsSplitterFixed)
             {
                 if (Orientation == Orientation.Vertical && e.X >= splitterDistance && e.X <= splitterDistance + splitterWidth ||
                     Orientation == Orientation.Horizontal && e.Y >= splitterDistance && e.Y <= splitterDistance + splitterWidth)
                 {
                     splitterMoving = true;
-                    panel1WasEnabled = panel1.Enabled;
-                    panel2WasEnabled = panel2.Enabled;
+                    panel1WasEnabled = Panel1.Enabled;
+                    panel2WasEnabled = Panel2.Enabled;
 
                     if (Orientation == Orientation.Vertical)
                     {
@@ -257,8 +243,8 @@ namespace System.Windows.Forms
         {
             if (splitterMoving)
             {
-                panel1.Enabled = panel1WasEnabled;
-                panel2.Enabled = panel2WasEnabled;
+                Panel1.Enabled = panel1WasEnabled;
+                Panel2.Enabled = panel2WasEnabled;
                 splitterMoving = false;
                 cursorWasSet = false;
                 Cursor.Current = null;
@@ -271,42 +257,42 @@ namespace System.Windows.Forms
             else if (Orientation == Orientation.Horizontal)
                 splitterDistance = MathHelper.Clamp(splitterDistance, panel1MinSize, Height - panel2MinSize - splitterWidth);
             
-            panel1.SuspendLayout();
-            panel2.SuspendLayout();
+            Panel1.SuspendLayout();
+            Panel2.SuspendLayout();
 
             if (Panel1Collapsed == false && Panel2Collapsed == false)
             {
                 if (Orientation == Orientation.Vertical)
                 {
-                    panel1.Location = new Point();
-                    panel1.Size = new Size(splitterDistance, Height);
-                    panel2.Location = new Point(splitterDistance + splitterWidth, 0);
-                    panel2.Size = new Size(Width - splitterDistance - splitterWidth, Height);
+                    Panel1.Location = new Point();
+                    Panel1.Size = new Size(splitterDistance, Height);
+                    Panel2.Location = new Point(splitterDistance + splitterWidth, 0);
+                    Panel2.Size = new Size(Width - splitterDistance - splitterWidth, Height);
                 }
                 else
                 {
-                    panel1.Location = new Point();
-                    panel1.Size = new Size(Width, splitterDistance);
-                    panel2.Location = new Point(0, splitterDistance + splitterWidth);
-                    panel2.Size = new Size(Width, Height - splitterDistance - splitterWidth);
+                    Panel1.Location = new Point();
+                    Panel1.Size = new Size(Width, splitterDistance);
+                    Panel2.Location = new Point(0, splitterDistance + splitterWidth);
+                    Panel2.Size = new Size(Width, Height - splitterDistance - splitterWidth);
                 }
             }
             else
             {
                 if (Panel1Collapsed)
                 {
-                    panel2.Location = new Point();
-                    panel2.Size = Size;
+                    Panel2.Location = new Point();
+                    Panel2.Size = Size;
                 }
                 else if (Panel2Collapsed)
                 {
-                    panel1.Location = new Point();
-                    panel1.Size = Size;
+                    Panel1.Location = new Point();
+                    Panel1.Size = Size;
                 }
             }
 
-            panel1.ResumeLayout();
-            panel2.ResumeLayout();
+            Panel1.ResumeLayout();
+            Panel2.ResumeLayout();
         }
     }
 }

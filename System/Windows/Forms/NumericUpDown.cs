@@ -132,7 +132,7 @@
             base.uwfOnLatePaint(e);
 
             borderPen.Color = uwfBorderColor;
-            if (Enabled == false)
+            if (!Enabled)
                 borderPen.Color = uwfBorderDisabledColor;
             else if (Focused)
                 borderPen.Color = uwfBorderFocusedColor;

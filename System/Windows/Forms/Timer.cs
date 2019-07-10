@@ -83,12 +83,16 @@
 
         private void Application_UpdateEvent()
         {
-            if (Enabled)
+            if (!Enabled)
+                return;
             
             currentTime += swfHelper.GetDeltaTime();
-            if (!(currentTime > interval / 1000f)) return;
+            
+            if (currentTime <= interval / 1000f) 
+                return;
 
             currentTime = 0;
+            
             OnTick(EventArgs.Empty);
         }
         private void RestartTimer()

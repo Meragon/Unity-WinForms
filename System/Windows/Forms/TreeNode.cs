@@ -14,11 +14,8 @@
         internal int textWidth;
         internal string tagString;
 
-        private Color backColor = Color.Transparent;
-        private bool enabled = true;
         private bool expanded;
         private Color foreColor = DEFAULT_FORE_COLOR;
-        private Color imageColor = Color.White;
         private int imageIndex = -1;
         private string text;
         private bool visible = true;
@@ -29,6 +26,9 @@
         }
         public TreeNode(string text, TreeNode[] children)
         {
+            ImageColor = Color.White;
+            Enabled = true;
+            BackColor = Color.Transparent;
             ImageIndex_Expanded = -1;
             ImageIndex_Collapsed = -1;
             this.text = text;
@@ -36,22 +36,15 @@
             if (children != null)
                 Nodes.AddRange(children);
         }
+        
         internal TreeNode(TreeView treeView) : this(string.Empty)
         {
             this.treeView = treeView;
         }
 
-        public Color BackColor
-        {
-            get { return backColor; }
-            set { backColor = value; }
-        }
+        public Color BackColor { get; set; }
         public Rectangle Bounds { get; internal set; }
-        public bool Enabled
-        {
-            get { return enabled; }
-            set { enabled = value; }
-        }
+        public bool Enabled { get; set; }
         public TreeNode FirstNode
         {
             get
@@ -66,11 +59,7 @@
             get { return foreColor; }
             set { foreColor = value; }
         }
-        public Color ImageColor
-        {
-            get { return imageColor; }
-            set { imageColor = value; }
-        }
+        public Color ImageColor { get; set; }
         public int ImageIndex
         {
             get
@@ -208,11 +197,11 @@
         }
         internal int GetXIndex()
         {
-            return _GetXIndex(this, 0);
+            return GetXIndex(this, 0);
         }
         internal int GetYIndex()
         {
-            return _GetYIndex(this, 0);
+            return GetYIndex(this, 0);
         }
         internal void Remove(bool notify)
         {
@@ -225,24 +214,24 @@
             treeView = null;
         }
 
-        private static int _GetVisibleNodesAmount(TreeNode node, int currentAmount)
+        private static int GetVisibleNodesAmount(TreeNode node, int currentAmount)
         {
             if (node.IsVisible) currentAmount++;
             else return currentAmount;
 
             if (node.IsExpanded)
                 for (int i = 0; i < node.Nodes.Count; i++)
-                    currentAmount = _GetVisibleNodesAmount(node.Nodes[i], currentAmount);
+                    currentAmount = GetVisibleNodesAmount(node.Nodes[i], currentAmount);
 
             return currentAmount;
         }
-        private int _GetXIndex(TreeNode currentNode, int currentX)
+        private int GetXIndex(TreeNode currentNode, int currentX)
         {
             if (currentNode.parent == null) return currentX;
 
-            return _GetXIndex(currentNode.parent, currentX) + 1;
+            return GetXIndex(currentNode.parent, currentX) + 1;
         }
-        private int _GetYIndex(TreeNode currentNode, int currentY)
+        private int GetYIndex(TreeNode currentNode, int currentY)
         {
             if (currentNode.parent == null) return currentY;
 
@@ -251,9 +240,9 @@
             if (currentNode.parent != TreeView.root && currentNode.parent.IsVisible) currentY++;
 
             for (int i = 0; i < currentNode.index; i++)
-                currentY += _GetVisibleNodesAmount(currentNode.parent.Nodes[i], 0);
+                currentY += GetVisibleNodesAmount(currentNode.parent.Nodes[i], 0);
 
-            return _GetYIndex(currentNode.parent, currentY);
+            return GetYIndex(currentNode.parent, currentY);
         }
     }
 }

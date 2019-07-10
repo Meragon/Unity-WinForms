@@ -84,13 +84,13 @@
             // at Refresh implementation in Control that you think is not working.
             treeView.ExpandAll();
 
-            // Grip renderer is normal control. Bring it to front if you use it over other controls that can technicaly hide it.
+            // Grip renderer is normal control. Bring it to front if you use it over other controls that can technically hide it.
             // uwfSizeGripRenderer.BringToFront();
         }
 
         public void SetPanel(BaseExamplePanel panel)
         {
-            if (currentPanel != null && currentPanel.IsDisposed == false)
+            if (currentPanel != null && !currentPanel.IsDisposed)
                 currentPanel.Dispose();
 
             currentPanel = panel;

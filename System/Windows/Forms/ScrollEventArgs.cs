@@ -1,44 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace System.Windows.Forms
+﻿namespace System.Windows.Forms
 {
     public class ScrollEventArgs : EventArgs
     {
-        private int _oldValue;
-        private ScrollOrientation _scrollOrientation;
-        private ScrollEventType _scrollType;
-
         public ScrollEventArgs(ScrollEventType type, int newValue)
         {
-            _scrollType = type;
+            Type = type;
             NewValue = newValue;
         }
         public ScrollEventArgs(ScrollEventType type, int oldValue, int newValue)
         {
-            _scrollType = type;
-            _oldValue = oldValue;
+            Type = type;
+            this.OldValue = oldValue;
             NewValue = newValue;
         }
         public ScrollEventArgs(ScrollEventType type, int newValue, ScrollOrientation scroll)
         {
-            _scrollType = type;
+            Type = type;
             NewValue = newValue;
-            _scrollOrientation = scroll;
+            ScrollOrientation = scroll;
         }
         public ScrollEventArgs(ScrollEventType type, int oldValue, int newValue, ScrollOrientation scroll)
         {
-            _scrollType = type;
-            _oldValue = oldValue;
+            Type = type;
+            this.OldValue = oldValue;
             NewValue = newValue;
-            _scrollOrientation = scroll;
+            ScrollOrientation = scroll;
         }
 
         public int NewValue { get; set; }
-        public int OldValue { get { return _oldValue; } }
-        public ScrollOrientation ScrollOrientation { get { return _scrollOrientation; } }
-        public ScrollEventType Type { get { return _scrollType; } }
+        public int OldValue { get; private set; }
+        public ScrollOrientation ScrollOrientation { get; private set; }
+        public ScrollEventType Type { get; private set; }
     }
 }

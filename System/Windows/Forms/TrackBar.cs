@@ -18,8 +18,6 @@
         private Orientation orientation = Orientation.Horizontal;
         private int         requestedDim;
         private int         smallChange   = 1;
-        private int         tickFrequency = 1;
-        private TickStyle   tickStyle     = TickStyle.BottomRight;
         private int         value         = 0;
         
         // GUI
@@ -43,6 +41,8 @@
 
         public TrackBar()
         {
+            TickStyle = TickStyle.BottomRight;
+            TickFrequency = 1;
             requestedDim = PreferredDimension;
             
             MouseHook.MouseUp += MouseHookOnMouseUp;
@@ -61,7 +61,7 @@
             set
             {
                 if (value < 0)
-                    throw new ArgumentOutOfRangeException("LargeChange");
+                    throw new ArgumentOutOfRangeException("value");
                 
                 largeChange = value;
             }
@@ -122,21 +122,13 @@
             set
             {
                 if (value < 0)
-                    throw new ArgumentOutOfRangeException("SmallChange");
+                    throw new ArgumentOutOfRangeException("value");
                 
                 smallChange = value;
             }
         }
-        public int TickFrequency
-        {
-            get { return tickFrequency; }
-            set { tickFrequency = value; }
-        }
-        public TickStyle TickStyle
-        {
-            get { return tickStyle; }
-            set { tickStyle = value; }
-        }
+        public int TickFrequency { get; set; }
+        public TickStyle TickStyle { get; set; }
         public int Value
         {
             get { return value; }
@@ -146,7 +138,7 @@
                     return;
                 
                 if (value < minimum || value > maximum)
-                    throw new ArgumentOutOfRangeException("Value");
+                    throw new ArgumentOutOfRangeException("value");
 
                 this.value = value;
                 SetTrackBarPosition();
@@ -197,7 +189,7 @@
         }
         protected override void OnMouseClick(MouseEventArgs e)
         {
-            if (sliderDragStarted == false)
+            if (!sliderDragStarted)
             {
                 var sliderAreaClicked = IsPointOverSliderArea(e.Location);
                 if (sliderAreaClicked)
@@ -330,9 +322,9 @@
                 
                 float ticks = maximum;
                 float tickDistance = backBarW - sliderLength;
-                if (tickFrequency > 0)
+                if (TickFrequency > 0)
                 {
-                    ticks /= tickFrequency;
+                    ticks /= TickFrequency;
                     tickDistance /= ticks;
                 }
                 int ticksStartX = backBarX + sliderLength / 2;
@@ -382,16 +374,16 @@
 
                 float ticks = maximum;
                 float tickDistance = backBarH - sliderLength;
-                if (tickFrequency > 0)
+                if (TickFrequency > 0)
                 {
-                    ticks /= tickFrequency;
+                    ticks /= TickFrequency;
                     tickDistance /= ticks;
                 }
                 int ticksStartX = padding.Top + 3;
                 int ticksStartY1 = backBarY + sliderLength / 2;
                 int ticksTotalWidth = backBarH - sliderLength;
                 
-                switch (tickStyle)
+                switch (TickStyle)
                 {
                     case TickStyle.Both:
                         backBarX = (PreferredDimension - backBarWH - padding.Vertical) / 2 + 1;

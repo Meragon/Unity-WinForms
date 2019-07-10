@@ -2,13 +2,13 @@
 {
     public class DataObject : IDataObject
     {
-        private object _data;
+        private readonly object data;
 
         public DataObject() { }
-        public DataObject(object data) { _data = data; }
+        public DataObject(object data) { this.data = data; }
         public DataObject(string format, object data)
         {
-            _data = data;
+            this.data = data;
         }
 
         public virtual bool ContainsAudio() { return false; }
@@ -17,13 +17,13 @@
         public virtual bool ContainsText() { return false; }
         //public virtual bool ContainsText(TextDataFormat format);
         //public virtual Stream GetAudioStream();
-        public virtual object GetData(string format) { return _data; }
-        public virtual object GetData(Type format) { return _data; }
-        public virtual object GetData(string format, bool autoConvert) { return _data; }
+        public virtual object GetData(string format) { return data; }
+        public virtual object GetData(Type format) { return data; }
+        public virtual object GetData(string format, bool autoConvert) { return data; }
         public virtual bool GetDataPresent(string format) { return false; }
         public virtual bool GetDataPresent(Type format)
         {
-            return format.IsInstanceOfType(_data);
+            return format.IsInstanceOfType(data);
         }
         public virtual bool GetDataPresent(string format, bool autoConvert) { return false; }
         //public virtual StringCollection GetFileDropList();

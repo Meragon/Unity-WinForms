@@ -45,7 +45,7 @@
                 borderMarginTop = textHeight / 2 - 2;
             }
             
-            if (string.IsNullOrEmpty(text) == false)
+            if (!string.IsNullOrEmpty(text))
             {
                 // We can draw 5 lines or fill rect with back color (batches vs fillrate).
                 g.DrawLine(borderPen, 0, borderMarginTop, 0, Height - 1); // Left.

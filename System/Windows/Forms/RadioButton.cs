@@ -126,7 +126,7 @@
         }
         private void PerformAutoUpdates(bool tabbedInto)
         {
-            if (autoCheck == false)
+            if (!autoCheck)
                 return;
 
             if (firstfocus)
@@ -134,7 +134,7 @@
 
             TabStop = isChecked;
 
-            if (isChecked == false)
+            if (!isChecked)
                 return;
 
             var parent = Parent;
@@ -181,8 +181,9 @@
                 if (childRadioButton == null)
                     continue;
 
-                if (tabbedInto == false)
+                if (!tabbedInto)
                     childRadioButton.firstfocus = false;
+                
                 if (childRadioButton.autoCheck)
                     childRadioButton.TabStop = false;
             }

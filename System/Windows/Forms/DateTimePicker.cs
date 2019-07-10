@@ -57,7 +57,7 @@
             if (e.Button != MouseButtons.Left)
                 return;
 
-            if (IsMouseInsideDropDownButton() == false)
+            if (!IsMouseInsideDropDownButton())
                 return;
 
             var screenLocation = PointToScreen(Point.Empty);
@@ -98,7 +98,7 @@
 
             // Dropdown button.
             var buttonHovered = IsMouseInsideDropDownButton();
-            var buttonPressed = monthControl != null && monthControl.IsDisposed == false;
+            var buttonPressed = monthControl != null && !monthControl.IsDisposed;
             if (buttonHovered || buttonPressed)
             {
                 var buttonBackColor = buttonPressed ? uwfButtonSelectColor : uwfButtonHoverColor;

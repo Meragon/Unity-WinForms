@@ -56,14 +56,15 @@
 
         internal void Sort()
         {
-            bool topMostForms = true;
-            int lastTopMost = -1;
+            var topMostForms = true;
+            var lastTopMost = -1;
+            
             for (int i = items.Count - 1; i >= 0; i--)
             {
                 var form = items[i];
                 if (topMostForms)
                 {
-                    if (form.TopMost == false)
+                    if (!form.TopMost)
                         topMostForms = false;
                     else
                         lastTopMost = i;

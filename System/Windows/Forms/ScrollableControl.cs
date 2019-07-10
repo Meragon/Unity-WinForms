@@ -8,6 +8,9 @@
         internal HScrollBar hscroll; // In case you want to scroll manually.
         internal VScrollBar vscroll;
 
+        internal event EventHandler uwfHScrollAdded; // For styling if necessary.
+        internal event EventHandler uwfVScrollAdded;
+
         protected const int ScrollStateAutoScrolling = 0x0001;
         protected const int ScrollStateHScrollVisible = 0x0002;
         protected const int ScrollStateVScrollVisible = 0x0004;
@@ -157,6 +160,8 @@
                     vscroll.ValueChanged += Scroll_ValueChanged;
 
                     Controls.Add(vscroll);
+
+                    uwfOnVScrollAdded(EventArgs.Empty);
                 }
 
                 if (oriH && hscroll == null)
@@ -167,6 +172,8 @@
                     hscroll.ValueChanged += Scroll_ValueChanged;
 
                     Controls.Add(hscroll);
+
+                    uwfOnHScrollAdded(EventArgs.Empty);
                 }
             }
             else
@@ -262,7 +269,19 @@
 
             UpdateScrollRects();
         }
-        
+
+        protected internal virtual void uwfOnHScrollAdded(EventArgs e)
+        {
+            var handler = uwfHScrollAdded;
+            if (handler != null)
+                handler(this, e);
+        }
+        protected internal virtual void uwfOnVScrollAdded(EventArgs e)
+        {
+            var handler = uwfVScrollAdded;
+            if (handler != null)
+                handler(this, e);
+        }
         protected internal override void uwfOnLatePaint(PaintEventArgs e)
         {
             if (vscroll == null || hscroll == null)

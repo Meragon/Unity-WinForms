@@ -12,7 +12,7 @@
 
         public ImageCollection Images { get { return images; } }
 
-        public sealed class ImageCollection : IList, ICollection, IEnumerable
+        public sealed class ImageCollection : IList
         {
             private readonly List<ImageInfo> items = new List<ImageInfo>();
 
@@ -23,15 +23,18 @@
             {
                 get
                 {
-                    StringCollection scollection = new StringCollection();
+                    var collection = new StringCollection();
+                    
                     for (int i = 0; i < items.Count; i++)
                     {
-                        if (items[i].Key == null)
-                            scollection.Add(string.Empty);
-                        else
-                            scollection.Add(items[i].Key);
+                        var itemKey = items[i].Key;
+                        if (itemKey == null)
+                            itemKey = string.Empty;
+                        
+                        collection.Add(itemKey);
                     }
-                    return scollection;
+                    
+                    return collection;
                 }
             }
 
@@ -128,24 +131,26 @@
 
             int IList.Add(object value)
             {
-                if (value is Image)
+                var image = value as Image;
+                if (image != null)
                 {
-                    Add((Image)value);
+                    Add(image);
                     return Count - 1;
                 }
 
                 return -1;
             }
-            bool IList.Contains(object image)
+            bool IList.Contains(object value)
             {
-                return image is Image && Contains((Image)image);
+                var image = value as Image;
+                return image != null && Contains(image);
             }
-            int IList.IndexOf(object image)
+            int IList.IndexOf(object value)
             {
-                if (image is Image)
-                {
-                    return IndexOf((Image)image);
-                }
+                var image = value as Image;
+                if (image != null)
+                    return IndexOf(image);
+                
                 return -1;
             }
             void IList.Insert(int index, object value)
@@ -156,12 +161,11 @@
             {
                 get { return false; }
             }
-            void IList.Remove(object image)
+            void IList.Remove(object value)
             {
-                if (image is Image)
-                {
-                    Remove((Image)image);
-                }
+                var image = value as Image;
+                if (image != null) 
+                    Remove(image);
             }
             object IList.this[int index]
             {
@@ -171,14 +175,12 @@
                 }
                 set
                 {
-                    if (value is Image)
-                    {
-                        this[index] = (Image)value;
-                        return;
-                    }
+                    var image = value as Image;
+                    if (image != null) 
+                        this[index] = image;
                 }
             }
-            void ICollection.CopyTo(Array dest, int index)
+            void ICollection.CopyTo(Array array, int index)
             {
                 throw new NotSupportedException(); // implement this?
             }

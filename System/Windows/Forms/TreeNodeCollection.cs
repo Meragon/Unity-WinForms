@@ -29,11 +29,13 @@
             get { return this[index]; }
             set
             {
-                if (value is TreeNode)
+                var node = value as TreeNode;
+                if (node != null)
                 {
-                    this[index] = (TreeNode)value;
+                    this[index] = node;
                     return;
                 }
+                
                 throw new ArgumentException(value.ToString());
             }
         }
@@ -113,10 +115,10 @@
         {
             return IndexOf(node) != -1;
         }
-        public void CopyTo(Array dest, int index)
+        public void CopyTo(Array array, int index)
         {
             if (Count > 0)
-                Array.Copy(items.ToArray(), 0, dest, index, Count);
+                Array.Copy(items.ToArray(), 0, array, index, Count);
         }
         public TreeNode[] Find(string key, bool searchAllChildren)
         {
@@ -192,38 +194,46 @@
                 owner.TreeView.Refresh();
         }
 
-        int IList.Add(object node)
+        int IList.Add(object value)
         {
-            if (node == null)
-                throw new ArgumentNullException("node");
-            if (node is TreeNode)
-                return Add((TreeNode)node);
-            return Add(node.ToString()).index;
+            if (value == null)
+                throw new ArgumentNullException("value");
+
+            var node = value as TreeNode;
+            if (node != null)
+                return Add(node);
+            
+            return Add(value.ToString()).index;
         }
-        bool IList.Contains(object node)
+        bool IList.Contains(object value)
         {
-            return node is TreeNode && Contains((TreeNode)node);
+            var node = value as TreeNode;
+            return node != null && Contains(node);
         }
-        int IList.IndexOf(object node)
+        int IList.IndexOf(object value)
         {
-            if (node is TreeNode)
-                return IndexOf((TreeNode)node);
+            var node = value as TreeNode;
+            if (node != null)
+                return IndexOf(node);
 
             return -1;
         }
-        void IList.Insert(int index, object node)
+        void IList.Insert(int index, object value)
         {
-            if (node is TreeNode)
+            var node = value as TreeNode;
+            if (node != null)
             {
-                Insert(index, (TreeNode)node);
+                Insert(index, node);
                 return;
             }
-            throw new ArgumentException(node.ToString());
+            
+            throw new ArgumentException(value.ToString());
         }
-        void IList.Remove(object node)
+        void IList.Remove(object value)
         {
-            if (node is TreeNode)
-                Remove((TreeNode)node);
+            var node = value as TreeNode;
+            if (node != null)
+                Remove(node);
         }
 
         internal void UpdateIndexes()

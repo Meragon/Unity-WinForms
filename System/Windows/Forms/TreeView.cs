@@ -26,7 +26,6 @@
         private TreeNode  dragNode;
         private Point     dragPosition;
         private string    filter;
-        private ImageList imageList;
         private TreeNode  mouseDownAtNode;
         private ToolTip   nodeToolTip;
         private TreeNode  nodeToolTipLast;
@@ -60,11 +59,7 @@
 
         public BorderStyle BorderStyle { get; set; }
         public bool FullRowSelect { get; set; }
-        public ImageList ImageList
-        {
-            get { return imageList; }
-            set { imageList = value; }
-        }
+        public ImageList ImageList { get; set; }
         public int ItemHeight { get; set; }
         public TreeNodeCollection Nodes { get; private set; }
         public TreeNode SelectedNode
@@ -125,7 +120,7 @@
         {
             get
             {
-                if (uwfVScrollBar.Visible == false)
+                if (!uwfVScrollBar.Visible)
                     return 0;
                 
                 return uwfVScrollBar.Value;
@@ -356,7 +351,7 @@
             {
                 if (ShowNodeToolTips)
                 {
-                    if (string.IsNullOrEmpty(hoveredNode.ToolTipText) == false)
+                    if (!string.IsNullOrEmpty(hoveredNode.ToolTipText))
                     {
                         if (nodeToolTip == null)
                         {
@@ -373,7 +368,7 @@
                         nodeToolTipLast = null;
                 }
 
-                // Tooltip will show previous ToolTipText. Override OnMouseHover if neccesary.
+                // Tooltip will show previous ToolTipText. Override OnMouseHover if necessary.
                 OnNodeMouseHover(new TreeNodeMouseHoverEventArgs(hoveredNode));
             }
         }
@@ -381,7 +376,7 @@
         {
             base.OnMouseMove(e);
 
-            if (drag == false) return;
+            if (!drag) return;
             if (dragPosition.Distance(e.Location) < 4) return;
             
             OnItemDrag(new ItemDragEventArgs(e.Button, dragNode));
@@ -507,7 +502,7 @@
             var nodeY = nodeBounds.Y;
             var nodeWidth = nodeBounds.Width;
             var nodeContainsArrow = node.Nodes.Count > 0;
-            var nodeContainsImage = node.ImageIndex > -1 && imageList != null;
+            var nodeContainsImage = node.ImageIndex > -1 && ImageList != null;
             
             var graphics = e.Graphics;
 
@@ -518,7 +513,7 @@
             if (node.IsSelected || node == hoveredNode)
             {
                 var nodeFillColor = node.IsSelected ? uwfItemSelectedColor : uwfItemHoveredColor;
-                if (node.IsSelected && Focused == false) 
+                if (node.IsSelected && !Focused) 
                     nodeFillColor = uwfItemSelectedUnfocusedColor;
 
                 var selectX = 0;
@@ -526,7 +521,7 @@
                 var selectWidth = Width;
                 var selectHeight = ItemHeight;
 
-                if (FullRowSelect == false)
+                if (!FullRowSelect)
                 {
                     selectX = nodeX + arrowSize;
                     selectWidth = node.textWidth;
@@ -549,7 +544,7 @@
                 
                 if (node.IsExpanded)
                 {
-                    if (node.ImageIndex_Expanded > -1 && imageList != null)
+                    if (node.ImageIndex_Expanded > -1 && ImageList != null)
                     {
                         var img = ImageList.Images[node.ImageIndex_Expanded];
                         if (img != null)
@@ -560,7 +555,7 @@
                 }
                 else
                 {
-                    if (node.ImageIndex_Collapsed > -1 && imageList != null)
+                    if (node.ImageIndex_Collapsed > -1 && ImageList != null)
                     {
                         var img = ImageList.Images[node.ImageIndex_Collapsed];
                         if (img != null)
@@ -592,7 +587,7 @@
             // Draw image.
             if (nodeContainsImage)
             {
-                var image = imageList.Images[node.ImageIndex];
+                var image = ImageList.Images[node.ImageIndex];
                 if (image != null && image.uTexture != null)
                 {
                     var imageSize = Math.Min(nodeBounds.Height - 2, image.Height);
@@ -638,7 +633,7 @@
         private TreeNode SelectAtPosition(MouseEventArgs e)
         {
             var node = GetNodeAt(e.Location);
-            if (node == null || node.Enabled == false) return null;
+            if (node == null || !node.Enabled) return null;
 
             SelectedNode = node;
 
@@ -649,42 +644,41 @@
         private void SelectNext()
         {
             var nextNode = nodeList.FindIndex(x => x == SelectedNode); // TODO: this is slow implementation. Should remember current selectedIndex.
-            while (SelectNext(nextNode) == false)
+            
+            while (!SelectNext(nextNode))
             {
                 nextNode++;
             }
         }
         private bool SelectNext(int fromIndex)
         {
-            if (fromIndex + 1 < nodeList.Count)
-            {
-                if (nodeList[fromIndex + 1].Enabled == false) return false;
+            if (fromIndex + 1 >= nodeList.Count) return true;
+            if (!nodeList[fromIndex + 1].Enabled) return false;
 
-                SelectedNode = nodeList[fromIndex + 1];
-                AdjustScrollIndexToNode(SelectedNode);
+            SelectedNode = nodeList[fromIndex + 1];
+            AdjustScrollIndexToNode(SelectedNode);
 
-                OnAfterSelect(new TreeViewEventArgs(SelectedNode));
-                return true;
-            }
-
+            OnAfterSelect(new TreeViewEventArgs(SelectedNode));
             return true;
+
         }
         private void SelectNodeWText(string text, bool caseSensitive = false)
         {
-            string lowerText = text;
-            if (caseSensitive == false) lowerText = text.ToLower();
+            var lowerText = text;
+            if (!caseSensitive) lowerText = text.ToLower();
 
             for (int i = 0; i < nodeList.Count; i++)
             {
                 var node = nodeList[i];
-                string nodeText = node.Text;
+                var nodeText = node.Text;
+                
                 if (string.IsNullOrEmpty(nodeText) && node.Tag != null)
                     nodeText = node.Tag.ToString();
 
                 if (nodeText == null || nodeText.Length < text.Length) continue;
 
-                string clippedNodeText = nodeText.Substring(0, text.Length);
-                if (caseSensitive == false) clippedNodeText = clippedNodeText.ToLower();
+                var clippedNodeText = nodeText.Substring(0, text.Length);
+                if (!caseSensitive) clippedNodeText = clippedNodeText.ToLower();
 
                 if (clippedNodeText == lowerText)
                 {
@@ -696,7 +690,7 @@
         private void SelectPrevious()
         {
             var prevNode = nodeList.FindIndex(x => x == SelectedNode);
-            while (SelectPrevious(prevNode) == false)
+            while (!SelectPrevious(prevNode))
             {
                 prevNode--;
             }
@@ -705,7 +699,7 @@
         {
             if (fromIndex - 1 >= 0)
             {
-                if (nodeList[fromIndex - 1].Enabled == false) return false;
+                if (!nodeList[fromIndex - 1].Enabled) return false;
 
                 SelectedNode = nodeList[fromIndex - 1];
                 AdjustScrollIndexToNode(SelectedNode);
@@ -718,7 +712,7 @@
         }
         private void UpdateNodeList(TreeNode node)
         {
-            if (node.IsVisible == false)
+            if (!node.IsVisible)
                 return;
 
             if (node != root)
@@ -733,7 +727,7 @@
         }
         private void UpdateNodesBounds(TreeNode node)
         {
-            if (node.IsVisible == false) return;
+            if (!node.IsVisible) return;
             
             if (node != root) 
                 node.Bounds = GetNodeBounds(node);

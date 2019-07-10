@@ -36,7 +36,7 @@
                 if (defaultSprite != null) return defaultSprite;
 
                 defaultSprite = new UE.Texture2D(1, 1);
-                
+
                 for (int y = 0; y < defaultSprite.height; y++)
                 for (int x = 0; x < defaultSprite.width; x++)
                     defaultSprite.SetPixel(x, y, UE.Color.white);
@@ -226,14 +226,7 @@
             if (currentType != UE.EventType.KeyDown && currentType != UE.EventType.KeyUp) return;
             
             var keyData = UnityKeyTranslator.ToKeyData(currentKeyModifiers, currentKeyCode);
-            var keyArgs = new KeyEventArgs(keyData)
-            {
-                uwfKeyCode = currentKeyCode,
-                uwfModifiers = currentKeyModifiers
-            };
-
-            if ((keyArgs.uwfModifiers & UE.EventModifiers.FunctionKey) != 0)
-                keyArgs.uwfModifiers &= ~UE.EventModifiers.FunctionKey;
+            var keyArgs = new KeyEventArgs(keyData);
 
             var keyEventType = (Application.KeyEvents) (currentType - 3);
             if (keyEventType == Application.KeyEvents.Down || keyEventType == Application.KeyEvents.Up)
@@ -274,6 +267,7 @@
                     }
 
                     break;
+                
                 case UE.EventType.MouseUp:
                     switch (currentButton)
                     {
@@ -292,6 +286,7 @@
                     }
 
                     break;
+                
                 case UE.EventType.ScrollWheel:
                     mouseEvent = Application.MouseEvents.Wheel;
                     mouseWheelDelta = currentDelta;

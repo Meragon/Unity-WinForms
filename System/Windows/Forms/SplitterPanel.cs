@@ -4,7 +4,7 @@
     {
         internal bool collapsed;
 
-        private SplitContainer owner;
+        private readonly SplitContainer owner;
 
         public SplitterPanel(SplitContainer owner)
         {

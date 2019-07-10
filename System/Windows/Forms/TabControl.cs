@@ -132,8 +132,8 @@
 
                 for (int i = tabViewIndex, vItems = 0; i < pagesButtons.Count; i++, vItems++)
                 {
-                    bool isVisible = pagesButtons[i].Location.X < navigationButtonLeft.Location.X;
-                    if (isVisible == false)
+                    var isVisible = pagesButtons[i].Location.X < navigationButtonLeft.Location.X;
+                    if (!isVisible)
                         return vItems;
                 }
                 return tabPageCount;
@@ -163,7 +163,7 @@
 
             selectedIndex = index;
 
-            pagesButtons[selectedIndex].Show();
+            pagesButtons[selectedIndex].ShowInternal();
             selectedPage.Visible = true;
 
             OnSelected(new TabControlEventArgs(selectedPage, index, TabControlAction.Selected));
@@ -194,7 +194,7 @@
             pageButton.Size = itemSize;
             pageButton.Text = tabPage.Text;
             pageButton.textPadding = buttonTextPadding;
-            pageButton.Hide();
+            pageButton.HideInternal();
 
             pagesButtonsPanel.Controls.Add(pageButton);
             pagesButtons.Add(pageButton);
@@ -230,7 +230,7 @@
             if (cancelArgs.Cancel)
                 return false;
 
-            pagesButtons[selectedIndex].Hide();
+            pagesButtons[selectedIndex].HideInternal();
             TabPages[selectedIndex].Visible = false;
 
             OnDeselected(new TabControlEventArgs(selectedPage, selectedIndex, TabControlAction.Deselected));
@@ -450,24 +450,26 @@
 
             public override void Add(Control value)
             {
-                if (value is TabPage == false) throw new ArgumentException("value is not TabPage");
+                var page = value as TabPage;
+                if (page == null) 
+                    throw new ArgumentException("value");
 
-                var tabPage = value as TabPage;
-                tabPage.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
-                tabPage.Bounds = owner.DisplayRectangle;
-                tabPage.Visible = false;
+                page.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
+                page.Bounds = owner.DisplayRectangle;
+                page.Visible = false;
 
                 base.Add(value);
 
-                owner.AddTabPage(tabPage);
+                owner.AddTabPage(page);
             }
-            public override void Remove(Control value)
+            public override void Remove(Control item)
             {
-                base.Remove(value);
+                base.Remove(item);
 
-                if (value is TabPage == false) return;
+                var page = item as TabPage;
+                if (page == null) return;
 
-                int index = owner.FindTabPage((TabPage)value);
+                int index = owner.FindTabPage(page);
                 int curSelectedIndex = owner.SelectedIndex;
 
                 if (index != -1)
@@ -519,10 +521,12 @@
                 {
                     for (int i = 0, innerIndex = 0; i < owner.Controls.Count; i++)
                     {
-                        if (owner.Controls[i] is TabPage == false) continue;
+                        var page = owner.Controls[i] as TabPage;
+                        if (page == null) continue;
 
                         if (index == innerIndex)
-                            return owner.Controls[i] as TabPage;
+                            return page;
+                        
                         innerIndex++;
                     }
                     return null;
@@ -672,34 +676,39 @@
 
             int IList.Add(object value)
             {
-                if (value is TabPage == false) throw new ArgumentException("tabPageCollection.Add(value is not TabPage)");
+                var page = value as TabPage;
+                if (page == null) throw new ArgumentException("value");
 
-                Add(value as TabPage);
+                Add(page);
                 return owner.tabPageCount - 1;
             }
             bool IList.Contains(object value)
             {
-                if (value is TabPage == false) throw new ArgumentException("tabPageCollection.Contains(value is not TabPage)");
+                var page = value as TabPage;
+                if (page == null) throw new ArgumentException("value");
 
-                return Contains(value as TabPage);
+                return Contains(page);
             }
             int IList.IndexOf(object value)
             {
-                if (value is TabPage == false) throw new ArgumentException("tabPageCollection.IndexOf(value is not TabPage)");
+                var page = value as TabPage;
+                if (page == null) throw new ArgumentException("value");
 
-                return IndexOf(value as TabPage);
+                return IndexOf(page);
             }
             void IList.Insert(int index, object value)
             {
-                if (value is TabPage == false) throw new ArgumentException("tabPageCollection.Insert(value is not TabPage)");
+                var page = value as TabPage;
+                if (page == null) throw new ArgumentException("value");
 
-                Insert(index, value as TabPage);
+                Insert(index, page);
             }
             void IList.Remove(object value)
             {
-                if (value is TabPage == false) throw new ArgumentException("tabPageCollection.Remove(value is not TabPage)");
+                var page = value as TabPage;
+                if (page == null) throw new ArgumentException("value");
 
-                Remove(value as TabPage);
+                Remove(page);
             }
 
             void ICollection.CopyTo(Array array, int index)
@@ -731,12 +740,12 @@
                 uwfBorderSelectColor = Color.Transparent;
             }
 
-            public void Hide()
+            public void HideInternal()
             {
                 hidden = true;
                 Update();
             }
-            public void Show()
+            public void ShowInternal()
             {
                 hidden = false;
                 Update();

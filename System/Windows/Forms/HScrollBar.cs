@@ -15,7 +15,7 @@
 
             addButton.Anchor = AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
             addButton.Image = uwfAppOwner.Resources.CurvedArrowRight;
-            addButton.Size = new Size(SystemInformation.HorizontalScrollBarArrowWidth, SystemInformation.HorizontalScrollBarHeight);;
+            addButton.Size = new Size(SystemInformation.HorizontalScrollBarArrowWidth, SystemInformation.HorizontalScrollBarHeight);
             addButton.Location = new Point(Width - addButton.Width, 0);
 
             UpdateScrollRect();
