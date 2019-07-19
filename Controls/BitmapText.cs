@@ -64,7 +64,7 @@ namespace Unity.Controls
         public void Apply()
         {
             var tSize = TextureSize;
-            uTexture = Graphics.ApiGraphics.CreateTexture(tSize.Width, tSize.Height);
+            Texture = Graphics.ApiGraphics.CreateTexture(tSize.Width, tSize.Height);
 
             if (tSize.Width == 0 || tSize.Height == 0)
                 return;
@@ -72,14 +72,14 @@ namespace Unity.Controls
 
             // Clear texture with transparent color.
             var uBackColor = Color.Transparent;
-            var clearColor = new Color[uTexture.Width * uTexture.Height];
+            var clearColor = new Color[Texture.Width * Texture.Height];
             for (int i = 0; i < clearColor.Length; i++)
                 clearColor[i] = uBackColor;
-            uTexture.SetPixels(clearColor);
+            Texture.SetPixels(clearColor);
 
             int xOffset = 0;
             float cursorY = GetCursorY();
-            float cursorOffset = uTexture.Height - cursorY;
+            float cursorOffset = Texture.Height - cursorY;
 
             for (int i = 0; i < Text.Length; i++)
             {
@@ -101,7 +101,7 @@ namespace Unity.Controls
 
                 if (cW > 0 && cH > 0)
                 {
-                    var charPixels = textC.Texture.uTexture.GetPixels();
+                    var charPixels = textC.Texture.Texture.GetPixels();
                     var charTexture = Graphics.ApiGraphics.CreateTexture(textC.Texture.Width, textC.Texture.Height);
                     charTexture.SetPixels(charPixels);
                     charTexture.Apply();
@@ -126,13 +126,13 @@ namespace Unity.Controls
                             blendedCharPixels[p] = Color.FromArgb(bA, bR, bG, bB);
                     }
 
-                    uTexture.SetPixels((int)cX, (int)(cursorOffset - bellowHeight), charTexture.Width, charTexture.Height, blendedCharPixels);
+                    Texture.SetPixels((int)cX, (int)(cursorOffset - bellowHeight), charTexture.Width, charTexture.Height, blendedCharPixels);
                 }
 
                 xOffset += (int)cA;
             }
 
-            uTexture.Apply();
+            Texture.Apply();
         }
         public BitmapChar CharAt(int index)
         {

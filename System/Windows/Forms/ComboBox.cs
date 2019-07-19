@@ -19,16 +19,17 @@
         internal bool  uwfWrapText;
         
         private const int DOWN_BUTTON_WIDTH = 17;
+        private const int ARROW_IMAGE_SIZE = 16;
 
         private readonly Pen borderPen = new Pen(Color.Transparent);
         private readonly Pen downButtonBorderPen = new Pen(Color.Transparent);
 
-        private ComboBoxStyle dropDownStyle;
-        private bool keyFlag;
-        private string filter = string.Empty;
+        private string keyFilter;
+        private bool resetKeyFilter;
         private int itemHeight = 15;
-        private ComboListBox listBox;
+        private ComboListBoxPanel listBoxPanel; // Need this to move a listBox down and overlap it's painting. 
         private bool listBoxOpened;
+        private bool listBoxRecentlyClosed;
         private int maxDropDownItems = 8;
         private int selectedIndex = -1;
         private bool selectTextOnFocus;
@@ -42,6 +43,7 @@
             BackColor = Color.White;
             DropDownStyle = ComboBoxStyle.DropDown;
             Padding = new Padding(4, 0, 4, 0);
+            Text = ""; // At the start DrawTextField will return string.Empty, it should be equal to filter value.
         }
 
         public event EventHandler DropDown;
@@ -50,15 +52,7 @@
 
         public AutoCompleteMode AutoCompleteMode { get; set; }
         public AutoCompleteSource AutoCompleteSource { get; set; }
-        public ComboBoxStyle DropDownStyle
-        {
-            get { return dropDownStyle; }
-            set
-            {
-                dropDownStyle = value;
-                UpdateComboBoxDDStyle();
-            }
-        }
+        public ComboBoxStyle DropDownStyle { get; set; }
         public int ItemHeight
         {
             get { return itemHeight; }
@@ -66,6 +60,7 @@
             {
                 if (value < 1)
                     throw new ArgumentOutOfRangeException("value");
+                
                 itemHeight = value;
             }
         }
@@ -95,6 +90,7 @@
             {
                 if (SelectedIndex > -1 && SelectedIndex < Items.Count)
                     return Items[SelectedIndex];
+                
                 return null;
             }
             set { SelectedIndex = Items.IndexOf(value); }
@@ -102,22 +98,20 @@
 
         protected override Size DefaultSize
         {
-            get
-            {
-                return new Size(121, 21);
-            }
+            get { return new Size(121, 21); }
         }
 
+        private int SelectedIndexInternal
+        {
+            get { return listBoxPanel == null ? SelectedIndex : listBoxPanel.listBox.SelectedIndex; }
+        }
+        
         internal override bool FocusInternal()
         {
-            if (Enabled && DropDownStyle == ComboBoxStyle.DropDown && Focused == false)
+            if (Enabled && DropDownStyle == ComboBoxStyle.DropDown && !Focused)
                 selectTextOnFocus = true;
             
-            var res = base.FocusInternal();
-
-            filter = Text;
-
-            return res;
+            return base.FocusInternal();
         }
 
         protected virtual void OnDropDown(EventArgs e)
@@ -139,67 +133,66 @@
             switch (e.KeyCode)
             {
                 case Keys.Down:
-                    {
-                        if (Items.IsDisabled(selectedIndex + 1))
-                            break;
-                        if (listBox != null)
-                        {
-                            listBox.SelectedIndex++;
-                            SelectedIndex = Items.FindIndex(x => x == listBox.SelectedItem);
-                            listBox.EnsureVisible();
-                        }
-                        else if (selectedIndex + 1 < Items.Count)
-                            SelectedIndex++;
-                    }
+                    SelectItem(SelectedIndexInternal + 1);
                     break;
+             
+                case Keys.Left:
+                    if (DropDownStyle == ComboBoxStyle.DropDownList)
+                        SelectItem(SelectedIndexInternal - 1);
+                    break;
+                
+                case Keys.Right:
+                    if (DropDownStyle == ComboBoxStyle.DropDownList)
+                        SelectItem(SelectedIndexInternal + 1);
+                    break;
+                
                 case Keys.Up:
-                    {
-                        if (Items.IsDisabled(selectedIndex - 1))
-                            break;
-
-                        if (listBox != null)
-                        {
-                            listBox.SelectedIndex--;
-                            if (listBox.SelectedIndex < 0 && listBox.Items.Count > 0)
-                                listBox.SelectedIndex = 0;
-                            SelectedIndex = Items.FindIndex(x => x == listBox.SelectedItem);
-                            listBox.EnsureVisible();
-                        }
-                        else if (selectedIndex > 0)
-                            SelectedIndex--;
-                    }
+                    SelectItem(SelectedIndexInternal - 1);
                     break;
+                
+                case Keys.PageDown:
+                    SelectItem(SelectedIndexInternal + MaxDropDownItems);
+                    break;
+                
+                case Keys.PageUp:
+                    SelectItem(SelectedIndexInternal - MaxDropDownItems);
+                    break;
+                
+                case Keys.Home:
+                    SelectItem(0);
+                    break;
+                
+                case Keys.End:
+                    SelectItem(Items.Count);
+                    break;
+                
                 case Keys.Return:
-                    if (listBox != null && !listBox.Disposing && !listBox.IsDisposed)
+                    if (listBoxPanel != null && !listBoxPanel.Disposing && !listBoxPanel.IsDisposed)
                     {
-                        listBox.SelectItem(listBox.SelectedIndex);
+                        listBoxPanel.listBox.SelectItem(listBoxPanel.listBox.SelectedIndex);
                         ApplySelectedItem();
                     }
                     break;
             }
-            if (listBox != null && DropDownStyle == ComboBoxStyle.DropDownList)
+            
+            if (listBoxPanel != null && DropDownStyle == ComboBoxStyle.DropDownList)
             {
-                if (keyFlag == true)
+                // Filter with key input.
+                if (resetKeyFilter)
                 {
-                    keyFlag = false;
-                    filter = "";
+                    resetKeyFilter = false;
+                    keyFilter = "";
                 }
 
                 char c = KeyHelper.GetLastInputChar();
                 if (char.IsLetterOrDigit(c) || char.IsPunctuation(c))
                 {
-                    filter += char.ToLower(c);
-                    var itemIndex = listBox.FindItemIndex(x => x != null && x.ToString().ToLower().Contains(filter));
+                    keyFilter += char.ToLower(c);
+                    var itemIndex = listBoxPanel.listBox.FindItemIndex(x => x != null && x.ToString().ToLower().Contains(keyFilter));
                     if (itemIndex > -1)
-                        listBox.SelectItem(itemIndex);
+                        listBoxPanel.listBox.SelectItem(itemIndex);
                 }
             }
-        }
-        protected override void OnKeyUp(KeyEventArgs e)
-        {
-            base.OnKeyUp(e);
-            if (e.KeyCode == Keys.Space)
-                RaiseOnMouseDown(new MouseEventArgs(MouseButtons.Left, Width - 1, 1, 0, 0));
         }
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -207,11 +200,17 @@
             
             Focus();
             
-            if (DropDownStyle == ComboBoxStyle.DropDownList || e.X >= Width - 16)
+            if (DropDownStyle == ComboBoxStyle.DropDownList || e.X >= Width - DOWN_BUTTON_WIDTH)
             {
-                keyFlag = true;
-                CreateListBox(String.Empty);
+                resetKeyFilter = true;
+                ToggleListBox();
             }
+        }
+        protected override void OnMouseDoubleClick(MouseEventArgs e)
+        {
+            base.OnMouseDoubleClick(e);
+            
+            OnMouseDown(e);
         }
         protected override void OnMouseHover(EventArgs e)
         {
@@ -219,8 +218,8 @@
 
             if (Enabled && DropDownStyle == ComboBoxStyle.DropDown)
             {
-                var mclient = PointToClient(MousePosition);
-                if (mclient.X < Width - 16)
+                var localMouse = PointToClient(MousePosition);
+                if (localMouse.X < Width - DOWN_BUTTON_WIDTH)
                     Cursor.Current = Cursors.IBeam;
                 else
                     Cursor.Current = Cursors.Default;
@@ -234,6 +233,8 @@
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
+            base.OnMouseWheel(e);
+            
             if (Focused)
             {
                 bool down = e.Delta < 0;
@@ -253,6 +254,11 @@
         {
             base.OnPaint(e);
 
+            if (listBoxRecentlyClosed) 
+                // Wait for a frame to prevent creating new listBox when previous was recently closed.
+                // (issue with disposing context controls and processing mouse input at the same time)
+                listBoxRecentlyClosed = false;
+            
             var g = e.Graphics;
             
             // Colors.
@@ -308,15 +314,16 @@
                         if (selectTextOnFocus || shouldFocus)
                             g.uwfFocusNext();
 
-                        var filterBuffer = g.uwfDrawTextField(filter, Font, ForeColor, 2, 0, textWidth, height, HorizontalAlignment.Left);
-                        if (filterBuffer != filter)
+                        var filterBuffer = g.uwfDrawTextField(Text, Font, ForeColor, 2, 0, textWidth, height, HorizontalAlignment.Left);
+                        if (filterBuffer != Text)
                         {
-                            if (listBox == null || listBox.IsDisposed || listBox.Disposing)
-                                CreateListBox(filterBuffer);
-                            else
-                                UpdateListBoxItems(filterBuffer);
+                            if (listBoxPanel == null || listBoxPanel.IsDisposed || listBoxPanel.Disposing) 
+                                CreateListBox();
+
+                            listBoxPanel.UpdateListBoxItems(filterBuffer);
                         }
-                        filter = filterBuffer;
+                        
+                        Text = filterBuffer;
 
                         if (shouldFocus)
                         {
@@ -356,21 +363,19 @@
                         g.DrawLine(downButtonBorderPen, bRect.X, bRect.Y, bRect.X, bRect.Y + bRect.Height);
                     }
                     break;
+                
                 case ComboBoxStyle.DropDownList:
                     g.uwfDrawString(Text, Font, ForeColor, 5, -2, textWidth, height + 4, ContentAlignment.MiddleLeft);
                     break;
             }
 
             // Arrow.
-            var arrowSize = 16;
-            g.uwfFillRectangle(backColor, width - arrowSize, 0, arrowSize, height);
-            g.uwfDrawImage(
-                uwfAppOwner.Resources.CurvedArrowDown,
-                arrowColor,
-                width - arrowSize,
-                height / 2 - arrowSize / 2,
-                arrowSize,
-                arrowSize);
+            var arrowImage = uwfAppOwner.Resources.CurvedArrowDown; 
+            var arrowX = width - ARROW_IMAGE_SIZE;
+            var arrowY = (height - ARROW_IMAGE_SIZE) / 2f;
+
+            g.uwfFillRectangle(backColor, arrowX, 0, ARROW_IMAGE_SIZE, height);
+            g.uwfDrawImage(arrowImage, arrowColor, arrowX, arrowY, ARROW_IMAGE_SIZE, ARROW_IMAGE_SIZE);
 
             // Border.
             g.DrawRectangle(borderPen, 0, 0, Width, Height);
@@ -383,63 +388,76 @@
         }
         protected virtual void OnSelectedItemChanged(EventArgs e)
         {
-
         }
 
         private void ApplySelectedItem()
         {
-            if (listBox == null) return;
-            var listSelectedItem = listBox.SelectedItem;
+            if (listBoxPanel == null) return;
+            var listSelectedItem = listBoxPanel.listBox.SelectedItem;
+            
             for (int i = 0; i < Items.Count; i++)
-                if (Items[i] == listSelectedItem)
-                {
-                    filter = listSelectedItem != null ? listSelectedItem.ToString() : "";
-                    SelectedItem = listSelectedItem;
-                    break;
-                }
-            listBox.Dispose();
-            listBox = null;
-        }
-        private void CreateListBox(string listFilter)
-        {
-            if (listBox != null)
             {
-                listBox = null;
+                if (Items[i] != listSelectedItem) continue;
+                
+                Text = listSelectedItem != null ? listSelectedItem.ToString() : "";
+                SelectedItem = listSelectedItem;
+                break;
+            }
+            
+            listBoxPanel.Dispose();
+            listBoxPanel = null;
+        }
+        private void CloseListBox()
+        {
+            listBoxOpened = false;
+            
+            if (listBoxPanel == null)
+                return;
+
+            listBoxPanel.listBox.SelectedIndexChanged -= ListBoxOnSelectedIndexChanged;
+            listBoxPanel.listBox.MouseUp -= ListBoxOnMouseUp;
+            listBoxPanel.listBox.KeyDown -= ListBoxOnKeyDown;
+            listBoxPanel.listBox.Disposed -= ListBoxOnDisposed;
+            listBoxPanel.Dispose();
+            listBoxPanel = null;
+            
+            OnDropDownClosed(EventArgs.Empty);
+            
+            listBoxRecentlyClosed = true;
+        }
+        private void CreateListBox()
+        {
+            if (listBoxPanel != null)
+            {
+                listBoxPanel = null;
                 return;
             }
+            
+            if (listBoxRecentlyClosed)
+                return;
 
-            if (!listBoxOpened)
-            {
-                listBox = new ComboListBox();
-                listBox.BackColor = BackColor;
-                listBox.BorderColor = uwfBorderColorHovered;
-                listBox.Font = Font;
-                listBox.ForeColor = ForeColor;
-                listBox.Width = Width;
-                listBox.ItemHeight = ItemHeight;
-                listBox.Height = listBox.ItemHeight * (Items.Count > MaxDropDownItems ? MaxDropDownItems : Items.Count);
-                
-                listBox.uwfContext = true;
-                listBox.uwfWrapText = false;
-                listBox.uwfShadowBox = true;
-                listBox.uwfItemHoverColor = uwfListItemHoverColor;
-                listBox.uwfSelectionBackColor = uwfListItemSelectedBackgroundColor;
-                listBox.uwfSelectionForeColor = uwfListItemSelectedForeColor;
-                
-                if (listBox.Height < listBox.ItemHeight) listBox.Height = listBox.ItemHeight;
+            var screenLocation = PointToScreen(Point.Empty);
+            var height = ItemHeight * (Items.Count > MaxDropDownItems ? MaxDropDownItems : Items.Count);
+            if (height < ItemHeight) 
+                height = ItemHeight;
+            
+            listBoxPanel = new ComboListBoxPanel(this);
+            listBoxPanel.Location = new Point(screenLocation.X, screenLocation.Y + Height);
+            listBoxPanel.Size = new Size(Width, height + 4); // + Vertical padding for borders.
+            listBoxPanel.InitializeComponent();
+            
+            listBoxPanel.listBox.SelectedIndexChanged += ListBoxOnSelectedIndexChanged;
+            listBoxPanel.listBox.MouseUp += ListBoxOnMouseUp;
+            listBoxPanel.listBox.KeyDown += ListBoxOnKeyDown;
+            listBoxPanel.listBox.Disposed += ListBoxOnDisposed;
 
-                UpdateListBoxItems(listFilter);
-
-                var gpoint = PointToScreen(Point.Empty);
-                listBox.Location = new Point(gpoint.X, gpoint.Y + Height);
-                listBox.MouseUp += ListBoxOnMouseUp;
-                listBox.KeyDown += ListBoxOnKeyDown;
-                listBox.Disposed += ListBoxOnDisposed;
-                
-                OnDropDown(EventArgs.Empty);
-            }
-            else
-                listBoxOpened = false;
+            listBoxPanel.uwfContext = true;
+            
+            listBoxPanel.UpdateListBoxItems(string.Empty);
+            
+            OnDropDown(EventArgs.Empty);
+            
+            listBoxOpened = true;
         }
         private Rectangle GetButtonRect()
         {
@@ -459,69 +477,38 @@
         }
         private void ListBoxOnDisposed(object sender, EventArgs eventArgs)
         {
-            var clientRect = new System.Drawing.Rectangle(0, 0, Width, Height);
-            var contains = clientRect.Contains(PointToClient(MousePosition));
-            if (!contains)
-                listBoxOpened = false;
-            else
-                listBoxOpened = !listBoxOpened;
-
-            listBox.MouseUp -= ListBoxOnMouseUp;
-            listBox.KeyDown -= ListBoxOnKeyDown;
-            listBox.Disposed -= ListBoxOnDisposed;
-
-            listBox = null;
-            
-            OnDropDownClosed(EventArgs.Empty);
+            CloseListBox();
         }
-        private void UpdateComboBoxDDStyle()
+        private void ListBoxOnSelectedIndexChanged(object sender, EventArgs e)
         {
-            switch (DropDownStyle)
+            SelectedIndex = Items.FindIndex(x => x == listBoxPanel.listBox.SelectedItem);
+        }
+        private void SelectItem(int index)
+        {
+            if (listBoxPanel != null)
             {
-                case ComboBoxStyle.DropDown:
-                    break;
-                case ComboBoxStyle.DropDownList:
-                    break;
-            }
-        }
-        private void UpdateListBoxItems(string listFilter)
-        {
-            if (listBox == null)
+                listBoxPanel.listBox.SelectItem(index);
                 return;
-            
-            listBox.Items.Clear();
-            
-            bool selectedIndexChanged = false;
-            for (int i = 0; i < Items.Count; i++)
-            {
-                var item = Items[i];
-                if (DropDownStyle == ComboBoxStyle.DropDownList || String.IsNullOrEmpty(listFilter))
-                    listBox.Items.Add(item);
-                else
-                {
-                    var itemString = item.ToString();
-                    if (!itemString.ToLower().Contains(listFilter.ToLower())) continue;
-
-                    listBox.Items.Add(item);
-                    if (itemString != listFilter) continue;
-
-                    listBox.SelectedIndex = i;
-                    selectedIndexChanged = true;
-                }
             }
-            for (int i = 0; i < Items.Count; i++)
-                if (Items.IsDisabled(i))
-                    listBox.Items.Disable(i);
+            
+            if (index < 0 && Items.Count == 0) return;
 
-            if (selectedIndexChanged == false)
-            {
-                listBox.SelectedIndex = SelectedIndex;
-                listBox.EnsureVisible();
-            }
+            if (index < 0) index = 0;
+            if (index >= Items.Count) index = Items.Count - 1;
+
+            SelectedIndex = index;
         }
+        private void ToggleListBox()
+        {
+            if (listBoxOpened)
+                CloseListBox();
+            else
+                CreateListBox();
+        }
+        
         private void UpdateText()
         {
-            string text = null;
+            string text = string.Empty;
 
             if (SelectedIndex != -1)
             {
@@ -535,14 +522,12 @@
 
         public class ObjectCollection : IList
         {
-            private readonly List<int> disabledItems;
             private readonly List<object> items;
             private readonly ComboBox owner;
 
             public ObjectCollection(ComboBox owner)
             {
                 this.owner = owner;
-                disabledItems = new List<int>();
                 items = new List<object>();
             }
 
@@ -592,20 +577,6 @@
             {
                 items.CopyTo(destination, arrayIndex);
             }
-            public void Disable(int itemIndex)
-            {
-                if (!disabledItems.Contains(itemIndex))
-                    disabledItems.Add(itemIndex);
-            }
-            public void Enable(int itemIndex)
-            {
-                for (int i = 0; i < disabledItems.Count; i++)
-                    if (itemIndex == disabledItems[i])
-                    {
-                        disabledItems.RemoveAt(i);
-                        break;
-                    }
-            }
             public object Find(Predicate<object> match)
             {
                 return items.Find(match);
@@ -626,10 +597,6 @@
             {
                 items.Insert(index, item);
             }
-            public bool IsDisabled(int itemIndex)
-            {
-                return disabledItems.FindIndex(x => x == itemIndex) != -1;
-            }
             public void Remove(object value)
             {
                 items.Remove(value);
@@ -640,10 +607,93 @@
             }
         }
 
+        private class ComboListBoxPanel : Control
+        {
+            public ComboListBox listBox;
+
+            private readonly ComboBox owner;
+            private float currentY;
+            
+            public ComboListBoxPanel(ComboBox owner)
+            {
+                this.owner = owner;
+
+                BackColor = Color.Transparent;
+            }
+            
+            public void InitializeComponent()
+            {
+                listBox = new ComboListBox();
+                listBox.BackColor = owner.BackColor;
+                listBox.BorderColor = owner.uwfBorderColorHovered;
+                listBox.Font = owner.Font;
+                listBox.ForeColor = owner.ForeColor;
+                listBox.Width = owner.Width;
+                listBox.IntegralHeight = false;
+                listBox.ItemHeight = owner.ItemHeight;
+                listBox.Size = new Size(Width, Height);
+                listBox.Location = new Point(0, -listBox.Height);
+
+                currentY = listBox.Location.Y;
+                
+                listBox.uwfWrapText = false;
+                listBox.uwfShadowBox = true;
+                listBox.uwfItemHoverColor = owner.uwfListItemHoverColor;
+                listBox.uwfSelectionBackColor = owner.uwfListItemSelectedBackgroundColor;
+                listBox.uwfSelectionForeColor = owner.uwfListItemSelectedForeColor;
+
+                Controls.Add(listBox);
+            }
+            
+            public void UpdateListBoxItems(string listFilter)
+            {
+                if (listBox == null)
+                    return;
+            
+                listBox.Items.Clear();
+            
+                bool selectedIndexChanged = false;
+                for (int i = 0; i < owner.Items.Count; i++)
+                {
+                    var item = owner.Items[i];
+                    if (owner.DropDownStyle == ComboBoxStyle.DropDownList || string.IsNullOrEmpty(listFilter))
+                        listBox.Items.Add(item);
+                    else
+                    {
+                        var itemString = item.ToString();
+                        if (!itemString.ToLower().Contains(listFilter.ToLower())) continue;
+
+                        listBox.Items.Add(item);
+                        if (itemString != listFilter) continue;
+
+                        listBox.SelectedIndex = i;
+                        selectedIndexChanged = true;
+                    }
+                }
+
+                if (selectedIndexChanged == false)
+                {
+                    listBox.SelectedIndex = owner.SelectedIndex;
+                    listBox.EnsureVisible();
+                }
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                base.OnPaint(e);
+                
+                if (currentY < 0)
+                {
+                    currentY = MathHelper.Step(currentY, 0, 240);
+                    listBox.Location = new Point(0, (int) currentY);
+                }
+            }
+        }
+        
         private class ComboListBox : ListBox
         {
             private readonly Pen borderPen = new Pen(Color.Gray);
-
+            
             public ComboListBox()
             {
                 BorderStyle = BorderStyle.FixedSingle;
@@ -653,6 +703,13 @@
             {
                 get { return borderPen.Color; }
                 set { borderPen.Color = value; }
+            }
+
+            
+
+            protected override Size DefaultSize
+            {
+                get { return new Size(base.DefaultSize.Width, 0); }
             }
 
             protected internal override void uwfOnLatePaint(PaintEventArgs e)

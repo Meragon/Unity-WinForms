@@ -50,7 +50,7 @@
         }
         public void DrawImage(Image image, float x, float y, float width, float height)
         {
-            ApiGraphics.DrawImage(image, Color.White, x, y, width, height, 0);
+            ApiGraphics.DrawImage(image, x, y, width, height, 0);
         }
         public void DrawLine(Pen pen, Point pt1, Point pt2)
         {
@@ -161,13 +161,16 @@
 
         internal static PointF[] GetBezierApproximation(PointF[] controlPoints, int outputSegmentCount)
         {
-            if (outputSegmentCount <= 0) return null;
+            if (outputSegmentCount <= 0) 
+                return new PointF[] {};
+            
             var points = new PointF[outputSegmentCount + 1];
             for (int i = 0; i <= outputSegmentCount; i++)
             {
-                float t = (float)i / outputSegmentCount;
+                float t = (float) i / outputSegmentCount;
                 points[i] = GetBezierPoint(t, controlPoints, 0, controlPoints.Length);
             }
+            
             return points;
         }
         internal void GroupBegin(Control control)
@@ -188,7 +191,8 @@
         #region Not original methods.
         internal void uwfDrawImage(Image image, Color color, float x, float y, float width, float height)
         {
-            ApiGraphics.DrawImage(image, color, x, y, width, height, 0);
+            image.Color = color;
+            ApiGraphics.DrawImage(image, x, y, width, height, 0);
         }
         internal string uwfDrawPasswordField(string s, Font font, Color color, float x, float y, float width, float height, HorizontalAlignment alignment)
         {

@@ -222,7 +222,6 @@
             }
         }
         
-
         protected internal override void uwfOnLatePaint(PaintEventArgs e)
         {
             base.uwfOnLatePaint(e);
@@ -345,23 +344,18 @@
                 var item = Items[itemIndex];
                 var itemY = borderOffset + i * ItemHeight;
                 var itemW = uwfWrapText ? Width : Width * 5;
-                bool itemDisabled = Items.IsDisabled(itemIndex);
-                bool itemSelected = itemIndex == SelectedIndex;
-                bool itemHovered = itemIndex == hoveredItem;
+                var itemSelected = itemIndex == SelectedIndex;
+                var itemHovered = itemIndex == hoveredItem;
                 var itemForeColor = ForeColor;
 
-                if (itemDisabled)
-                    itemForeColor = uwfItemDisabledColor;
-                else if (itemSelected)
+                if (itemSelected)
                     itemForeColor = uwfSelectionForeColor;
 
                 var itemBackColor = Color.Transparent;
                 if (itemSelected || itemHovered)
                 {
                     itemBackColor = uwfItemHoverColor;
-                    if (itemDisabled)
-                        itemBackColor = uwfSelectionDisabledColor;
-                    else if (itemSelected)
+                    if (itemSelected)
                         itemBackColor = uwfSelectionBackColor;
                 }
 
@@ -445,7 +439,6 @@
 
         public class ObjectCollection : IList
         {
-            private readonly List<int> disabledItems = new List<int>();
             private readonly List<object> items = new List<object>();
             private readonly ListBox owner;
 
@@ -502,7 +495,6 @@
             }
             public void Clear()
             {
-                disabledItems.Clear();
                 items.Clear();
                 owner.uwfScrollIndex = 0;
                 owner.selectedIndex = -1;
@@ -519,20 +511,6 @@
             {
                 items.CopyTo(destination, arrayIndex);
             }
-            public void Disable(int itemIndex)
-            {
-                if (!disabledItems.Contains(itemIndex))
-                    disabledItems.Add(itemIndex);
-            }
-            public void Enable(int itemIndex)
-            {
-                for (int i = 0; i < disabledItems.Count; i++)
-                    if (itemIndex == disabledItems[i])
-                    {
-                        disabledItems.RemoveAt(i);
-                        break;
-                    }
-            }
             public IEnumerator GetEnumerator()
             {
                 return items.GetEnumerator();
@@ -544,10 +522,6 @@
             public void Insert(int index, object value)
             {
                 items.Insert(index, value);
-            }
-            public bool IsDisabled(int itemIndex)
-            {
-                return disabledItems.FindIndex(x => x == itemIndex) != -1;
             }
             public void Remove(object value)
             {

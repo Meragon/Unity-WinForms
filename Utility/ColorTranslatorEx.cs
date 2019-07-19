@@ -9,6 +9,7 @@
 
             return value;
         }
+        
         public static Color FromHsb(byte hue, byte saturation, byte brightness)
         {
             double dh = (double)hue / 255;
@@ -16,25 +17,31 @@
             double db = (double)brightness / 255;
             return FromHsb(dh, ds, db);
         }
+        
         public static Color FromHsb(double hue, double saturation, double brightness)
         {
             double r = 0, g = 0, b = 0;
+            
             if (brightness != 0)
             {
                 if (saturation == 0)
+                {
                     r = g = b = brightness;
+                }
                 else
                 {
-                    double temp2 = _GetTemp2(hue, saturation, brightness);
+                    double temp2 = GetTemp2(saturation, brightness);
                     double temp1 = 2.0f * brightness - temp2;
 
-                    r = _GetColorComponent(temp1, temp2, hue + 1.0f / 3.0f);
-                    g = _GetColorComponent(temp1, temp2, hue);
-                    b = _GetColorComponent(temp1, temp2, hue - 1.0f / 3.0f);
+                    r = GetColorComponent(temp1, temp2, hue + 1.0f / 3.0f);
+                    g = GetColorComponent(temp1, temp2, hue);
+                    b = GetColorComponent(temp1, temp2, hue - 1.0f / 3.0f);
                 }
             }
-            return Color.FromArgb((int)(255 * r), (int)(255 * g), (int)(255 * b));
+
+            return Color.FromArgb((int) (255 * r), (int) (255 * g), (int) (255 * b));
         }
+        
         public static Color FromHSV(double hue, double saturation, double value)
         {
             int hi = Convert.ToInt32(Math.Floor(hue / 60)) % 6;
@@ -59,6 +66,7 @@
 
             return Color.FromArgb(255, v, p, q);
         }
+        
         public static Color Max(this Color value, Color maxValue)
         {
             var a = value.A;
@@ -78,6 +86,7 @@
 
             return Color.FromArgb(a, r, g, b);
         }
+        
         public static Color Min(this Color value, Color minValue)
         {
             var a = value.A;
@@ -97,47 +106,55 @@
 
             return Color.FromArgb(a, r, g, b);
         }
+        
         public static string ToHexString(this Color c)
         {
             return c.R.ToString("X2") + c.G.ToString("X2") + c.B.ToString("X2") + c.A.ToString("X2");
         }
+        
         public static void ToHSV(Color color, out double hue, out double saturation, out double value)
         {
             int max = Math.Max(color.R, Math.Max(color.G, color.B));
             int min = Math.Min(color.R, Math.Min(color.G, color.B));
 
             hue = color.GetHue();
-            saturation = (max == 0) ? 0 : 1d - (1d * min / max);
+            saturation = max == 0 ? 0 : 1d - (1d * min / max);
             value = max / 255d;
         }
 
-        private static double _GetColorComponent(double temp1, double temp2, double temp3)
+        private static double GetColorComponent(double temp1, double temp2, double temp3)
         {
-            temp3 = _MoveIntoRange(temp3);
+            temp3 = MoveIntoRange(temp3);
+            
             if (temp3 < 1.0f / 6.0f)
                 return temp1 + (temp2 - temp1) * 6.0f * temp3;
-            else if (temp3 < 0.5f)
+            
+            if (temp3 < 0.5f)
                 return temp2;
-            else if (temp3 < 2.0f / 3.0f)
-                return temp1 + ((temp2 - temp1) * ((2.0f / 3.0f) - temp3) * 6.0f);
-            else
-                return temp1;
+            
+            if (temp3 < 2.0f / 3.0f)
+                return temp1 + (temp2 - temp1) * (2.0f / 3.0f - temp3) * 6.0f;
+            
+            return temp1;
         }
-        private static double _GetTemp2(double h, double s, double l)
+        
+        private static double GetTemp2(double s, double l)
         {
             double temp2;
             if (l < 0.5f)
                 temp2 = l * (1.0f + s);
             else
-                temp2 = l + s - (l * s);
+                temp2 = l + s - l * s;
             return temp2;
         }
-        private static double _MoveIntoRange(double temp3)
+        
+        private static double MoveIntoRange(double temp3)
         {
             if (temp3 < 0.0f)
                 temp3 += 1.0f;
             else if (temp3 > 1.0f)
                 temp3 -= 1.0f;
+            
             return temp3;
         }
     }

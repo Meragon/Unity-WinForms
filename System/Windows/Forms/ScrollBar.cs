@@ -265,6 +265,27 @@
 
             base.Dispose(release_all);
         }
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            
+            if (Parent != null)
+                Parent.RaiseOnKeyDown(e);
+        }
+        protected override void OnKeyPress(KeyPressEventArgs e)
+        {
+            base.OnKeyPress(e);
+            
+            if (Parent != null)
+                Parent.RaiseOnKeyPress(e);
+        }
+        protected override void OnKeyUp(KeyEventArgs e)
+        {
+            base.OnKeyUp(e);
+            
+            if (Parent != null)
+                Parent.RaiseOnKeyUp(e);
+        }
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);

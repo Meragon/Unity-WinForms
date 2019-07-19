@@ -8,11 +8,11 @@
         public Bitmap(Image original)
         {
             if (original != null)
-                uTexture = original.uTexture;
+                Texture = original.Texture;
         }
         public Bitmap(int width, int height)
         {
-            uTexture = Graphics.ApiGraphics.CreateTexture(width, height);
+            Texture = Graphics.ApiGraphics.CreateTexture(width, height);
         }
 
         private Bitmap()
@@ -24,16 +24,16 @@
             var colors = new Color[Width * Height];
             for (int i = 0; i < colors.Length; i++)
                 colors[i] = c;
-            uTexture.SetPixels(colors);
+            Texture.SetPixels(colors);
             if (apply) this.Apply();
         }
         public Color GetPixel(int x, int y)
         {
-            return uTexture.GetPixel(x, uTexture.Height - y - 1);
+            return Texture.GetPixel(x, Texture.Height - y - 1);
         }
         public Color[] GetPixels(int x, int y, int w, int h)
         {
-            var ucs = uTexture.GetPixels(x, uTexture.Height - y - 1, w, h);
+            var ucs = Texture.GetPixels(x, Texture.Height - y - 1, w, h);
             Color[] cs = new Color[ucs.Length];
             for (int i = 0; i < cs.Length; i++)
                 cs[i] = ucs[i];
@@ -41,13 +41,13 @@
         }
         public void SetPixel(int x, int y, Color color)
         {
-            uTexture.SetPixel(x, uTexture.Height - y - 1, color);
+            Texture.SetPixel(x, Texture.Height - y - 1, color);
         }
 
         internal static Bitmap FromTexture(ITexture tex)
         {
             var bmp = new Bitmap();
-            bmp.uTexture = tex;
+            bmp.Texture = tex;
 
             return bmp;
         }

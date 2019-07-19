@@ -588,7 +588,7 @@
             if (nodeContainsImage)
             {
                 var image = ImageList.Images[node.ImageIndex];
-                if (image != null && image.uTexture != null)
+                if (image != null && image.Texture != null)
                 {
                     var imageSize = Math.Min(nodeBounds.Height - 2, image.Height);
                     var imageX = xOffset + (nodeBounds.Height - imageSize) / 2f;

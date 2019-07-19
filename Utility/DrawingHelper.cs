@@ -22,7 +22,7 @@ namespace System.Drawing
         public static void Apply(this Bitmap bitmap)
         {
 #if UNITY_GDI
-            bitmap.uTexture.Apply();
+            bitmap.Texture.Apply();
 #endif
         }
         public static int Distance(this Point p1, Point to)

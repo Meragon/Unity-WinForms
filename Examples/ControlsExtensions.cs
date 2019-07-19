@@ -60,7 +60,7 @@
     {
         public static T Create<T>(this Control parent, int margin = 8, int lineHeight = 24) where T : Control, new()
         {
-            return Create<T>(parent, AnchorStylesExtended.LeftTop, null, false, margin, lineHeight);
+            return Create<T>(parent, AnchorStylesExtended.LeftTop, string.Empty, false, margin, lineHeight);
         }
         public static T Create<T>(this Control parent, AnchorStylesExtended anchor, bool placeToRight = false, int margin = 8, int lineHeight = 24) where T : Control, new()
         {

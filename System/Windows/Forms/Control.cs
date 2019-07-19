@@ -285,14 +285,14 @@
             get { return fuwfContext; }
             set
             {
-                if (fuwfContext != value)
-                {
-                    fuwfContext = value;
-                    if (fuwfContext)
-                        uwfAppOwner.Contexts.Add(this);
-                    else
-                        uwfAppOwner.Contexts.Remove(this);
-                }
+                if (fuwfContext == value) return;
+                
+                fuwfContext = value;
+                
+                if (fuwfContext)
+                    uwfAppOwner.Contexts.Add(this);
+                else
+                    uwfAppOwner.Contexts.Remove(this);
             }
         }
         internal bool uwfHovered { get { return hovered; } }

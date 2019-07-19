@@ -21,14 +21,20 @@
             Width = size.Width;
             Height = size.Height;
         }
-        
-        public int Bottom { get { return Y + Height; } }
+
+        public int Bottom
+        {
+            get { return Y + Height; }
+        }
         public int Height { get; set; }
         public bool IsEmpty
         {
             get { return X == 0 && Y == 0 && Width == 0 && Height == 0; }
         }
-        public int Left { get { return X; } }
+        public int Left
+        {
+            get { return X; }
+        }
         public Point Location
         {
             get { return new Point(X, Y); }
@@ -38,7 +44,10 @@
                 Y = value.Y;
             }
         }
-        public int Right { get { return X + Width; } }
+        public int Right
+        {
+            get { return X + Width; }
+        }
         public Size Size
         {
             get { return new Size(Width, Height); }
@@ -48,11 +57,14 @@
                 Height = value.Height;
             }
         }
-        public int Top { get { return Y; } }
+        public int Top
+        {
+            get { return Y; }
+        }
         public int Width { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
-        
+
         public static bool operator !=(Rectangle left, Rectangle right)
         {
             return !(left == right);
@@ -84,9 +96,9 @@
             int y1 = Math.Max(a.Y, b.Y);
             int y2 = Math.Min(a.Y + a.Height, b.Y + b.Height);
 
-            if (x2 >= x1 && y2 >= y1) 
+            if (x2 >= x1 && y2 >= y1)
                 return new Rectangle(x1, y1, x2 - x1, y2 - y1);
-            
+
             return Empty;
         }
         public static Rectangle Union(Rectangle a, Rectangle b)
@@ -98,7 +110,7 @@
 
             return new Rectangle(x1, y1, x2 - x1, y2 - y1);
         }
-        
+
         public bool Contains(int x, int y)
         {
             return X <= x && x < X + Width && Y <= y && y < Y + Height;
@@ -117,8 +129,8 @@
         }
         public override bool Equals(object obj)
         {
-            if (obj is Rectangle == false) return false;
-            var rect = (Rectangle)obj;
+            if (!(obj is Rectangle)) return false;
+            var rect = (Rectangle) obj;
             return rect.X == X && rect.Y == Y && rect.Width == Width && rect.Height == Height;
         }
         public override int GetHashCode()
@@ -163,8 +175,8 @@
         public override string ToString()
         {
             return "{X=" + X.ToString(CultureInfo.CurrentCulture) + ",Y=" + Y.ToString(CultureInfo.CurrentCulture) +
-            ",Width=" + Width.ToString(CultureInfo.CurrentCulture) +
-            ",Height=" + Height.ToString(CultureInfo.CurrentCulture) + "}";
+                   ",Width=" + Width.ToString(CultureInfo.CurrentCulture) +
+                   ",Height=" + Height.ToString(CultureInfo.CurrentCulture) + "}";
         }
     }
 }

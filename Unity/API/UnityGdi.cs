@@ -42,12 +42,12 @@
 
             throw new NotSupportedException();
         }
-        public void DrawImage(Image image, Color color, float x, float y, float width, float height, float angle)
+        public void DrawImage(Image image, float x, float y, float width, float height, float angle)
         {
             if (image == null || width <= 0 || height <= 0)
                 return;
 
-            var unityGdiSprite = image.uTexture as UnityGdiSprite;
+            var unityGdiSprite = image.Texture as UnityGdiSprite;
             if (unityGdiSprite != null && unityGdiSprite.sprite != null)
             {
                 var spriteRect = unityGdiSprite.sprite.rect;
@@ -56,13 +56,13 @@
                 var sy = spriteRect.y / texture.height;
                 var sw = spriteRect.width / texture.width;
                 var sh = spriteRect.height / texture.height;
-                UE.GUI.color = color.ToUnityColor();
+                UE.GUI.color = image.Color.ToUnityColor();
                 UE.GUI.DrawTextureWithTexCoords(new UE.Rect(x, y, width, height), unityGdiSprite.sprite.texture, new UE.Rect(sx, sy, sw, sh));
                 return;
             }
 
             var textureToDraw = defaultTexture;
-            var imageTexture = image.uTexture as UnityGdiTexture;
+            var imageTexture = image.Texture as UnityGdiTexture;
             if (imageTexture != null)
                 textureToDraw = imageTexture.texture;
 
@@ -70,12 +70,12 @@
             {
                 UE.Matrix4x4 matrixBackup = UE.GUI.matrix;
                 UE.GUIUtility.RotateAroundPivot(angle, new UE.Vector2(x + width / 2, y + height / 2));
-                UE.GUI.DrawTexture(new UE.Rect(x, y, width, height), ((UnityGdiTexture)image.uTexture).texture);
+                UE.GUI.DrawTexture(new UE.Rect(x, y, width, height), ((UnityGdiTexture)image.Texture).texture);
                 UE.GUI.matrix = matrixBackup;
                 return;
             }
 
-            UE.GUI.color = color.ToUnityColor();
+            UE.GUI.color = image.Color.ToUnityColor();
             UE.GUI.DrawTexture(new UE.Rect(x, y, width, height), textureToDraw);
         }
         public void DrawImage(Image image, float x, float y, float width, float height, object material = null)
@@ -83,7 +83,7 @@
             var textureToDraw = defaultTexture;
             if (image != null)
             {
-                var imageTexture = image.uTexture as UnityGdiTexture;
+                var imageTexture = image.Texture as UnityGdiTexture;
                 if (imageTexture != null)
                     textureToDraw = imageTexture.texture;
             }

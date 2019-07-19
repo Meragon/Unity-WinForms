@@ -64,9 +64,9 @@
             {
                 bool cursorVisible = true;
                 if (CurrentSystem != null)
-                    cursorVisible = currentSystem.image == null || currentSystem.image.uTexture == null;
+                    cursorVisible = currentSystem.image == null || currentSystem.image.Texture == null;
                 else
-                    cursorVisible = current == null || current.image == null || current.image.uTexture == null;
+                    cursorVisible = current == null || current.image == null || current.image.Texture == null;
                 return cursorVisible;
             }
         }

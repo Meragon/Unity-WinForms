@@ -751,7 +751,7 @@
                     break;
             }
         }
-        private void _SelectFirstControl()
+        private void SelectFirstControl()
         {
             for (int i = 0; i < Controls.Count; i++)
                 if (Controls[i].CanSelect)
@@ -766,7 +766,7 @@
             if ((CreateParams.ExStyle & (NativeMethods.WS_DISABLED | NativeMethods.WS_EX_TOOLWINDOW)) == 0)
             {
                 Focus();
-                _SelectFirstControl();
+                SelectFirstControl();
 
                 return true;
             }

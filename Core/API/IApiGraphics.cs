@@ -7,7 +7,7 @@
 
         void BeginGroup(float x, float y, float width, float height);
         void Clear(Color color);
-        void DrawImage(Image image, Color color, float x, float y, float width, float height, float angle);
+        void DrawImage(Image image, float x, float y, float width, float height, float angle);
         void DrawImage(Image image, float x, float y, float width, float height, object material = null);
         void DrawLine(Pen pen, float x1, float y1, float x2, float y2, object material = null);
         void DrawPolygon(Pen pen, Point[] points, object material = null);

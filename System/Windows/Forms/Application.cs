@@ -120,7 +120,7 @@
             }
 
             // Raise keys on selected controls if possible.
-            if (Control.lastSelected != null && Control.lastSelected.IsDisposed == false)
+            if (Control.lastSelected != null && !Control.lastSelected.IsDisposed)
             {
                 var keyControl = Control.lastSelected;
 
@@ -278,7 +278,7 @@
         
         internal static bool ControlIsVisible(Control control)
         {
-            if (control.Visible == false) return false;
+            if (!control.Visible) return false;
 
             var co = control.uwfOffset;
             var controlLocation = control.Location;
@@ -366,7 +366,7 @@
             for (int i = currentControl.Controls.Count - 1; i >= 0; i--)
             {
                 var child = currentControl.Controls[i];
-                if (child.Visible == false || child.Enabled == false) continue;
+                if (!child.Visible || !child.Enabled) continue;
             
                 // Base child bounds.
                 var childOffset = child.uwfOffset;
@@ -495,7 +495,7 @@
                     keyControl.RaiseOnKeyDown(args);
 
                     var lastChar = KeyHelper.GetLastInputChar();
-                    if (args.KeyCode == Keys.Space || args.KeyCode == Keys.Back || char.IsControl(lastChar) == false)
+                    if (args.KeyCode == Keys.Space || args.KeyCode == Keys.Back || !char.IsControl(lastChar))
                         keyControl.RaiseOnKeyPress(new KeyPressEventArgs(lastChar));
 
                     break;
@@ -597,7 +597,7 @@
                 else
                 {
                     hoveredControl = controlAtMouse;
-                    if (controlAtMouse.mouseEntered == false)
+                    if (!controlAtMouse.mouseEntered)
                     {
                         var mclient = controlAtMouse.PointToClient(Control.MousePosition);
 

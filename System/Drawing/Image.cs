@@ -4,11 +4,17 @@
     
     public abstract class Image
     {
-        public int Height { get { return uTexture.Height; } }
+        internal Image()
+        {
+            Color = Color.White;
+        }
+        
+        public int Height { get { return Texture.Height; } }
         public Size Size { get { return new Size(Width, Height); } }
         public object Tag { get; set; }
-        public int Width { get { return uTexture.Width; } }
+        public int Width { get { return Texture.Width; } }
 
-        internal ITexture uTexture { get; set; }
+        internal Color Color { get; set; }
+        internal ITexture Texture { get; set; }
     }
 }

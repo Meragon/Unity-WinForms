@@ -9,6 +9,7 @@
             Color = color;
             Width = 1;
         }
+        
         public Pen(Color color, float width)
         {
             Color = color;
@@ -31,14 +32,16 @@
             pen.Width = Width;
             return pen;
         }
+        
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
+            // Nothing to dispose.
         }
     }
 }
