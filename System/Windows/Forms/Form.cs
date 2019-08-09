@@ -385,8 +385,7 @@
                     estimatedHeight = Height;
                 }
 
-                Location = new Point(estimatedX, estimatedY);
-                Size = new Size(estimatedWidth, estimatedHeight);
+                SetBounds(estimatedX, estimatedY, estimatedWidth, estimatedHeight);
             }
         }
         internal virtual void MouseHook_MouseUp(object sender, MouseEventArgs e)

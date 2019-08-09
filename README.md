@@ -47,6 +47,10 @@ Additional custom controls:
 3. Add other fonts and images; 
 4. Create **Form** control in your **MonoBehaviour** script;
 ```sh
+using UnityEngine;
+
+using System.Windows.Forms;
+
 public class GameGuiController : MonoBehaviour
 {
 	void Start()
@@ -55,7 +59,7 @@ public class GameGuiController : MonoBehaviour
 		form.Show();
 		
 		// Or show a message.
-		// 		MessageBox.Show("Hello World.");
+		//// MessageBox.Show("Hello World.");
 	}
 }
 ```

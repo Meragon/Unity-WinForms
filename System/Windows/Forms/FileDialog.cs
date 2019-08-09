@@ -299,18 +299,22 @@ namespace System.Windows.Forms
         protected internal void OpenFile()
         {
             filename = fileRenderer.currentPath + "/" + textBoxFilename.Text;
-
+            
 #if IO_SUPPORTED
-            
-            // Add extension to the end of file if needed.
-            var hasExtension = System.IO.Path.HasExtension(filename);
-            if (!hasExtension)
+
+            // Check if file is not a directory.
+            if (!System.IO.Directory.Exists(filename))
             {
-                var extension = currentFilter;
-                if (extension.Contains('.'))
-                    filename += extension.Substring(extension.IndexOf('.'));
+                // Add extension to the end of file if needed.
+                var hasExtension = System.IO.Path.HasExtension(filename);
+                if (!hasExtension)
+                {
+                    var extension = currentFilter;
+                    if (extension.Contains('.'))
+                        filename += extension.Substring(extension.IndexOf('.'));
+                }
             }
-            
+
 #endif
             
             DialogResult = DialogResult.OK;
@@ -461,12 +465,14 @@ namespace System.Windows.Forms
                     .ToArray();
 
                 currentFiles = new FileInfo[dirs.Length + files.Length];
+                
                 for (int i = 0; i < dirs.Length; i++)
                 {
                     currentFiles[i] = new FileInfo();
                     currentFiles[i].IsDirectory = true;
                     currentFiles[i].Name = dirs[i];
                 }
+                
                 for (int i = dirs.Length; i < dirs.Length + files.Length; i++)
                 {
                     currentFiles[i] = new FileInfo();
@@ -474,6 +480,7 @@ namespace System.Windows.Forms
                 }
 
                 filesTree.Nodes.Clear();
+                
                 for (int i = 0; i < currentFiles.Length; i++)
                 {
                     var file = currentFiles[i];
@@ -493,6 +500,8 @@ namespace System.Windows.Forms
                     DirectoryChanged();
 
                 fromFolder = null;
+
+                owner.textBoxFilename.Text = "";
 #endif
             }
             public void Up()
