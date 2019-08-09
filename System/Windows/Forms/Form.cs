@@ -32,6 +32,7 @@
         private static Timer lastAcceptFormTimer;
 
         private formSystemButton closeButton;
+        private bool controlBox;
         private Action<Form, DialogResult> dialogCallback;
         private FormWindowState formState;
         private bool maximizeBox = true;
@@ -49,6 +50,7 @@
         private SizeGripStyle sizeGripStyle;
         private Pen shadowPen;
         private bool topMost;
+        private bool visibleReady;
 
         #endregion
 
@@ -59,6 +61,8 @@
             FormBorderStyle = FormBorderStyle.Sizable;
             MinimumSize = new Size(128, 48);
             StartPosition = FormStartPosition.WindowsDefaultLocation;
+
+            visibleReady = true;
             Visible = false;
 
             uwfHeaderHeight = SystemInformation.CaptionHeight;
@@ -79,32 +83,29 @@
 
         public IButtonControl AcceptButton { get; set; }
         public IButtonControl CancelButton { get; set; }
-        public Button CloseButton { get { return closeButton; } }
         public bool ControlBox
         {
-            get
-            {
-                if (CloseButton == null)
-                    return false;
-                return true;
-            }
+            get { return controlBox; }
             set
             {
+                if (controlBox == value)
+                    return;
+
+                controlBox = value;
+                
                 if (value)
                 {
-                    if (CloseButton == null)
-                        _MakeButtonClose();
-                }
-                else
-                {
-                    if (CloseButton != null)
+                    if (Visible && CloseButton == null)
                     {
-                        int index = Controls.FindIndex(x => x == CloseButton);
-                        Controls.RemoveAt(index);
-
-                        CloseButton.Dispose();
-                        closeButton = null;
+                        _MakeButtonClose();
                     }
+                }
+                else if (CloseButton != null)
+                {
+                    Controls.Remove(CloseButton);
+
+                    CloseButton.Dispose();
+                    closeButton = null;
                 }
             }
         }
@@ -207,6 +208,7 @@
             }
         }
         
+        internal Button CloseButton { get { return closeButton; } }
         internal MdiClient MdiClient
         {
             get { return mdiClient; }
@@ -306,6 +308,8 @@
             if (resizeType != ControlResizeTypes.None && (FormBorderStyle == FormBorderStyle.Sizable || FormBorderStyle == FormBorderStyle.SizableToolWindow))
 #pragma warning restore 618
             {
+                int estimatedX = Location.X;
+                int estimatedY = Location.Y;
                 int estimatedWidth = 0;
                 int estimatedHeight = 0;
 
@@ -324,44 +328,64 @@
                         estimatedHeight = resizeOriginal.Height + (MousePosition.Y - resizeDelta.Y);
                         break;
                     case ControlResizeTypes.Left:
-                        Location = new Point(resizePosition.X + (MousePosition.X - resizeDelta.X), resizePosition.Y);
-                        estimatedWidth = resizeOriginal.Width + resizePosition.X - Location.X;
+                        estimatedX = resizePosition.X + (MousePosition.X - resizeDelta.X);
+                        estimatedY = resizePosition.Y;
+                        estimatedWidth = resizeOriginal.Width + resizePosition.X - estimatedX;
                         estimatedHeight = resizeOriginal.Height;
                         break;
                     case ControlResizeTypes.Up:
-                        Location = new Point(resizePosition.X, resizePosition.Y + (MousePosition.Y - resizeDelta.Y));
+                        estimatedX = resizePosition.X;
+                        estimatedY = resizePosition.Y + (MousePosition.Y - resizeDelta.Y);
                         estimatedWidth = resizeOriginal.Width;
-                        estimatedHeight = resizeOriginal.Height + resizePosition.Y - Location.Y;
+                        estimatedHeight = resizeOriginal.Height + resizePosition.Y - estimatedY;
                         break;
                     case ControlResizeTypes.LeftUp:
-                        Location = new Point(
-                            resizePosition.X + (MousePosition.X - resizeDelta.X),
-                            resizePosition.Y + (MousePosition.Y - resizeDelta.Y));
-                        estimatedWidth = resizeOriginal.Width + resizePosition.X - Location.X;
-                        estimatedHeight = resizeOriginal.Height + resizePosition.Y - Location.Y;
+                        estimatedX = resizePosition.X + (MousePosition.X - resizeDelta.X);
+                        estimatedY = resizePosition.Y + (MousePosition.Y - resizeDelta.Y);
+                        estimatedWidth = resizeOriginal.Width + resizePosition.X - estimatedX;
+                        estimatedHeight = resizeOriginal.Height + resizePosition.Y - estimatedY;
                         break;
                     case ControlResizeTypes.RightUp:
-                        Location = new Point(resizePosition.X, resizePosition.Y + (MousePosition.Y - resizeDelta.Y));
+                        estimatedX = resizePosition.X;
+                        estimatedY = resizePosition.Y + (MousePosition.Y - resizeDelta.Y);
                         estimatedWidth = resizeOriginal.Width + (MousePosition.X - resizeDelta.X);
-                        estimatedHeight = resizeOriginal.Height + resizePosition.Y - Location.Y;
+                        estimatedHeight = resizeOriginal.Height + resizePosition.Y - estimatedY;
                         break;
                     case ControlResizeTypes.LeftDown:
-                        Location = new Point(resizePosition.X + (MousePosition.X - resizeDelta.X), resizePosition.Y);
-                        estimatedWidth = resizeOriginal.Width + resizePosition.X - Location.X;
+                        estimatedX = resizePosition.X + (MousePosition.X - resizeDelta.X);
+                        estimatedY = resizePosition.Y;
+                        estimatedWidth = resizeOriginal.Width + resizePosition.X - estimatedX;
                         estimatedHeight = resizeOriginal.Height + (MousePosition.Y - resizeDelta.Y);
                         break;
                 }
 
+                // Minimum size check.
                 if (estimatedWidth < MinimumSize.Width)
-                    estimatedWidth = MinimumSize.Width;
+                {
+                    estimatedX = Location.X;
+                    estimatedWidth = Width;
+                }
+
                 if (estimatedHeight < MinimumSize.Height)
-                    estimatedHeight = MinimumSize.Height;
+                {
+                    estimatedY = Location.Y;
+                    estimatedHeight = Height;
+                }
 
+                // Maximum size check.
                 if (MaximumSize.Width > 0 && estimatedWidth > MaximumSize.Width)
-                    estimatedWidth = MaximumSize.Width;
-                if (MaximumSize.Height > 0 && estimatedHeight > MaximumSize.Height)
-                    estimatedHeight = MaximumSize.Height;
+                {
+                    estimatedX = Location.X;
+                    estimatedWidth = Width;
+                }
 
+                if (MaximumSize.Height > 0 && estimatedHeight > MaximumSize.Height)
+                {
+                    estimatedY = Location.Y;
+                    estimatedHeight = Height;
+                }
+
+                Location = new Point(estimatedX, estimatedY);
                 Size = new Size(estimatedWidth, estimatedHeight);
             }
         }
@@ -588,6 +612,9 @@
         {
             if (Visible)
             {
+                if (ControlBox && CloseButton == null)
+                    _MakeButtonClose();
+                
                 PlaceAtStartPosition(StartPosition);
 
                 if (MdiParent == null) 
@@ -604,7 +631,14 @@
 
             base.OnVisibleChanged(e);
         }
-        
+        protected override void SetVisibleCore(bool value)
+        {
+            if (!visibleReady)
+                return;
+            
+            base.SetVisibleCore(value);
+        }
+
         private void DrawShadow(PaintEventArgs e)
         {
             var loc = uwfShadowPointToScreen(Location);

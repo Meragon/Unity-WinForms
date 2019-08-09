@@ -387,9 +387,8 @@
                         itemY,
                         fillWidth,
                         ItemHeight);
-                    var state = DrawItemState.Default;
-                    if (itemSelected)
-                        state = DrawItemState.Selected;
+                    
+                    var state = itemSelected ? DrawItemState.Selected : DrawItemState.Default;
                     var args = new DrawItemEventArgs(g, Font, itemRect, itemIndex, state, itemForeColor, itemBackColor);
                     
                     OnDrawItem(args);

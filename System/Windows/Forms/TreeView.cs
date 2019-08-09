@@ -512,10 +512,6 @@
             // Draw selection.
             if (node.IsSelected || node == hoveredNode)
             {
-                var nodeFillColor = node.IsSelected ? uwfItemSelectedColor : uwfItemHoveredColor;
-                if (node.IsSelected && !Focused) 
-                    nodeFillColor = uwfItemSelectedUnfocusedColor;
-
                 var selectX = 0;
                 var selectY = nodeY;
                 var selectWidth = Width;
@@ -532,7 +528,7 @@
                         selectX -= TEXT_SELECTION_MARGIN_LEFT;
                 }
 
-                graphics.uwfFillRectangle(nodeFillColor, selectX, selectY, selectWidth, selectHeight);
+                graphics.uwfFillRectangle(node.SelectColorInternal, selectX, selectY, selectWidth, selectHeight);
             }
             
             int xOffset = nodeBounds.X;
@@ -619,9 +615,10 @@
             var nodeTextY = nodeY - TEXT_MARGIN_TOP;
             var nodeTextWidth = node.textWidth;
             var nodeTextHeight = e.Bounds.Height + TEXT_MARGIN_TOP + TEXT_MARGIN_BOTTOM;
-            var nodeColor = node.ForeColor.IsEmpty ? node.TreeView.ForeColor : node.ForeColor;
+            var nodeColor = node.ForeColorInternal;
+            var nodeFont = node.NodeFontInternal;
             
-            graphics.uwfDrawString(nodeText, Font, nodeColor, nodeTextX, nodeTextY, nodeTextWidth, nodeTextHeight, ContentAlignment.MiddleLeft);
+            graphics.uwfDrawString(nodeText, nodeFont, nodeColor, nodeTextX, nodeTextY, nodeTextWidth, nodeTextHeight, ContentAlignment.MiddleLeft);
             
             // End of drawing.
 

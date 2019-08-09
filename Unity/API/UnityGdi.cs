@@ -108,7 +108,7 @@
             var penWidth = pen.Width;
 
             if (penColor.A <= 0 || penWidth <= 0) return;
-            if (UE.Event.current.type != UE.EventType.repaint)
+            if (UE.Event.current.type != UE.EventType.Repaint)
                 return;
             
             var unityColor = penColor.ToUnityColor();
@@ -235,7 +235,7 @@
             var penWidth = pen.Width;
 
             if (penColor.A <= 0 || penWidth <= 0) return;
-            if (UE.Event.current.type != UE.EventType.repaint)
+            if (UE.Event.current.type != UE.EventType.Repaint)
                 return;
             
             var color = penColor.ToUnityColor();
@@ -296,7 +296,7 @@
         {
             if (text == null || font == null) return;
 
-            if (UE.Event.current.type != UE.EventType.repaint)
+            if (UE.Event.current.type != UE.EventType.Repaint)
                 return;
             
             // TODO: material not supported.
@@ -343,7 +343,8 @@
             textContent.text = text;
             
             // It's faster to invoke less methods and use your own GUIContent. Not that much, but anyway.
-            UE.GUI.Label(new UE.Rect(x, y, width, height), textContent, labelSkin);
+            // NOTE: +1 because something changed in a newer versions of Unity (testing on 2019.1.12f1).
+            UE.GUI.Label(new UE.Rect(x, y, width + 1, height), textContent, labelSkin);
 
             labelSkin.fontSize = guiSkinFontSizeBuffer;
         }
@@ -362,7 +363,7 @@
             if (color.A <= 0)
                 return;
             
-            if (UE.Event.current.type != UE.EventType.repaint)
+            if (UE.Event.current.type != UE.EventType.Repaint)
                 return;
             
             var rect = new UE.Rect(x, y, width, height);

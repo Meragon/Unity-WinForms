@@ -103,6 +103,7 @@
                 return null;
             }
         }
+        public Font NodeFont { get; set; }
         public TreeNodeCollection Nodes
         {
             get
@@ -141,6 +142,34 @@
                 if (treeView == null && parent != null)
                     treeView = parent.TreeView;
                 return treeView;
+            }
+        }
+
+        internal Color ForeColorInternal
+        {
+            get { return ForeColor.IsEmpty ? TreeView.ForeColor : ForeColor; }
+        }
+        internal Font NodeFontInternal
+        {
+            get
+            {
+                if (NodeFont != null)
+                    return NodeFont;
+
+                return TreeView.Font;
+            }
+        }
+        internal Color SelectColorInternal
+        {
+            get
+            {
+                if (!IsSelected) return TreeView.uwfItemHoveredColor;
+                
+                if (!TreeView.Focused)
+                    return TreeView.uwfItemSelectedUnfocusedColor;
+
+                return TreeView.uwfItemSelectedColor;
+
             }
         }
 

@@ -613,6 +613,7 @@
 
             private readonly ComboBox owner;
             private float currentY;
+            private float listMoveSpeed;
             
             public ComboListBoxPanel(ComboBox owner)
             {
@@ -643,38 +644,35 @@
                 listBox.uwfSelectionForeColor = owner.uwfListItemSelectedForeColor;
 
                 Controls.Add(listBox);
+
+                listMoveSpeed = Math.Max(240, Height * 2);
             }
             
             public void UpdateListBoxItems(string listFilter)
             {
                 if (listBox == null)
                     return;
+
+                var filterLower = listFilter != null ? listFilter.ToLower() : "";
             
                 listBox.Items.Clear();
             
-                bool selectedIndexChanged = false;
                 for (int i = 0; i < owner.Items.Count; i++)
                 {
                     var item = owner.Items[i];
-                    if (owner.DropDownStyle == ComboBoxStyle.DropDownList || string.IsNullOrEmpty(listFilter))
+                    if (owner.DropDownStyle == ComboBoxStyle.DropDownList || string.IsNullOrEmpty(filterLower))
                         listBox.Items.Add(item);
                     else
                     {
-                        var itemString = item.ToString();
-                        if (!itemString.ToLower().Contains(listFilter.ToLower())) continue;
+                        var itemString = item.ToString().ToLower();
+                        if (!itemString.StartsWith(filterLower)) continue;
 
                         listBox.Items.Add(item);
-                        if (itemString != listFilter) continue;
+                        
+                        if (itemString != filterLower) continue;
 
                         listBox.SelectedIndex = i;
-                        selectedIndexChanged = true;
                     }
-                }
-
-                if (selectedIndexChanged == false)
-                {
-                    listBox.SelectedIndex = owner.SelectedIndex;
-                    listBox.EnsureVisible();
                 }
             }
 
@@ -684,7 +682,7 @@
                 
                 if (currentY < 0)
                 {
-                    currentY = MathHelper.Step(currentY, 0, 240);
+                    currentY = MathHelper.Step(currentY, 0, listMoveSpeed);
                     listBox.Location = new Point(0, (int) currentY);
                 }
             }

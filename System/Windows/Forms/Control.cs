@@ -58,7 +58,7 @@
             Padding = DefaultPadding;
             TabIndex = -1;
             TabStop = true;
-            visible = true;
+            Visible = true;
 
             SetStyle(
                 ControlStyles.UserPaint |
@@ -264,14 +264,7 @@
         public bool Visible
         {
             get { return visible; }
-            set
-            {
-                if (visible == value)
-                    return;
-
-                visible = value;
-                OnVisibleChanged(EventArgs.Empty);
-            }
+            set { SetVisibleCore(value); }
         }
         public int Width
         {
@@ -942,7 +935,21 @@
         }
         protected virtual void SetBoundsCore(int argX, int argY, int argWidth, int argHeight, BoundsSpecified specified)
         {
-            if (x == argX && y == argY && (width == argWidth && height == argHeight))
+            // Maximum size.
+            if (MaximumSize.Width > 0 && argWidth > MaximumSize.Width)
+                argWidth = MaximumSize.Width;
+
+            if (MaximumSize.Height > 0 && argHeight > MaximumSize.Height)
+                argHeight = MaximumSize.Height;
+
+            // Minimum size.
+            if (MinimumSize.Width > 0 && argWidth < MinimumSize.Width)
+                argWidth = MinimumSize.Width;
+
+            if (MinimumSize.Height > 0 && argHeight < MinimumSize.Height)
+                argHeight = MinimumSize.Height;
+            
+            if (x == argX && y == argY && width == argWidth && height == argHeight)
                 return;
 
             if (parent != null)
@@ -964,6 +971,14 @@
         {
             controlStyle = value ? controlStyle | flag : controlStyle & ~flag;
         }
+        protected virtual void SetVisibleCore(bool value)
+        {
+            if (visible == value)
+                return;
+
+            visible = value;
+            OnVisibleChanged(EventArgs.Empty);
+        }
         protected virtual Size SizeFromClientSize(Size clientSize)
         {
             return SizeFromClientSize(clientSize.Width, clientSize.Height);
@@ -972,6 +987,7 @@
         {
             int cWidth = argWidth;
             int cHeight = argHeight;
+            
             UpdateBounds(argX, argY, argWidth, argHeight, cWidth, cHeight);
         }
         protected void UpdateBounds(int argX, int argY, int argWidth, int argHeight, int argClientWidth, int argClientHeight)

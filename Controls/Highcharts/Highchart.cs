@@ -253,7 +253,7 @@
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            if (UnityEngine.Event.current.type != UnityEngine.EventType.repaint)
+            if (UnityEngine.Event.current.type != UnityEngine.EventType.Repaint)
                 return;
             
             var g = e.Graphics;

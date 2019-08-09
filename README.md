@@ -1,8 +1,8 @@
 # Unity Windows Forms
 
-This is WinForms wrapper (including System.Drawing). Here you can create base controls and make your own custom controls. The reason why I made it? Because now I can quickly create GUI through the code. But, yeah, right now there is a poor implementation of interaction with the editor.
+A Windows Forms port (including System.Drawing) to Unity3d, built on top of 'UnityEngine.GUI' class. 
 
-### Controls atm
+### Supported Controls
 - Button;
 - CheckBox;
 - ComboBox;
@@ -33,7 +33,7 @@ This is WinForms wrapper (including System.Drawing). Here you can create base co
 - TreeView;
 - VScrollBar;
 
-Other controls: 
+Additional custom controls: 
 - BitmapLabel;
 - ColorPicker (replacement for ColorDialog);
 - Highchart (replacement for Chart);
