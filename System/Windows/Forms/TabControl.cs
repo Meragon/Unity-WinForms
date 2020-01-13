@@ -113,31 +113,7 @@
         }
         private int HeaderWidth
         {
-            get
-            {
-                int w = 0;
-
-                for (int i = 0; i < pagesButtons.Count; i++)
-                    w += pagesButtons[i].Width;
-
-                return w;
-            }
-        }
-        private int MaxVisibleTabIndex
-        {
-            get
-            {
-                if (navigationButtonLeft == null)
-                    return tabPageCount;
-
-                for (int i = tabViewIndex, vItems = 0; i < pagesButtons.Count; i++, vItems++)
-                {
-                    var isVisible = pagesButtons[i].Location.X < navigationButtonLeft.Location.X;
-                    if (!isVisible)
-                        return vItems;
-                }
-                return tabPageCount;
-            }
+            get { return pagesButtons.Sum(t => t.Width); }
         }
 
         public void SelectTab(int index)
@@ -396,9 +372,10 @@
                     {
                         if (AllButtonsRendered) return;
 
-                        tabViewIndex++;
-                        if (tabViewIndex > MaxVisibleTabIndex)
-                            tabViewIndex = MaxVisibleTabIndex;
+                        var lastButton = pagesButtons.LastOrDefault();
+                        if (lastButton != null && lastButton.Location.X + lastButton.Width > navigationButtonLeft.Location.X)
+                            tabViewIndex++;    
+                        
                         UpdateButtons();
                     };
 

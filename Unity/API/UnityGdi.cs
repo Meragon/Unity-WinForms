@@ -104,9 +104,10 @@
         }
         public void DrawLine(Pen pen, float x1, float y1, float x2, float y2, object material = null)
         {
-            var penColor = pen.Color;
-            var penWidth = pen.Width;
-
+            DrawLine(pen.Color, pen.Width, pen.DashStyle, x1, y1, x2, y2, material);
+        }
+        public void DrawLine(Color penColor, float penWidth, DashStyle style, float x1, float y1, float x2, float y2, object material = null)
+        {
             if (penColor.A <= 0 || penWidth <= 0) return;
             if (UE.Event.current.type != UE.EventType.Repaint)
                 return;
@@ -181,7 +182,7 @@
                 }
             }
                     
-            var penDash = pen.DashStyle;
+            var penDash = style;
             
             switch (penDash)
             {

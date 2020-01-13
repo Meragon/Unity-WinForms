@@ -17,11 +17,7 @@
             Visible = false;
         }
 
-        public ToolStripItem OwnerItem
-        {
-            get { return ownerItem; }
-            set { ownerItem = value; }
-        }
+        public ToolStripItem OwnerItem { get; set; }
 
         public new void Show()
         {
@@ -59,7 +55,8 @@
                 if (dropDownItem == null)
                     continue;
 
-                if (dropDownItem.DropDown == null || dropDownItem.DropDown.IsDisposed) continue;
+                if (dropDownItem.DropDown == null || 
+                    dropDownItem.DropDown.IsDisposed) continue;
 
                 disposeIsBlocked = true; // We can't dispose parent before child.
                 break;
@@ -100,7 +97,7 @@
         {
             var graphics = e.Graphics;
 
-            graphics.uwfFillRectangle(uwfColumnBackColor, 0, 0, 24, Height);
+            graphics.uwfFillRectangle(uwfColumnBackColor, 2, 2, 22, Height - 4);
 
             base.OnPaint(e);
 

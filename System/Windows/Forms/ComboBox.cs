@@ -620,6 +620,9 @@
                 this.owner = owner;
 
                 BackColor = Color.Transparent;
+
+                uwfShadowBox = true;
+                uwfShadowHandler += UwfShadowHandler;
             }
             
             public void InitializeComponent()
@@ -638,7 +641,7 @@
                 currentY = listBox.Location.Y;
                 
                 listBox.uwfWrapText = false;
-                listBox.uwfShadowBox = true;
+                //listBox.uwfShadowBox = true;
                 listBox.uwfItemHoverColor = owner.uwfListItemHoverColor;
                 listBox.uwfSelectionBackColor = owner.uwfListItemSelectedBackgroundColor;
                 listBox.uwfSelectionForeColor = owner.uwfListItemSelectedForeColor;
@@ -647,7 +650,6 @@
 
                 listMoveSpeed = Math.Max(240, Height * 2);
             }
-            
             public void UpdateListBoxItems(string listFilter)
             {
                 if (listBox == null)
@@ -657,6 +659,7 @@
             
                 listBox.Items.Clear();
             
+                bool selectedIndexChanged = false;
                 for (int i = 0; i < owner.Items.Count; i++)
                 {
                     var item = owner.Items[i];
@@ -672,7 +675,14 @@
                         if (itemString != filterLower) continue;
 
                         listBox.SelectedIndex = i;
+                        selectedIndexChanged = true;
                     }
+                }
+                
+                if (!selectedIndexChanged)
+                {
+                    listBox.SelectedIndex = owner.SelectedIndex;
+                    listBox.EnsureVisible();
                 }
             }
 
@@ -685,6 +695,28 @@
                     currentY = MathHelper.Step(currentY, 0, listMoveSpeed);
                     listBox.Location = new Point(0, (int) currentY);
                 }
+            }
+            
+            private void UwfShadowHandler(PaintEventArgs e)
+            {
+                if (listBox == null)
+                    return;
+            
+                var listScreenLocation = listBox.uwfShadowPointToScreen(Point.Empty);
+                var thisScreenLocation = this.uwfShadowPointToScreen(Point.Empty);
+                
+                int shX = listScreenLocation.X + 6;
+                int shY = thisScreenLocation.Y + 6;
+                var shadowColor = defaultShadowColor;
+                var localWidth = listBox.Width;
+                var localHeight = listBox.Height - (thisScreenLocation.Y - listScreenLocation.Y);
+                var graphics = e.Graphics;
+                
+                graphics.uwfFillRectangle(shadowColor, shX + 6, shY + 6, localWidth - 12, localHeight - 12);
+                graphics.uwfFillRectangle(shadowColor, shX + 5, shY + 5, localWidth - 10, localHeight - 10);
+                graphics.uwfFillRectangle(shadowColor, shX + 4, shY + 4, localWidth - 8, localHeight - 8);
+                graphics.uwfFillRectangle(shadowColor, shX + 3, shY + 3, localWidth - 6, localHeight - 6);
+                graphics.uwfFillRectangle(shadowColor, shX + 2, shY + 2, localWidth - 4, localHeight - 4);
             }
         }
         

@@ -46,9 +46,9 @@
             public ObjectEditor editor;
             public bool expanded;
             
-            public PropertyEditor(PropertyInfo propertyInfo)
+            public PropertyEditor(PropertyInfo propertyInfo, bool instanceIsValueType)
             {
-                canSet = true;
+                canSet = !instanceIsValueType;
                 info = propertyInfo;
                 
                 var pSetMethod = info.GetSetMethod(true);
@@ -85,7 +85,7 @@
                     if (propertyInfo.DeclaringType == typeof(Delegate)) continue;
                     if (propertyInfo.Name == "Item") continue; // this[] will throw an exception.
 
-                    properties.Add(new PropertyEditor(propertyInfo));
+                    properties.Add(new PropertyEditor(propertyInfo, objType.IsValueType));
                 }
 
                 fields = objType.GetFields(BindingFlags.Public | BindingFlags.Instance).ToList();

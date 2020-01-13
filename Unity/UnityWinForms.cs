@@ -304,7 +304,7 @@
             paused = !focusStatus;
 
             if (paused && controller != null)
-                controller.LostFocus();
+                controller.OnLostFocus();
             
             UE.Cursor.visible = Cursor.IsVisible;
         }

@@ -36,7 +36,7 @@
             for (int i = 0; i < control.Controls.Count; i++)
             {
                 var c = control.Controls[i];
-                if (c.Visible == false || c.Enabled == false || c.TabStop == false || c.IsDisposed) 
+                if (!c.Visible || !c.Enabled || !c.TabStop || c.IsDisposed) 
                     continue;
                 
                 list.Add(c);

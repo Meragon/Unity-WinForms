@@ -53,12 +53,5 @@ namespace System.Windows.Forms
                 g.DrawLine(borderColor2, ex2, ey, ex2, ey2);
             }
         }
-
-        protected internal override void SetBounds(Rectangle nbounds)
-        {
-            //UnityEngine.Debug.Log(nbounds.Width);
-            
-            base.SetBounds(nbounds);
-        }
     }
 }

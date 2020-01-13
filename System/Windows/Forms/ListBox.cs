@@ -124,7 +124,9 @@
         {
             get
             {
-                if (SelectedIndex == -1) return null;
+                if (SelectedIndex == -1 || SelectedIndex >= Items.Count) 
+                    return null;
+                
                 return Items[SelectedIndex];
             }
             set

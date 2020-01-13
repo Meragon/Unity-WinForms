@@ -136,8 +136,6 @@
             var textW = Width - Padding.Horizontal;
             var textH = Height - Padding.Vertical;
 
-            g.uwfFillRectangle(backColor, 0, 0, Width, Height);
-
             if (Enabled && Focused)
             {
                 string tempText;
@@ -198,6 +196,10 @@
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+        protected override void OnPaintBackground(PaintEventArgs e)
+        {
+            e.Graphics.uwfFillRectangle(backColor, 0, 0, Width, Height);
         }
 
         private static string GetPasswordString(string from)

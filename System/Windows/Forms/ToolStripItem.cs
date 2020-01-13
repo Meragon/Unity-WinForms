@@ -11,7 +11,7 @@
         internal Color hoverColor = Color.FromArgb(196, 225, 255);
         internal Pen selectPen = new Pen(Color.FromArgb(51, 153, 255));
 
-        private Color backColor = Color.Empty;
+        private Color backColor = SystemColors.Control;
         private Rectangle bounds = Rectangle.Empty;
         private ToolStrip owner;
         private Padding padding;

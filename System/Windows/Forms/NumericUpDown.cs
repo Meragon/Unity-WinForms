@@ -81,9 +81,20 @@
             set
             {
                 if (value < minimum) minimum = value;
+                
                 maximum = value;
-                if (this.value < minimum) this.value = minimum;
-                if (this.value > maximum) this.value = maximum;
+                
+                if (this.value < minimum)
+                {
+                    this.value = minimum;
+                    UpdateEditText();
+                }
+
+                if (this.value > maximum)
+                {
+                    this.value = maximum;
+                    UpdateEditText();
+                }
             }
         }
         public decimal Minimum
@@ -92,9 +103,20 @@
             set
             {
                 if (value > maximum) maximum = value;
+                
                 minimum = value;
-                if (this.value < minimum) this.value = minimum;
-                if (this.value > maximum) this.value = maximum;
+                
+                if (this.value < minimum)
+                {
+                    this.value = minimum;
+                    UpdateEditText();
+                }
+
+                if (this.value > maximum)
+                {
+                    this.value = maximum;
+                    UpdateEditText();
+                }
             }
         }
         public HorizontalAlignment TextAlign { get; set; }

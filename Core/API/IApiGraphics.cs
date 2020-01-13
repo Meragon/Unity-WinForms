@@ -1,4 +1,6 @@
-﻿namespace System.Drawing.API
+﻿using System.Drawing.Drawing2D;
+
+namespace System.Drawing.API
 {
     public interface IApiGraphics
     {
@@ -10,6 +12,7 @@
         void DrawImage(Image image, float x, float y, float width, float height, float angle);
         void DrawImage(Image image, float x, float y, float width, float height, object material = null);
         void DrawLine(Pen pen, float x1, float y1, float x2, float y2, object material = null);
+        void DrawLine(Color color, float width, DashStyle style, float x1, float y1, float x2, float y2, object material = null);
         void DrawPolygon(Pen pen, Point[] points, object material = null);
         void DrawRectangle(Pen pen, float x, float y, float width, float height, object material = null);
         void DrawString(string text, Font font, Color color, float x, float y, float width, float height, ContentAlignment align, object material = null);

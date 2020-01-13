@@ -25,7 +25,7 @@
         private MouseEvents  mouseEvent  = 0;
         private MouseButtons mouseButton = 0;
         private MouseButtons mouseButtonLastPressed;
-        private Control      mouseLastClickControl;
+        private Control      mouseDownControl;
         private float        mouseWheelDelta;
         private bool         mousePositionChanged;
         private float        mousePositionX;
@@ -51,6 +51,7 @@
 
         public delegate void UpdateEventDelegate();
 
+        internal static event EventHandler LostFocus;
         internal static event UpdateEventDelegate UpdateEvent;
 
         public enum MouseEvents
@@ -193,26 +194,39 @@
                 contextControl.Dispose();
             }
 
-            if (hoveredControl == null && mouseEvent == MouseEvents.Up)
-            {
-                IsDragging = false;
-                DraggingData = null;
-                dragRender = null;
-            }
+            var processedControl = mouseDownControl;
+            if (processedControl == null || IsDragging)
+                processedControl = hoveredControl;
 
-            if (hoveredControl != null)
-                RaiseMouseEvents(new PointF(mX, mY), hoveredControl, false);
+            if (processedControl != null)
+                RaiseMouseEvents(new PointF(mX, mY), processedControl);
+
+            if (mouseEvent == MouseEvents.Up)
+            {
+                // Try raise MouseLeave event if mouse is outside of clicked control.
+                if (mouseDownControl != null)
+                {
+                    var rect = new Rectangle(mouseDownControl.PointToScreen(Point.Empty), mouseDownControl.Size);
+                    if (!rect.Contains((int) mousePositionX, (int) mousePositionY))
+                        mouseDownControl.RaiseOnMouseLeave(EventArgs.Empty);
+                }
+                
+                mouseDownControl = null;
+                
+                if (IsDragging) 
+                    StopDragDrop();
+            }
 
             if (mouseEvent == MouseEvents.Down)
             {
                 var downArgs = new MouseEventArgs(mouseButton, clicks, (int) mX, (int) mY, delta);
-                MouseHook.RaiseMouseDown(hoveredControl, downArgs);
+                MouseHook.RaiseMouseDown(processedControl, downArgs);
             }
 
             if (mouseEvent == MouseEvents.Up)
             {
                 var upArgs = new MouseEventArgs(mouseButton, clicks, (int) mX, (int) mY, delta);
-                MouseHook.RaiseMouseUp(hoveredControl, upArgs);
+                MouseHook.RaiseMouseUp(processedControl, upArgs);
             }
         }
         /// <summary>
@@ -268,7 +282,19 @@
         }
         public void Update()
         {
-            UpdateHoveredControl();
+            if (mouseDownControl != null)
+            {
+                var mclient = mouseDownControl.PointToClient(Control.MousePosition);
+                var hargs = new MouseEventArgs(mouseButtonLastPressed, 0, mclient.X, mclient.Y, 0);
+                
+                mouseDownControl.RaiseOnMouseHover(hargs);
+                
+                if (updateHoveredControl)
+                    mouseDownControl.RaiseOnMouseMove(hargs);
+            }
+            else
+                UpdateHoveredControl();
+            
             UpdateResizeCursor();
 
             var updateEventHandler = UpdateEvent;
@@ -302,6 +328,8 @@
         }
         internal static void DoDragDrop(object data, DragDropEffects effect, DragDropRenderHandler render = null)
         {
+            IsDragging = true;
+            
             DraggingData = data;
             dragControlEffects = effect;
             dragRender = render;
@@ -316,17 +344,29 @@
         }
         internal static Control GetRootControl(Control control)
         {
-            if (control == null) return null;
-
-            if (control.Parent != null)
-                return GetRootControl(control.Parent);
-
-            return control;
+            while (true)
+            {
+                if (control == null) return null;
+                if (control.Parent == null) return control;
+                
+                control = control.Parent;
+            }
         }
-        internal void LostFocus()
+        internal void OnLostFocus()
         {
             if (hoveredControl != null)
+            {
+                hoveredControl.selected = false;
                 hoveredControl.RaiseOnLostFocus(EventArgs.Empty);
+            }
+            
+            LostFocus?.Invoke(this, EventArgs.Empty);
+        }
+        internal static void StopDragDrop()
+        {
+            IsDragging = false;
+            DraggingData = null;
+            dragRender = null;
         }
         internal void UpdatePaintClipRect()
         {
@@ -403,89 +443,83 @@
 
             return currentControl;
         }
-        private void RaiseMouseEvents(PointF mousePosition, Control control, bool ignoreRect)
+        private void RaiseMouseEvents(PointF mousePosition, Control control)
         {
             var mousePositionInt = new Point((int) mousePosition.X, (int) mousePosition.Y);
             var mouseRelativePosition = control.PointToClient(mousePositionInt);
             var controlContainsMousePosition = control.ClientRectangle.Contains(mouseRelativePosition);
 
-            if (ignoreRect || controlContainsMousePosition)
+            if (!controlContainsMousePosition && !IsDragging)
             {
-                if (mousePositionChanged)
+                control.RaiseOnMouseLeave(EventArgs.Empty);
+                return;
+            }
+
+            switch (mouseEvent)
+            {
+                case MouseEvents.Down:
                 {
-                    if (DraggingData != null)
-                        IsDragging = true;
-                }
-                
-                if (!controlContainsMousePosition && mouseEvent != MouseEvents.Up)
+                    var mouseEventArgs =
+                        new MouseEventArgs(mouseButton, 1, mouseRelativePosition.X, mouseRelativePosition.Y, 0);
+                    control.RaiseOnMouseDown(mouseEventArgs);
+                    mouseDownControl = control;
                     return;
-                
-                switch (mouseEvent)
+                }
+
+                case MouseEvents.Up:
                 {
-                    case MouseEvents.Down:
+                    if (IsDragging)
                     {
-                        var mouseEventArgs = new MouseEventArgs(mouseButton, 1, mouseRelativePosition.X, mouseRelativePosition.Y, 0);
-                        control.RaiseOnMouseDown(mouseEventArgs);
-                        mouseLastClickControl = control;
-                        return;
-                    }
-
-                    case MouseEvents.Up:
-                    {
-                        if (IsDragging)
+                        if (control.AllowDrop)
                         {
-                            if (control.AllowDrop)
-                            {
-                                var dndData = new DataObject(DraggingData);
-                                var dndArgs = new DragEventArgs(dndData,
-                                    0,
-                                    mouseRelativePosition.X,
-                                    mouseRelativePosition.Y,
-                                    DragDropEffects.None,
-                                    dragControlEffects);
-                                control.RaiseOnDragDrop(dndArgs);
-                            }
-
-                            DraggingData = null;
-                            IsDragging = false;
-                            return;
+                            var dndData = new DataObject(DraggingData);
+                            var dndArgs = new DragEventArgs(dndData,
+                                0,
+                                mouseRelativePosition.X,
+                                mouseRelativePosition.Y,
+                                DragDropEffects.None,
+                                dragControlEffects);
+                            control.RaiseOnDragDrop(dndArgs);
                         }
 
-                        var mouseEventArgs = new MouseEventArgs(mouseButton, 1, mouseRelativePosition.X, mouseRelativePosition.Y, 0);
-                        control.RaiseOnMouseUp(mouseEventArgs);
+                        StopDragDrop();
                         
-                        if (mouseLastClickControl == control)
-                            control.RaiseOnMouseClick(mouseEventArgs);
-                        
-                        if (mouseLastClickControl != null && control != mouseLastClickControl)
-                            mouseLastClickControl.RaiseOnMouseUp(mouseEventArgs);
                         return;
                     }
 
-                    case MouseEvents.DoubleClick:
-                    {
-                        var mouseEventArgs = new MouseEventArgs(mouseButton, 2, mouseRelativePosition.X, mouseRelativePosition.Y, 0);
-                        control.RaiseOnMouseDoubleClick(mouseEventArgs);
-                        return;
-                    }
+                    var mouseEventArgs =
+                        new MouseEventArgs(mouseButton, 1, mouseRelativePosition.X, mouseRelativePosition.Y, 0);
+                    control.RaiseOnMouseUp(mouseEventArgs);
 
-                    case MouseEvents.Wheel:
-                    {
-                        var mouseWheelDeltaCorrected = (int) (-mouseWheelDelta * 4); 
-                        var mw_args = new MouseEventArgs(MouseButtons.None,
-                            0,
-                            mouseRelativePosition.X,
-                            mouseRelativePosition.Y,
-                            mouseWheelDeltaCorrected);
-                        control.RaiseOnMouseWheel(mw_args);
-                        updateHoveredControl = true;
-                        return;
-                    }
+                    if (mouseDownControl == control)
+                        control.RaiseOnMouseClick(mouseEventArgs);
+
+                    if (mouseDownControl != null && control != mouseDownControl)
+                        mouseDownControl.RaiseOnMouseUp(mouseEventArgs);
+                    return;
+                }
+
+                case MouseEvents.DoubleClick:
+                {
+                    var mouseEventArgs =
+                        new MouseEventArgs(mouseButton, 2, mouseRelativePosition.X, mouseRelativePosition.Y, 0);
+                    control.RaiseOnMouseDoubleClick(mouseEventArgs);
+                    return;
+                }
+
+                case MouseEvents.Wheel:
+                {
+                    var mouseWheelDeltaCorrected = (int) (-mouseWheelDelta * 4);
+                    var mw_args = new MouseEventArgs(MouseButtons.None,
+                        0,
+                        mouseRelativePosition.X,
+                        mouseRelativePosition.Y,
+                        mouseWheelDeltaCorrected);
+                    control.RaiseOnMouseWheel(mw_args);
+                    updateHoveredControl = true;
+                    return;
                 }
             }
-            
-            if (!controlContainsMousePosition)
-                control.RaiseOnMouseLeave(null);
         }
         private void RaiseKeyEvent(KeyEventArgs args, KeyEvents keyEventType, Control keyControl)
         {
@@ -576,6 +610,7 @@
                 var mclient = hoveredControl.PointToClient(Control.MousePosition);
                 var hargs = new MouseEventArgs(mouseButtonLastPressed, 0, mclient.X, mclient.Y, 0);
                 hoveredControl.RaiseOnMouseHover(hargs);
+                
                 if (updateHoveredControl)
                     hoveredControl.RaiseOnMouseMove(hargs);
             }

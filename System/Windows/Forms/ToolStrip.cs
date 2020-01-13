@@ -27,7 +27,6 @@
             this.items = new ToolStripItemCollection(this, items);
 
             AutoSize = true;
-            BackColor = Color.White;
 
             MouseHook.MouseUp += MouseHookOnMouseUp;
         }

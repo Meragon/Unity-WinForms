@@ -1,6 +1,7 @@
 ﻿namespace System.Drawing
 {
     using System.Drawing.API;
+    using System.Drawing.Drawing2D;
     using System.Windows.Forms;
 
     using Unity.API; // TODO: remove
@@ -193,6 +194,10 @@
         {
             image.Color = color;
             ApiGraphics.DrawImage(image, x, y, width, height, 0);
+        }
+        internal void uwfDrawLine(Color color, int width, DashStyle style, float x1, float y1, float x2, float y2)
+        {
+            ApiGraphics.DrawLine(color, width, style, x1, y1, x2, y2);
         }
         internal string uwfDrawPasswordField(string s, Font font, Color color, float x, float y, float width, float height, HorizontalAlignment alignment)
         {
