@@ -282,7 +282,7 @@
         }
         public void Update()
         {
-            if (mouseDownControl != null)
+            if (mouseDownControl != null && !IsDragging)
             {
                 var mclient = mouseDownControl.PointToClient(Control.MousePosition);
                 var hargs = new MouseEventArgs(mouseButtonLastPressed, 0, mclient.X, mclient.Y, 0);
