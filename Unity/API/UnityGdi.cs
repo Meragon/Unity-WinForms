@@ -274,7 +274,7 @@
                             dash_height = height - i;
                         
                         UE.Graphics.DrawTexture(new UE.Rect(x + width - penWidth, y + i, penWidth, dash_height), defaultTexture, sourceRect, 0, 0, 0, 0, color, blendMaterial); // Right.
-                        UE.Graphics.DrawTexture(new UE.Rect(x, y + i, penWidth, dash_height), defaultTexture, sourceRect, 0, 0, 0, 0, blendMaterial); // Left.
+                        UE.Graphics.DrawTexture(new UE.Rect(x, y + i, penWidth, dash_height), defaultTexture, sourceRect, 0, 0, 0, 0, color, blendMaterial); // Left.
                     }
                     break;
                 
