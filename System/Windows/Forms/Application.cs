@@ -360,7 +360,8 @@
                 hoveredControl.RaiseOnLostFocus(EventArgs.Empty);
             }
             
-            LostFocus?.Invoke(this, EventArgs.Empty);
+			if (LostFocus != null)
+            	LostFocus.Invoke(this, EventArgs.Empty);
         }
         internal static void StopDragDrop()
         {
