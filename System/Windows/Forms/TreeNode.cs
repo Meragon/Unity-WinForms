@@ -20,10 +20,14 @@
         private string text;
         private bool visible = true;
 
+        public TreeNode() : this(string.Empty, null)
+        { }
+        
         public TreeNode(string text) : this(text, null)
         {
             this.text = text;
         }
+        
         public TreeNode(string text, TreeNode[] children)
         {
             ImageColor = Color.White;

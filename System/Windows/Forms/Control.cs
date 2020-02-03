@@ -1179,8 +1179,14 @@
             }
             public virtual void Clear()
             {
-                while (Count != 0)
-                    RemoveAt(Count - 1);
+                var tItems = new List<Control>(items);
+                
+                items.Clear();
+            
+                owner.PerformLayout();
+                
+                for (int i = 0; i < tItems.Count; i++)
+                    owner.OnControlRemoved(new ControlEventArgs(tItems[i]));
             }
             public bool Contains(Control control)
             {

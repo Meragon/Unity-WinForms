@@ -74,7 +74,20 @@
 
         public virtual int Add(TreeNode node)
         {
-            return AddInternal(node, 0);
+            if (node == null)
+                throw new ArgumentNullException("node");
+
+            if (node.parent != null) node.Remove();
+
+            node.parent = owner;
+            node.index = items.Count;
+
+            items.Add(node);
+
+            if (owner.TreeView != null) 
+                node.treeView = owner.TreeView;
+
+            return node.index;
         }
         public virtual TreeNode Add(string text)
         {
@@ -98,8 +111,20 @@
 
             for (int i = 0; i < nodes.Length; i++)
             {
-                AddInternal(nodes[i], i);
+                var node = nodes[i];
+                if (node == null)
+                    throw new InvalidOperationException("node is null");
+
+                if (node.parent != null) node.Remove();
+
+                node.parent = owner;
+                node.index = items.Count + i;
+
+                if (owner.TreeView != null) 
+                    node.treeView = owner.TreeView;
             }
+            
+            items.AddRange(nodes);
         }
         public virtual void Clear()
         {
@@ -270,25 +295,6 @@
                         nodes = FindInternal(key, true, nodeNodes, nodes);
                 }
             return nodes;
-        }
-        private int AddInternal(TreeNode node, int delta)
-        {
-            if (node == null)
-                throw new ArgumentNullException("node");
-
-            if (node.parent != null) node.Remove();
-
-            node.parent = owner;
-            node.index = items.Count;
-
-            items.Add(node);
-
-            if (owner.TreeView != null)
-            {
-                node.treeView = owner.TreeView;
-            }
-
-            return node.index;
         }
         private bool IsValidIndex(int index)
         {
