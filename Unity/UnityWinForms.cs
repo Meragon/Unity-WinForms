@@ -153,10 +153,10 @@
                 var deltaSize = new Size(deltaWidth, deltaHeight);
                     
                 for (int i = 0; i < controller.ModalForms.Count; i++)
-                    controller.ModalForms[i].uwfAddjustSizeToScreen(deltaSize);
+                    controller.ModalForms[i].uwfAdjustSizeToScreen(deltaSize);
                     
                 for (int i = 0; i < controller.Forms.Count; i++)
-                    controller.Forms[i].uwfAddjustSizeToScreen(deltaSize);
+                    controller.Forms[i].uwfAdjustSizeToScreen(deltaSize);
                     
                 controller.UpdatePaintClipRect();
             }

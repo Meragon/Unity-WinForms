@@ -596,9 +596,8 @@
             else
                 GetResizeAt(e.Location);
         }
-        protected override void OnPaint(PaintEventArgs e)
+        protected override void OnPaintBackground(PaintEventArgs e)
         {
-            // Background color.
             e.Graphics.uwfFillRectangle(BackColor, 0, uwfHeaderHeight, Width, Height - uwfHeaderHeight);
         }
         protected virtual void OnShown(EventArgs e)

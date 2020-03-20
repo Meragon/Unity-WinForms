@@ -5,6 +5,8 @@
 
     public class NumericUpDown : Control
     {
+        internal static Func<CultureInfo> uwfGetCulture = () => Application.CurrentCulture;
+        
         internal Pen borderPen = new Pen(Color.Transparent);
         internal Button uwfButtonDecrease;
         internal Button uwfButtonIncrease;
@@ -174,7 +176,7 @@
                 if (Hexadecimal)
                     Value = Constrain(Convert.ToDecimal(Convert.ToInt32(valueText, 16)));
                 else
-                    Value = Constrain(decimal.Parse(valueText, Application.CurrentCulture));
+                    Value = Constrain(decimal.Parse(valueText, uwfGetCulture()));
             }
             catch
             {
@@ -277,7 +279,9 @@
         }
         private void UpdateEditText()
         {
-            valueText = Hexadecimal ? Convert.ToInt64(value).ToString("X") : value.ToString(Application.CurrentCulture);
+            valueText = Hexadecimal 
+                ? Convert.ToInt64(value).ToString("X") 
+                : value.ToString(uwfGetCulture());
         }
 
         internal class UpDownButton : RepeatButton

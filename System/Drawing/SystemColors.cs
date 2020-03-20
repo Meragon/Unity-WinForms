@@ -35,5 +35,8 @@
         public static readonly Color Window = new Color(KnownColor.Window, 0xFFFFFFFF);
         public static readonly Color WindowFrame = new Color(KnownColor.WindowFrame, 0xFF646464);
         public static readonly Color WindowText = new Color(KnownColor.WindowText, 0xFF000000);
+        
+        internal static readonly Color uwfControlText = new Color(KnownColor.ControlText, 0xFF404040);
+        internal static readonly Color uwfInfoText = new Color(KnownColor.InfoText, 0xFF404040);
     }
 }

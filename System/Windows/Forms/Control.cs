@@ -9,7 +9,7 @@
     public class Control : Component, IDropTarget
     {
         internal static readonly Color defaultShadowColor = Color.FromArgb(12, 0, 0, 0);
-        internal static readonly Color defaultForeColor = Color.FromArgb(64, 64, 64); // SystemColors.ControlText is too dark.
+        internal static readonly Color defaultForeColor = SystemColors.uwfControlText;
         internal static Control lastSelected;
 
         internal bool selected;
@@ -336,14 +336,14 @@
                 var forms = uwfAppOwner.Forms;
                 if (forms.Contains(form))
                 {
-                    forms.Remove(form);
-                    forms.Add(form);
+                    if (forms.Remove(form))
+                        forms.Add(form);
                 }
                 else if (form.IsModal)
                 {
                     var modalForms = uwfAppOwner.ModalForms;
-                    modalForms.Remove(form);
-                    modalForms.Add(form);
+                    if (modalForms.Remove(form))
+                        modalForms.Add(form);
                 }
             }
         }
@@ -633,7 +633,7 @@
         {
             return new Size(argWidth, argHeight);
         }
-        internal virtual void uwfAddjustSizeToScreen(Size delta)
+        internal virtual void uwfAdjustSizeToScreen(Size delta)
         {
             ParentResized(new Point(delta.Width, delta.Height));
         }
@@ -669,11 +669,15 @@
 
             Disposing = true;
 
-            if (release_all && Controls.IsReadOnly == false)
+            if (release_all && !Controls.IsReadOnly)
             {
-                while (Controls.Count > 0)
-                    Controls[0].Dispose();
+                var tempControls = new Control[Controls.Count];
+                
+                Controls.CopyTo(tempControls, 0);
 
+                foreach (var control in tempControls) 
+                    control.Dispose();
+                
                 Controls.Clear();
             }
 

@@ -40,9 +40,9 @@
         {
             return items.Contains(form);
         }
-        public void Remove(Form form)
+        public bool Remove(Form form)
         {
-            items.Remove(form);
+            return items.Remove(form);
         }
 
         public IEnumerator GetEnumerator()
