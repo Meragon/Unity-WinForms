@@ -104,7 +104,7 @@
         }
         public override string ToString()
         {
-            return "{X=" + X.ToString(CultureInfo.CurrentCulture) + ",Y= " + Y.ToString(CultureInfo.CurrentCulture) + " }";
+            return "{X=" + X.ToString(CultureInfo.CurrentCulture) + ",Y=" + Y.ToString(CultureInfo.CurrentCulture) + " }";
         }
 
         private static int HIWORD(int n)

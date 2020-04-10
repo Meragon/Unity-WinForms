@@ -17,8 +17,6 @@
         
         // Localization text.
         public static string textLegendMenu_Color = "Color...";
-        public static string textLegendMenu_Type = "Type";
-        public static string[] textLegendMenu_TypeNames = { "None", "Area Solid", "Area Solid Outline", "Line", "Line Solid", "Point" };
 
         public int     categoriesMinStep = 20;
         public double? fixedMax;
@@ -54,7 +52,9 @@
         internal double       cachedPlotMax;
         internal int          cachedSubtitleY;
 
+        private Control plot;
         private LegendButton[] legendButtons;
+        private bool updateLegendButtonsFlag;
 
         public Highchart()
         {
@@ -68,13 +68,18 @@
                 Color.FromArgb(0xf4, 0x5b, 0x5b), Color.FromArgb(0x91, 0xe8, 0xe1),
             };
             legend = new Legend();
+            plotOptions = new PlotOptions();
             series = new SeriesCollection(this);
             subtitle = new HightchartSubtitle();
             title = new HighchartTitle();
             xAxis = new XAxis();
             yAxis = new AxisCollection(this);
-
             yAxis.Add(new YAxis());
+            
+            plot = new Control();
+            plot.Padding = new Padding(1);
+            plot.Visible = false;
+            Controls.Add(plot);
             
             cachedPlotLeft = chart.spacingLeft + 38;
             
@@ -84,7 +89,7 @@
         public Chart chart { get; private set; }
         public Color[] colors { get; private set; }
         public Legend legend { get; private set; }
-        public object linearGradientMaterial { get; set; } // Gradient material for areaSolidOutline series type.
+        public PlotOptions plotOptions { get; private set; }
         public SeriesCollection series { get; private set; }
         public HightchartSubtitle subtitle { get; private set; }
         public HighchartTitle title { get; private set; }
@@ -94,11 +99,6 @@
         internal string[] Categories
         {
             get { return cachedCategories; }
-        }
-        
-        public static SizeF MeasureStringSimple(Font font, string text)
-        {
-            return new SizeF() { Width = text.Length * 8, Height = font.Size }; // fast, but not accurate.
         }
 
         public void RecalcCategories()
@@ -214,34 +214,9 @@
 
             return nc;
         }
-        internal void UpdateLegend()
+        internal void AsyncUpdateLegendButtons()
         {
-            if (legendButtons != null)
-                for (int i = 0; i < legendButtons.Length; i++)
-                    legendButtons[i].Dispose();
-
-            if (legend.enabled == false)
-                return;
-            
-            legendButtons = new LegendButton[series.Count];
-            for (int i = 0; i < legendButtons.Length; i++)
-            {
-                var s = series[i];
-                var lb = new LegendButton(legend, s);
-                if (s.name == null)
-                    lb.Text = string.Concat("Series ", (i + 1).ToString());
-
-                lb.Width = (int)MeasureStringSimple(legend.itemStyle.font, lb.Text).Width + 20;
-
-                if (legend.layout == LegendLayouts.horizontal)
-                    lb.Location = new Point(i * 120, Height - lb.Height);
-
-                Controls.Add(lb);
-
-                legendButtons[i] = lb;
-            }
-
-            UpdateLegendLocation();
+            updateLegendButtonsFlag = true;
         }
 
         protected override void OnMouseMove(MouseEventArgs e)
@@ -253,30 +228,30 @@
         }
         protected override void OnPaint(PaintEventArgs e)
         {
-            if (UnityEngine.Event.current.type != UnityEngine.EventType.Repaint)
-                return;
+            var graphics = e.Graphics;
             
-            var g = e.Graphics;
+            TryUpdateLegendButtons(graphics);
             
-            g.uwfFillRectangle(chart.backgroundColor, 0, 0, Width, Height);
+            graphics.uwfFillRectangle(chart.backgroundColor, 0, 0, Width, Height);
 
-            DrawTitle(g);
+            DrawTitle(graphics);
 
             if (cachedPlotHeight > 0)
             {
-                DrawPlotBack(g);
-                DrawYAxes(g);
-                DrawXAxis(g);
+                DrawPlotBack(graphics);
+                DrawYAxes(graphics);
+                DrawXAxis(graphics);
                 
                 for (int i = 0; i < series.Count; i++)
                 {
                     var s = series[i];
-                    if (s.visible)
-                        DrawSeries(g, s);
+                    if (!s.visible) continue;
+                    
+                    DrawSeries(graphics, s);
                 }
                 
-                DrawTooltip(g);
-                DrawPlotBorder(g);
+                DrawTooltip(graphics);
+                DrawPlotBorder(graphics);
             }
 
             if (chart.borderWidth > 0)
@@ -285,10 +260,10 @@
                 borderPen.Color = chart.borderColor;
                 borderPen.Width = chart.borderWidth;
 
-                g.DrawRectangle(borderPen, 0, 0, Width, Height);
+                graphics.DrawRectangle(borderPen, 0, 0, Width, Height);
             }
         }
-        protected override void OnPaintBackground(PaintEventArgs pevent)
+        protected override void OnPaintBackground(PaintEventArgs e)
         {
         }
         protected override void OnResize(EventArgs e)
@@ -299,159 +274,11 @@
         }
         protected virtual void DrawSeries(Graphics g, Series s)
         {
-            var sdataCount = s.data.Count;
-            if (sdataCount == 0) return;
-
-            var categoriesIndex = 0;
-            var prevValue = 0D;
-            var areaColor = s.color;
-            var valueRange = cachedPlotMax - cachedPlotMin;
-
-            var pointInterval = s.pointInterval;
-            if (pointInterval <= 0)
-                return;
+            var clipRect = new Rectangle(plot.Padding.Left, plot.Padding.Top, plot.Width - plot.Padding.Horizontal, plot.Height - plot.Padding.Vertical);
             
-            if (series.Count > 1)
-                areaColor = Color.FromArgb(255 / series.Count, s.color);
-            
-            var xStep = cachedCategoriesStep;
-            if (sdataCount > 1)
-                xStep = (float)cachedPlotWidth / (sdataCount - 1);
-            xStep *= pointInterval;
-
-            int locationX = Location.X;
-            int locationY = Location.Y;
-            int parentHeight = 0;
-            int parentWidth = 0;
-            if (Parent != null)
-            {
-                parentHeight = Parent.Height;
-                parentWidth = Parent.Width;
-            }
-            
-            for (float i = 0; i < sdataCount; i += pointInterval)
-            {
-                double currentValue = s.data[(int) i];
-
-                bool last = i + pointInterval >= sdataCount;
-                float currentValueYCoef = (float) ((currentValue - cachedPlotMin) / valueRange);
-                float currentValueX = cachedPlotLeft + xStep * categoriesIndex;
-                float currentValueY = cachedPlotTop + cachedPlotHeight - cachedPlotHeight * currentValueYCoef;
-
-                if (currentValueX > cachedPlotRight)
-                    currentValueX = cachedPlotRight;
-                
-                bool clipHorizontal = false;
-                if (parentWidth != 0 && parentHeight != 0)
-                {
-                    if (locationX + currentValueX < -uwfOffset.X) // Left side.
-                        clipHorizontal = true;
-                    if (locationX + currentValueX + uwfOffset.X > parentWidth) // Right side.
-                        clipHorizontal = true;
-                }
-
-                if (clipHorizontal == false)
-                    switch (s.type)
-                    {
-                        case SeriesTypes.areaSolid:
-                        {
-                            if (i > 0)
-                            {
-                                float prevValueYCoef = (float) ((prevValue - cachedPlotMin) / valueRange);
-                                float prevValueX = cachedPlotLeft + (categoriesIndex - 1) * xStep;
-                                float prevValueY = cachedPlotTop + cachedPlotHeight - cachedPlotHeight * prevValueYCoef;
-    
-                                g.uwfFillRectangle(areaColor, prevValueX, prevValueY, currentValueX - prevValueX,
-                                    cachedPlotBottom - prevValueY);
-                                if (last)
-                                    g.uwfFillRectangle(areaColor, currentValueX, currentValueY, xStep,
-                                        cachedPlotBottom - currentValueY);
-                            }
-                        }
-                            break;
-                        case SeriesTypes.areaSolidOutline:
-                        {
-                            if (i > 0)
-                            {
-                                float prevValueYCoef = (float) ((prevValue - cachedPlotMin) / valueRange);
-                                float prevValueX = cachedPlotLeft + (categoriesIndex - 1) * xStep;
-                                float prevValueY = cachedPlotTop + cachedPlotHeight - cachedPlotHeight * prevValueYCoef;
-                                
-                                if (s.linearGradient == false)
-                                {
-                                    g.uwfFillRectangle(areaColor, prevValueX, prevValueY, currentValueX - prevValueX,
-                                        cachedPlotBottom - prevValueY);
-    
-                                    if (last)
-                                        g.uwfFillRectangle(areaColor, currentValueX, currentValueY, xStep,
-                                            cachedPlotBottom - currentValueY);
-                                }
-                                else if (linearGradientMaterial != null)
-                                {
-                                    float clipH = cachedPlotHeight;
-                                    
-    #if UNITY_EDITOR || UNITY_STANDALONE || UNITY_ANDROID || UNITY_WEBGL
-                                    
-                                    float clipY = prevValueY;
-                                    
-                                    // Vertical clipping.
-                                    if (locationY + currentValueY < -uwfOffset.Y)
-                                        clipY = -uwfOffset.Y - locationY;
-                                    if (locationY + cachedPlotTop + clipH + uwfOffset.Y > parentHeight)
-                                        clipH = parentHeight - uwfOffset.Y - locationY - cachedPlotTop;
-                                    
-                                    var unityMaterial = linearGradientMaterial as UnityEngine.Material;
-                                    if (unityMaterial != null)
-                                        unityMaterial.SetFloat("_Y", 1 - (clipY - cachedPlotTop) / clipH);
-                                    
-    #endif
-                                    g.uwfFillRectangle(areaColor, prevValueX, cachedPlotTop, currentValueX - prevValueX, clipH, linearGradientMaterial);
-                                    if (last)
-                                        g.uwfFillRectangle(areaColor, currentValueX, cachedPlotTop, xStep, clipH, linearGradientMaterial);
-                                }
-    
-                                g.DrawLine(s.pen, prevValueX, prevValueY, currentValueX + 1, prevValueY);
-                                g.DrawLine(s.pen, currentValueX, prevValueY, currentValueX, currentValueY);
-                            }
-                        }
-                            break;
-                        case SeriesTypes.line:
-                        {
-                            if (i > 0)
-                            {
-                                float prevValueYCoef = (float) ((prevValue - cachedPlotMin) / valueRange);
-                                float prevValueX = cachedPlotLeft + (categoriesIndex - 1) * xStep;
-                                float prevValueY = cachedPlotTop + cachedPlotHeight - cachedPlotHeight * prevValueYCoef;
-                                g.DrawLine(s.pen, prevValueX, prevValueY, currentValueX + 1, currentValueY);
-                            }
-                        }
-                            break;
-                        case SeriesTypes.lineSolid:
-                        {
-                            if (i > 0)
-                            {
-                                float prevValueYCoef = (float) ((prevValue - cachedPlotMin) / valueRange);
-                                float prevValueX = cachedPlotLeft + (categoriesIndex - 1) * xStep;
-                                float prevValueY = cachedPlotTop + cachedPlotHeight - cachedPlotHeight * prevValueYCoef;
-                                g.DrawLine(s.pen, prevValueX, prevValueY, currentValueX + 1, prevValueY);
-                                g.DrawLine(s.pen, currentValueX, prevValueY, currentValueX, currentValueY);
-                            }
-                        }
-                            break;
-                        case SeriesTypes.point:
-                        {
-                            g.uwfDrawImage(ApplicationResources.Images.Circle, s.color, currentValueX - circleRadius,
-                                currentValueY - circleRadius, circleRadius * 2, circleRadius * 2);
-                        }
-                            break;
-                    }
-
-                if (hovered && mouseX > currentValueX - xStep / 2 && mouseX < currentValueX + xStep / 2)
-                    g.uwfFillRectangle(s.color, currentValueX - 2, currentValueY - 2, 4, 4);
-
-                prevValue = currentValue;
-                categoriesIndex++;
-            }
+            g.GroupBegin(plot);
+            s.Paint(g, clipRect); 
+            g.GroupEnd();
         }
         protected virtual void DrawTitle(Graphics g)
         {
@@ -617,20 +444,12 @@
         }
         internal int GetSeriesMaximumDataAmount()
         {
-            var seriesCount = series.Count;
-            if (seriesCount == 0)
+            if (series.Count == 0)
                 return -1;
 
-            if (seriesCount == 1)
-            {
-                var firstSeries = series[0];
-                if (firstSeries.visible == false)
-                    return -1;
-                return firstSeries.data.Count;
-            }
-
             int? a = null;
-            for (int i = 0; i < seriesCount; i++)
+            
+            for (int i = 0; i < series.Count; i++)
             {
                 var seriesItem = series[i];
                 if (!seriesItem.visible) continue;
@@ -640,7 +459,10 @@
                 else if (seriesItem.data.Count > a)
                     a = seriesItem.data.Count;
             }
-            if (a == null) return -1;
+            
+            if (a == null) 
+                return -1;
+            
             return a.Value;
         }
         internal int GetSeriesMinimumDataAmount()
@@ -669,15 +491,15 @@
         }
         internal double GetValueAtX(Series s, int x)
         {
-            if (s == null)
+            if (s == null || s.data.Count == 0)
                 return 0;
 
-            var sdataCount = s.data.Count;
-            if (sdataCount == 0) return 0;
+            var maxDataAmount = GetSeriesMaximumDataAmount();
+            if (maxDataAmount == 0) return 0;
 
-            var xCoef = (float)(x - cachedPlotLeft) / cachedPlotWidth;
-            var dataIndex = (int)(xCoef * sdataCount);
-            if (dataIndex >= sdataCount || dataIndex < 0)
+            var xMod = (float)(x - cachedPlotLeft - plot.Padding.Left) / cachedPlotWidth;
+            var dataIndex = (int) (xMod * (maxDataAmount - 1));
+            if (dataIndex >= s.data.Count || dataIndex < 0)
                 return 0;
 
             return s.data[dataIndex];
@@ -734,10 +556,13 @@
             cachedPlotBottom -= xAxis.tickLength;
             cachedPlotHeight = cachedPlotBottom - cachedPlotTop;
             cachedPlotWidth = cachedPlotRight - cachedPlotLeft;
+            
+            plot.Location = new Point(cachedPlotLeft, cachedPlotTop);
+            plot.Size = new Size(cachedPlotWidth, cachedPlotHeight);
 
             // Other stuff.
             RecalcCategories();
-            UpdatePlot();
+            UpdatePlot(true);
         }
         internal int UpdateLegendLocation()
         {
@@ -777,6 +602,40 @@
 
                 return lbHeight;
             }
+        }
+
+        private void TryUpdateLegendButtons(Graphics g)
+        {
+            if (!updateLegendButtonsFlag)
+                return;
+            
+            updateLegendButtonsFlag = false;
+            
+            if (legendButtons != null)
+                for (int i = 0; i < legendButtons.Length; i++)
+                    legendButtons[i].Dispose();
+
+            if (!legend.enabled)
+                return;
+            
+            legendButtons = new LegendButton[series.Count];
+            
+            for (int i = 0; i < legendButtons.Length; i++)
+            {
+                var s = series[i];
+                var lb = new LegendButton(legend, s);
+
+                lb.Width = (int) g.MeasureString(lb.Text, legend.itemStyle.font).Width + 20;
+
+                if (legend.layout == LegendLayouts.horizontal)
+                    lb.Location = new Point(i * 120, Height - lb.Height);
+
+                Controls.Add(lb);
+
+                legendButtons[i] = lb;
+            }
+
+            Recalc();
         }
     }
 }

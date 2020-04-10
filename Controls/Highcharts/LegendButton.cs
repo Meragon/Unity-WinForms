@@ -6,21 +6,20 @@
 
     internal sealed class LegendButton : Button
     {
-        internal bool seriesEnabled;
-
-        private readonly Pen seriesPen = new Pen(Color.Transparent, 2);
+        private const int DefaultTextMarginLeft = 16;
         
         public LegendButton(Legend l, Series s)
         {
             Legend = l;
             Series = s;
-            Text = s.name;
-
-            OnMouseClick(new MouseEventArgs(MouseButtons.Left, 1, 0, 0, 0));
+            TextLeftMargin = DefaultTextMarginLeft;
+            
+            TextFromSeries();
         }
 
         public Legend Legend { get; private set; }
         public Series Series { get; private set; }
+        public int TextLeftMargin { get; set; }
 
         protected override void OnMouseClick(MouseEventArgs e)
         {
@@ -29,11 +28,13 @@
             switch (e.Button)
             {
                 case MouseButtons.Left:
-                    seriesEnabled = !seriesEnabled;
+                    Series.visible = !Series.visible;
 
-                    Series.visible = seriesEnabled;
-                    if (Parent != null) ((Highchart)Parent).RecalcCategories();
+                    var highcharts = Parent as Highchart;
+                    if (highcharts != null) 
+                        highcharts.UpdatePlot(); // Update plot min and max values range.
                     break;
+                
                 case MouseButtons.Right:
                     
                     var itemColor = new ToolStripMenuItem(Highchart.textLegendMenu_Color);
@@ -44,25 +45,14 @@
                         form.ColorChanged += (sender2, args2) => Series.color = form.Color; 
                         form.ShowDialog();
                     };
-                    
-                    var itemType = new ToolStripMenuItem(Highchart.textLegendMenu_Type);
-
-                    var seriesTypes = Highchart.textLegendMenu_TypeNames;
-                    for (int i = 0; i < seriesTypes.Length; i++)
-                    {
-                        int index = i;
-                        var item = new ToolStripMenuItem(seriesTypes[i]);
-                        item.Click += (s, a) => { Series.type = (SeriesTypes)index; };
-                        itemType.DropDownItems.Add(item);
-                    }
 
                     var context = new ContextMenuStrip();
                     context.Items.Add(itemColor);
-                    context.Items.Add(itemType);
                     context.Show(null, MousePosition);
                     break;
             }
         }
+        
         protected override void OnPaint(PaintEventArgs e)
         {
             var graphics = e.Graphics;
@@ -70,7 +60,8 @@
             // User original series color or hidden color for icon and use styles for text.
             var seriesColor = Series.color;
             var textColor = Legend.itemStyle.color;
-            if (seriesEnabled == false)
+            
+            if (!Series.visible)
             {
                 seriesColor = Legend.itemHiddenStyle.color;
                 textColor = seriesColor;
@@ -80,30 +71,19 @@
             if (hovered)
                 textColor = Legend.itemHoverStyle.color;
             
-            switch (Series.type)
-            {
-                case SeriesTypes.areaSolid:
-                case SeriesTypes.areaSolidOutline:
-                    graphics.uwfFillRectangle(seriesColor, 4, 8, 8, 8);
-                    break;
-                case SeriesTypes.line:
-                    seriesPen.Color = seriesColor;
-                    graphics.DrawLine(seriesPen, 0, 11, 16, 11);
-                    break;
-                case SeriesTypes.lineSolid:
-                    seriesPen.Color = seriesColor;
-                    graphics.DrawLine(seriesPen, 0, 11, 16, 11);
-                    graphics.uwfDrawImage(ApplicationResources.Images.Circle, seriesColor, 4, 8, 8, 8);
-                    break;
-                case SeriesTypes.point:
-                    graphics.uwfDrawImage(ApplicationResources.Images.Circle, seriesColor, 4, 8, 8, 8);
-                    break;
-            }
+            Series.PaintIcon(graphics, new Rectangle(0, 0, TextLeftMargin, 16));
 
-            graphics.uwfDrawString(Text, Font, textColor, 16, 0, Width - 16, Height, ContentAlignment.MiddleCenter);
+            graphics.uwfDrawString(Text, Font, textColor, TextLeftMargin, 0, Width - TextLeftMargin, Height, ContentAlignment.MiddleCenter);
         }
-        protected override void OnPaintBackground(PaintEventArgs pevent)
+        
+        protected override void OnPaintBackground(PaintEventArgs e)
+        { }
+        
+        private void TextFromSeries()
         {
+            Text = Series.name != null 
+                ? Series.name 
+                : "Series " + (Series.index + 1);
         }
     }
 }

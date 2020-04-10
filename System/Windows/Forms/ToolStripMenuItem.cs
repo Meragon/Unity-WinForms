@@ -112,6 +112,8 @@ namespace System.Windows.Forms
                 case Keys.Control: return "Ctrl";
                 case Keys.Delete: return "Del";
                 case Keys.Return: return "Enter";
+                
+                case Keys.Oemcomma: return ",";
             }
             
             if (cachedKeysValues == null)

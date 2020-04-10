@@ -1,16 +1,16 @@
-﻿using System;
-
-namespace Highcharts
+﻿namespace Highcharts
 {
+    using System;
     using System.Collections;
     using System.Collections.Generic;
 
     public class DataCollection : IEnumerable
     {
         private static readonly double[] emptyArray = new double[0];
-        private readonly Series       owner;
 
-        private double[] items = new double[0];
+        private readonly Series owner;
+
+        private double[] items = new double[0]; // TODO: nullable type.
         private double max;
         private double min;
         private int size;

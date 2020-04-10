@@ -6,6 +6,7 @@ namespace System.Windows.Forms
     {
         private readonly ToolStripItemCollection dropDownItems;
         private ToolStripDropDown dropDownToolStrip;
+        private ToolStripDropDown userDropDown;
         private float mouseHoverTime;
         private bool pressed;
 
@@ -23,6 +24,7 @@ namespace System.Windows.Forms
         public ToolStripDropDown DropDown
         {
             get { return dropDownToolStrip; }
+            set { userDropDown = value; }
         }
         public ToolStripItemCollection DropDownItems { get { return dropDownItems; } }
         public override bool Pressed
@@ -82,8 +84,10 @@ namespace System.Windows.Forms
             var direction = ToolStripDropDownDirection.Right;
             if (Owner.IsDropDown == false)
                 direction = ToolStripDropDownDirection.BelowRight;
-
-            dropDownToolStrip = new ToolStripDropDownMenu();
+            
+            dropDownToolStrip = userDropDown == null 
+                ? new ToolStripDropDownMenu()
+                : userDropDown;
             dropDownToolStrip.OwnerItem = this;
             dropDownToolStrip.Items.AddRange(dropDownItems);
             dropDownToolStrip.selectedItem = dropDownToolStrip.SelectNextToolStripItem(null, true);
@@ -91,7 +95,7 @@ namespace System.Windows.Forms
             dropDownToolStrip.direction = direction;
             dropDownToolStrip.Location = DropDownDirectionToDropDownBounds(direction, dropDownBounds).Location;
             dropDownToolStrip.Disposed += DropDownToolStrip_Disposed;
-            ((ToolStripDropDownMenu)dropDownToolStrip).Show(dropDownToolStrip.Location);
+            dropDownToolStrip.Show(dropDownToolStrip.Location);
 
             if (uwfDropDownCreated != null)
                 uwfDropDownCreated(dropDownToolStrip);

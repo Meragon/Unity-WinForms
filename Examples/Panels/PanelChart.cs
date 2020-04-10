@@ -17,25 +17,18 @@
         {
             this.Create<Label>("Press LMB on the legend button to enable/disable series, press RMB to show the context menu.");
             
-            var seriesSin = new Series("Sin");
-            seriesSin.linearGradient = true;
-            seriesSin.type = SeriesTypes.areaSolidOutline;
-            
-            var seriesCos = new Series("Cos");
-            seriesCos.linearGradient = true;
-            seriesCos.type = SeriesTypes.areaSolidOutline;
-            
-            var seriesX = new Series("Rounded X");
-            seriesX.linearGradient = true;
-            seriesX.type = SeriesTypes.areaSolid;
+            var seriesSin = new SeriesAreaSolidOutline("Sin");
+            var seriesCos = new SeriesAreaSolidOutline("Cos");
+            var seriesX = new SeriesAreaSolidOutline("Rounded X");
             
             var chart = this.Create<Highchart>();
             chart.fixedMin = -2; // Set plot min value.
-            chart.linearGradientMaterial = UnitWinFormsExamples.s_chartGradient; // Can't make clipping working for this shader.
             chart.Size = new Size(480, 320);
             chart.title.text = "Test chart";
             chart.subtitle.text = "(updating every frame)";
             chart.legend.itemHoverStyle = new LegendItemStyle(Color.FromArgb(0, 122, 204));
+            //chart.plotOptions.linearGradient = true;
+            //chart.plotOptions.linearGradientMaterial = UnitWinFormsExamples.s_chartGradient; // Can't make clipping working for this shader.
             chart.series.Add(seriesSin);
             chart.series.Add(seriesCos);
             chart.series.Add(seriesX);
