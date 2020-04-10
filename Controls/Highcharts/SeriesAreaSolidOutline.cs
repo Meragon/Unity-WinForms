@@ -101,7 +101,7 @@ namespace Highcharts
         
         protected override void OnPaintIcon(Graphics g, Rectangle clipRectangle)
         {
-            g.uwfFillRectangle(color, clipRectangle.Left + 4, clipRectangle.Top + 4, 8, 8);
+            g.uwfFillRectangle(color, clipRectangle.Left + 4, clipRectangle.Top + 8, 8, 8);
         }
     }
 }
