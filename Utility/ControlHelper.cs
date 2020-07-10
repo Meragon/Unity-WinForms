@@ -15,12 +15,16 @@
             buttonCancel.Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
             buttonCancel.Location = new Point(f.Width - buttonCancel.Width - 12, f.Height - buttonCancel.Height - 15);
             buttonCancel.Text = "Cancel";
-            f.Controls.Add(buttonCancel);
+            
+            if (!f.Controls.Contains(buttonCancel))
+                f.Controls.Add(buttonCancel);
 
             buttonOk.Anchor = AnchorStyles.Right | AnchorStyles.Bottom;
             buttonOk.Location = new Point(buttonCancel.Location.X - buttonOk.Width - 9, buttonCancel.Location.Y);
             buttonOk.Text = "Ok";
-            f.Controls.Add(buttonOk);
+            
+            if (!f.Controls.Contains(buttonOk))
+                f.Controls.Add(buttonOk);
 
             if (additionalButtons != null)
             {

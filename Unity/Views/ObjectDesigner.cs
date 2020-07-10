@@ -39,12 +39,10 @@
 
         private class PropertyEditor
         {
-            public readonly List<ObjectEditor> arrayEditors = new List<ObjectEditor>();
             public readonly PropertyInfo info;
             public readonly bool canSet;
             
             public ObjectEditor editor;
-            public bool expanded;
             
             public PropertyEditor(PropertyInfo propertyInfo, bool instanceIsValueType)
             {
@@ -59,6 +57,7 @@
         private class ObjectEditor
         {
             public bool toggleEditor;
+            public readonly List<ObjectEditor> arrayEditors = new List<ObjectEditor>();
 
             private readonly List<FieldInfo> fields;
             private readonly List<MethodInfo> methods;
@@ -67,6 +66,7 @@
             private readonly string name;
             
             private int backgroundRGB = 255;
+            private bool enumerableExpanded;
 
             public ObjectEditor(object o, string objName)
             {
@@ -163,6 +163,46 @@
                         
                         Editor.EndVertical();
                     }
+                    
+                    // Array & List.
+                    if (!(target is string) && (target.GetType().IsArray || target is IEnumerable))
+                    {
+                        Editor.BeginVertical();
+                        
+                        {
+                            var arrayIndex = 0;
+                            var e = target as IEnumerable;
+                            
+                            foreach (var item in e)
+                            {
+                                var control = item as Control;
+                                if (control != null)
+                                {
+                                    if (Editor.Button("    " + arrayIndex, control.ToString()))
+                                        return control;
+                                }
+                                else
+                                {
+                                    if (arrayIndex >= arrayEditors.Count)
+                                    {
+                                        var itemText = "null";
+                                        if (item != null) itemText = item.ToString();
+                                        
+                                        var aEditor = new ObjectEditor(item, arrayIndex + " (" + itemText + ")");
+                                        aEditor.backgroundRGB = MathHelper.Clamp(backgroundRGB - 25, 128, 255);
+                                        
+                                        arrayEditors.Add(aEditor);
+                                    }
+
+                                    arrayEditors[arrayIndex].Draw();
+                                }
+                                
+                                arrayIndex++;
+                            }
+                        }
+                    
+                        Editor.EndVertical();
+                    }
                 }
                 
                 Editor.EndVertical();
@@ -181,12 +221,6 @@
                 {
                     Editor.Label(propertyEditor.info.Name, "(" + propertyEditor.info.PropertyType.Name +  ") null");
                     return null;
-                }
-
-                // Array & List.
-                if (!(value is string) && (value.GetType().IsArray || value is IEnumerable))
-                {
-                    return PropertyEditorEnumerable(propertyEditor, (IEnumerable) value);
                 }
 
                 // Base editors.
@@ -330,45 +364,6 @@
                         propertyEditor.info.SetValue(target, eeVal.Value, null);
                 }
 
-                return null;
-            }
-            public object PropertyEditorEnumerable(PropertyEditor propertyEditor, IEnumerable value)
-            {
-                Editor.BeginVertical();
-                propertyEditor.expanded = Editor.Foldout(propertyEditor.info.Name, propertyEditor.expanded);
-                if (propertyEditor.expanded)
-                {
-                    var arrayIndex = 0;
-                            
-                    foreach (var item in value)
-                    {
-                        var control = item as Control;
-                        if (control != null)
-                        {
-                            if (Editor.Button("    " + arrayIndex, control.ToString()))
-                                return control;
-                        }
-                        else
-                        {
-                            if (arrayIndex >= propertyEditor.arrayEditors.Count)
-                            {
-                                var itemText = "null";
-                                if (item != null) itemText = item.ToString();
-                                        
-                                var aEditor = new ObjectEditor(item, arrayIndex + " (" + itemText + ")");
-                                aEditor.backgroundRGB = MathHelper.Clamp(backgroundRGB - 25, 128, 255);
-                                        
-                                propertyEditor.arrayEditors.Add(aEditor);
-                            }
-
-                            propertyEditor.arrayEditors[arrayIndex].Draw();
-                        }
-                                
-                        arrayIndex++;
-                    }
-                }
-                    
-                Editor.EndVertical();
                 return null;
             }
             public object PropertyEditorInt8(PropertyEditor propertyEditor, sbyte value)

@@ -358,6 +358,9 @@
             {
                 hoveredControl.selected = false;
                 hoveredControl.RaiseOnLostFocus(EventArgs.Empty);
+                hoveredControl = null;
+
+                Control.lastSelected = null;
             }
             
 			if (LostFocus != null)

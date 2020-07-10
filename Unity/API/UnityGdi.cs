@@ -7,11 +7,11 @@
     using System.Windows.Forms;
 
     using UE = UnityEngine;
-
+    
     public class UnityGdi : IApiGraphics
     {
         public static UE.Color cursorSelectionColor = Color.FromArgb(128, SystemColors.Highlight).ToUnityColor();
-        public static UE.Texture2D defaultTexture = UnityWinForms.DefaultSprite;
+        public static UE.Texture2D defaultTexture = UnityWinForms.DefaultTexture;
 
         private static readonly UE.GUIContent textContent = new UE.GUIContent(""); // GUIContent.Temp(text) replacement.
         private static readonly UE.Rect sourceRect = new UE.Rect(0f, 0f, 1f, 1f);
@@ -422,10 +422,11 @@
             GUI_SetFont(UE.GUI.skin.textField, font);
             
             UE.GUI.color = color.ToUnityColor();
-            UE.GUI.skin.textField.hover.background = null;
-            UE.GUI.skin.textField.active.background = null;
-            UE.GUI.skin.textField.focused.background = null;
-            UE.GUI.skin.textField.normal.background = null;
+
+            UE.GUI.skin.textField.hover.background = UnityWinForms.TransparentTexture;
+            UE.GUI.skin.textField.active.background = UnityWinForms.TransparentTexture;
+            UE.GUI.skin.textField.focused.background = UnityWinForms.TransparentTexture;
+            UE.GUI.skin.textField.normal.background = UnityWinForms.TransparentTexture;
             
             return UE.GUI.PasswordField(new UE.Rect(x, y, width, height), s, '*');
         }
@@ -440,10 +441,10 @@
 
             GUI_SetFont(UE.GUI.skin.textArea, font);
 
-            UE.GUI.skin.textArea.hover.background = null;
-            UE.GUI.skin.textArea.active.background = null;
-            UE.GUI.skin.textArea.focused.background = null;
-            UE.GUI.skin.textArea.normal.background = null;
+            UE.GUI.skin.textArea.hover.background = UnityWinForms.TransparentTexture;
+            UE.GUI.skin.textArea.active.background = UnityWinForms.TransparentTexture;
+            UE.GUI.skin.textArea.focused.background = UnityWinForms.TransparentTexture;
+            UE.GUI.skin.textArea.normal.background = UnityWinForms.TransparentTexture;
 
             return UE.GUI.TextArea(new UE.Rect(x, y, width, height), s);
         }
@@ -468,10 +469,11 @@
             GUI_SetFont(UE.GUI.skin.textField, font);
 
             UE.GUI.color = color.ToUnityColor();
-            UE.GUI.skin.textField.hover.background = null;
-            UE.GUI.skin.textField.active.background = null;
-            UE.GUI.skin.textField.focused.background = null;
-            UE.GUI.skin.textField.normal.background = null;
+
+            UE.GUI.skin.textField.hover.background = UnityWinForms.TransparentTexture;
+            UE.GUI.skin.textField.active.background = UnityWinForms.TransparentTexture;
+            UE.GUI.skin.textField.focused.background = UnityWinForms.TransparentTexture;
+            UE.GUI.skin.textField.normal.background = UnityWinForms.TransparentTexture;
             
             return UE.GUI.TextField(new UE.Rect(x, y, width, height), s);
         }

@@ -18,7 +18,8 @@
         [UE.Tooltip("Delay between KeyDown events")]
         public float ShiftDownTime = .05f;
         
-        private static UE.Texture2D defaultSprite;
+        private static UE.Texture2D defaultTexture;
+        private static UE.Texture2D transparentTexture;
 
         private Application controller;
 
@@ -28,23 +29,17 @@
         private float shiftDownTimer;
         private float shiftDownDelayTimer; // Shift pressing is really fast.
         private bool  paused;
-
-        internal static UE.Texture2D DefaultSprite
+        
+        internal static UE.Texture2D DefaultTexture
         {
-            get
-            {
-                if (defaultSprite != null) return defaultSprite;
-
-                defaultSprite = new UE.Texture2D(1, 1);
-
-                for (int y = 0; y < defaultSprite.height; y++)
-                for (int x = 0; x < defaultSprite.width; x++)
-                    defaultSprite.SetPixel(x, y, UE.Color.white);
-                
-                defaultSprite.Apply();
-                return defaultSprite;
-            }
+            get { return defaultTexture; }
         }
+
+        internal static UE.Texture2D TransparentTexture
+        {
+            get { return transparentTexture; }
+        }
+
         internal static AppGdiImages GdiImages { get; private set; }
         internal static AppResources gResources { get; private set; }
 
@@ -59,6 +54,14 @@
 
         private void Awake()
         {
+            defaultTexture = new UE.Texture2D(1, 1);
+            defaultTexture.SetPixel(0, 0, UE.Color.white);
+            defaultTexture.Apply();
+            
+            transparentTexture = new UE.Texture2D(1, 1);
+            transparentTexture.SetPixel(0, 0, UE.Color.clear);
+            transparentTexture.Apply();
+            
             ApiHolder.Graphics = new UnityGdi();
             ApiHolder.Input = new UnityInput();
             ApiHolder.System = new UnitySystem();
