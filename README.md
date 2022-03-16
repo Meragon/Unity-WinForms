@@ -1,3 +1,5 @@
+## Important notice: project is no longer supported. I moved this whole thing from Unity to raylib.
+
 # Unity Windows Forms
 
 A Windows Forms port (including System.Drawing) to Unity3d, built on top of 'UnityEngine.GUI' class. 
